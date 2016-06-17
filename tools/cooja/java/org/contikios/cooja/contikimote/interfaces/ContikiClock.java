@@ -157,7 +157,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
     /* Request tick next wakeup time for Etimer */
     long etimerNextExpirationTime = (long)moteMem.getInt32ValueOf("simEtimerNextExpirationTime") * Simulation.MILLISECOND;
-    long etimerTimeToNextExpiration = etimerNextExpirationTime - moteTime;
+    long etimerTimeToNextExpiration = etimerNextExpirationTime - (moteTime / 1000) * 1000;
     if (etimerTimeToNextExpiration <= 0) {
       /* logger.warn(mote.getID() + ": Event timer already expired, but has been delayed: " + etimerTimeToNextExpiration); */
       /* Wake up in one millisecond to handle a missed Etimer task

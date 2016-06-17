@@ -155,9 +155,17 @@ send_one_packet(mac_callback_t sent, void *ptr)
           rtimer_clock_t wt;
 
           /* Check for ack */
+#if CONTIKI_TARGET_COOJA
+          wt = clock_time();
+#else
           wt = RTIMER_NOW();
+#endif
           watchdog_periodic();
+#if CONTIKI_TARGET_COOJA
+          while(RTIMER_CLOCK_LT(clock_time(), wt + ACK_WAIT_TIME / 1000)) {
+#else
           while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + ACK_WAIT_TIME)) {
+#endif
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
             simProcessRunValue = 1;
             cooja_mt_yield();
