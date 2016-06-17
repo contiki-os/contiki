@@ -52,6 +52,9 @@
 
 #ifdef COFFEE_CONF_CUSTOM_PORT
 #include COFFEE_CONF_CUSTOM_PORT
+#ifndef CC2538_FLASH_OFFSET
+#define CC2538_FLASH_OFFSET    0
+#endif
 #else
 /*---------------------------------------------------------------------------*/
 /** \name Coffee port constants
@@ -81,6 +84,8 @@
 #else
 #define COFFEE_SIZE            0
 #endif
+/** Space reserved in flash */
+#define CC2538_FLASH_OFFSET    COFFEE_SIZE
 /** Maximal filename length */
 #ifdef COFFEE_CONF_NAME_LENGTH
 #define COFFEE_NAME_LENGTH     COFFEE_CONF_NAME_LENGTH
