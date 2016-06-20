@@ -932,6 +932,15 @@ void rf230_warm_reset(void) {
   hal_subregister_write(SR_TX_AUTO_CRC_ON, 1);
 #endif
 
+#if defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
+  /* Enable PLL TX Filter */
+#if RF230_CONF_PLL_TX_FILTER
+  hal_subregister_write(SR_PLL_FLT, 1);
+#else
+  hal_subregister_write(SR_PLL_FLT, 0);
+#endif
+#endif
+
 /* Limit tx power for testing miniature Raven mesh */
 #ifdef RF230_MAX_TX_POWER
   set_txpower(RF230_MAX_TX_POWER);  //0=3dbm 15=-17.2dbm
