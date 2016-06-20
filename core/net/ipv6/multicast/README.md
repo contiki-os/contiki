@@ -98,7 +98,7 @@ In order to extend multicast with a new engine, perform the following steps:
 - Open `uip-mcast6.h` and add a section in the `#if` spree. This aims to
   configure the uIPv6 core. More specifically, you need to:
   * Specify if you want to put RPL in MOP3 by defining
-      `RPL_CONF_MULTICAST`: 1: MOP 3, 0: non-multicast MOP
+      `RPL_WITH_MULTICAST`: 1: MOP 3, 0: non-multicast MOP
   * Define your engine details
 
             #define UIP_MCAST6             foo_driver
