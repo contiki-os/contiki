@@ -15,5 +15,5 @@ CUSTOM_RULE_LINK = 1
 
 
 
-CONTIKI = ../../../..
+CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include
