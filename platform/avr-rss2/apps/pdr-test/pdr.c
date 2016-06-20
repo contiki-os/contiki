@@ -114,8 +114,22 @@ uint8_t eof = END_OF_FILE;
 
 static int set_txpower(uint8_t p);
 
-// -------------------------------------------------------------
+/* avr-rss2 plaftform has unresolved issues with TX-power 
+   for low power settings. Remapping the TX mappinng as below 
+   results in a decreasing TX power settings. */
 
+#if CONTIKI_TARGET_AVR_RSS2
+uint8_t tx_corr_tab[16] ={0,1,2,3,4,15,5,14,6,13,7,12,8,11,9,10};
+
+void radio_set_txpower_avr_rss2(uint8_t txp) 
+{
+  if(txp > 15)
+    return rf230_set_txpower(0); /* Max */
+  return rf230_set_txpower(tx_corr_tab[txp]);
+}
+#endif 
+
+// -------------------------------------------------------------
 //
 // To simplify the code, all internal RSSI calculations are done using non-negative numbers.
 // This function maps the resulting value back to the CC2x20-specific valye range.

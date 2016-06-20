@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "2.5-2016-06-10\n"
+#define VERSION  "2.6-2016-06-20\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -106,7 +106,7 @@ char *tx_power_list[] = { "MAX", "0", "-7", "-15", "MIN"}; /* dBm */ //FIME
 
 #define PLATFORM_RADIO_HEADER "radio/rf230bb/rf230bb.h"
 
-#define radio_set_txpower rf230_set_txpower
+#define radio_set_txpower radio_set_txpower_avr_rss2
 #define radio_get_txpower rf230_get_txpower
 #define radio_set_channel rf230_set_channel
 #define radio_get_channel rf230_get_channel
