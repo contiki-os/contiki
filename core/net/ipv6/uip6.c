@@ -1202,7 +1202,7 @@ uip_process(uint8_t flag)
       goto drop;
     }
   }
-#endif /* UIP_IPV6_CONF_MULTICAST */
+#endif /* UIP_CONF_IPV6_MULTICAST */
 
   /* TBD Some Parameter problem messages */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
