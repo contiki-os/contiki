@@ -92,7 +92,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
@@ -755,7 +755,7 @@ dao_input_storing(void)
   PRINT6ADDR(&prefix);
   PRINTF("\n");
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
     mcast_group = uip_mcast6_route_add(&prefix);
     if(mcast_group) {
@@ -845,7 +845,7 @@ dao_input_storing(void)
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 fwd_dao:
 #endif
 
