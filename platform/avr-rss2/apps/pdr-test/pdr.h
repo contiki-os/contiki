@@ -170,6 +170,28 @@ uint8_t get_channel() {
 #define PLATFORM_TEMP_SENSOR_HEADER "tmp-007-sensor.h"
 #define temp_sensor       tmp_007_sensor
 
+
+#elif CONTIKI_TARGET_INGA
+
+#define PLATFORM_RADIO_HEADER "radio/rf230bb/rf230bb.h"
+
+#define radio_set_txpower rf230_set_txpower
+#define radio_get_txpower rf230_get_txpower
+#define radio_set_channel rf230_set_channel
+#define radio_get_channel rf230_get_channel
+#define radio_get_rssi    rf230_rssi
+
+// see ATmega128RFA1 datasheet page 109
+#define RADIO_POWER_MAX        0    // TODO: configure!!!
+#define RADIO_POWER_MIN        0    // TODO: configure!!!
+#define RADIO_POWER_ZERO_DB    6   // actually 0.5 dBm
+#define RADIO_POWER_MINUS7_DB  12  // actually -6.5 dBm
+#define RADIO_POWER_MINUS15_DB TX_PWR_17_2DBM  // actually -17.5 dBm
+
+char *tx_power_list[] = { "3", "0", "-7", "-17", "-17"}; /* dBm */
+
+#define PLATFORM_TEMP_SENSOR_HEADER "dev/temp-sensor.h"  // TODO: modify to correct sensor
+
 #else
 #error No support for your platform!
 #endif // CONTIKI_TARGET_xx
@@ -261,9 +283,12 @@ extern bool cc2420_without_send_cca;
 #ifdef CONTIKI_TARGET_SENSORTAG
 #define PLATFORM_ID  8
 #endif
-#define PLATFORM_ID_MAX 8
+#ifdef CONTIKI_TARGET_INGA
+#define PLATFORM_ID  9
+#endif
+#define PLATFORM_ID_MAX 9
 
-char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag"};
+char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag", "inga"};
 
 /* For TX between platforms */
 
