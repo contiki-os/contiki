@@ -87,6 +87,14 @@
 #define RF230_CONF_AUTOACK        1
 #endif
 
+/* 
+   TX Filter. Be careful. This setting impacts RF-emission. And might violate CE, FCC 
+   regulations. RS boards has separate bandpass filter and conform to CE with any setting.
+ */
+#ifndef RF230_CONF_PLL_TX_FILTER
+#define RF230_CONF_PLL_TX_FILTER    0
+#endif
+
 #define TIMESYNCH_CONF_ENABLED 1
 #define RF230_CONF_TIMESTAMPS 1
 

@@ -43,8 +43,10 @@
 #include "leds.h"
 #include "dev/leds.h"
 #include "dev/battery-sensor.h"
+#include "dev/temp-sensor.h"
 #include "dev/temp_mcu-sensor.h"
 #include "dev/light-sensor.h"
+#include "dev/pulse-sensor.h"
 #ifdef CO2
 #include "dev/co2_sa_kxx-sensor.h"
 #endif
@@ -58,7 +60,7 @@
 #define DEBUG DEBUG_PRINT
 #include "uip-debug.h"
 
-#define PORT 1236
+#define PORT 1234
 #define MAX_PAYLOAD_LEN 80
 
 static struct psock ps;
@@ -85,13 +87,13 @@ do_report(void)
   
   seq_id++;
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "&: ");
-  len += snprintf((char *) &out_buf[len], sizeof(out_buf), "TXT=6LOWPAN ");
+  len += snprintf((char *) &out_buf[len], sizeof(out_buf), "TXT=ERICSON-6LOWPAN ");
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "TARGET=avr-rss2 ");
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "V_MCU=%-d ", battery_sensor.value(0));
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "T_MCU=%-d ", temp_mcu_sensor.value(0));
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "LIGHT=%-d ", light_sensor.value(0));
 #ifdef CO2
-  len += snprintf((char *) &out_buf[len], sizeof(out_buf), "CO2=%-d ", co2_sa_kxx_sensor.value(value));
+  len += snprintf((char *) &out_buf[len], sizeof(out_buf), "CO2=%-d ", co2_sa_kxx_sensor.value(CO2_SA_KXX_CO2));
 #endif
   len += snprintf((char *) &out_buf[len], sizeof(out_buf), "\n\r");
 
@@ -148,14 +150,27 @@ PROCESS_THREAD(sensd_client_process, ev, data) {
   PROCESS_BEGIN();
 
   set_global_address();
-  leds_init();
   print_local_addresses();
+
+  SENSORS_ACTIVATE(temp_sensor);
+  SENSORS_ACTIVATE(battery_sensor);
+  SENSORS_ACTIVATE(temp_mcu_sensor);
+  SENSORS_ACTIVATE(light_sensor);
+  SENSORS_ACTIVATE(pulse_sensor);
+#ifdef CO2
+  SENSORS_ACTIVATE(co2_sa_kxx_sensor);
+#endif
+  leds_init(); 
+  leds_on(LEDS_RED);
+  leds_on(LEDS_YELLOW);
+
   printf("Starting TCP client on port=%d\n", PORT);
 
   /* Set server address. typically sensd */
   //uip_ip6addr(&addr, 0xfe80, 0, 0, 0, 0xfec2, 0x3d00, 1, 0x63ae);
-  uip_ip6addr(&addr, 0x0000, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0201);
+  //uip_ip6addr(&addr, 0x0000, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0201);
   //uip_ip6addr(&addr, 0x0000, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0255);
+  uip_ip6addr(&addr, 0x0000, 0, 0, 0, 0, 0xffff, 0xc010, 0x7dea); //192.16.125.234 
 
   random_init(50);
 

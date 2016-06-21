@@ -51,6 +51,7 @@
 #define RG_IRQ_MASK           IRQ_MASK
 #define SR_MAX_FRAME_RETRIES  0x16C, 0xf0, 4
 #define SR_TX_AUTO_CRC_ON     0x144, 0x20, 5
+#define SR_PLL_FLT            0x144, 0x10, 4
 #define SR_TRAC_STATUS        0x142, 0xe0, 5
 #define SR_CHANNEL            0x148, 0x1f, 0
 #define SR_CCA_MODE           0x148, 0x60, 5

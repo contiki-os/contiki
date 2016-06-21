@@ -1,3 +1,58 @@
+/*
+ * Copyright (c) 2016, 
+ * Authors:
+ *   Atis Elsts       <atis.elsts@bristol.ac.uk>
+ *   Christian Rohner <christian.rohner@it.uu.se>
+ *   Robert Olsson    <roolss@kth.se> 
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ */
+
+/* Main program for Packet Delivery Ratio, (PDR) testing. 
+
+   Data file format:
+   * timestamp unix time format
+   * tx node model (platform)
+   * tx node id
+   * tx node temperature (multiplied by 100)
+   * rx node model (platform)
+   * rx node id
+   * rx node temperature
+   * channel
+   * Tx setting/power
+   * number of packets with good checksum (from 100 total in a test)
+   * number of all packets received
+   * rssi level, average for 100 packets
+   * lqi level
+
+Example:
+1466035452.0 > avr-rss2 49771 1168 | avr-rss2 49551 1075 | 11 -7 | 100 100 -10 255
+
+*/
+
 #include "pdr.h"
 #include "sys/process.h"
 #include "dev/serial-line.h"
@@ -59,8 +114,22 @@ uint8_t eof = END_OF_FILE;
 
 static int set_txpower(uint8_t p);
 
-// -------------------------------------------------------------
+/* avr-rss2 plaftform has unresolved issues with TX-power 
+   for low power settings. Remapping the TX mappinng as below 
+   results in a decreasing TX power settings. */
 
+#if CONTIKI_TARGET_AVR_RSS2
+uint8_t tx_corr_tab[16] ={0,1,2,3,4,15,5,14,6,13,7,12,8,11,9,10};
+
+void radio_set_txpower_avr_rss2(uint8_t txp) 
+{
+  if(txp > 15)
+    return rf230_set_txpower(0); /* Max */
+  return rf230_set_txpower(tx_corr_tab[txp]);
+}
+#endif 
+
+// -------------------------------------------------------------
 //
 // To simplify the code, all internal RSSI calculations are done using non-negative numbers.
 // This function maps the resulting value back to the CC2x20-specific valye range.
@@ -432,11 +501,12 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 static void print_help(void)
 {
     printf("pdr-test: version=%s", VERSION);
-    printf("tx [[11-26] [max|0|-7|-15|min]]  -- send ch/pwr\n");
+    printf("tx [[11-26] [max|0|-7|-15|min|sweep]]  -- send ch/pwr\n");
     printf("rx [11-26]   -- receive on chan\n");
     printf("ch [11-26]   -- chan read/set\n");
-    printf("stat         -- report/clr\n");
-    printf("te           -- board temp\n");
+    printf("stat         -- report received stats\n");
+    printf("info         -- node info\n");
+    printf("te           -- node temp\n");
     printf("txp [max|0|-7|-15|min] -- tx pwr\n");
     printf("help         -- this menu\n");
     printf("upgr         -- reboot via bootloader\n");
@@ -528,6 +598,17 @@ static int cmd_chan(uint8_t verbose)
     return 1;
 }
 
+static void print_info(void)
+{
+    printf("pdr-test: version=%s", VERSION);
+    printf(" Max STAT_SIZE=%d\n", STAT_SIZE);
+    printf(" platform=%s\n", platform_list[platform_id]);
+    printf(" node_id=%u\n", node_id);
+    printf(" temp=%i\n", temp_sensor.value(0));
+    printf(" channel=%d\n",  radio_get_channel());
+    printf(" tx pwr=%s\n",  get_txpower_string(txpower));
+}
+
 static void handle_serial_input(const char *line)
 {
     char *p;
@@ -573,6 +654,9 @@ static void handle_serial_input(const char *line)
     else if (!strcmp(p, "txp") || !strcmp(line, "txpower")) {
         cmd_txp(1);
     }
+    else if (!strcmp(p, "i") || !strcmp(line, "info")) {
+      print_info();
+    }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
         printf("OK\n");
@@ -583,19 +667,6 @@ static void handle_serial_input(const char *line)
     }
 #endif
     else printf("Illegal command '%s'\n", line);
-}
-
-//-------------------------------------------------------------
-
-static void print_local_info(void)
-{
-    printf("pdr-test: version=%s", VERSION);
-    printf(" Max STAT_SIZE=%d\n", STAT_SIZE);
-    printf(" Local node_id=%u\n", node_id);
-    printf(" platform_id=%u\n", platform_id);
-    printf(" temp=%i\n", temp_sensor.value(0));
-    printf(" channel=%d\n",  radio_get_channel());
-    printf(" platform tx pwr=%s\n",  get_txpower_string(txpower));
 }
 
 AUTOSTART_PROCESSES(&controlProcess);
@@ -616,7 +687,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
     clearStats();
-    print_local_info();
+    print_info();
 
     currentState = STATE_RX;
     currentStatsIdx = 0;
