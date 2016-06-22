@@ -49,7 +49,7 @@ CSMA nullrdc, channel check rate 128 Hz, radio channel 26
 Tentative link-local IPv6 address fe80:0000:0000:0000:c30c:0000:0000:13c8
 Starting 'UDP client example process'
 UDP client process started
-Server address: aaaa::1
+Server address: fd00::1
 Client IPv6 addresses:
 fe80::c30c:0:0:13c8
 
@@ -74,12 +74,12 @@ In the Border Router webserver check the UDP client's address:
 Then ping:
 
 ````
-$ ping6 aaaa::c30c:0:0:13c8
-PING aaaa::c30c:0:0:13c8(aaaa::c30c:0:0:13c8) 56 data bytes
-64 bytes from aaaa::c30c:0:0:13c8: icmp_seq=1 ttl=63 time=35.4 ms
-64 bytes from aaaa::c30c:0:0:13c8: icmp_seq=2 ttl=63 time=60.2 ms
-64 bytes from aaaa::c30c:0:0:13c8: icmp_seq=3 ttl=63 time=35.4 ms
-64 bytes from aaaa::c30c:0:0:13c8: icmp_seq=4 ttl=63 time=35.2 ms
+$ ping6 fd00::c30c:0:0:13c8
+PING fd00::c30c:0:0:13c8(fd00::c30c:0:0:13c8) 56 data bytes
+64 bytes from fd00::c30c:0:0:13c8: icmp_seq=1 ttl=63 time=35.4 ms
+64 bytes from fd00::c30c:0:0:13c8: icmp_seq=2 ttl=63 time=60.2 ms
+64 bytes from fd00::c30c:0:0:13c8: icmp_seq=3 ttl=63 time=35.4 ms
+64 bytes from fd00::c30c:0:0:13c8: icmp_seq=4 ttl=63 time=35.2 ms
 ````
 
 ## Launch the UDP server and MQTT forwarder
@@ -94,7 +94,7 @@ UDP server ready: 5678
 msg structure size:  13
 
 MQTT: Connected (0) 
-2016-02-26 09:23:58 -> aaaa::c30c:0:0:13c8:8765 14
+2016-02-26 09:23:58 -> fd00::c30c:0:0:13c8:8765 14
 {
   "values": [
     {
@@ -128,7 +128,7 @@ MQTT: Connected (0)
   ]
 }
 MQTT: Publishing to {0}... 0 (171)
-Sending reply to aaaa::c30c:0:0:13c8
+Sending reply to fd00::c30c:0:0:13c8
 MQTT: Published 2
 ````
 

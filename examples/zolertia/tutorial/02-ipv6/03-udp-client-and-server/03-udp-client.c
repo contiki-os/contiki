@@ -180,8 +180,8 @@ set_global_address(void)
  * Obviously the choice made here must also be selected in udp-server.c.
  *
  * For correct Wireshark decoding using a sniffer, add the /64 prefix to the 6LowPAN protocol preferences,
- * e.g. set Context 0 to aaaa::.  At present Wireshark copies Context/128 and then overwrites it.
- * (Setting Context 0 to aaaa::1111:2222:3333:4444 will report a 16 bit compressed address of aaaa::1111:22ff:fe33:xxxx)
+ * e.g. set Context 0 to fd00::.  At present Wireshark copies Context/128 and then overwrites it.
+ * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit compressed address of fd00::1111:22ff:fe33:xxxx)
  *
  * Note the IPCMV6 checksum verification depends on the correct uncompressed addresses.
  */
@@ -261,9 +261,13 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
     /* Send data to the server */
     if((ev == sensors_event && data == &button_sensor) ||
-      (etimer_expired(&periodic))) {
-      etimer_reset(&periodic);
+       (ev == PROCESS_EVENT_TIMER)) {
+
       send_packet();
+
+      if(etimer_expired(&periodic)) {
+        etimer_reset(&periodic);
+      }
     }
   }
 

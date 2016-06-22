@@ -62,7 +62,7 @@ PROCESS_THREAD(temp_process, ev, data)
     etimer_set(&et, TMP102_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     temp = tmp102.value(TMP102_READ);
-    printf("Temp = %d\n", temp);
+    printf("Temp = %d.%02u\n", temp/100, temp%100);
   }
   PROCESS_END();
 }
