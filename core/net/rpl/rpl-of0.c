@@ -217,7 +217,17 @@ best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
 static void
 update_metric_container(rpl_instance_t *instance)
 {
-  instance->mc.type = RPL_DAG_MC_NONE;
+  rpl_metric_object_t* metric_object, *constraint_object;
+  metric_object = rpl_find_metric_any_routing_type(&instance->mc, RPL_DAG_MC_METRIC_OBJECT);
+  if(metric_object != NULL){
+    /* Only remove if there is no constraint of same type,
+       which means it is use by the receiver for the constrint*/
+    constraint_object = rpl_find_metric(&instance->mc, metric_object->type, RPL_DAG_MC_CONSTRAINT_OBJECT);
+    if(constraint_object == NULL){
+      PRINTF("RPL: Removed unused metric object in OF0 ..\n");
+      rpl_remove_metric(metric_object);
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 rpl_of_t rpl_of0 = {

@@ -228,7 +228,7 @@ dis_input(void)
     if(instance->used == 1) {
 #if RPL_LEAF_ONLY
       if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
-	PRINTF("RPL: LEAF ONLY Multicast DIS will NOT reset DIO timer\n");
+        PRINTF("RPL: LEAF ONLY Multicast DIS will NOT reset DIO timer\n");
 #else /* !RPL_LEAF_ONLY */
       if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: Multicast DIS => reset DIO timer\n");
@@ -295,6 +295,10 @@ dio_input(void)
   int len;
   uip_ipaddr_t from;
 
+#if RPL_WITH_MC
+  int i_mc_object = 0;
+#endif /* RPL_WITH_MC */
+
   memset(&dio, 0, sizeof(dio));
 
   /* Set default values in case the DIO configuration option is missing. */
@@ -303,7 +307,6 @@ dio_input(void)
   dio.dag_redund = RPL_DIO_REDUNDANCY;
   dio.dag_min_hoprankinc = RPL_MIN_HOPRANKINC;
   dio.dag_max_rankinc = RPL_MAX_RANKINC;
-  dio.ocp = RPL_OF_OCP;
   dio.default_lifetime = RPL_DEFAULT_LIFETIME;
   dio.lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
 
@@ -365,37 +368,127 @@ dio_input(void)
 
     switch(subopt_type) {
     case RPL_OPTION_DAG_METRIC_CONTAINER:
+#if !RPL_WITH_MC
+      PRINTF("RPL: DIO contains MC but MC is supported\n");
+      goto discard;
+#else
       if(len < 6) {
         PRINTF("RPL: Invalid DAG MC, len = %d\n", len);
-	RPL_STAT(rpl_stats.malformed_msgs++);
+        RPL_STAT(rpl_stats.malformed_msgs++);
         goto discard;
       }
-      dio.mc.type = buffer[i + 2];
-      dio.mc.flags = buffer[i + 3] << 1;
-      dio.mc.flags |= buffer[i + 4] >> 7;
-      dio.mc.aggr = (buffer[i + 4] >> 4) & 0x3;
-      dio.mc.prec = buffer[i + 4] & 0xf;
-      dio.mc.length = buffer[i + 5];
 
-      if(dio.mc.type == RPL_DAG_MC_NONE) {
-        /* No metric container: do nothing */
-      } else if(dio.mc.type == RPL_DAG_MC_ETX) {
-        dio.mc.obj.etx = get16(buffer, i + 6);
+      i += 2;
+      len -= 2;
 
-        PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
-	       (unsigned)dio.mc.type,
-	       (unsigned)dio.mc.flags,
-	       (unsigned)dio.mc.aggr,
-	       (unsigned)dio.mc.prec,
-	       (unsigned)dio.mc.length,
-	       (unsigned)dio.mc.obj.etx);
-      } else if(dio.mc.type == RPL_DAG_MC_ENERGY) {
-        dio.mc.obj.energy.flags = buffer[i + 6];
-        dio.mc.obj.energy.energy_est = buffer[i + 7];
-      } else {
-       PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
-       goto discard;
+      for(; len > 0; len -= 4+dio.mc.objects[i_mc_object-1].length) {
+
+        if(i_mc_object >= RPL_MAX_DAG_MC_OBJECTS){
+          PRINTF("RPL: Maximum objects in DAG MC reached\n");
+          goto discard;
+        }
+
+        dio.mc.objects[i_mc_object].type = buffer[i];
+        dio.mc.objects[i_mc_object].flags = buffer[i + 1] << 1;
+        dio.mc.objects[i_mc_object].flags |= buffer[i + 2] >> 7;
+        dio.mc.objects[i_mc_object].aggr = (buffer[i + 2] >> 4) & 0x3;
+        dio.mc.objects[i_mc_object].prec = buffer[i + 2] & 0xf;
+        dio.mc.objects[i_mc_object].length = buffer[i + 3];
+
+        PRINTF("RPL: MC Obj: type %u, flags %u, aggr %u, prec %u, length %u",
+              (unsigned)dio.mc.objects[i_mc_object].type,
+              (unsigned)dio.mc.objects[i_mc_object].flags,
+              (unsigned)dio.mc.objects[i_mc_object].aggr,
+              (unsigned)dio.mc.objects[i_mc_object].prec,
+              (unsigned)dio.mc.objects[i_mc_object].length);
+
+        switch(dio.mc.objects[i_mc_object].type){
+          case RPL_DAG_MC_NONE:
+            /* No metric container: do nothing */
+            break;
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA)
+          case RPL_DAG_MC_NSA:
+            dio.mc.objects[i_mc_object].obj.nsa.flags = get16(buffer, i + 4);
+            PRINTF(", NSA flags %u",(unsigned)dio.mc.objects[i_mc_object].obj.nsa.flags);
+            /* TODO: Handle TLVs*/
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
+          case RPL_DAG_MC_ENERGY:
+            dio.mc.objects[i_mc_object].obj.energy.flags = buffer[i + 4];
+            dio.mc.objects[i_mc_object].obj.energy.energy_est = buffer[i + 5];
+            PRINTF(", Energy est. %u",(unsigned)dio.mc.objects[i_mc_object].obj.energy.energy_est);
+            PRINTF(", Energy flags %u",(unsigned)dio.mc.objects[i_mc_object].obj.energy.flags);
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+          case RPL_DAG_MC_HOPCOUNT:
+            dio.mc.objects[i_mc_object].obj.hopcount.flags = buffer[i + 4];
+            dio.mc.objects[i_mc_object].obj.hopcount.count = buffer[i + 5];
+            PRINTF(", Hopcount %u",(unsigned)dio.mc.objects[i_mc_object].obj.hopcount.count);
+            /* TODO: Handle TLVs*/
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT)
+          case RPL_DAG_MC_THROUGHPUT:
+            dio.mc.objects[i_mc_object].obj.throughput.subobject = get32(buffer, i + 4);
+            PRINTF(", Throughput %u",(unsigned)dio.mc.objects[i_mc_object].obj.throughput.subobject);
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+          case RPL_DAG_MC_LATENCY:
+            dio.mc.objects[i_mc_object].obj.latency.subobject = get32(buffer, i + 4);
+            PRINTF(", Latency %u",(unsigned)dio.mc.objects[i_mc_object].obj.latency.subobject);
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL)
+          case RPL_DAG_MC_LQL:
+            dio.mc.objects[i_mc_object].obj.lql.flags = buffer[i + 4];
+            PRINTF(", LQL Flags %u",(unsigned)dio.mc.objects[i_mc_object].obj.lql.flags);
+            /* TODO: Handle LQL value-counter */
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+          case RPL_DAG_MC_ETX:
+            dio.mc.objects[i_mc_object].obj.etx.subobject = get16(buffer, i + 4);
+            PRINTF(", ETX %u",(unsigned)dio.mc.objects[i_mc_object].obj.etx.subobject);
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC)
+          case RPL_DAG_MC_LC:
+            dio.mc.objects[i_mc_object].obj.lc.flags = buffer[i + 4];
+            /* If used as a constraint, use type 2 sub-object */
+            if(dio.mc.objects[i_mc_object].flags & RPL_DAG_MC_FLAG_C) {
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type2.color = buffer[i + 5] << 2;
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type2.color |= buffer[i + 6] >> 6;
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type2.flags = buffer[i + 6] << 2;
+              PRINTF(", LC flags %u",(unsigned)dio.mc.objects[i_mc_object].obj.lc.subobject.type2.flags);
+            }
+            else { /* else, it is used as a metric so use type 1 sub-object*/
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type1.color = buffer[i + 5] << 2;
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type1.color |= buffer[i + 6] >> 6;
+              dio.mc.objects[i_mc_object].obj.lc.subobject.type1.counter = buffer[i + 6] << 2;
+              PRINTF(", LC counter %u",(unsigned)dio.mc.objects[i_mc_object].obj.lc.subobject.type1.counter);
+            }
+            PRINTF(", LC color %u",(unsigned)dio.mc.objects[i_mc_object].obj.lc.subobject.type2.color);
+
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC) */
+          default:
+            PRINTF("RPL: Unhandled DAG MC Object type: %u\n", (unsigned)dio.mc.objects[i_mc_object].type);
+            goto discard;
+        }
+        i+=4+dio.mc.objects[i_mc_object].length;
+        i_mc_object++;
+        PRINTF("\n");
       }
+
+      if(len != 0) {
+        PRINTF("RPL: Invalid DIO packet\n");
+        RPL_STAT(rpl_stats.malformed_msgs++);
+        goto discard;
+      }
+#endif /* !RPL_WITH_MC */
       break;
     case RPL_OPTION_ROUTE_INFO:
       if(len < 9) {
@@ -424,7 +517,7 @@ dio_input(void)
     case RPL_OPTION_DAG_CONF:
       if(len != 16) {
         PRINTF("RPL: Invalid DAG configuration option, len = %d\n", len);
-	RPL_STAT(rpl_stats.malformed_msgs++);
+		RPL_STAT(rpl_stats.malformed_msgs++);
         goto discard;
       }
 
@@ -483,6 +576,10 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   rpl_dag_t *dag = instance->current_dag;
 #if !RPL_LEAF_ONLY
   uip_ipaddr_t addr;
+#if RPL_WITH_MC
+  int i = 0;
+  uint8_t metric_data_len = 0;
+#endif /* RPL_WITH_MC */
 #endif /* !RPL_LEAF_ONLY */
 
 #if RPL_LEAF_ONLY
@@ -535,31 +632,97 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
 
-#if !RPL_LEAF_ONLY
-  if(instance->mc.type != RPL_DAG_MC_NONE) {
-    instance->of->update_metric_container(instance);
+#if !RPL_LEAF_ONLY && RPL_WITH_MC
 
-    buffer[pos++] = RPL_OPTION_DAG_METRIC_CONTAINER;
-    buffer[pos++] = 6;
-    buffer[pos++] = instance->mc.type;
-    buffer[pos++] = instance->mc.flags >> 1;
-    buffer[pos] = (instance->mc.flags & 1) << 7;
-    buffer[pos++] |= (instance->mc.aggr << 4) | instance->mc.prec;
-    if(instance->mc.type == RPL_DAG_MC_ETX) {
-      buffer[pos++] = 2;
-      set16(buffer, pos, instance->mc.obj.etx);
-      pos += 2;
-    } else if(instance->mc.type == RPL_DAG_MC_ENERGY) {
-      buffer[pos++] = 2;
-      buffer[pos++] = instance->mc.obj.energy.flags;
-      buffer[pos++] = instance->mc.obj.energy.energy_est;
-    } else {
-      PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
-	(unsigned)instance->mc.type);
-      return;
+  instance->of->update_metric_container(instance);
+  /* Calculating Metric Container Metric Data length */
+  for(; i < RPL_MAX_DAG_MC_OBJECTS; i++){
+    if(instance->mc.objects[i].type != RPL_DAG_MC_NONE){
+      metric_data_len += 4 + instance->mc.objects[i].length;
     }
   }
-#endif /* !RPL_LEAF_ONLY */
+  /* add metric container object only if there is at least one object in the MC */
+  if(metric_data_len > 0){
+
+    buffer[pos++] = RPL_OPTION_DAG_METRIC_CONTAINER;
+    buffer[pos++] = metric_data_len;
+    for(i =0; i < RPL_MAX_DAG_MC_OBJECTS; i++){
+      if(instance->mc.objects[i].type != RPL_DAG_MC_NONE){
+        buffer[pos++] = instance->mc.objects[i].type;
+        buffer[pos++] = instance->mc.objects[i].flags >> 1;
+        buffer[pos] = (instance->mc.objects[i].flags & 1) << 7;
+        buffer[pos++] |= (instance->mc.objects[i].aggr << 4) | instance->mc.objects[i].prec;
+        buffer[pos++] = instance->mc.objects[i].length;
+        switch(instance->mc.objects[i].type){
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA)
+          case RPL_DAG_MC_NSA:
+            set16(buffer, pos, instance->mc.objects[i].obj.nsa.flags);
+            pos += 2;
+            /* TODO: Handle TLVs*/
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
+          case RPL_DAG_MC_ENERGY:
+            buffer[pos++] = instance->mc.objects[i].obj.energy.flags;
+            buffer[pos++] = instance->mc.objects[i].obj.energy.energy_est;
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+          case RPL_DAG_MC_HOPCOUNT:
+            buffer[pos++] = instance->mc.objects[i].obj.hopcount.flags;
+            buffer[pos++] = instance->mc.objects[i].obj.hopcount.count;
+            /* TODO: Handle TLVs*/
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT)
+          case RPL_DAG_MC_THROUGHPUT:
+            set32(buffer, pos, instance->mc.objects[i].obj.throughput.subobject);
+            pos += 4;
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+          case RPL_DAG_MC_LATENCY:
+            set32(buffer, pos, instance->mc.objects[i].obj.latency.subobject);
+            pos += 4;
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL)
+          case RPL_DAG_MC_LQL:
+            buffer[pos++] = instance->mc.objects[i].obj.lql.flags;
+            /* TODO: Handle LQL value-counter */
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+          case RPL_DAG_MC_ETX:
+            set16(buffer, pos, instance->mc.objects[i].obj.etx.subobject);
+            pos += 2;
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC)
+          case RPL_DAG_MC_LC:
+            buffer[pos++] = instance->mc.objects[i].obj.lc.flags;
+            /* If used as a constraint, use type 2 sub-object */
+            if(instance->mc.objects[i].flags & RPL_DAG_MC_FLAG_C) {
+              buffer[pos++] = instance->mc.objects[i].obj.lc.subobject.type2.color >> 2;
+              buffer[pos] = instance->mc.objects[i].obj.lc.subobject.type2.color << 6;
+              buffer[pos++] |= instance->mc.objects[i].obj.lc.subobject.type2.flags;
+            }
+            else { /* else, it is used as a metric so use type 1 sub-object*/
+              buffer[pos++] = instance->mc.objects[i].obj.lc.subobject.type1.color >> 2;
+              buffer[pos] = instance->mc.objects[i].obj.lc.subobject.type1.color << 6;
+              buffer[pos++] |= instance->mc.objects[i].obj.lc.subobject.type1.counter;
+            }
+            break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC) */
+          default:
+            PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
+              (unsigned)instance->mc.objects[i].type);
+            return;
+        }
+      }
+    }
+  }
+#endif /* !RPL_LEAF_ONLY && RPL_WITH_MC */
 
   /* Always add a DAG configuration option. */
   buffer[pos++] = RPL_OPTION_DAG_CONF;

@@ -576,7 +576,22 @@ tcpip_ipv6_output(void)
       /* No route was found - we send to the default route instead. */
       if(route == NULL) {
         PRINTF("tcpip_ipv6_output: no route found, using default route\n");
-        nexthop = uip_ds6_defrt_choose();
+#if UIP_CONF_IPV6_RPL && RPL_MAX_INSTANCES > 1
+        rpl_instance_t *instance;
+        instance = rpl_hbh_get_instance();
+        if(instance->current_dag->preferred_parent == NULL){
+          instance=rpl_get_default_instance(&UIP_IP_BUF->destipaddr);
+          rpl_hbh_set_instance(instance);
+        }
+        printf("tcpip : instance used is %d\n", instance->instance_id);
+        nexthop = rpl_get_parent_ipaddr(instance->current_dag->preferred_parent);
+        if(nexthop == NULL){
+          /* No default route found, so using ds6 function */
+          nexthop = uip_ds6_defrt_choose();
+        }
+#else
+        nexthop = uip_ds6_defrt_choose();   
+#endif /* UIP_CONF_IPV6_RPL && RPL_MAX_INSTANCES > 1 */
         if(nexthop == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
           PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n",

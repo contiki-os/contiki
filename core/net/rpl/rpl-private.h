@@ -259,6 +259,14 @@
 #define RPL_MCAST_LIFETIME 3
 #endif
 
+/* Values used to specify which OFs to support / enable */
+#define RPL_OF_OF0                     0x1 /* Objective Function Zero */
+#define RPL_OF_MRHOF                   0x2 /* MRHOF */
+
+ #define RPL_LB_NONE                    0
+ #define RPL_LB_ROUND_ROBIN             1
+ #define RPL_LB_MIN_NOACK               2
+
 /* DIS related */
 #define RPL_DIS_SEND                    1
 
@@ -301,7 +309,7 @@ struct rpl_dio {
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
   rpl_prefix_t prefix_info;
-  struct rpl_metric_container mc;
+  rpl_metric_container_t mc;
 };
 typedef struct rpl_dio rpl_dio_t;
 
@@ -336,7 +344,7 @@ extern rpl_stats_t rpl_stats;
 /*---------------------------------------------------------------------------*/
 /* Instances */
 extern rpl_instance_t instance_table[];
-extern rpl_instance_t *default_instance;
+extern rpl_instance_t *last_joined_instance;
 
 /* ICMPv6 functions for RPL. */
 void dis_output(uip_ipaddr_t *addr);
@@ -353,6 +361,7 @@ void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);
 void rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio);
 void rpl_local_repair(rpl_instance_t *instance);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
+int rpl_filter_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_instance_t *, rpl_parent_t *);
 
 /* DAG object management. */
@@ -366,6 +375,7 @@ void rpl_purge_dags(void);
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr);
+rpl_parent_t *rpl_find_parent_any_dag_any_instance(uip_ipaddr_t *addr);
 void rpl_nullify_parent(rpl_parent_t *);
 void rpl_remove_parent(rpl_parent_t *);
 void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
@@ -380,9 +390,6 @@ uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
 
-/* Objective function. */
-rpl_of_t *rpl_find_of(rpl_ocp_t);
-
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
 void rpl_schedule_dao_immediately(rpl_instance_t *);
@@ -395,8 +402,5 @@ void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */
 void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);
-
-
-rpl_instance_t *rpl_get_default_instance(void);
 
 #endif /* RPL_PRIVATE_H */

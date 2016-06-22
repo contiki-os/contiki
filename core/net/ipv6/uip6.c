@@ -1229,7 +1229,7 @@ uip_process(uint8_t flag)
       }
 
 #if UIP_CONF_IPV6_RPL
-      if(!rpl_update_header()) {
+      if(rpl_update_header()) {
         /* Packet can not be forwarded */
         PRINTF("RPL header update error\n");
         goto drop;
@@ -1583,7 +1583,7 @@ uip_process(uint8_t flag)
 #endif /* UIP_UDP_CHECKSUMS */
 
 #if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
+  rpl_insert_header(uip_udp_conn->rpl_instance_id);
 #endif /* UIP_CONF_IPV6_RPL */
 
   UIP_STAT(++uip_stat.udp.sent);

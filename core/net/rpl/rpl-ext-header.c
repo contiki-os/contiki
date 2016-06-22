@@ -77,6 +77,7 @@ rpl_verify_hbh_header(int uip_ext_opt_offset)
   uint8_t sender_closer;
   uip_ds6_route_t *route;
   rpl_parent_t *sender = NULL;
+  uip_ds6_nbr_t *nbr;
 
   if(UIP_HBHO_BUF->len != ((RPL_HOP_BY_HOP_LEN - 8) / 8)) {
     PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
@@ -130,7 +131,9 @@ rpl_verify_hbh_header(int uip_ext_opt_offset)
   }
 
   sender_rank = UIP_HTONS(UIP_EXT_HDR_OPT_RPL_BUF->senderrank);
-  sender = nbr_table_get_from_lladdr(rpl_parents, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+
+  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  sender = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
 
   if(sender != NULL && (UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR)) {
     /* A rank error was signalled, attempt to repair it by updating
@@ -569,7 +572,7 @@ update_hbh_header(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-insert_hbh_header(void)
+insert_hbh_header(rpl_instance_t *instance)
 {
   int uip_ext_opt_offset;
   int last_uip_ext_len;
@@ -600,8 +603,8 @@ insert_hbh_header(void)
   UIP_EXT_HDR_OPT_RPL_BUF->opt_type = UIP_EXT_HDR_OPT_RPL;
   UIP_EXT_HDR_OPT_RPL_BUF->opt_len = RPL_HDR_OPT_LEN;
   UIP_EXT_HDR_OPT_RPL_BUF->flags = 0;
-  UIP_EXT_HDR_OPT_RPL_BUF->instance = 0;
-  UIP_EXT_HDR_OPT_RPL_BUF->senderrank = 0;
+  UIP_EXT_HDR_OPT_RPL_BUF->instance = instance->instance_id;
+  UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
   uip_len += RPL_HOP_BY_HOP_LEN;
   temp_len = UIP_IP_BUF->len[1];
   UIP_IP_BUF->len[1] += RPL_HOP_BY_HOP_LEN;
@@ -634,16 +637,21 @@ rpl_finalize_header(uip_ipaddr_t *addr)
     if(UIP_EXT_HDR_OPT_BUF->type == UIP_EXT_HDR_OPT_RPL) {
       if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank == 0) {
         PRINTF("RPL: Updating RPL option\n");
-        if(default_instance == NULL || !default_instance->used || !default_instance->current_dag->joined) {
-          PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect default instance\n");
+        rpl_instance_t *instance;
+        instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
+        parent = rpl_find_parent_any_dag(instance, addr);
+        if(parent != NULL &&
+              (parent->dag->instance == NULL || !parent->dag->instance->used ||
+              !parent->dag->joined)) {
+          PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect parent instance\n");
           return 0;
         }
-        parent = rpl_find_parent(default_instance->current_dag, addr);
         if(parent == NULL || parent != parent->dag->preferred_parent) {
           UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN;
         }
-        UIP_EXT_HDR_OPT_RPL_BUF->instance = default_instance->instance_id;
-        UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(default_instance->current_dag->rank);
+        UIP_EXT_HDR_OPT_RPL_BUF->instance = parent->dag->instance->instance_id;
+        PRINTF("Using instance %d\n", UIP_EXT_HDR_OPT_RPL_BUF->instance);
+        UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(parent->dag->instance->current_dag->rank);
       }
     }
   }
@@ -696,23 +704,30 @@ rpl_remove_header(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_insert_header(void)
+rpl_insert_header(uint8_t instance_id)
 {
-  if(default_instance == NULL || default_instance->current_dag == NULL
+  rpl_instance_t *instance;
+  if(instance_id == 0){
+    instance = rpl_get_default_instance(&UIP_IP_BUF->destipaddr);
+  }
+  else{
+    instance = rpl_get_instance(instance_id);
+  }
+
+  if(instance == NULL || instance->current_dag == NULL
       || uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) || uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     return;
   }
 
-  if(RPL_IS_STORING(default_instance)) {
-    insert_hbh_header();
+  if(RPL_IS_STORING(instance) || instance->mop == RPL_MOP_NO_DOWNWARD_ROUTES) {
+    insert_hbh_header(instance);
   }
-
-  if(RPL_IS_NON_STORING(default_instance)) {
-    if(default_instance->current_dag != NULL) {
-      if(default_instance->current_dag->rank == ROOT_RANK(default_instance)) {
+  else if(RPL_IS_NON_STORING(instance)) {
+    if(instance->current_dag != NULL) {
+      if(instance->current_dag->rank == ROOT_RANK(instance)) {
         insert_srh_header();
       } else {
-        insert_hbh_header();
+        insert_hbh_header(instance);
       }
     }
   }
@@ -721,19 +736,24 @@ rpl_insert_header(void)
 int
 rpl_update_header(void)
 {
-  if(default_instance == NULL) {
+  rpl_instance_t *instance;
+  int uip_ext_opt_offset = 2;
+
+  instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
+
+  if(instance == NULL) {
     return 0;
   }
 
-  if(default_instance->current_dag != NULL) {
-    if(default_instance->current_dag->rank == ROOT_RANK(default_instance)) {
+  if(instance->current_dag != NULL) {
+    if(instance->current_dag->rank == ROOT_RANK(instance)) {
       /* At the root, remove headers if any, and insert SRH or HBH
        * (SRH is inserted only if the destination is in the DODAG) */
       rpl_remove_header();
-      if(RPL_IS_NON_STORING(default_instance)) {
+      if(RPL_IS_NON_STORING(instance)) {
         return insert_srh_header();
       } else {
-        return insert_hbh_header();
+        return insert_hbh_header(instance);
       }
     } else {
       return update_hbh_header();
@@ -742,5 +762,18 @@ rpl_update_header(void)
     return 0;
   }
 }
+/*---------------------------------------------------------------------------*/
+rpl_instance_t*
+rpl_hbh_get_instance(void)
+{
+  int uip_ext_opt_offset = 2-8;
+  return rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
+}
 
+void
+rpl_hbh_set_instance(rpl_instance_t *instance)
+{
+  int uip_ext_opt_offset = 2-8;
+  UIP_EXT_HDR_OPT_RPL_BUF->instance = instance->instance_id;
+}
 /** @}*/

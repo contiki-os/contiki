@@ -70,6 +70,10 @@ void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
 extern rpl_of_t rpl_of0, rpl_mrhof;
 static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
 
+#if RPL_LB == RPL_LB_ROUND_ROBIN
+rpl_instance_t *last_instance_used = NULL;
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* RPL definitions. */
 
@@ -78,50 +82,56 @@ static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
 #else
 #define RPL_GROUNDED                    RPL_CONF_GROUNDED
 #endif /* !RPL_CONF_GROUNDED */
-
-/*---------------------------------------------------------------------------*/
-/* Per-parent RPL information */
-NBR_TABLE_GLOBAL(rpl_parent_t, rpl_parents);
 /*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
-rpl_instance_t *default_instance;
+rpl_instance_t *last_joined_instance;
+
+static uint8_t const authorized_instances[] = RPL_AUTHORIZED_INSTANCES;
 
 /*---------------------------------------------------------------------------*/
 void
 rpl_print_neighbor_list(void)
 {
-  if(default_instance != NULL && default_instance->current_dag != NULL &&
-      default_instance->of != NULL) {
-    int curr_dio_interval = default_instance->dio_intcurrent;
-    int curr_rank = default_instance->current_dag->rank;
-    rpl_parent_t *p = nbr_table_head(rpl_parents);
-    clock_time_t clock_now = clock_time();
+  rpl_instance_t *instance, *end;
+  int curr_dio_interval;
+  int curr_rank;
 
-    printf("RPL: MOP %u OCP %u rank %u dioint %u, nbr count %u\n",
-        default_instance->mop, default_instance->of->ocp, curr_rank, curr_dio_interval, uip_ds6_nbr_num());
-    while(p != NULL) {
-      const struct link_stats *stats = rpl_get_parent_link_stats(p);
-      printf("RPL: nbr %3u %5u, %5u => %5u -- %2u %c%c (last tx %u min ago)\n",
-          rpl_get_parent_ipaddr(p)->u8[15],
-          p->rank,
-          rpl_get_parent_link_metric(p),
-          rpl_rank_via_parent(p),
-          stats != NULL ? stats->freshness : 0,
-          link_stats_is_fresh(stats) ? 'f' : ' ',
-          p == default_instance->current_dag->preferred_parent ? 'p' : ' ',
-          (unsigned)((clock_now - stats->last_tx_time) / (60 * CLOCK_SECOND))
-      );
-      p = nbr_table_next(rpl_parents, p);
+  clock_time_t clock_now = clock_time();
+
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
+    if(instance->used == 1 && instance->current_dag != NULL && instance->of) {
+      curr_dio_interval = instance->dio_intcurrent;
+      curr_rank = instance->current_dag->rank;
+      rpl_parent_t *p = nbr_table_head(&instance->nbr_table);
+
+      printf("RPL: Instance %u, rank %u dioint %u, neighbors :\n", instance->instance_id,
+	      curr_rank, curr_dio_interval);
+      while(p != NULL) {
+		const struct link_stats *stats = rpl_get_parent_link_stats(p);
+		printf("RPL: nbr %3u %5u, %5u => %5u -- %2u %c%c (last tx %u min ago)\n",
+		      rpl_get_parent_lladdr(p)->u8[7],
+		      p->rank,
+		      rpl_get_parent_link_metric(p),
+		      rpl_rank_via_parent(p),
+		      stats != NULL ? stats->freshness : 0,
+		      link_stats_is_fresh(stats) ? 'f' : ' ',
+		      p == instance->current_dag->preferred_parent ? 'p' : ' ',
+		      (unsigned)((clock_now - stats->last_tx_time) / (60 * CLOCK_SECOND))
+      	);
+        p = nbr_table_next(&instance->nbr_table, p);
+      }
     }
-    printf("RPL: end of list\n");
   }
+  printf("RPL: end of list\n");
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 rpl_get_nbr(rpl_parent_t *parent)
 {
-  const linkaddr_t *lladdr = rpl_get_parent_lladdr(parent);
+  const linkaddr_t *lladdr = NULL;
+  lladdr = rpl_get_parent_lladdr(parent);
   if(lladdr != NULL) {
     return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
   } else {
@@ -138,25 +148,16 @@ nbr_callback(void *ptr)
 void
 rpl_dag_init(void)
 {
-  nbr_table_register(rpl_parents, (nbr_table_callback *)nbr_callback);
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_get_parent(uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)addr);
+  uip_ds6_nbr_t *nbr;
+  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
+  rpl_parent_t *p = rpl_find_parent_any_dag_any_instance(&nbr->ipaddr);
+
   return p;
-}
-/*---------------------------------------------------------------------------*/
-rpl_rank_t
-rpl_get_parent_rank(uip_lladdr_t *addr)
-{
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)addr);
-  if(p != NULL) {
-    return p->rank;
-  } else {
-    return INFINITE_RANK;
-  }
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
@@ -186,7 +187,7 @@ rpl_rank_via_parent(rpl_parent_t *p)
 const linkaddr_t *
 rpl_get_parent_lladdr(rpl_parent_t *p)
 {
-  return nbr_table_get_lladdr(rpl_parents, p);
+  return nbr_table_get_lladdr(&p->dag->instance->nbr_table, p);
 }
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
@@ -251,8 +252,8 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
 
     /* Always keep the preferred parent locked, so it remains in the
      * neighbor table. */
-    nbr_table_unlock(rpl_parents, dag->preferred_parent);
-    nbr_table_lock(rpl_parents, p);
+    nbr_table_unlock(&dag->instance->nbr_table, dag->preferred_parent);
+    nbr_table_lock(&dag->instance->nbr_table, p);
     dag->preferred_parent = p;
   }
 }
@@ -282,12 +283,12 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
   PRINTF("RPL: Removing parents (minimum rank %u)\n",
 	minimum_rank);
 
-  p = nbr_table_head(rpl_parents);
+  p = nbr_table_head(&dag->instance->nbr_table);
   while(p != NULL) {
     if(dag == p->dag && p->rank >= minimum_rank) {
       rpl_remove_parent(p);
     }
-    p = nbr_table_next(rpl_parents, p);
+    p = nbr_table_next(&dag->instance->nbr_table, p);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -299,12 +300,12 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
   PRINTF("RPL: Nullifying parents (minimum rank %u)\n",
 	minimum_rank);
 
-  p = nbr_table_head(rpl_parents);
+  p = nbr_table_head(&dag->instance->nbr_table);
   while(p != NULL) {
     if(dag == p->dag && p->rank >= minimum_rank) {
       rpl_nullify_parent(p);
     }
-    p = nbr_table_next(rpl_parents, p);
+    p = nbr_table_next(&dag->instance->nbr_table, p);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -392,12 +393,6 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   dag->grounded = RPL_GROUNDED;
   dag->preference = RPL_PREFERENCE;
   instance->mop = RPL_MOP_DEFAULT;
-  instance->of = rpl_find_of(RPL_OF_OCP);
-  if(instance->of == NULL) {
-    PRINTF("RPL: OF with OCP %u not supported\n", RPL_OF_OCP);
-    return NULL;
-  }
-
   rpl_set_preferred_parent(dag, NULL);
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));
@@ -427,8 +422,16 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   instance->current_dag = dag;
   instance->dtsn_out = RPL_LOLLIPOP_INIT;
-  instance->of->update_metric_container(instance);
-  default_instance = instance;
+  last_joined_instance = instance;
+
+  /* Set default Objective function if it has not been set before setting
+     root */
+  if(instance->of == NULL){
+    rpl_set_of(instance_id, RPL_OF_OCP);
+  }
+  else{
+    instance->of->update_metric_container(instance);
+  }
 
   PRINTF("RPL: Node set to be a DAG root with DAG ID ");
   PRINT6ADDR(&dag->dag_id);
@@ -566,6 +569,56 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
 }
 /*---------------------------------------------------------------------------*/
 rpl_instance_t *
+rpl_get_default_instance(uip_ipaddr_t *dest)
+{
+  rpl_instance_t *instance, *end;
+#if RPL_LB == RPL_LB_ROUND_ROBIN
+  rpl_instance_t *first_candidate = NULL;
+  uint8_t choose_next = 0;
+#elif RPL_LB == RPL_LB_MIN_NOACK
+  rpl_instance_t *preferred_instance = NULL;
+#endif /* RPL_LB == RPL_LB_ROUND_ROBIN */
+  if(dest != NULL) {
+    for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+        instance < end; ++instance) {
+      if(instance->used == 1 && instance->current_dag != NULL && instance->current_dag->preferred_parent != NULL
+          && &instance->current_dag->prefix_info != NULL 
+          && uip_ipaddr_prefixcmp(dest, &instance->current_dag->prefix_info.prefix, instance->current_dag->prefix_info.length)) {
+#if RPL_LB == RPL_LB_ROUND_ROBIN
+        if(choose_next || last_instance_used == NULL){
+          last_instance_used = instance;
+          return instance;
+        }
+        else if(instance == last_instance_used){
+          choose_next = 1;
+        }
+        
+        if(first_candidate == NULL){
+          first_candidate = instance;
+        }
+#elif RPL_LB == RPL_LB_MIN_NOACK
+        if(preferred_instance == NULL || rpl_get_nbr(instance->current_dag->preferred_parent)->noack_count < rpl_get_nbr(preferred_instance->current_dag->preferred_parent)->noack_count){
+          preferred_instance = instance;
+        }
+#else
+        return instance;
+#endif /* RPL_LB == RPL_LB_ROUND_ROBIN */
+      }
+    }
+  }
+#if RPL_LB == RPL_LB_ROUND_ROBIN
+  if(first_candidate != NULL){
+    last_instance_used = first_candidate;
+  }
+  return first_candidate;
+#elif RPL_LB == RPL_LB_MIN_NOACK
+  return preferred_instance;
+#else
+  return NULL;
+#endif /* RPL_LB == RPL_LB_ROUND_ROBIN */
+}
+/*---------------------------------------------------------------------------*/
+rpl_instance_t *
 rpl_alloc_instance(uint8_t instance_id)
 {
   rpl_instance_t *instance, *end;
@@ -577,6 +630,16 @@ rpl_alloc_instance(uint8_t instance_id)
       instance->instance_id = instance_id;
       instance->def_route = NULL;
       instance->used = 1;
+
+      instance->nbr_table.index = 0;
+      instance->nbr_table.item_size = sizeof(rpl_parent_t);
+      instance->nbr_table.callback = NULL;
+      instance->nbr_table.data = (nbr_table_item_t *)instance->parents_mem;
+
+      if(instance->nbr_table.index == 0 &&
+          !nbr_table_register(&instance->nbr_table, (nbr_table_callback *)nbr_callback)){
+        return NULL;
+      }
 #if RPL_WITH_PROBING
       rpl_schedule_probing(instance);
 #endif /* RPL_WITH_PROBING */
@@ -617,18 +680,6 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_set_default_instance(rpl_instance_t *instance)
-{
-  default_instance = instance;
-}
-/*---------------------------------------------------------------------------*/
-rpl_instance_t *
-rpl_get_default_instance(void)
-{
-  return default_instance;
-}
-/*---------------------------------------------------------------------------*/
-void
 rpl_free_instance(rpl_instance_t *instance)
 {
   rpl_dag_t *dag;
@@ -652,8 +703,8 @@ rpl_free_instance(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_timer);
   ctimer_stop(&instance->dao_lifetime_timer);
 
-  if(default_instance == instance) {
-    default_instance = NULL;
+  if(last_joined_instance == instance) {
+    last_joined_instance = rpl_get_any_dag()->instance;
   }
 
   instance->used = 0;
@@ -695,8 +746,8 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   PRINT6ADDR(addr);
   PRINTF("\n");
   if(lladdr != NULL) {
-    /* Add parent in rpl_parents - again this is due to DIO */
-    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr,
+    /* Add parent in instance nbr table - again this is due to DIO */
+    p = nbr_table_add_lladdr(&dag->instance->nbr_table, (linkaddr_t *)lladdr,
                              NBR_TABLE_REASON_RPL_DIO, dio);
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
@@ -713,18 +764,38 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   return p;
 }
 /*---------------------------------------------------------------------------*/
-static rpl_parent_t *
-find_parent_any_dag_any_instance(uip_ipaddr_t *addr)
+rpl_parent_t *
+rpl_find_parent_any_dag_any_instance(uip_ipaddr_t *addr)
 {
+  rpl_instance_t *instance, *end;
+  rpl_parent_t *p;
+
   uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
   const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
-  return nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)lladdr);
+
+
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
+    p = nbr_table_head(&instance->nbr_table);
+    while(p != NULL) {
+      if(linkaddr_cmp(rpl_get_parent_lladdr(p), (linkaddr_t *) lladdr)){
+        return p;
+      }
+      p = nbr_table_next(&instance->nbr_table, p);
+    }
+  }
+  return NULL;
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_find_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
 {
-  rpl_parent_t *p = find_parent_any_dag_any_instance(addr);
+  rpl_parent_t *p;
+
+  uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
+  const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
+
+  p = nbr_table_get_from_lladdr(&dag->instance->nbr_table, (linkaddr_t *)lladdr);
   if(p != NULL && p->dag == dag) {
     return p;
   } else {
@@ -735,23 +806,28 @@ rpl_find_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
 static rpl_dag_t *
 find_parent_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 {
-  rpl_parent_t *p = find_parent_any_dag_any_instance(addr);
-  if(p != NULL) {
+  rpl_parent_t *p = rpl_find_parent_any_dag(instance, addr);
+  if(p != NULL){
     return p->dag;
-  } else {
-    return NULL;
   }
+  return NULL;
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 {
-  rpl_parent_t *p = find_parent_any_dag_any_instance(addr);
-  if(p && p->dag && p->dag->instance == instance) {
-    return p;
-  } else {
+  rpl_parent_t *p;
+
+  if(instance == NULL){
     return NULL;
   }
+
+  uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
+  const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
+
+  p = nbr_table_get_from_lladdr(&instance->nbr_table, (linkaddr_t *)lladdr);
+
+  return p;
 }
 /*---------------------------------------------------------------------------*/
 rpl_dag_t *
@@ -833,6 +909,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     rpl_set_default_route(instance, rpl_get_parent_ipaddr(best_dag->preferred_parent));
     PRINTF("RPL: Changed preferred parent, rank changed from %u to %u\n",
   	(unsigned)old_rank, best_dag->rank);
+    // TODO : handle RPL stats for each instance
     RPL_STAT(rpl_stats.parent_switch++);
     if(RPL_IS_STORING(instance) && last_parent != NULL) {
       /* Send a No-Path DAO to the removed preferred parent. */
@@ -863,9 +940,9 @@ best_parent(rpl_dag_t *dag, int fresh_only)
     return NULL;
   }
 
-  of = dag->instance->of;
+of = dag->instance->of;
   /* Search for the best parent according to the OF */
-  for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
+  for(p = nbr_table_head(&dag->instance->nbr_table); p != NULL; p = nbr_table_next(&dag->instance->nbr_table, p)) {
 
     /* Exclude parents from other DAGs or announcing an infinite rank */
     if(p->dag != dag || p->rank == INFINITE_RANK) {
@@ -939,7 +1016,7 @@ rpl_remove_parent(rpl_parent_t *parent)
 
   rpl_nullify_parent(parent);
 
-  nbr_table_remove(rpl_parents, parent);
+  nbr_table_remove(&parent->dag->instance->nbr_table, parent);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -1130,10 +1207,6 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->of = of;
   instance->mop = dio->mop;
-  instance->mc.type = dio->mc.type;
-  instance->mc.flags = dio->mc.flags;
-  instance->mc.aggr = dio->mc.aggr;
-  instance->mc.prec = dio->mc.prec;
   instance->current_dag = dag;
   instance->dtsn_out = RPL_LOLLIPOP_INIT;
 
@@ -1151,17 +1224,21 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* Copy prefix information from the DIO into the DAG object. */
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
+#if RPL_WITH_MC
+  memcpy(&instance->mc, &dio->mc, sizeof(dio->mc));
+#endif /* RPL_WITH_MC */
+
   rpl_set_preferred_parent(dag, p);
   instance->of->update_metric_container(instance);
   dag->rank = rpl_rank_via_parent(p);
   /* So far this is the lowest rank we are aware of. */
   dag->min_rank = dag->rank;
 
-  if(default_instance == NULL) {
-    default_instance = instance;
+  if(last_joined_instance == NULL) {
+    last_joined_instance = instance;
   }
 
-  PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
+  PRINTF("RPL: Joined DAG with instance ID %u, rank %u, DAG ID ",
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
@@ -1251,7 +1328,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->rank = rpl_rank_via_parent(p);
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
 
-  PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
+  PRINTF("RPL: Joined DAG with instance ID %u, rank %u, DAG ID ",
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
@@ -1296,7 +1373,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     rpl_process_parent_event(dag->instance, p);
   }
 
-  PRINTF("RPL: Participating in a global repair (version=%u, rank=%hu)\n",
+  PRINTF("RPL: Participating in a global repair (version=%u, rank=%u)\n",
          dag->version, dag->rank);
 
   RPL_STAT(rpl_stats.global_repairs++);
@@ -1334,23 +1411,27 @@ void
 rpl_recalculate_ranks(void)
 {
   rpl_parent_t *p;
+  rpl_instance_t *instance, *end;
 
   /*
    * We recalculate ranks when we receive feedback from the system rather
    * than RPL protocol messages. This periodical recalculation is called
    * from a timer in order to keep the stack depth reasonably low.
    */
-  p = nbr_table_head(rpl_parents);
-  while(p != NULL) {
-    if(p->dag != NULL && p->dag->instance && (p->flags & RPL_PARENT_FLAG_UPDATED)) {
-      p->flags &= ~RPL_PARENT_FLAG_UPDATED;
-      PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
-      if(!rpl_process_parent_event(p->dag->instance, p)) {
-        PRINTF("RPL: A parent was dropped\n");
+   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
+      p = nbr_table_head(&instance->nbr_table);
+      while(p != NULL) {
+        if(p->dag != NULL && p->dag->instance && (p->flags & RPL_PARENT_FLAG_UPDATED)) {
+          p->flags &= ~RPL_PARENT_FLAG_UPDATED;
+          PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
+          if(!rpl_process_parent_event(p->dag->instance, p)) {
+            PRINTF("RPL: A parent was dropped\n");
+          }
+        }
+        p = nbr_table_next(&instance->nbr_table, p);
       }
-    }
-    p = nbr_table_next(rpl_parents, p);
-  }
+   }
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -1399,7 +1480,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 
 #if DEBUG
   if(DAG_RANK(old_rank, instance) != DAG_RANK(instance->current_dag->rank, instance)) {
-    PRINTF("RPL: Moving in the instance from rank %hu to %hu\n",
+    PRINTF("RPL: Moving in the instance from rank %u to %u\n",
 	   DAG_RANK(old_rank, instance), DAG_RANK(instance->current_dag->rank, instance));
     if(instance->current_dag->rank != INFINITE_RANK) {
       PRINTF("RPL: The preferred parent is ");
@@ -1448,6 +1529,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   dag = get_dag(dio->instance_id, &dio->dag_id);
   instance = rpl_get_instance(dio->instance_id);
+
+#if RPL_FILTER_DIO
+  if(rpl_filter_dio(from, dio)){
+    return;
+  }
+#endif /* RPL_FILTER_DIO */
 
   if(dag != NULL && instance != NULL) {
     if(lollipop_greater_than(dio->version, dag->version)) {
@@ -1621,4 +1708,197 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /*---------------------------------------------------------------------------*/
+#if RPL_FILTER_DIO
+int
+rpl_filter_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
+{
+#if RPL_WITH_MC
+  rpl_metric_object_t *mc_object, *end, *metric;
+  rpl_parent_t *p;
+  rpl_instance_t *instance;
+#endif /* RPL_WITH_MC */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
+  uint8_t type;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+  uint16_t link_metric;
+#endif
+  uint8_t i;
+  uint8_t authorized = 0;
+
+  /* Non-empty array, must check if joining instance is authorized */
+  if(authorized_instances[0] != 0){
+    /* Check if advertised instance is authorized */
+    for(i =0; i < sizeof(authorized_instances); i++){
+      if(authorized_instances[i] == dio->instance_id){
+        authorized = 1;
+        break;
+      }
+    }
+
+    if(authorized == 0){
+      PRINTF("RPL: Ignoring a DIO with an unauthorized instance ID: %d\n",
+        dio->instance_id);
+      return 1;
+    }
+  }
+
+  /* check DAG MC constraints */
+#if RPL_WITH_MC
+  for(mc_object = dio->mc.objects, end = mc_object + RPL_MAX_DAG_MC_OBJECTS; mc_object < end; ++mc_object) {
+    if(mc_object != NULL && mc_object->flags & RPL_DAG_MC_FLAG_C){
+      switch(mc_object->type){
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
+        case RPL_DAG_MC_ENERGY:
+#ifdef RPL_DAG_MC_ENERGY_TYPE
+          type = RPL_DAG_MC_ENERGY_TYPE;
+#else
+          instance = rpl_get_instance(dio->instance_id);
+          if(instance != NULL
+              && instance->current_dag->rank == ROOT_RANK(instance)) {
+            type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
+          } else {
+            type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
+          }
+#endif /* RPL_DAG_MC_ENERGY_TYPE */
+          if(mc_object->obj.energy.flags & RPL_DAG_MC_ENERGY_FLAG_INCLUDED
+              && (mc_object->obj.energy.flags & RPL_DAG_MC_ENERGY_FLAG_TYPE)>>1 != type){
+            printf("RPL: DIO dropped: Energy type not allowed\n");
+            return 1;
+          }
+          else if((mc_object->obj.energy.flags & RPL_DAG_MC_ENERGY_FLAG_INCLUDED) == 0
+              && (mc_object->obj.energy.flags & RPL_DAG_MC_ENERGY_FLAG_TYPE)>>1 == type){
+            printf("RPL: DIO dropped: Energy type not allowed\n");
+            return 1;
+          }
+          break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+        case RPL_DAG_MC_HOPCOUNT:
+          metric = rpl_find_metric(&dio->mc, RPL_DAG_MC_HOPCOUNT,
+            RPL_DAG_MC_METRIC_OBJECT);
+          if (metric == NULL
+              || metric->obj.hopcount.count > mc_object->obj.hopcount.count){
+            printf("RPL: DIO dropped: Hopcount limit reached\n");
+            return 1;
+          }
+          break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT)
+        case RPL_DAG_MC_THROUGHPUT:
+          metric = rpl_find_metric(&dio->mc, RPL_DAG_MC_THROUGHPUT,
+            RPL_DAG_MC_METRIC_OBJECT);
+          if (metric == NULL
+              || metric->obj.throughput.subobject >= mc_object->obj.throughput.subobject){
+            PRINTF("RPL: DIO dropped: max. throughput reached\n");
+            return 1;
+          }
+          break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+        case RPL_DAG_MC_LATENCY:
+          metric = rpl_find_metric(&dio->mc, RPL_DAG_MC_LATENCY,
+            RPL_DAG_MC_METRIC_OBJECT);
+          if (metric == NULL
+              || metric->obj.latency.subobject >= mc_object->obj.latency.subobject){
+            PRINTF("RPL: DIO dropped: max. latency exceeded\n");
+            return 1;
+          }
+          break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+        case RPL_DAG_MC_ETX:
+          p = rpl_find_parent_any_dag(rpl_get_instance(dio->instance_id), from);
+          link_metric = rpl_get_parent_link_metric(p);
+          if(link_metric == 0) {
+            // TODO : handle that case
+            //link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+          }
+          if(mc_object->aggr == RPL_DAG_MC_AGGR_MAXIMUM
+              && link_metric > mc_object->obj.etx.subobject){
+            printf("RPL: DIO dropped: max. link ETX exceeded (%u > %u)\n",
+                    link_metric,
+                    mc_object->obj.etx.subobject);
+              instance = rpl_get_instance(dio->instance_id);
+              if(p != NULL && instance != NULL && p == instance->current_dag->preferred_parent){
+                rpl_nullify_parent(p);
+              }
+              return 1;
+          }
+          else if(mc_object->aggr == RPL_DAG_MC_AGGR_ADDITIVE){
+            if (dio->rank + link_metric > mc_object->obj.etx.subobject){
+              PRINTF("RPL: DIO dropped: max. path ETX exceeded (%u.%u > %u.%u)\n",
+                    dio->rank + link_metric,
+                    mc_object->obj.etx.subobject);
+              instance = rpl_get_instance(dio->instance_id);
+              if(p != NULL && instance != NULL && p == instance->current_dag->preferred_parent){
+                rpl_nullify_parent(p);
+              }
+              return 1;
+            }
+          }
+          break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
+        default:
+          PRINTF("RPL: Unable to check DAG MC mc_object of unhandled DAG MC type %u\n",
+            (unsigned)mc_object->type);
+          return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+#endif /* RPL_WITH_MC */
+#endif /* RPL_FILTER_DIO */
+/*---------------------------------------------------------------------------*/
+rpl_metric_object_t*
+rpl_find_metric(rpl_metric_container_t *mc, int mc_routing_type,
+    int object_type){
+  int i;
+  for(i =0; i < RPL_MAX_DAG_MC_OBJECTS; i++){
+    if(mc->objects[i].type == mc_routing_type && (mc->objects[i].flags & RPL_DAG_MC_FLAG_C) == object_type){
+      return &mc->objects[i];
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+rpl_metric_object_t*
+rpl_find_metric_any_routing_type(rpl_metric_container_t *mc, int object_type ){
+  int i;
+  for(i =0; i < RPL_MAX_DAG_MC_OBJECTS; i++){
+    if(mc->objects[i].type != RPL_DAG_MC_NONE &&
+        (mc->objects[i].flags & RPL_DAG_MC_FLAG_C) == object_type){
+      return &mc->objects[i];
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+rpl_metric_object_t *rpl_alloc_metric(rpl_metric_container_t *mc){
+  int i;
+  for(i =0; i < RPL_MAX_DAG_MC_OBJECTS; i++){
+    if(mc->objects[i].type == RPL_DAG_MC_NONE){
+      return &mc->objects[i];
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+void rpl_remove_metric(rpl_metric_object_t *metric){
+  memset(metric, 0, sizeof(*metric));
+  return ;
+}
+/*---------------------------------------------------------------------------*/
+void rpl_set_of(uint8_t instance_id, rpl_ocp_t ocp){
+  rpl_instance_t *instance;
+  rpl_of_t *of = rpl_find_of(ocp);
+  instance = rpl_get_instance(instance_id);
+  if(instance != NULL && of != NULL){
+    instance->of = of;
+    instance->of->update_metric_container(instance);
+  }
+}
+
 /** @} */

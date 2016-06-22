@@ -76,6 +76,9 @@ typedef struct uip_ds6_nbr {
   struct stimer sendns;
   uint8_t nscount;
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
+#if UIP_CONF_IPV6_RPL && RPL_LB == RPL_LB_MIN_NOACK
+  uint8_t noack_count;
+#endif /* UIP_CONF_IPV6_RPL */
 #if UIP_CONF_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4

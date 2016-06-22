@@ -69,7 +69,7 @@ rpl_get_mode(void)
 }
 /*---------------------------------------------------------------------------*/
 enum rpl_mode
-rpl_set_mode(enum rpl_mode m)
+rpl_set_mode(enum rpl_mode m, rpl_instance_t *instance)
 {
   enum rpl_mode oldmode = mode;
 
@@ -84,20 +84,20 @@ rpl_set_mode(enum rpl_mode m)
     PRINTF("RPL: switching to mesh mode\n");
     mode = m;
 
-    if(default_instance != NULL) {
-      rpl_schedule_dao_immediately(default_instance);
+    if(instance != NULL) {
+      rpl_schedule_dao_immediately(instance);
     }
   } else if(m == RPL_MODE_FEATHER) {
 
     PRINTF("RPL: switching to feather mode\n");
-    if(default_instance != NULL) {
+    if(instance != NULL) {
       PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
-      if(default_instance->current_dag != NULL) {
-        dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+      if(instance->current_dag != NULL) {
+        dao_output(instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
       }
-      rpl_cancel_dao(default_instance);
+      rpl_cancel_dao(instance);
     } else {
-      PRINTF("rpl_set_mode: no default instance\n");
+      PRINTF("rpl_set_mode: no valid instance\n");
     }
 
     mode = m;
@@ -145,9 +145,10 @@ rpl_purge_routes(void)
       r = uip_ds6_route_head();
       PRINTF("No more routes to ");
       PRINT6ADDR(&prefix);
-      dag = default_instance->current_dag;
+      // TODO : is it always correct ?
+      dag = r->state.dag;
       /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
-      if(dag->rank != ROOT_RANK(default_instance)) {
+      if(dag->rank != ROOT_RANK(dag->instance)) {
         PRINTF(" -> generate No-Path DAO\n");
         dao_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
         /* Don't schedule more than 1 No-Path DAO, let next iteration handle that */
@@ -260,6 +261,17 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
 
+#if RPL_LB == RPL_LB_MIN_NOACK
+  uip_ds6_nbr_t *nbr = nbr_table_get_from_lladdr(ds6_neighbors, addr);
+
+  if(status == MAC_TX_NOACK){
+    nbr->noack_count++;
+  }
+  else if(status == MAC_TX_OK){
+    nbr->noack_count = 0;
+  }
+#endif /* RPL_LB == RPL_LB_MIN_NOACK */
+
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       parent = rpl_find_parent_any_dag(instance, &ipaddr);
@@ -267,9 +279,28 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
         parent->flags |= RPL_PARENT_FLAG_UPDATED;
+
+#if RPL_LB == RPL_LB_MIN_NOACK
+        if(status == MAC_TX_NOACK){
+          if(nbr->noack_count == 5){
+            PRINTF("remove parent no ack\n");
+            rpl_remove_parent(parent);
+          }
+          else{
+            PRINTF("No Ack counter for node %d : %d\n", addr->u8[7], nbr->noack_count);
+          }
+        }
+#endif /* RPL_LB == RPL_LB_MIN_NOACK */
       }
     }
   }
+
+#if RPL_LB == RPL_LB_MIN_NOACK
+  if(nbr->noack_count == 5){
+    PRINTF("remove nbr\n");
+    uip_ds6_nbr_rm(nbr);
+  }
+#endif /* RPL_LB == RPL_LB_MIN_NOACK */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -332,7 +363,7 @@ rpl_init(void)
 {
   uip_ipaddr_t rplmaddr;
   PRINTF("RPL started\n");
-  default_instance = NULL;
+  last_joined_instance = NULL;
 
   rpl_dag_init();
   rpl_reset_periodic_timer();

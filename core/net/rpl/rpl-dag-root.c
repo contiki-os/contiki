@@ -252,7 +252,7 @@ rpl_dag_root_is_root(void)
 {
   rpl_instance_t *instance;
 
-  instance = rpl_get_default_instance();
+  instance = last_joined_instance;
 
   if(instance == NULL) {
     return 0;

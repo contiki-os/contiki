@@ -132,31 +132,56 @@ parent_link_metric(rpl_parent_t *p)
 static uint16_t
 parent_path_cost(rpl_parent_t *p)
 {
-  uint16_t base;
+  uint32_t path_cost = 0;
 
   if(p == NULL || p->dag == NULL || p->dag->instance == NULL) {
     return 0xffff;
   }
 
 #if RPL_WITH_MC
-  /* Handle the different MC types */
-  switch(p->dag->instance->mc.type) {
-    case RPL_DAG_MC_ETX:
-      base = p->mc.obj.etx;
-      break;
+  rpl_metric_object_t *metric_object;
+  /* Handle the different MC object types */
+  metric_object = rpl_find_metric_any_routing_type(&p->mc, RPL_DAG_MC_METRIC_OBJECT);
+  if(metric_object == NULL){
+    path_cost = p->rank + parent_link_metric(p);
+  }
+  else{
+    switch(metric_object->type){
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
     case RPL_DAG_MC_ENERGY:
-      base = p->mc.obj.energy.energy_est << 8;
+      path_cost = metric_object->obj.energy.energy_est + parent_link_metric(p);
       break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+    case RPL_DAG_MC_HOPCOUNT:
+      path_cost = p->rank + 1;
+      break;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+    case RPL_DAG_MC_LATENCY:
+      
+      break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+    case RPL_DAG_MC_ETX:
+      /*
+      As specified in RFC 6719, Section 3.4, Approximation of ETX MUST be made
+      from advertised rank and ETX Metric object in MC must be ignored.
+      */
+      path_cost = p->rank + parent_link_metric(p);
+      break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
     default:
-      base = p->rank;
+      PRINTF("RPL: MRHOF, Unhandled DAG MC Object type: %u\n", (unsigned)metric_object->type);
       break;
+    }
   }
 #else /* RPL_WITH_MC */
-  base = p->rank;
+  path_cost = p->rank + parent_link_metric(p);
 #endif /* RPL_WITH_MC */
 
   /* path cost upper bound: 0xffff */
-  return MIN((uint32_t)base + parent_link_metric(p), 0xffff);
+  return MIN(path_cost, 0xffff);
 }
 /*---------------------------------------------------------------------------*/
 static rpl_rank_t
@@ -245,15 +270,21 @@ best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
 static void
 update_metric_container(rpl_instance_t *instance)
 {
-  instance->mc.type = RPL_DAG_MC_NONE;
+  metric_object = rpl_find_metric_any_routing_type(&instance->mc, RPL_DAG_MC_METRIC_OBJECT);
+  if(metric_object != NULL){
+    rpl_remove_metric(metric_object);
+  }
 }
 #else /* RPL_WITH_MC */
 static void
 update_metric_container(rpl_instance_t *instance)
 {
-  rpl_dag_t *dag;
+  rpl_metric_object_t *metric_object, *parent_metric_object;
   uint16_t path_cost;
+  rpl_dag_t *dag;
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
   uint8_t type;
+#endif
 
   dag = instance->current_dag;
   if(dag == NULL || !dag->joined) {
@@ -261,39 +292,82 @@ update_metric_container(rpl_instance_t *instance)
     return;
   }
 
+  metric_object = rpl_find_metric_any_routing_type(&instance->mc, RPL_DAG_MC_METRIC_OBJECT);
+  parent_metric_object = rpl_find_metric_any_routing_type(&dag->preferred_parent->mc, RPL_DAG_MC_METRIC_OBJECT);
+
   if(dag->rank == ROOT_RANK(instance)) {
     /* Configure MC at root only, other nodes are auto-configured when joining */
-    instance->mc.type = RPL_DAG_MC;
-    instance->mc.flags = 0;
-    instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
-    instance->mc.prec = 0;
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
+    if(metric_object == NULL){
+      metric_object = rpl_alloc_metric(&instance->mc);
+      if(metric_object == NULL){
+        PRINTF("RPL: Cannot update the metric container, no metric object available\n");
+        return;
+      }
+      metric_object->type = RPL_DAG_MC;
+      metric_object->flags = RPL_DAG_MC_FLAG_P;
+      metric_object->aggr = RPL_DAG_MC_AGGR_ADDITIVE;
+      metric_object->prec = 0;
+
+      switch(metric_object->type){
+        case RPL_DAG_MC_HOPCOUNT:
+          metric_object->obj.hopcount.count = 1;
+          break;
+        case RPL_DAG_MC_LATENCY:
+          metric_object->obj.latency.subobject = 0;
+          break;
+      }
+    }
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
     path_cost = dag->rank;
   } else {
     path_cost = parent_path_cost(dag->preferred_parent);
   }
 
-  /* Handle the different MC types */
-  switch(instance->mc.type) {
+  /* Handle the different MC object types */
+  switch(metric_object->type){
     case RPL_DAG_MC_NONE:
+      
       break;
-    case RPL_DAG_MC_ETX:
-      instance->mc.length = sizeof(instance->mc.obj.etx);
-      instance->mc.obj.etx = path_cost;
-      break;
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
     case RPL_DAG_MC_ENERGY:
-      instance->mc.length = sizeof(instance->mc.obj.energy);
+      metric_object->length = 2;
+#ifdef RPL_DAG_MC_ENERGY_TYPE
+      type = RPL_DAG_MC_ENERGY_TYPE;
+#else /* RPL_DAG_MC_ENERGY_TYPE */
       if(dag->rank == ROOT_RANK(instance)) {
         type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
       } else {
         type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
       }
-      instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
-      /* Energy_est is only one byte, use the least significant byte of the path metric. */
-      instance->mc.obj.energy.energy_est = path_cost >> 8;
+#endif /* RPL_DAG_MC_ENERGY_TYPE */
+      metric_object->obj.energy.flags = type << RPL_DAG_MC_ENERGY_FLAG_TYPE;
+      metric_object->obj.energy.energy_est = path_cost;
       break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+    case RPL_DAG_MC_HOPCOUNT:
+      metric_object->obj.hopcount.count = parent_metric_object->obj.hopcount.count + 1;
+      break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+    case RPL_DAG_MC_LATENCY:
+      
+      break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+    case RPL_DAG_MC_ETX:
+      PRINTF("RPL: Removed ETX Metric Obj. in MC, Rank used instead\n");
+      /*
+      As specified in RFC 6719, Section 3.4, ETX metric MUST NOT be advertised
+      in the Metric Container.
+      */
+      rpl_remove_metric(metric_object);
+      break;
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
     default:
-      PRINTF("RPL: MRHOF, non-supported MC %u\n", instance->mc.type);
-      break;
+      PRINTF("RPL: MRHOF, Unhandled DAG MC Object type: %u\n", (unsigned)metric_object->type);
+      return;
   }
 }
 #endif /* RPL_WITH_MC */

@@ -1407,6 +1407,9 @@ struct uip_udp_conn {
   uint16_t lport;        /**< The local port number in network byte order. */
   uint16_t rport;        /**< The remote port number in network byte order. */
   uint8_t  ttl;          /**< Default time-to-live. */
+#if UIP_CONF_IPV6_RPL
+  uint8_t rpl_instance_id;
+#endif /* UIP_CONF_IPV6_RPL*/
 
   /** The application state. */
   uip_udp_appstate_t appstate;

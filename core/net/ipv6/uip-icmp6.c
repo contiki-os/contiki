@@ -162,7 +162,7 @@ echo_request_input(void)
 
   /* Insert RPL extension headers */
 #if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
+  rpl_insert_header(0);
 #endif /* UIP_CONF_IPV6_RPL */
 
   /* Below is important for the correctness of UIP_ICMP_BUF and the
@@ -261,7 +261,7 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
 #if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
+  rpl_insert_header(0);
 #endif /* UIP_CONF_IPV6_RPL */
 
   UIP_STAT(++uip_stat.icmp.sent);
@@ -302,7 +302,7 @@ uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len)
   UIP_STAT(++uip_stat.ip.sent);
 
 #if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
+  rpl_insert_header(0);
 #endif /* UIP_CONF_IPV6_RPL */
   tcpip_ipv6_output();
 }

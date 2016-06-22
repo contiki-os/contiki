@@ -84,13 +84,11 @@ handle_periodic_timer(void *ptr)
   rpl_dag_t *dag = rpl_get_any_dag();
 
   rpl_purge_dags();
-  if(dag != NULL) {
-    if(RPL_IS_STORING(dag->instance)) {
-      rpl_purge_routes();
-    }
-    if(RPL_IS_NON_STORING(dag->instance)) {
-      rpl_ns_periodic();
-    }
+  if(dag != NULL && RPL_IS_STORING(dag->instance)) {
+    rpl_purge_routes();
+  }
+  if(dag != NULL && RPL_IS_NON_STORING(dag->instance)) {
+    rpl_ns_periodic();
   }
   rpl_recalculate_ranks();
 
@@ -423,7 +421,7 @@ get_probing_target(rpl_dag_t *dag)
 
   /* With 50% probability: probe best non-fresh parent */
   if(random_rand() % 2 == 0) {
-    p = nbr_table_head(rpl_parents);
+    p = nbr_table_head(&dag->instance->nbr_table);
     while(p != NULL) {
       if(p->dag == dag && !rpl_parent_is_fresh(p)) {
         /* p is in our dag and needs probing */
@@ -434,13 +432,13 @@ get_probing_target(rpl_dag_t *dag)
           probing_target_rank = p_rank;
         }
       }
-      p = nbr_table_next(rpl_parents, p);
+      p = nbr_table_next(&dag->instance->nbr_table, p);
     }
   }
 
   /* If we still do not have a probing target: pick the least recently updated parent */
   if(probing_target == NULL) {
-    p = nbr_table_head(rpl_parents);
+    p = nbr_table_head(&dag->instance->nbr_table);
     while(p != NULL) {
       const struct link_stats *stats =rpl_get_parent_link_stats(p);
       if(p->dag == dag && stats != NULL) {
@@ -450,7 +448,7 @@ get_probing_target(rpl_dag_t *dag)
           probing_target_age = clock_now - stats->last_tx_time;
         }
       }
-      p = nbr_table_next(rpl_parents, p);
+      p = nbr_table_next(&dag->instance->nbr_table, p);
     }
   }
 
@@ -469,7 +467,7 @@ handle_probing_timer(void *ptr)
     const struct link_stats *stats = rpl_get_parent_link_stats(probing_target);
     (void)stats;
     PRINTF("RPL: probing %u %s last tx %u min ago\n",
-        rpl_get_parent_lladdr(probing_target)->u8[7],
+        nbr_table_get_lladdr(&instance->nbr_table, probing_target)->u8[7],
         instance->urgent_probing_target != NULL ? "(urgent)" : "",
         probing_target != NULL ?
         (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0

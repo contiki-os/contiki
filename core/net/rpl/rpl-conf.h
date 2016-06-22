@@ -46,6 +46,16 @@
 #endif /* RPL_CONF_STATS */
 
 /*
+ * Specify which metric types are supported/enabled in the Metric container.
+ * If a DIO contains a unsupported metric type, control packet is dropped.
+ */
+#ifdef RPL_CONF_DAG_MC_SUPPORTED_METRICS
+#define RPL_DAG_MC_SUPPORTED_METRICS RPL_CONF_DAG_MC_SUPPORTED_METRICS
+#else
+#define RPL_DAG_MC_SUPPORTED_METRICS (RPL_DAG_MC_BITMAP(RPL_DAG_MC_ETX) | RPL_DAG_MC_BITMAP(RPL_DAG_MC_HOPCOUNT) | RPL_DAG_MC_BITMAP(RPL_DAG_MC_ENERGY))
+#endif /* RPL_CONF_DAG_MC_SUPPORTED_METRICS */
+
+/*
  * The objective function (OF) used by a RPL root is configurable through
  * the RPL_CONF_OF_OCP parameter. This is defined as the objective code
  * point (OCP) of the OF, RPL_OCP_OF0 or RPL_OCP_MRHOF. This flag is of
@@ -67,8 +77,15 @@
 #ifdef RPL_CONF_SUPPORTED_OFS
 #define RPL_SUPPORTED_OFS RPL_CONF_SUPPORTED_OFS
 #else /* RPL_CONF_SUPPORTED_OFS */
-#define RPL_SUPPORTED_OFS {&rpl_mrhof}
+#define RPL_SUPPORTED_OFS {&rpl_mrhof, &rpl_of0}
 #endif /* RPL_CONF_SUPPORTED_OFS */
+
+ /*
+ * Functions used to simplify manipulation of MC metric types.
+ */
+#define RPL_DAG_MC_BITMAP(type) 1 << (type-1)
+#define RPL_IS_METRIC_SUPPORTED(type) RPL_DAG_MC_SUPPORTED_METRICS & RPL_DAG_MC_BITMAP(type)
+#define RPL_IS_OF_ENABLED(of_name) RPL_OF_ENABLED & of_name
 
 /*
  * Enable/disable RPL Metric Containers (MC). The actual MC in use
@@ -81,15 +98,55 @@
 #ifdef RPL_CONF_WITH_MC
 #define RPL_WITH_MC RPL_CONF_WITH_MC
 #else /* RPL_CONF_WITH_MC */
-#define RPL_WITH_MC 0
+#define RPL_WITH_MC (RPL_DAG_MC_SUPPORTED_METRICS != RPL_DAG_MC_NONE)
 #endif /* RPL_CONF_WITH_MC */
 
-/* The MC advertised in DIOs and propagating from the root */
+ /* The MC advertised in DIOs and propagating from the root */
 #ifdef RPL_CONF_DAG_MC
 #define RPL_DAG_MC RPL_CONF_DAG_MC
 #else
 #define RPL_DAG_MC RPL_DAG_MC_NONE
 #endif /* RPL_CONF_DAG_MC */
+
+/*
+ * Maximum of  Metric/Constraint object in a DAG Metric Container
+ */
+#ifdef RPL_CONF_MAX_DAG_MC_OBJECTS
+#define RPL_MAX_DAG_MC_OBJECTS RPL_CONF_MAX_DAG_MC_OBJECTS
+#else
+#define RPL_MAX_DAG_MC_OBJECTS 1
+#endif /* RPL_CONF_MAX_DAG_MC_OBJECTS */
+
+/*
+ * Maximum of Type-Length-Value field in a DAG Metric Container Object.
+ */
+
+#ifdef RPL_CONF_MAX_DAG_MC_TLV
+#define RPL_MAX_DAG_MC_TLV RPL_CONF_MAX_DAG_MC_TLV
+#else
+#define RPL_MAX_DAG_MC_TLV 0
+#endif /* RPL_CONF_MAX_DAG_MC_TLV */
+
+/*
+ * Energy type to be used in DAG MC energy object. Also used when checking
+ * advertized constraints.
+ * If not defined, energy type will be based on DODAG Rank :
+ * - RPL_DAG_MC_ENERGY_TYPE_MAINS for a DODAG root, 
+ * - RPL_DAG_MC_ENERGY_TYPE_BATTERY for other nodes
+ */
+#ifdef RPL_CONF_DAG_MC_ENERGY_TYPE
+#define RPL_DAG_MC_ENERGY_TYPE RPL_CONF_DAG_MC_ENERGY_TYPE
+#endif /* RPL_CONF_DAG_MC_ENERGY_TYPE */
+
+/*
+ * The default objective function used by RPL is configurable through the 
+ * RPL_CONF_DEFAULT_OF parameter. This should be defined to be the name of an 
+ * rpl_of object linked into the system image, e.g., rpl_of0.
+ */
+#ifdef RPL_CONF_DEFAULT_OF
+ #define RPL_DEFAULT_OF RPL_CONF_DEFAULT_OF
+
+#endif /* RPL_CONF_DEFAULT_OF */
 
 /* This value decides which DAG instance we should participate in by default. */
 #ifdef RPL_CONF_DEFAULT_INSTANCE
@@ -97,6 +154,28 @@
 #else
 #define RPL_DEFAULT_INSTANCE	       0x1e
 #endif /* RPL_CONF_DEFAULT_INSTANCE */
+
+/* Enable DIO filter based on constraints found and authorized instance IDs */
+#ifdef RPL_CONF_FILTER_DIO
+#define RPL_FILTER_DIO RPL_CONF_FILTER_DIO
+#else
+#define RPL_FILTER_DIO 1
+#endif /* RPL_CONF_FILTER_DIO */
+
+
+/* Load balancing mechanism, RPL_LB_NONE to set no mechanism*/
+#ifdef RPL_CONF_LB
+#define RPL_LB RPL_CONF_LB
+#else
+#define RPL_LB RPL_LB_NONE
+#endif /* RPL_CONF_LB */
+
+/* Authorized instances array. "{0}" results in authorizing all instances */
+#ifdef RPL_CONF_AUTHORIZED_INSTANCES
+#define RPL_AUTHORIZED_INSTANCES RPL_CONF_AUTHORIZED_INSTANCES
+#else
+#define RPL_AUTHORIZED_INSTANCES {0}
+#endif /* RPL_CONF_AUTHORIZED_INSTANCES */
 
 /*
  * This value decides if this node must stay as a leaf or not

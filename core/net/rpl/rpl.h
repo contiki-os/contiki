@@ -60,11 +60,15 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count */
 #define RPL_DAG_MC_LC                   8 /* Link Color */
 
-/* IANA Routing Metric/Constraint Common Header Flag field as defined in RFC6551 (bit indexes) */
-#define RPL_DAG_MC_FLAG_P               5
-#define RPL_DAG_MC_FLAG_C               6
-#define RPL_DAG_MC_FLAG_O               7
-#define RPL_DAG_MC_FLAG_R               8
+/* DAG Metric Container flags. */
+#define RPL_DAG_MC_FLAG_P               0x8
+#define RPL_DAG_MC_FLAG_C               0x4
+#define RPL_DAG_MC_FLAG_O               0x2
+#define RPL_DAG_MC_FLAG_R               0x1
+
+/* DAG Metric Container Object Types*/
+#define RPL_DAG_MC_METRIC_OBJECT        0x0
+#define RPL_DAG_MC_CONSTRAINT_OBJECT    0x4
 
 /* IANA Routing Metric/Constraint Common Header A Field as defined in RFC6551 */
 #define RPL_DAG_MC_AGGR_ADDITIVE        0
@@ -72,36 +76,173 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_DAG_MC_AGGR_MINIMUM         2
 #define RPL_DAG_MC_AGGR_MULTIPLICATIVE  3
 
-/* The bit index within the flags field of the rpl_metric_object_energy structure. */
-#define RPL_DAG_MC_ENERGY_INCLUDED	    3
-#define RPL_DAG_MC_ENERGY_TYPE		      1
-#define RPL_DAG_MC_ENERGY_ESTIMATION	  0
+/* The bit masks for the flag field of
+   the rpl_metric_object_energy structure. */
+#define RPL_DAG_MC_ENERGY_FLAG_INCLUDED   0x8
+#define RPL_DAG_MC_ENERGY_FLAG_TYPE       0x6
+#define RPL_DAG_MC_ENERGY_FLAG_ESTIMATION 0
 
 /* IANA Node Type Field as defined in RFC6551 */
-#define RPL_DAG_MC_ENERGY_TYPE_MAINS		   0
-#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		 1
-#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	 2
+#define RPL_DAG_MC_ENERGY_TYPE_MAINS	    0
+#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		1
+#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	2
 
 /* IANA Objective Code Point as defined in RFC6550 */
 #define RPL_OCP_OF0     0
 #define RPL_OCP_MRHOF   1
 
+/* NSA Object flags . */
+#define RPL_DAG_MC_NSA_FLAG_A            0x2
+#define RPL_DAG_MC_NSA_FLAG_O            0x1
+
+/* Link Color Type 2 Sub-Object flags . */
+#define RPL_DAG_MC_LC_FLAG_I            0x1
+
+#if RPL_MAX_DAG_MC_TLV > 0
+/* Representation of a Type-Length-Value Object.
+ * Specified in RFC 6551, Section 2.1
+ */
+struct tlv {
+  uint8_t type;
+  uint8_t length;
+  uint8_t value;
+};
+typedef struct tlv rpl_tlv_t;
+#endif /* RPL_MAX_DAG_MC_TLV */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA)
+/* Representation of a Node State and Attribute (NSA) Metric/Constraint Object.
+ * Specified in RFC 6551, Section 3.1
+ */
+struct rpl_metric_object_nsa {
+  uint16_t flags;
+#if RPL_MAX_DAG_MC_TLV > 0
+  uint8_t tlv_table_len;
+  rpl_tlv_t *tlv_table;
+#endif /* RPL_MAX_DAG_MC_TLV */
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
+/* Representation of a Node Energy (NE) Metric/Constraint Object.
+ * Specified in RFC 6551, Section 3.2
+ */
 struct rpl_metric_object_energy {
   uint8_t flags;
   uint8_t energy_est;
 };
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY) */
 
-/* Logical representation of a DAG Metric Container. */
-struct rpl_metric_container {
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+/* Representation of a Hop Count Metric/Constraint Object.
+ * Specified in RFC 6551, Section 3.3
+ */
+struct rpl_metric_object_hopcount {
+  uint8_t flags;
+  uint8_t count;
+#if RPL_MAX_DAG_MC_TLV > 0
+  rpl_tlv_t tlv_table[RPL_MAX_DAG_MC_TLV];
+#endif /* RPL_MAX_DAG_MC_TLV */
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT)
+/* Representation of a Throughput Metric/Constraint Object.
+ * Specified in RFC 6551, Section 4.1
+ */
+struct rpl_metric_object_throughput {
+  uint32_t subobject;
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+/* Representation of a Latency Metric/Constraint Object.
+ * Specified in RFC 6551, Section 4.2
+ */
+struct rpl_metric_object_latency {
+  uint32_t subobject;
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL)
+/* Representation of a LQL Metric/Constraint Object.
+ * Specified in RFC 6551, Section 4.3.1
+ */
+struct rpl_metric_object_lql {
+  uint8_t flags;
+  uint8_t subobjects[8]; /* array where ith element is counter value of LQL value i */
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+/* Representation of a ETX Reliability Metric/Constraint Object.
+ * Specified in RFC 6551, Section 4.3.2
+ */
+struct rpl_metric_object_etx {
+  uint16_t subobject;
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX) */
+
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC)
+/* Representation of a Link Color (LC) Object with Type1 / Type2
+ * Sub Object.
+ * Specified in RFC 6551, Section 4.4
+ */
+struct rpl_metric_object_lc {
+  uint8_t flags;
+  union {
+    struct {
+      uint16_t color;
+      uint8_t counter;
+    } type1;
+    struct {
+      uint8_t color;
+      uint8_t flags;
+    }type2;
+  } subobject;
+};
+#endif /* RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC) */
+
+/* Representation of a Metric/Constraint object (in a DAG Metric Container). */
+struct rpl_metric_object {
   uint8_t type;
   uint8_t flags;
   uint8_t aggr;
   uint8_t prec;
   uint8_t length;
-  union metric_object {
+
+  union {
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_NSA)
+    struct rpl_metric_object_nsa nsa;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ENERGY)
     struct rpl_metric_object_energy energy;
-    uint16_t etx;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_HOPCOUNT)
+    struct rpl_metric_object_hopcount hopcount;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_THROUGHPUT)
+    struct rpl_metric_object_throughput throughput;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LATENCY)
+    struct rpl_metric_object_latency latency;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LQL)
+    struct rpl_metric_object_lql lql;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_ETX)
+    struct rpl_metric_object_etx etx;
+#endif
+#if RPL_IS_METRIC_SUPPORTED(RPL_DAG_MC_LC)
+    struct rpl_metric_object_lc lc;
+#endif
   } obj;
+};
+typedef struct rpl_metric_object rpl_metric_object_t;
+
+/* Logical representation of a DAG Metric Container. */
+struct rpl_metric_container {
+  rpl_metric_object_t objects[RPL_MAX_DAG_MC_OBJECTS];
 };
 typedef struct rpl_metric_container rpl_metric_container_t;
 /*---------------------------------------------------------------------------*/
@@ -117,6 +258,7 @@ struct rpl_parent {
   rpl_metric_container_t mc;
 #endif /* RPL_WITH_MC */
   rpl_rank_t rank;
+  clock_time_t last_tx_time;
   uint8_t dtsn;
   uint8_t flags;
 };
@@ -186,6 +328,13 @@ typedef struct rpl_instance rpl_instance_t;
  *
  *  Compares two DAGs and returns the best one, according to the OF.
  *
+ * calculate_rank(parent, base_rank)
+ *
+ *  Calculates a rank value using the parent rank and a base rank.
+ *  If "parent" is NULL, the objective function selects a default increment
+ *  that is adds to the "base_rank". Otherwise, the OF uses information known
+ *  about "parent" to select an increment to the "base_rank".
+ *
  * update_metric_container(dag)
  *
  *  Updates the metric container for outgoing DIOs in a certain DAG.
@@ -222,6 +371,8 @@ struct rpl_instance {
   rpl_of_t *of;
   rpl_dag_t *current_dag;
   rpl_dag_t dag_table[RPL_MAX_DAG_PER_INSTANCE];
+  rpl_parent_t parents_mem[NBR_TABLE_MAX_NEIGHBORS];
+  nbr_table_t nbr_table;
   /* The current default router - used for routing "upwards" */
   uip_ds6_defrt_t *def_route;
   uint8_t instance_id;
@@ -277,7 +428,7 @@ rpl_instance_t *rpl_get_instance(uint8_t instance_id);
 int rpl_update_header(void);
 int rpl_finalize_header(uip_ipaddr_t *addr);
 int rpl_verify_hbh_header(int);
-void rpl_insert_header(void);
+void rpl_insert_header(uint8_t instance_id);
 void rpl_remove_header(void);
 const struct link_stats *rpl_get_parent_link_stats(rpl_parent_t *p);
 int rpl_parent_is_fresh(rpl_parent_t *p);
@@ -285,17 +436,23 @@ int rpl_parent_is_reachable(rpl_parent_t *p);
 uint16_t rpl_get_parent_link_metric(rpl_parent_t *p);
 rpl_rank_t rpl_rank_via_parent(rpl_parent_t *p);
 const linkaddr_t *rpl_get_parent_lladdr(rpl_parent_t *p);
+rpl_instance_t *rpl_hbh_get_instance(void);
+void rpl_hbh_set_instance(rpl_instance_t *instance);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
-rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 void rpl_dag_init(void);
 uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
+rpl_instance_t *rpl_get_default_instance(uip_ipaddr_t *dest);
 void rpl_print_neighbor_list(void);
 int rpl_process_srh_header(void);
 int rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr);
 
-/* Per-parent RPL information */
-NBR_TABLE_DECLARE(rpl_parents);
+void rpl_set_of(uint8_t instance_id, rpl_ocp_t ocp);
+rpl_of_t *rpl_find_of(rpl_ocp_t);
+rpl_metric_object_t *rpl_find_metric(rpl_metric_container_t *mc, int mc_routing_type, int is_constraint);
+rpl_metric_object_t *rpl_find_metric_any_routing_type(rpl_metric_container_t *mc, int object_type );
+rpl_metric_object_t *rpl_alloc_metric(rpl_metric_container_t *mc);
+void rpl_remove_metric(rpl_metric_object_t *metric);
 
 /**
  * RPL modes
@@ -319,7 +476,7 @@ enum rpl_mode {
  * \param mode The new RPL mode
  * \retval The previous RPL mode
  */
-enum rpl_mode rpl_set_mode(enum rpl_mode mode);
+enum rpl_mode rpl_set_mode(enum rpl_mode mode, rpl_instance_t *instance);
 
 /**
  * Get the RPL mode
