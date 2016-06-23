@@ -94,7 +94,7 @@ int tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len);
 /* Create an EB packet */
 int tsch_packet_create_eb(uint8_t *buf, int buf_size,
-    uint8_t seqno, uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
+    uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
 /* Update ASN in EB packet */
 int tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset);
 /* Parse EB and extract ASN and join priority */
