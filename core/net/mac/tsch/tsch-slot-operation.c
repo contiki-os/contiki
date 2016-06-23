@@ -154,6 +154,9 @@ static rtimer_clock_t volatile current_slot_start;
 /* Are we currently inside a slot? */
 static volatile int tsch_in_slot_operation = 0;
 
+/* If we are inside a slot, this tells the current channel */
+static uint8_t current_channel;
+
 /* Info about the link, packet and neighbor of
  * the current (or next) slot */
 struct tsch_link *current_link = NULL;
@@ -780,6 +783,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
+        current_input->channel = current_channel;
         header_len = frame802154_parse((uint8_t *)current_input->payload, current_input->len, &frame);
         frame_valid = header_len > 0 &&
           frame802154_check_dest_panid(&frame) &&
@@ -937,7 +941,6 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
       );
 
     } else {
-      uint8_t current_channel;
       int is_active_slot;
       TSCH_DEBUG_SLOT_START();
       tsch_in_slot_operation = 1;
