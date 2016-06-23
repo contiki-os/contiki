@@ -60,7 +60,14 @@
 #ifdef TSCH_CONF_EB_PERIOD
 #define TSCH_EB_PERIOD TSCH_CONF_EB_PERIOD
 #else
-#define TSCH_EB_PERIOD (4 * CLOCK_SECOND)
+#define TSCH_EB_PERIOD (16 * CLOCK_SECOND)
+#endif
+
+/* Max Period between two consecutive EBs */
+#ifdef TSCH_CONF_MAX_EB_PERIOD
+#define TSCH_MAX_EB_PERIOD TSCH_CONF_MAX_EB_PERIOD
+#else
+#define TSCH_MAX_EB_PERIOD (50 * CLOCK_SECOND)
 #endif
 
 /* Max acceptable join priority */
@@ -157,7 +164,7 @@ extern const struct mac_driver tschmac_driver;
 
 /* The the TSCH join priority */
 void tsch_set_join_priority(uint8_t jp);
-/* The the period at which EBs are sent */
+/* The period at which EBs are sent */
 void tsch_set_eb_period(uint32_t period);
 /* Set the node as PAN coordinator */
 void tsch_set_coordinator(int enable);
