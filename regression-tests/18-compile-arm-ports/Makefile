@@ -14,6 +14,8 @@ cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=srf06/cc13xx \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc1310 \
 cc26xx/very-sleepy-demo/srf06-cc26xx \
+attom-cc13xx/mqtt-client/attom-cc13xx\
+attom-cc13xx/http-client/attom-cc13xx\
 hello-world/cc2538dk \
 ipv6/rpl-border-router/cc2538dk \
 ipv6/rpl-border-router/cc2538dk:MAKE_WITH_NON_STORING=1 \
