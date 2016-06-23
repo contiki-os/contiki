@@ -189,7 +189,7 @@ tsch_set_join_priority(uint8_t jp)
 void
 tsch_set_eb_period(uint32_t period)
 {
-  tsch_current_eb_period = period;
+  tsch_current_eb_period = MIN(period, TSCH_MAX_EB_PERIOD);
 }
 /*---------------------------------------------------------------------------*/
 static void
