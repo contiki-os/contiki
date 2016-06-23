@@ -2,7 +2,7 @@
 
 The following examples will show how to create a MQTT node able to publish and subscribe to a MQTT broker
 
-For more information about CoAP visit the following page:
+For more information about MQTT visit the following page:
 
 http://mqtt.org/
 
