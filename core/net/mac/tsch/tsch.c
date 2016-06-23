@@ -53,6 +53,7 @@
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-security.h"
+#include "net/mac/mac-sequence.h"
 #include "lib/random.h"
 
 #if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
@@ -69,25 +70,11 @@
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
+#if NETSTACK_CONF_WITH_IPV6
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 #define TSCH_LINK_NEIGHBOR_CALLBACK(dest, status, num) uip_ds6_link_neighbor_callback(status, num)
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* TSCH_LINK_NEIGHBOR_CALLBACK */
-
-/* 802.15.4 duplicate frame detection */
-struct seqno {
-  linkaddr_t sender;
-  uint8_t seqno;
-};
-
-/* Size of the sequence number history */
-#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
-#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
-#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-#define MAX_SEQNOS 8
-#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-
-/* Seqno history */
-static struct seqno received_seqnos[MAX_SEQNOS];
 
 /* Let TSCH select a time source with no help of an upper layer.
  * We do so using statistics from incoming EBs */
@@ -959,28 +946,16 @@ packet_input(void)
 
     /* Seqno of 0xffff means no seqno */
     if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) != 0xffff) {
-      /* Check for duplicate packet by comparing the sequence number
-         of the incoming packet with the last few ones we saw. */
-      int i;
-      for(i = 0; i < MAX_SEQNOS; ++i) {
-        if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno &&
-           linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                        &received_seqnos[i].sender)) {
-          /* Drop the packet. */
-          PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
-                 TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
-                 packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
-          duplicate = 1;
-        }
-      }
-      if(!duplicate) {
-        for(i = MAX_SEQNOS - 1; i > 0; --i) {
-          memcpy(&received_seqnos[i], &received_seqnos[i - 1],
-                 sizeof(struct seqno));
-        }
-        received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-        linkaddr_copy(&received_seqnos[0].sender,
-                      packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      /* Check for duplicates */
+      duplicate = mac_sequence_is_duplicate();
+      if(duplicate) {
+        extern clock_time_t duplicate_age;
+        /* Drop the packet. */
+        PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
+               TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
+               packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+      } else {
+        mac_sequence_register_seqno();
       }
     }
 
