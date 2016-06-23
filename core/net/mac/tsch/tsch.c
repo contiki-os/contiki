@@ -134,7 +134,7 @@ struct asn_t current_asn;
 /* Device rank or join priority:
  * For PAN coordinator: 0 -- lower is better */
 uint8_t tsch_join_priority;
-/* The current TSCH sequence number, used for both data and EBs */
+/* The current TSCH sequence number, used for unicast data frames only */
 static uint8_t tsch_packet_seqno = 0;
 /* Current period for EB output */
 static clock_time_t tsch_current_eb_period;
@@ -728,12 +728,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         uint8_t tsch_sync_ie_offset;
         /* Prepare the EB packet and schedule it to be sent */
         packetbuf_clear();
-        /* We don't use seqno 0 */
-        if(++tsch_packet_seqno == 0) {
-          tsch_packet_seqno++;
-        }
         packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
-        packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 #if LLSEC802154_ENABLED
         if(tsch_is_pan_secured) {
           /* Set security level, key id and index */
@@ -743,7 +738,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         }
 #endif /* LLSEC802154_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
-            tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
+            &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
@@ -876,14 +871,14 @@ send_packet(mac_callback_t sent, void *ptr)
     return;
   }
 
-  /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
-         in framer-802154.c. */
-  if(++tsch_packet_seqno == 0) {
-    tsch_packet_seqno++;
-  }
-
   /* Ask for ACK if we are sending anything other than broadcast */
   if(!linkaddr_cmp(addr, &linkaddr_null)) {
+    /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+           in framer-802154.c. */
+    if(++tsch_packet_seqno == 0) {
+      tsch_packet_seqno++;
+    }
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
   } else {
     /* Broadcast packets shall be added to broadcast queue
@@ -893,7 +888,6 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
 #if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
@@ -949,7 +943,6 @@ packet_input(void)
       /* Check for duplicates */
       duplicate = mac_sequence_is_duplicate();
       if(duplicate) {
-        extern clock_time_t duplicate_age;
         /* Drop the packet. */
         PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
                TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
