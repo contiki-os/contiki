@@ -1017,6 +1017,11 @@ turn_on(void)
 static int
 turn_off(int keep_radio_on)
 {
+  if(keep_radio_on) {
+    NETSTACK_RADIO.on();
+  } else {
+    NETSTACK_RADIO.off();
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/
