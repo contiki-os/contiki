@@ -562,10 +562,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
 
-#ifdef TSCH_CALLBACK_JOINING_NETWORK
-      TSCH_CALLBACK_JOINING_NETWORK();
-#endif
-
       /* Set PANID */
       frame802154_set_pan_id(frame.src_pid);
 
@@ -576,8 +572,12 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       tsch_is_associated = 1;
       tsch_is_pan_secured = frame.fcf.security_enabled;
 
-      /* Association done, schedule keepalive messages */
+      /* Start sending keep-alives now that tsch_is_associated is set */
       tsch_schedule_keepalive();
+
+#ifdef TSCH_CALLBACK_JOINING_NETWORK
+      TSCH_CALLBACK_JOINING_NETWORK();
+#endif
 
       PRINTF("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from ",
              tsch_is_pan_secured,
