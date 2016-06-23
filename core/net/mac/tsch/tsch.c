@@ -151,6 +151,8 @@ uint8_t tsch_join_priority;
 static uint8_t tsch_packet_seqno = 0;
 /* Current period for EB output */
 static clock_time_t tsch_current_eb_period;
+/* Current period for keepalive output */
+static clock_time_t tsch_current_ka_timeout;
 
 /* timer for sending keepalive messages */
 static struct ctimer keepalive_timer;
@@ -184,6 +186,12 @@ void
 tsch_set_join_priority(uint8_t jp)
 {
   tsch_join_priority = jp;
+}
+/*---------------------------------------------------------------------------*/
+void
+tsch_set_ka_timeout(uint32_t timeout)
+{
+  tsch_current_ka_timeout = timeout;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -256,10 +264,10 @@ keepalive_send()
 void
 tsch_schedule_keepalive()
 {
-  /* Pick a delay in the range [TSCH_KEEPALIVE_TIMEOUT*0.9, TSCH_KEEPALIVE_TIMEOUT[ */
-  if(!tsch_is_coordinator && tsch_is_associated) {
-    unsigned long delay = (TSCH_KEEPALIVE_TIMEOUT - TSCH_KEEPALIVE_TIMEOUT / 10)
-      + random_rand() % (TSCH_KEEPALIVE_TIMEOUT / 10);
+  /* Pick a delay in the range [tsch_current_ka_timeout*0.9, tsch_current_ka_timeout[ */
+  if(!tsch_is_coordinator && tsch_is_associated && tsch_current_ka_timeout > 0) {
+    unsigned long delay = (tsch_current_ka_timeout - tsch_current_ka_timeout / 10)
+      + random_rand() % (tsch_current_ka_timeout / 10);
     ctimer_set(&keepalive_timer, delay, keepalive_send, NULL);
   }
 }
