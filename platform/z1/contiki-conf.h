@@ -105,7 +105,9 @@
 #define CC2420_CONF_CCA_THRESH      -45
 #endif /* CC2420_CONF_CCA_THRESH */
 
+#ifndef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID       0xABCD
+#endif
 
 /* The TSCH default slot length of 10ms is a bit too short for this platform,
  * use 15ms instead. */
@@ -146,9 +148,14 @@
 #define UIP_CONF_ROUTER              1
 
 /* Handle 10 neighbors */
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS    15
+#endif
+
 /* Handle 10 routes    */
+#ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES             15
+#endif
 
 #define UIP_CONF_ND6_SEND_RA    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -160,7 +167,10 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_IP_FORWARD             0
+
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE            140
+#endif
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
@@ -170,7 +180,11 @@
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #else /* NETSTACK_CONF_WITH_IPV6 */
 #define UIP_CONF_IP_FORWARD        1
+
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE       108
+#endif
+
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
