@@ -33,6 +33,10 @@
 
 #include "platform-conf.h"
 
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
+
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
 
@@ -94,11 +98,11 @@
 #endif
 
 #ifndef CC2420_CONF_CHANNEL
-#define CC2420_CONF_CHANNEL              26
+#define CC2420_CONF_CHANNEL         26
 #endif /* CC2420_CONF_CHANNEL */
 
 #ifndef CC2420_CONF_CCA_THRESH
-#define CC2420_CONF_CCA_THRESH              -45
+#define CC2420_CONF_CCA_THRESH      -45
 #endif /* CC2420_CONF_CCA_THRESH */
 
 #define IEEE802154_CONF_PANID       0xABCD
@@ -142,15 +146,15 @@
 #define UIP_CONF_ROUTER                 1
 
 /* Handle 10 neighbors */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     15
+#define NBR_TABLE_CONF_MAX_NEIGHBORS    15
 /* Handle 10 routes    */
-#define UIP_CONF_MAX_ROUTES   15
+#define UIP_CONF_MAX_ROUTES             15
 
 #define UIP_CONF_ND6_SEND_RA    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
-#define NETSTACK_CONF_WITH_IPV6                   1
+#define NETSTACK_CONF_WITH_IPV6         1
 #define UIP_CONF_IPV6_QUEUE_PKT         0
 #define UIP_CONF_IPV6_CHECKS            1
 #define UIP_CONF_IPV6_REASSEMBLY        0
@@ -165,8 +169,8 @@
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #else /* NETSTACK_CONF_WITH_IPV6 */
-#define UIP_CONF_IP_FORWARD      1
-#define UIP_CONF_BUFFER_SIZE     108
+#define UIP_CONF_IP_FORWARD        1
+#define UIP_CONF_BUFFER_SIZE       108
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
@@ -187,9 +191,5 @@
 #define UIP_CONF_LOGGING         0
 
 #define UIP_CONF_TCP_SPLIT       0
-
-#ifdef PROJECT_CONF_H
-#include PROJECT_CONF_H
-#endif /* PROJECT_CONF_H */
 
 #endif /* CONTIKI_CONF_H */
