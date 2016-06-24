@@ -87,14 +87,14 @@
 
 #define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
-#define QUEUEBUF_CONF_NUM          8
+#define QUEUEBUF_CONF_NUM           8
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
 #ifdef RF_CHANNEL
-#define CC2420_CONF_CHANNEL RF_CHANNEL
+#define CC2420_CONF_CHANNEL         RF_CHANNEL
 #endif
 
 #ifndef CC2420_CONF_CHANNEL
@@ -111,22 +111,22 @@
  * use 15ms instead. */
 #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
 
-#define SHELL_VARS_CONF_RAM_BEGIN 0x1100
-#define SHELL_VARS_CONF_RAM_END 0x2000
+#define SHELL_VARS_CONF_RAM_BEGIN         0x1100
+#define SHELL_VARS_CONF_RAM_END           0x2000
 
 #define CFS_CONF_OFFSET_TYPE  long
 
-#define PROFILE_CONF_ON 0
-#define ENERGEST_CONF_ON 1
+#define PROFILE_CONF_ON       0
+#define ENERGEST_CONF_ON      1
 
-#define ELFLOADER_CONF_TEXT_IN_ROM 0
-#define ELFLOADER_CONF_DATAMEMORY_SIZE 0x400
-#define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x800
+#define ELFLOADER_CONF_TEXT_IN_ROM        0
+#define ELFLOADER_CONF_DATAMEMORY_SIZE    0x400
+#define ELFLOADER_CONF_TEXTMEMORY_SIZE    0x800
 
 #define AODV_COMPLIANCE
-#define AODV_NUM_RT_ENTRIES 32
+#define AODV_NUM_RT_ENTRIES    32
 
-#define WITH_ASCII 1
+#define WITH_ASCII             1
 
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
@@ -134,16 +134,16 @@
 
 #define UART0_CONF_TX_WITH_INTERRUPT 0 /* So far, printfs without interrupt. */
 
-#define UART0_CONF_RX_WITH_DMA 0
+#define UART0_CONF_RX_WITH_DMA       0
 
 #ifdef NETSTACK_CONF_WITH_IPV6
 
-#define LINKADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE           8
 
-#define UIP_CONF_LL_802154              1
-#define UIP_CONF_LLH_LEN                0
+#define UIP_CONF_LL_802154           1
+#define UIP_CONF_LLH_LEN             0
 
-#define UIP_CONF_ROUTER                 1
+#define UIP_CONF_ROUTER              1
 
 /* Handle 10 neighbors */
 #define NBR_TABLE_CONF_MAX_NEIGHBORS    15
@@ -160,7 +160,7 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE    140
+#define UIP_CONF_BUFFER_SIZE            140
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
