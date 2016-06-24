@@ -226,21 +226,20 @@ aes_auth_crypt_start(uint32_t ctrl, uint8_t key_area, const void *iv,
         REG(AES_CTRL_ALG_SEL) = 0x00000000;
         return CRYPTO_DMA_BUS_ERROR;
       }
+
+      /* Clear interrupt status */
+      REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE;
     }
   }
 
-  /* Clear interrupt status */
-  REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE |
-                          AES_CTRL_INT_CLR_RESULT_AV;
+  /* Enable result available bit in interrupt enable */
+  REG(AES_CTRL_INT_EN) = AES_CTRL_INT_EN_RESULT_AV;
 
   if(process != NULL) {
     crypto_register_process_notification(process);
     nvic_interrupt_unpend(NVIC_INT_AES);
     nvic_interrupt_enable(NVIC_INT_AES);
   }
-
-  /* Enable result available bit in interrupt enable */
-  REG(AES_CTRL_INT_EN) = AES_CTRL_INT_EN_RESULT_AV;
 
   if(data_len != 0) {
     /* Configure DMAC
