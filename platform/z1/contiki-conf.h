@@ -206,4 +206,6 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
+#define BOARD_STRING             "Zolertia Z1 platform"
+
 #endif /* CONTIKI_CONF_H */
