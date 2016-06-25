@@ -42,6 +42,9 @@
 #define CC26XX_WEB_DEMO_CONF_COAP_SERVER      1
 #define CC26XX_WEB_DEMO_CONF_NET_UART         1
 /*---------------------------------------------------------------------------*/
+/* Enable the ROM bootloader */
+#define ROM_BOOTLOADER_ENABLE                 1
+/*---------------------------------------------------------------------------*/
 /*
  * Shrink the size of the uIP buffer, routing table and ND cache.
  * Set the TCP MSS
