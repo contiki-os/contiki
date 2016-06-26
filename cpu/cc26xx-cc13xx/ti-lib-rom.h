@@ -59,13 +59,6 @@
 #define ti_lib_rom_aux_tdc_config_set                 ROM_AUXTDCConfigSet
 #define ti_lib_rom_aux_tdc_measurement_done           ROM_AUXTDCMeasurementDone
 
-/* AUX_TIMER API */
-#define ti_lib_rom_aux_timer_configure                ROM_AUXTimerConfigure
-#define ti_lib_rom_aux_timer_start                    ROM_AUXTimerStart
-#define ti_lib_rom_aux_timer_stop                     ROM_AUXTimerStop
-#define ti_lib_rom_aux_timer_prescale_set             ROM_AUXTimerPrescaleSet
-#define ti_lib_rom_aux_timer_prescale_get             ROM_AUXTimerPrescaleGet
-
 /* AUX_WUC API */
 #define ti_lib_rom_aux_wuc_clock_enable               ROM_AUXWUCClockEnable
 #define ti_lib_rom_aux_wuc_clock_disable              ROM_AUXWUCClockDisable
