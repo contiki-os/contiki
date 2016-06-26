@@ -198,6 +198,7 @@
 #define ti_lib_chipinfo_package_type_is_5x5(...)       ChipInfo_PackageTypeIs5x5(__VA_ARGS__)
 #define ti_lib_chipinfo_package_type_is_7x7(...)       ChipInfo_PackageTypeIs7x7(__VA_ARGS__)
 #define ti_lib_chipinfo_get_device_id_hw_rev_code(...) ChipInfo_GetDeviceIdHwRevCode(__VA_ARGS__)
+#define ti_lib_chipinfo_get_chip_type(...)             ChipInfo_GetChipType(__VA_ARGS__)
 #define ti_lib_chipinfo_get_chip_family(...)           ChipInfo_GetChipFamily(__VA_ARGS__)
 #define ti_lib_chipinfo_chip_family_is_cc26xx(...)     ChipInfo_ChipFamilyIsCC26xx(__VA_ARGS__)
 #define ti_lib_chipinfo_chip_family_is_cc13xx(...)     ChipInfo_ChipFamilyIsCC13xx(__VA_ARGS__)
@@ -330,15 +331,22 @@
 #include "driverlib/osc.h"
 
 #define ti_lib_osc_xhf_power_mode_set(...)                OSCXHfPowerModeSet(__VA_ARGS__)
+#define ti_lib_osc_clock_loss_event_enable(...)           OSCClockLossEventEnable(__VA_ARGS__)
+#define ti_lib_osc_clock_loss_event_disable(...)          OSCClockLossEventDisable(__VA_ARGS__)
 #define ti_lib_osc_clock_source_set(...)                  OSCClockSourceSet(__VA_ARGS__)
 #define ti_lib_osc_clock_source_get(...)                  OSCClockSourceGet(__VA_ARGS__)
 #define ti_lib_osc_hf_source_ready(...)                   OSCHfSourceReady(__VA_ARGS__)
 #define ti_lib_osc_hf_source_switch(...)                  OSCHfSourceSwitch(__VA_ARGS__)
-#define ti_lib_osc_interface_enable(...)                  OSCInterfaceEnable(__VA_ARGS__)
-#define ti_lib_osc_interface_disable(...)                 OSCInterfaceDisable(__VA_ARGS__)
 #define ti_lib_osc_hf_get_startup_time(...)               OSCHF_GetStartupTime(__VA_ARGS__)
 #define ti_lib_osc_hf_turn_on_xosc(...)                   OSCHF_TurnOnXosc(__VA_ARGS__)
 #define ti_lib_osc_hf_attempt_to_switch_to_xosc(...)      OSCHF_AttemptToSwitchToXosc(__VA_ARGS__)
+#define ti_lib_osc_hf_debug_get_crystal_amplitude(...)    OSCHF_DebugGetCrystalAmplitude(__VA_ARGS__)
+#define ti_lib_osc_hf_debug_get_expected_average_crystal_amplitude(...) \
+                                                          OSCHF_DebugGetExpectedAverageCrystalAmplitude(__VA_ARGS__)
+#define ti_lib_osc_hposc_relative_frequency_offset_get(...) \
+                                                          OSC_HPOSCRelativeFrequencyOffsetGet(__VA_ARGS__)
+#define ti_lib_osc_hposc_relative_frequency_offset_to_rf_core_format_convert(...) \
+                                                          OSC_HPOSCRelativeFrequencyOffsetToRFCoreFormatConvert(__VA_ARGS__)
 #define ti_lib_osc_hf_switch_to_rc_osc_turn_off_xosc(...) OSCHF_SwitchToRcOscTurnOffXosc(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* prcm.h */
