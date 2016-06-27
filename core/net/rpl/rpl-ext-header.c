@@ -195,12 +195,6 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
   /* Look for routing header */
   while(uip_next_hdr != NULL && *uip_next_hdr != UIP_PROTO_ROUTING) {
     switch(*uip_next_hdr) {
-      case UIP_PROTO_TCP:
-      case UIP_PROTO_UDP:
-      case UIP_PROTO_ICMP6:
-      case UIP_PROTO_NONE:
-        uip_next_hdr = NULL;
-        break;
       case UIP_PROTO_HBHO:
       case UIP_PROTO_DESTO:
       case UIP_PROTO_FRAG:
@@ -211,6 +205,7 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
         uip_next_hdr = &UIP_EXT_BUF->next;
         break;
       default:
+        uip_next_hdr = NULL;
         break;
     }
   }
@@ -249,12 +244,6 @@ rpl_process_srh_header(void)
   /* Look for routing header */
   while(uip_next_hdr != NULL && *uip_next_hdr != UIP_PROTO_ROUTING) {
     switch(*uip_next_hdr) {
-      case UIP_PROTO_TCP:
-      case UIP_PROTO_UDP:
-      case UIP_PROTO_ICMP6:
-      case UIP_PROTO_NONE:
-        uip_next_hdr = NULL;
-        break;
       case UIP_PROTO_HBHO:
       case UIP_PROTO_DESTO:
       case UIP_PROTO_FRAG:
@@ -265,6 +254,7 @@ rpl_process_srh_header(void)
         uip_next_hdr = &UIP_EXT_BUF->next;
         break;
       default:
+        uip_next_hdr = NULL;
         break;
     }
   }
