@@ -655,11 +655,6 @@ rpl_remove_header(void)
   /* Look for hop-by-hop and routing headers */
   while(uip_next_hdr != NULL) {
     switch(*uip_next_hdr) {
-      case UIP_PROTO_TCP:
-      case UIP_PROTO_UDP:
-      case UIP_PROTO_ICMP6:
-      case UIP_PROTO_NONE:
-        return;
       case UIP_PROTO_HBHO:
       case UIP_PROTO_ROUTING:
         /* Remove hop-by-hop and routing headers */
@@ -674,13 +669,22 @@ rpl_remove_header(void)
         PRINTF("RPL: Removing RPL extension header (type %u, len %u)\n", *uip_next_hdr, rpl_ext_hdr_len);
         memmove(UIP_EXT_BUF, ((uint8_t *)UIP_EXT_BUF) + rpl_ext_hdr_len, uip_len - UIP_IPH_LEN);
         break;
-      default:
+      case UIP_PROTO_DESTO:
+        /*
+         * As per RFC 2460, any header other than the Destination
+         * Options header does not appear between the Hop-by-Hop
+         * Options header and the Routing header.
+         *
+         * We're moving to the next header only if uip_next_hdr has
+         * UIP_PROTO_DESTO. Otherwise, we'll return.
+         */
         /* Move to next header */
         if(uip_next_hdr != &UIP_IP_BUF->proto) {
           uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
         }
         uip_next_hdr = &UIP_EXT_BUF->next;
-        break;
+    default:
+      return;
     }
   }
 }
