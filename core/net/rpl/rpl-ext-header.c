@@ -154,8 +154,8 @@ rpl_verify_hbh_header(int uip_ext_opt_offset)
 
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
-	   sender_rank, instance->current_dag->rank,
-	   sender_closer);
+           sender_rank, instance->current_dag->rank,
+           sender_closer);
     /* Attempt to repair the loop by sending a unicast DIO back to the sender
      * so that it gets a fresh update of our rank. */
     if(sender != NULL) {
@@ -197,7 +197,11 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
     switch(*uip_next_hdr) {
       case UIP_PROTO_HBHO:
       case UIP_PROTO_DESTO:
-      case UIP_PROTO_FRAG:
+        /*
+         * As per RFC 2460, only the Hop-by-Hop Options header and
+         * Destination Options header can appear before the Routing
+         * header.
+         */
         /* Move to next header */
         uip_next_hdr = &UIP_EXT_BUF->next;
         uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
@@ -244,7 +248,11 @@ rpl_process_srh_header(void)
     switch(*uip_next_hdr) {
       case UIP_PROTO_HBHO:
       case UIP_PROTO_DESTO:
-      case UIP_PROTO_FRAG:
+        /*
+         * As per RFC 2460, only the Hop-by-Hop Options header and
+         * Destination Options header can appear before the Routing
+         * header.
+         */
         /* Move to next header */
         uip_next_hdr = &UIP_EXT_BUF->next;
         uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
