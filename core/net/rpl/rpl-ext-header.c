@@ -199,10 +199,8 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
       case UIP_PROTO_DESTO:
       case UIP_PROTO_FRAG:
         /* Move to next header */
-        if(uip_next_hdr != &UIP_IP_BUF->proto) {
-          uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
-        }
         uip_next_hdr = &UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
         break;
       default:
         uip_next_hdr = NULL;
@@ -248,10 +246,8 @@ rpl_process_srh_header(void)
       case UIP_PROTO_DESTO:
       case UIP_PROTO_FRAG:
         /* Move to next header */
-        if(uip_next_hdr != &UIP_IP_BUF->proto) {
-          uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
-        }
         uip_next_hdr = &UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
         break;
       default:
         uip_next_hdr = NULL;
@@ -679,10 +675,8 @@ rpl_remove_header(void)
          * UIP_PROTO_DESTO. Otherwise, we'll return.
          */
         /* Move to next header */
-        if(uip_next_hdr != &UIP_IP_BUF->proto) {
-          uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
-        }
         uip_next_hdr = &UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
     default:
       return;
     }
