@@ -83,4 +83,11 @@ void slip_set_input_callback(void (*callback)(void));
 void slip_arch_init(unsigned long ubr);
 void slip_arch_writeb(unsigned char c);
 
+/* Include CRC in SLIP messages? */
+#ifdef SLIP_CONF_CRC_ON
+#define SLIP_CRC_ON SLIP_CONF_CRC_ON
+#else
+#define SLIP_CRC_ON 0
+#endif
+
 #endif /* SLIP_H_ */
