@@ -65,6 +65,14 @@
 #define NETSTACK_CONF_RDC     contikimac_driver
 #endif
 
+/*
+ * Disable turning off HF oscillator when the radio is off:
+ * You need to set this in order to use TSCH, disable to save more energy.
+ */
+#ifndef CC2650_FAST_RADIO_STARTUP
+#define CC2650_FAST_RADIO_STARTUP               0
+#endif
+
 /* Configure NullRDC for when it's selected */
 #define NULLRDC_CONF_802154_AUTOACK             1
 
@@ -358,12 +366,6 @@ typedef uint32_t rtimer_clock_t;
 
 /* Disable TSCH frame filtering */
 #define TSCH_CONF_HW_FRAME_FILTERING	0
-
-/* Disable turning off HF oscillator when radio is off;
-   enable this for TSCH, disable to save more energy. */
-#ifndef CC2650_FAST_RADIO_STARTUP
-#define CC2650_FAST_RADIO_STARTUP     1
-#endif
 
 /* Use hardware timestamps */
 #ifndef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
