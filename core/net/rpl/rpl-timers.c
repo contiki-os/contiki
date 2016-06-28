@@ -256,7 +256,7 @@ static void
 handle_dao_timer(void *ptr)
 {
   rpl_instance_t *instance;
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   uip_mcast6_route_t *mcast_route;
   uint8_t i;
 #endif
@@ -275,7 +275,7 @@ handle_dao_timer(void *ptr)
     /* Set the route lifetime to the default value. */
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
     /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
     if(instance->mop == RPL_MOP_STORING_MULTICAST) {
       /* Send a DAO for own multicast addresses */
