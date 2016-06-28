@@ -48,6 +48,7 @@
 #include "lib/random.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ip/uip-packetqueue.h"
 
 #define DEBUG DEBUG_NONE

@@ -203,11 +203,11 @@
 #ifdef  RPL_CONF_MOP
 #define RPL_MOP_DEFAULT                 RPL_CONF_MOP
 #else /* RPL_CONF_MOP */
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_MULTICAST
 #else
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
-#endif /* UIP_IPV6_MULTICAST_RPL */
+#endif /* RPL_WITH_MULTICAST */
 #endif /* RPL_CONF_MOP */
 
 /*
@@ -248,7 +248,7 @@
 #define RPL_IS_NON_STORING(instance) (RPL_WITH_NON_STORING && ((instance) != NULL) && ((instance)->mop == RPL_MOP_NON_STORING))
 
 /* Emit a pre-processor error if the user configured multicast with bad MOP */
-#if RPL_CONF_MULTICAST && (RPL_MOP_DEFAULT != RPL_MOP_STORING_MULTICAST)
+#if RPL_WITH_MULTICAST && (RPL_MOP_DEFAULT != RPL_MOP_STORING_MULTICAST)
 #error "RPL Multicast requires RPL_MOP_DEFAULT==3. Check contiki-conf.h"
 #endif
 
