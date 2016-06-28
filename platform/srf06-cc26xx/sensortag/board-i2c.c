@@ -221,11 +221,11 @@ board_i2c_read(uint8_t *data, uint8_t len)
   }
 
   if(success) {
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
     while(ti_lib_i2c_master_busy(I2C0_BASE));
     success = i2c_status();
     if(success) {
       data[len - 1] = ti_lib_i2c_master_data_get(I2C0_BASE);
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
       while(ti_lib_i2c_master_bus_busy(I2C0_BASE));
     }
   }
@@ -285,11 +285,11 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   }
 
   if(success) {
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
     while(ti_lib_i2c_master_busy(I2C0_BASE));
     success = i2c_status();
     if(success) {
       rdata[rlen - 1] = ti_lib_i2c_master_data_get(I2C0_BASE);
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
       while(ti_lib_i2c_master_bus_busy(I2C0_BASE));
     }
   }
