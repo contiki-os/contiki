@@ -274,7 +274,7 @@ log.log("Waiting for association with security\n");&#xD;
 /* Wait until a node (can only be the DAGRoot) has&#xD;
  * 8 routing entries (i.e. can reach every node) */&#xD;
 log.log("Waiting for routing tables to fill\n");&#xD;
-WAIT_UNTIL(msg.endsWith("Routing entries (8 in total):"));&#xD;
+WAIT_UNTIL(msg.endsWith("Routing links (8 in total):"));&#xD;
 log.log("Root routing table ready\n");&#xD;
 &#xD;
 log.testOK(); /* Report test success and quit */</script>
