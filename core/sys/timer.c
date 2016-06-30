@@ -47,7 +47,6 @@
 #include "contiki-conf.h"
 #include "sys/clock.h"
 #include "sys/timer.h"
-
 /*---------------------------------------------------------------------------*/
 /**
  * Set a timer.
@@ -108,6 +107,20 @@ timer_restart(struct timer *t)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * Check if the given timer is expired at the given time
+ *
+ * \param t A pointer to the timer
+ * \param at the time at which to check expiration against
+ *
+ * \return boolean value, true if timer will be expired at the given time
+ */
+int
+timer_expired_at(const struct timer *t, clock_time_t at)
+{
+  return t->interval <= (at - t->start);
+}
+/*---------------------------------------------------------------------------*/
+/**
  * Check if a timer has expired.
  *
  * This function tests if a timer has expired and returns true or
@@ -119,13 +132,60 @@ timer_restart(struct timer *t)
  *
  */
 int
-timer_expired(struct timer *t)
+timer_expired(const struct timer *t)
 {
-  /* Note: Can not return diff >= t->interval so we add 1 to diff and return
-     t->interval < diff - required to avoid an internal error in mspgcc. */
-  clock_time_t diff = (clock_time() - t->start) + 1;
-  return t->interval < diff;
+  return timer_expired_at(t, clock_time());
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief compare timer expiry times
+ *
+ * Compares the two timers to see which will expire sooner. The cmp_pt time
+ * value is a point in time to compare around. Usually this will just be the
+ * current clock time.
+ *
+ * \param t0 first timer to compare
+ * \param t1 second timer to compare
+ * \param cmp_pt a point in time to compare against. Usually the current time.
+ *
+ * \return less than, equal to, or greater than zero if t0 is less than, equal
+ * to or greater than t1 respectivley
+ */
+int
+timer_cmp(const struct timer *t0, const struct timer *t1, clock_time_t cmp_pt)
+{
+  clock_time_t t0_expiry = t0->start + t0->interval;
+  clock_time_t t1_expiry = t1->start + t1->interval;
 
+  int t0_expired = timer_expired_at(t0, cmp_pt);
+  int t1_expired = timer_expired_at(t1, cmp_pt);
+
+  if(t0_expired && !t1_expired) {
+    /* t0 expired already but t1 didn't, so it compares less */
+    return -1;
+  } else if(!t0_expired && t1_expired) {
+    /* t0 hasn't expired  but t1 has, so it compares greater */
+    return 1;
+  }
+  /* either, both timers are expired or both aren't */
+
+  if(t0_expiry == t1_expiry) {
+    /* if the expiry time is the same, then they must be equal whether both
+       timers are expired or not expired */
+    return 0;
+  }
+
+  if(!t0_expired) {
+    /* neither are expired, cmp_pt is defined to be less than the expiry
+       times so we compare on that basis. The smallest diff to cmp_pt compares
+       less. */
+    return (t0_expiry - cmp_pt) < (t1_expiry - cmp_pt) ? -1 : 1;
+  } else {
+    /* both are expired, cmp_pt is defined to be greater than the expiry
+       times so we compare on that basis. The largest diff to cmp_pt compares
+       less. */
+    return (cmp_pt - t0_expiry) > (cmp_pt - t1_expiry) ? -1 : 1;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -139,7 +199,7 @@ timer_expired(struct timer *t)
  *
  */
 clock_time_t
-timer_remaining(struct timer *t)
+timer_remaining(const struct timer *t)
 {
   return t->start + t->interval - clock_time();
 }

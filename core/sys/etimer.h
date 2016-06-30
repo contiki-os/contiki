@@ -245,7 +245,22 @@ int etimer_pending(void);
  */
 clock_time_t etimer_next_expiration_time(void);
 
+/**
+ * \brief      Return the timer which is next to expire
+ * \return     Const pointer to timer which will next expire, or NULL if no
+ *             timers pending.
+ *
+ *             This function returns the timer of the etimer which will expire
+ *             next so that existing timer module functions can be used to
+ *             check when the timer will expire or if it has already expired.
+ */
+const struct timer *etimer_next_to_expire(void);
 
+#define etimer_lt(t0, t1, c)  timer_lt(&(t0->timer), &(t1->timer), c)
+#define etimer_lte(t0, t1, c) timer_lte(&(t0->timer), &(t1->timer), c)
+#define etimer_gt(t0, t1, c)  timer_gt(&(t0->timer), &(t1->timer), c)
+#define etimer_gte(t0, t1, c) timer_gte(&(t0->timer), &(t1->timer), c)
+#define etimer_eq(t0, t1, c)  timer_eq(&(t0->timer), &(t1->timer), c)
 /** @} */
 
 PROCESS_NAME(etimer_process);
