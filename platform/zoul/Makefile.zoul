@@ -12,10 +12,6 @@ endif
 PYTHON = python
 BSL_FLAGS += -e -w -v
 
-ifdef PORT
-  BSL_FLAGS += -p $(PORT)
-endif
-
 ### Configure the build for the board and pull in board-specific sources
 CONTIKI_TARGET_DIRS += . dev
 CONTIKI_TARGET_DIRS += . $(BOARD)
@@ -57,27 +53,47 @@ endif
 ### Detect if a mote is connected over serial port
 ifeq ($(HOST_OS),Darwin)
   USBDEVPREFIX=
-  MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia-macos
-  MOTES = $(shell $(MOTELIST) -c 2>&- | cut -f 2 -d ,)
-  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-macos
+  MOTELIST := $(CONTIKI)/tools/zolertia/motelist-zolertia-macos
+  MOTES := $(shell $(MOTELIST) -c 2>&- | cut -f 2 -d ,)
+  SERIALDUMP := $(CONTIKI)/tools/sky/serialdump-macos
 else
 ### If we are not running under Mac, we assume Linux
   USBDEVPREFIX=
-  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
-  MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia
-  MOTES = $(shell $(MOTELIST) -b $(MOTELIST_ZOLERTIA) -c 2>&- | cut -f 2 -d , | \
+  SERIALDUMP := $(CONTIKI)/tools/sky/serialdump-linux
+  MOTELIST := $(CONTIKI)/tools/zolertia/motelist-zolertia
+  MOTES := $(shell $(MOTELIST) -b $(MOTELIST_ZOLERTIA) -c 2>&- | cut -f 2 -d , | \
             perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
 endif
 
-%.upload: %.bin %.elf
+### If PORT is defined, override to keep backward compatibility
+ifdef PORT
+  MOTES := $(PORT)
+endif
+
+### Check the BSL script exists
 ifeq ($(wildcard $(BSL)), )
+%.upload:
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
-	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
-	                               sort -g | head -1))
-	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
+### Upload to every MOTE
+%.upload: $(foreach MOTE,$(MOTES),%.$(MOTE))
+	@# Dummy recipe to prevent "No rule to make *.upload errors"
 endif
+
+### Variable that expands into a pattern rule to upload to a given MOTE.
+### Requires $(MOTE) to be defined
+### $$$$ Double escapes $s that need to be passed to the shell - once for when make parses UPLOAD_RULE, and once for when the expanded rule is parsed by make.
+define UPLOAD_RULE
+%.$(MOTE): %.bin %.elf
+	@echo "Flashing $(MOTE)"
+	@BSL_ADDRESS=`$(OBJDUMP) -h $$*.elf | grep -B1 LOAD | \
+	             grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$$$5}' | \
+	             sort -g | head -1`; \
+	$(PYTHON) $(BSL) $(BSL_FLAGS) -a $$$${BSL_ADDRESS} -p $(MOTE) $$<
+endef
+
+### Create an upload rule for every MOTE connected
+$(foreach MOTE,$(MOTES),$(eval $(UPLOAD_RULE)))
 
 motelist:
 	$(MOTELIST)
@@ -86,16 +102,8 @@ zoul-motelist:
 zoul-motes:
 	@echo $(MOTES)
 
-ifdef PORT
-serialview:
-	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT) | $(CONTIKI)/tools/timestamp
-
-login:
-	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT)
-else
 serialview:
 	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES)) | $(CONTIKI)/tools/timestamp
 
 login:
 	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES))
-endif
