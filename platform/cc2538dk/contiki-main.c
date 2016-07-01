@@ -192,6 +192,8 @@ main(void)
 
   PRINTF(" Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
+  PRINTF(" LLSEC: ");
+  PRINTF("%s\n", NETSTACK_LLSEC.name);
   PRINTF(" MAC: ");
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
