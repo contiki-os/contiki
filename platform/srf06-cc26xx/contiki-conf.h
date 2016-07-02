@@ -346,9 +346,8 @@ typedef uint32_t rtimer_clock_t;
 /* Delay between GO signal and start listening.
  * This value is so small because the radio is constantly on within each timeslot. */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(15))
-/* Delay between the SFD finishes arriving and it is detected in software.
- * Not important on this platform as it uses hardware timestamps for SFD */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(0))
+/* Delay between the SFD finishes arriving and it is detected in software. */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(352))
 
 /* Timer conversion; radio is running at 4 MHz */
 #define RADIO_TIMER_SECOND   4000000u
