@@ -118,16 +118,17 @@ receiver(struct simple_udp_connection *c,
   printf("CH: %u ", (unsigned int) aux);
 
   aux = packetbuf_attr(PACKETBUF_ATTR_RSSI);
-  printf("RSSI: %ddBm ", aux);
+  printf("RSSI: %ddBm ", (int8_t)aux);
 
   aux = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
   printf("LQI: %u\n", aux);
 
   /* Print the received data */
 #if CONTIKI_TARGET_ZOUL
-  printf("ID: %u, core temp: %u, ADC1: %d, ADC2: %d, ADC3: %d, batt: %u, counter: %u\n",
-          msgPtr->id, msgPtr->value1, msgPtr->value2, msgPtr->value3,
-          msgPtr->value4, msgPtr->battery, msgPtr->counter);
+  printf("ID: %u, core temp: %d.%u, ADC1: %d, ADC2: %d, ADC3: %d, batt: %u, counter: %u\n",
+          msgPtr->id, msgPtr->value1 / 1000, msgPtr->value1 % 1000,
+          msgPtr->value2, msgPtr->value3, msgPtr->value4, msgPtr->battery,
+          msgPtr->counter);
 #else
   printf("ID: %u, temp: %u, x: %d, y: %d, z: %d, batt: %u, counter: %u\n",
           msgPtr->id, msgPtr->value1, msgPtr->value2, msgPtr->value3,
@@ -210,7 +211,7 @@ static void
 set_radio_default_parameters(void)
 {
   NETSTACK_RADIO.set_value(RADIO_PARAM_TXPOWER, EXAMPLE_TX_POWER);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, EXAMPLE_PANID);
+  // NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, EXAMPLE_PANID);
   NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, EXAMPLE_CHANNEL);
 }
 /*---------------------------------------------------------------------------*/
