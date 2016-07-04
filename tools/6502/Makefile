@@ -62,6 +62,7 @@ endif
 CC65 := $(shell cl65 --print-target-path)
 
 define makes
+.PHONY: $1-$2makes
 $1-$2makes:
 	$(MAKE) -C ../../cpu/6502/ethconfig        TARGET=$1             $2
 	$(MAKE) -C ../../cpu/6502/ipconfig         TARGET=$1             $2
@@ -80,6 +81,8 @@ $(eval $(call makes,apple2enh,clean))
 %.zip:
 	zip $@ $^
 	echo $(ZIPCOMMENT) | zip -z $@
+
+.PHONY: apple2 apple2-clean atari atari-clean c64 c64-clean c128 c128-clean
 
 apple2: contiki-apple2.zip
 
