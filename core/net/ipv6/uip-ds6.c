@@ -46,7 +46,12 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/random.h"
+#if !(UIP_CONF_IPv6_LOWPAN_ND)
 #include "net/ipv6/uip-nd6.h"
+#else
+#include "net/ipv6/uip-6lowpan-nd6.h"
+#include "net/ipv6/uip-ds6-reg.h"
+#endif
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ip/uip-packetqueue.h"
@@ -129,8 +134,10 @@ uip_ds6_init(void)
 #if UIP_CONF_ROUTER
   uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
   uip_ds6_maddr_add(&loc_fipaddr);
+#if !(UIP_CONF_IPV6_LOWPAN_ND)
 #if UIP_ND6_SEND_RA
   stimer_set(&uip_ds6_timer_ra, 2);     /* wait to have a link local IP address */
+#endif
 #endif /* UIP_ND6_SEND_RA */
 #else /* UIP_CONF_ROUTER */
   etimer_set(&uip_ds6_timer_rs,
@@ -189,14 +196,16 @@ uip_ds6_periodic(void)
 
 #if UIP_ND6_SEND_NA
   uip_ds6_neighbor_periodic();
-#endif /* UIP_ND6_SEND_RA */
+#endif /* UIP_ND6_SEND_NA */
 
+#if !(UIP_CONF_IPV6_LOWPAN_ND)
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
     uip_ds6_send_ra_periodic();
   }
 #endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
+#endif
   etimer_reset(&uip_ds6_timer_periodic);
   return;
 }
@@ -630,7 +639,7 @@ uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
 void
-uip_ds6_send_ra_sollicited(void)
+uip_ds6_send_ra_sollicited(uip_ipaddr_t * dest)
 {
   /* We have a pb here: RA timer max possible value is 1800s,
    * hence we have to use stimers. However, when receiving a RS, we
@@ -654,6 +663,7 @@ uip_ds6_send_ra_sollicited(void)
 }
 
 /*---------------------------------------------------------------------------*/
+#if !(UIP_CONF_IPV6_LOWPAN_ND)
 void
 uip_ds6_send_ra_periodic(void)
 {
@@ -677,12 +687,12 @@ uip_ds6_send_ra_periodic(void)
   PRINTF("Random time 3 = %u\n", rand_time);
   stimer_set(&uip_ds6_timer_ra, rand_time);
 }
-
+#endif
 #endif /* UIP_ND6_SEND_RA */
 #else /* UIP_CONF_ROUTER */
 /*---------------------------------------------------------------------------*/
 void
-uip_ds6_send_rs(void)
+uip_ds6_send_rs(uip_ds6_defrt_t *defrt)
 {
   if((uip_ds6_defrt_choose() == NULL)
      && (rscount < UIP_ND6_MAX_RTR_SOLICITATIONS)) {
