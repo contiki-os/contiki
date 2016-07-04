@@ -275,7 +275,9 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
+#ifndef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK             1
+#endif
 #define NULLRDC_802154_AUTOACK_HW               1
 
 /* Configure ContikiMAC for when it's selected */
