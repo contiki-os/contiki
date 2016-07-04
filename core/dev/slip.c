@@ -81,7 +81,7 @@ enum {
  */
 
 static uint8_t state = STATE_TWOPACKETS;
-static uint16_t begin, end;
+static uint16_t begin, next_free;
 static uint8_t rxbuf[RX_BUFSIZE];
 static uint16_t pkt_end;		/* SLIP_END tracker. */
 
@@ -153,7 +153,7 @@ slip_write(const void *_ptr, int len)
 static void
 rxbuf_init(void)
 {
-  begin = end = pkt_end = 0;
+  begin = next_free = pkt_end = 0;
   state = STATE_OK;
 }
 /*---------------------------------------------------------------------------*/
@@ -164,7 +164,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
   /* This is a hack and won't work across buffer edge! */
   if(rxbuf[begin] == 'C') {
     int i;
-    if(begin < end && (end - begin) >= 6
+    if(begin < next_free && (next_free - begin) >= 6
        && memcmp(&rxbuf[begin], "CLIENT", 6) == 0) {
       state = STATE_TWOPACKETS;	/* Interrupts do nothing. */
       memset(&rxbuf[begin], 0x0, 6);
@@ -182,7 +182,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
     /* Used by tapslip6 to request mac for auto configure */
     int i, j;
     char* hexchar = "0123456789abcdef";
-    if(begin < end && (end - begin) >= 2
+    if(begin < next_free && (next_free - begin) >= 2
        && rxbuf[begin + 1] == 'M') {
       state = STATE_TWOPACKETS; /* Interrupts do nothing. */
       rxbuf[begin] = 0;
@@ -210,37 +210,109 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
    */
   if(begin != pkt_end) {
     uint16_t len;
+    uint16_t cur_next_free;
+    uint16_t cur_ptr;
+    int esc = 0;
 
     if(begin < pkt_end) {
-      len = pkt_end - begin;
-      if(len > blen) {
-	len = 0;
-      } else {
-	memcpy(outbuf, &rxbuf[begin], len);
+      uint16_t i;
+      len = 0;
+      for(i = begin; i < pkt_end; ++i) {
+        if(len > blen) {
+          len = 0;
+          break;
+        }
+        if (esc) {
+          if(rxbuf[i] == SLIP_ESC_ESC) {
+            outbuf[len] = SLIP_ESC;
+            len++;
+          } else if(rxbuf[i] == SLIP_ESC_END) {
+            outbuf[len] = SLIP_END;
+            len++;
+          }
+          esc = 0;
+        } else if(rxbuf[i] == SLIP_ESC) {
+          esc = 1;
+        } else {
+          outbuf[len] = rxbuf[i];
+          len++;
+        }
       }
     } else {
-      len = (RX_BUFSIZE - begin) + (pkt_end - 0);
-      if(len > blen) {
-	len = 0;
-      } else {
-	unsigned i;
-	for(i = begin; i < RX_BUFSIZE; i++) {
-	  *outbuf++ = rxbuf[i];
-	}
-	for(i = 0; i < pkt_end; i++) {
-	  *outbuf++ = rxbuf[i];
-	}
+      uint16_t i;
+      len = 0;
+      for(i = begin; i < RX_BUFSIZE; ++i) {
+        if(len > blen) {
+          len = 0;
+          break;
+        }
+        if (esc) {
+          if(rxbuf[i] == SLIP_ESC_ESC) {
+            outbuf[len] = SLIP_ESC;
+            len++;
+          } else if(rxbuf[i] == SLIP_ESC_END) {
+            outbuf[len] = SLIP_END;
+            len++;
+          }
+          esc = 0;
+        } else if(rxbuf[i] == SLIP_ESC) {
+          esc = 1;
+        } else {
+          outbuf[len] = rxbuf[i];
+          len++;
+        }
+      }
+      for(i = 0; i < pkt_end; ++i) {
+        if(len > blen) {
+          len = 0;
+          break;
+        }
+        if (esc) {
+          if(rxbuf[i] == SLIP_ESC_ESC) {
+            outbuf[len] = SLIP_ESC;
+            len++;
+          } else if(rxbuf[i] == SLIP_ESC_END) {
+            outbuf[len] = SLIP_END;
+            len++;
+          }
+          esc = 0;
+        } else if(rxbuf[i] == SLIP_ESC) {
+          esc = 1;
+        } else {
+          outbuf[len] = rxbuf[i];
+          len++;
+        }
       }
     }
 
     /* Remove data from buffer together with the copied packet. */
-    begin = pkt_end;
-    if(state == STATE_TWOPACKETS) {
-      pkt_end = end;
-      state = STATE_OK;		/* Assume no bytes where lost! */
-      
-      /* One more packet is buffered, need to be polled again! */
-      process_poll(&slip_process);
+    pkt_end = pkt_end + 1;
+    if(pkt_end == RX_BUFSIZE) {
+      pkt_end = 0;
+    }
+    if(pkt_end != next_free) {
+      cur_next_free = next_free;
+      cur_ptr = pkt_end;
+      while(cur_ptr != cur_next_free) {
+        if(rxbuf[cur_ptr] == SLIP_END) {
+          uint16_t tmp_begin = pkt_end;
+          pkt_end = cur_ptr;
+          begin = tmp_begin;
+          /* One more packet is buffered, need to be polled again! */
+          process_poll(&slip_process);
+          break;
+        }
+        cur_ptr++;
+        if(cur_ptr == RX_BUFSIZE) {
+          cur_ptr = 0;
+        }
+      }
+      if(cur_ptr == cur_next_free) {
+        /* no more pending full packet found */
+        begin = pkt_end;
+      }
+    } else {
+      begin = pkt_end;
     }
     return len;
   }
@@ -316,76 +388,68 @@ PROCESS_THREAD(slip_process, ev, data)
 int
 slip_input_byte(unsigned char c)
 {
+  uint16_t cur_end;
   switch(state) {
   case STATE_RUBBISH:
     if(c == SLIP_END) {
       state = STATE_OK;
     }
     return 0;
-    
-  case STATE_TWOPACKETS:       /* Two packets are already buffered! */
-    return 0;
 
   case STATE_ESC:
-    if(c == SLIP_ESC_END) {
-      c = SLIP_END;
-    } else if(c == SLIP_ESC_ESC) {
-      c = SLIP_ESC;
-    } else {
+    if(c != SLIP_ESC_END && c != SLIP_ESC_ESC) {
       state = STATE_RUBBISH;
       SLIP_STATISTICS(slip_rubbish++);
-      end = pkt_end;		/* remove rubbish */
+      next_free = pkt_end;		/* remove rubbish */
       return 0;
     }
     state = STATE_OK;
     break;
+  }
 
-  case STATE_OK:
-    if(c == SLIP_ESC) {
-      state = STATE_ESC;
-      return 0;
-    } else if(c == SLIP_END) {
-	/*
-	 * We have a new packet, possibly of zero length.
-	 *
-	 * There may already be one packet buffered.
-	 */
-      if(end != pkt_end) {	/* Non zero length. */
-	if(begin == pkt_end) {	/* None buffered. */
-	  pkt_end = end;
-	} else {
-	  state = STATE_TWOPACKETS;
-	  SLIP_STATISTICS(slip_twopackets++);
-	}
-	process_poll(&slip_process);
-	return 1;
-      }
-      return 0;
-    }
-    break;
+  if(c == SLIP_ESC) {
+    state = STATE_ESC;
   }
 
   /* add_char: */
-  {
-    unsigned next;
-    next = end + 1;
-    if(next == RX_BUFSIZE) {
-      next = 0;
-    }
-    if(next == begin) {		/* rxbuf is full */
-      state = STATE_RUBBISH;
-      SLIP_STATISTICS(slip_overflow++);
-      end = pkt_end;		/* remove rubbish */
-      return 0;
-    }
-    rxbuf[end] = c;
-    end = next;
+  cur_end = next_free;
+  next_free = next_free + 1;
+  if(next_free == RX_BUFSIZE) {
+    next_free = 0;
   }
+  if(next_free == begin) {         /* rxbuf is full */
+    state = STATE_RUBBISH;
+    SLIP_STATISTICS(slip_overflow++);
+    next_free = pkt_end;            /* remove rubbish */
+    return 0;
+  }
+  rxbuf[cur_end] = c;
 
   /* There could be a separate poll routine for this. */
   if(c == 'T' && rxbuf[begin] == 'C') {
     process_poll(&slip_process);
     return 1;
+  }
+
+  if(c == SLIP_END) {
+    /*
+     * We have a new packet, possibly of zero length.
+     *
+     * There may already be one packet buffered.
+     */
+    if(cur_end != pkt_end) {	/* Non zero length. */
+      if(begin == pkt_end) {	/* None buffered. */
+        pkt_end = cur_end;
+      } else {
+        SLIP_STATISTICS(slip_twopackets++);
+      }
+      process_poll(&slip_process);
+      return 1;
+    } else {
+      /* Empty packet, reset the pointer */
+      next_free = cur_end;
+    }
+    return 0;
   }
 
   return 0;
