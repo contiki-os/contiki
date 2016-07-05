@@ -39,7 +39,11 @@
 #define UDP_SERVER_PORT   5678
 
 /* Radio values to be configured for the 01-udp-local-multicast example */
+#if CONTIKI_TARGET_ZOUL
+#define EXAMPLE_TX_POWER  0xFF
+#else /* default is Z1 */
 #define EXAMPLE_TX_POWER  31
+#endif
 #define EXAMPLE_CHANNEL   15
 #define EXAMPLE_PANID     0xBEEF
 
