@@ -182,7 +182,6 @@ vEXC_Register(void)
   BUS_ERROR = (uint32)exception_handler;
   UNALIGNED_ACCESS = (uint32)exception_handler;
   ILLEGAL_INSTRUCTION = (uint32)exception_handler;
-  SYSCALL = (uint32)exception_handler;
   TRAP = (uint32)exception_handler;
   GENERIC = (uint32)exception_handler;
   STACK_OVERFLOW = (uint32)exception_handler;
@@ -207,11 +206,6 @@ vException_UnalignedAccess(uint32 *pu32Stack, eExceptionType eType)
 }
 PUBLIC void
 vException_IllegalInstruction(uint32 *pu32Stack, eExceptionType eType)
-{
-  exception_handler(pu32Stack, eType);
-}
-PUBLIC void
-vException_SysCall(uint32 *pu32Stack, eExceptionType eType)
 {
   exception_handler(pu32Stack, eType);
 }
