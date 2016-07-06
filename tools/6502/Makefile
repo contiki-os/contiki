@@ -31,10 +31,6 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where Contiki resides}
-endif
-
 ifndef AC
   ${error AC not defined! You must specify where the AppleCommander jar resides}
 endif
@@ -48,6 +44,7 @@ ifndef DIR2ATR
 endif
 
 all: apple2 atari c64 c128
+clean: apple2-clean atari-clean c64-clean c128-clean
 
 ifeq ($(shell echo),)
   NULLDEV = /dev/null
@@ -65,25 +62,32 @@ endif
 CC65 := $(shell cl65 --print-target-path)
 
 define makes
-$1-makes:
-	$(MAKE) -C ../../cpu/6502/ethconfig        TARGET=$1
-	$(MAKE) -C ../../cpu/6502/ipconfig         TARGET=$1
-	$(MAKE) -C ../../examples/webbrowser       TARGET=$1
-	$(MAKE) -C ../../examples/webbrowser-80col TARGET=$1
-	$(MAKE) -C ../../examples/wget             TARGET=$1
-	$(MAKE) -C ../../examples/irc              TARGET=$1
-	$(MAKE) -C ../../examples/irc-80col        TARGET=$1
-	$(MAKE) -C ../../examples/webserver        TARGET=$1 HTTPD-CFS=1
-	$(MAKE) -C ../../examples/telnet-server    TARGET=$1
+.PHONY: $1-$2makes
+$1-$2makes:
+	$(MAKE) -C ../../cpu/6502/ethconfig        TARGET=$1             $2
+	$(MAKE) -C ../../cpu/6502/ipconfig         TARGET=$1             $2
+	$(MAKE) -C ../../examples/webbrowser       TARGET=$1             $2
+	$(MAKE) -C ../../examples/webbrowser-80col TARGET=$1             $2
+	$(MAKE) -C ../../examples/wget             TARGET=$1             $2
+	$(MAKE) -C ../../examples/irc              TARGET=$1             $2
+	$(MAKE) -C ../../examples/irc-80col        TARGET=$1             $2
+	$(MAKE) -C ../../examples/webserver        TARGET=$1 HTTPD-CFS=1 $2
+	$(MAKE) -C ../../examples/telnet-server    TARGET=$1             $2
 endef
 
 $(eval $(call makes,apple2enh))
+$(eval $(call makes,apple2enh,clean))
 
 %.zip:
 	zip $@ $^
 	echo $(ZIPCOMMENT) | zip -z $@
 
+.PHONY: apple2 apple2-clean atari atari-clean c64 c64-clean c128 c128-clean
+
 apple2: contiki-apple2.zip
+
+apple2-clean: apple2enh-cleanmakes
+	rm -f contiki-apple2.zip contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.po
 
 contiki-apple2.zip: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.po
 
@@ -168,8 +172,12 @@ contiki-apple2.po: apple2enh-makes
 	java -jar $(AC) -p    $@ notfound.htm    bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
 $(eval $(call makes,atarixl))
+$(eval $(call makes,atarixl,clean))
 
 atari: contiki-atari.zip
+
+atari-clean: atarixl-cleanmakes
+	rm -f contiki-atari.zip contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari.atr
 
 contiki-atari.zip: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari.atr
 
@@ -252,8 +260,12 @@ contiki-atari.atr: atarixl-makes
 	rm -r atr
 
 $(eval $(call makes,c64))
+$(eval $(call makes,c64,clean))
 
 c64: contiki-c64.zip
+
+c64-clean: c64-cleanmakes
+	rm -f contiki-c64.zip contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64-3.d64 contiki-c64.d71 contiki-c64.d81
 
 contiki-c64.zip: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64-3.d64 contiki-c64.d71 contiki-c64.d81
 
@@ -351,8 +363,12 @@ contiki-c64.d81: c64-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/notfound.htm notfound.htm,s >$(NULLDEV)
 
 $(eval $(call makes,c128))
+$(eval $(call makes,c128,clean))
 
 c128: contiki-c128.zip
+
+c128-clean: c128-cleanmakes
+	rm -f contiki-c128.zip contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
 
 contiki-c128.zip: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
 
