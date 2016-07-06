@@ -114,6 +114,7 @@ rest_activate_resource(resource_t *resource, char *path)
            resource->periodic->resource->url);
     list_add(restful_periodic_services, resource->periodic);
   }
+  process_poll(&rest_engine_process);
 }
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
@@ -188,26 +189,39 @@ PROCESS_THREAD(rest_engine_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  PRINTF("Starting rest_engine_process\n");
+
   /* pause to let REST server finish adding resources. */
   PROCESS_PAUSE();
 
   /* initialize the PERIODIC_RESOURCE timers, which will be handled by this process. */
   periodic_resource_t *periodic_resource = NULL;
 
-  for(periodic_resource =
-        (periodic_resource_t *)list_head(restful_periodic_services);
-      periodic_resource; periodic_resource = periodic_resource->next) {
-    if(periodic_resource->periodic_handler && periodic_resource->period) {
-      PRINTF("Periodic: Set timer for /%s to %lu\n",
-             periodic_resource->resource->url, periodic_resource->period);
-      etimer_set(&periodic_resource->periodic_timer,
-                 periodic_resource->period);
-    }
-  }
+  PRINTF("Periodic: process\n");
+
+  process_poll(&rest_engine_process);
+
   while(1) {
     PROCESS_WAIT_EVENT();
 
-    if(ev == PROCESS_EVENT_TIMER) {
+    if(ev == PROCESS_EVENT_POLL) {
+      PRINTF("Periodic: poll\n");
+      for(periodic_resource =
+            (periodic_resource_t *)list_head(restful_periodic_services);
+          periodic_resource; periodic_resource = periodic_resource->next) {
+        if(periodic_resource->periodic_handler && periodic_resource->period) {
+          if(!etimer_expired(&periodic_resource->periodic_timer)) {
+            /* Already running */
+            continue;
+          }
+          PRINTF("Periodic: Set timer for /%s to %lu\n",
+                 periodic_resource->resource->url, periodic_resource->period);
+          etimer_set(&periodic_resource->periodic_timer,
+                     periodic_resource->period);
+        }
+      }
+    }
+    else if(ev == PROCESS_EVENT_TIMER) {
       for(periodic_resource =
             (periodic_resource_t *)list_head(restful_periodic_services);
           periodic_resource; periodic_resource = periodic_resource->next) {
