@@ -60,5 +60,6 @@
 #define WWW_CONF_WEBPAGE_WIDTH  40
 #define WWW_CONF_WEBPAGE_HEIGHT 19
 #define WWW_CONF_HISTORY_SIZE    4
+#define WWW_CONF_WGET_EXEC(url) exec("wget.com", url)
 
 #endif /* CONTIKI_CONF_H_ */
