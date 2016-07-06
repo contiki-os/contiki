@@ -708,7 +708,7 @@ wfall_poll(void)
 /*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
 uint8_t
-wpcap_send(const uip_lladdr_t *lladdr)
+wpcap_send(const uip_lladdr_t *lladdr, struct tcpip_track *track)
 {
   if(lladdr == NULL) {
 /* the dest must be multicast*/

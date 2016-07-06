@@ -19,22 +19,26 @@ struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-static uint8_t (* output)(uip_lladdr_t *);
+static uint8_t (* output)(uip_lladdr_t *, struct tcpip_track *);
 extern void mac_LowpanToEthernet(void);
 void tcpip_input( void )
 {
 //  printf("tcpip_input");
   mac_LowpanToEthernet();
 }
-
-uint8_t tcpip_output(const uip_lladdr_t * lladdr){
+/*---------------------------------------------------------------------------*/
+uint8_t
+tcpip_output_sent(const uip_lladdr_t * lladdr, struct tcpip_track *track)
+{
   if(output != NULL) {
-    return output(lladdr);
+    return output(lladdr, track);
   }
  return 0;
 }
 //Called from  sicslowpan.c
-void tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *)) {
+void
+tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *, struct tcpip_track *))
+{
   output = f;
 }
 
