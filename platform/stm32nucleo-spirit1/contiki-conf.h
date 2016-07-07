@@ -85,9 +85,9 @@
 #define UIP_CONF_ROUTER                 1
 
 /* configure number of neighbors and routes */
-#ifndef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   30
-#endif /* UIP_CONF_DS6_ROUTE_NBU */
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   30
+#endif /* UIP_CONF_MAX_ROUTES */
 
 #define UIP_CONF_ND6_SEND_RA    0
 #define UIP_CONF_ND6_REACHABLE_TIME    600000 /* 90000// 600000 */
