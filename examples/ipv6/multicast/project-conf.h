@@ -62,6 +62,7 @@
 /* Code/RAM footprint savings so that things will fit on our device */
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #undef UIP_CONF_DS6_ROUTE_NBU
+
 #define NBR_TABLE_CONF_MAX_NEIGHBORS  10
 #define UIP_CONF_DS6_ROUTE_NBU        10
 
