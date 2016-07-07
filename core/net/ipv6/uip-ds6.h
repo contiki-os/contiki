@@ -56,6 +56,8 @@
  * - the number of elements requested by the user in contiki configuration (name suffixed by _NBU)
  * - the number of elements assigned by the system (name suffixed by _NBS)
  * - the total number of elements is the sum (name suffixed by _NB)
+ * The routing table definitions can be found in uip-ds6-route.h
+ * The Neighbor cache definitions can be found in nbr-table.h
 */
 
 /* Default router list */
