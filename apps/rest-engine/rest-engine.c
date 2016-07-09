@@ -196,15 +196,11 @@ PROCESS_THREAD(rest_engine_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  PRINTF("Starting rest_engine_process\n");
-
   /* pause to let REST server finish adding resources. */
   PROCESS_PAUSE();
 
   /* initialize the PERIODIC_RESOURCE timers, which will be handled by this process. */
   periodic_resource_t *periodic_resource = NULL;
-
-  PRINTF("Periodic: process\n");
 
   for(periodic_resource =
         (periodic_resource_t *)list_head(restful_periodic_services);
@@ -216,7 +212,6 @@ PROCESS_THREAD(rest_engine_process, ev, data)
                  periodic_resource->period);
     }
   }
-
   while(1) {
     PROCESS_WAIT_EVENT();
 
