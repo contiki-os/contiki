@@ -30,9 +30,9 @@
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky</identifier>
       <description>SKy testbed mote</description>
-      <source EXPORT="discard">[CONFIG_DIR]/control.c</source>
+      <source EXPORT="discard">[CONFIG_DIR]/pdr.c</source>
       <commands EXPORT="discard">make TARGET=sky MANY_NODES=1</commands>
-      <firmware EXPORT="copy">[CONFIG_DIR]/control.sky</firmware>
+      <firmware EXPORT="copy">[CONFIG_DIR]/pdr.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>

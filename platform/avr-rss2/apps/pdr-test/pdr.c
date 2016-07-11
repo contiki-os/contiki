@@ -389,10 +389,6 @@ static void inputPacket(void)
     /* error analysis */
     
     uint8_t length = packetbuf_totlen();
-    /* Temp fix length check */
-#if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY    
-    length -= 5;
-#endif
     if (length != TEST_PACKET_SIZE) {
 #if DEBUG
         printf("rcvd length=%d\n", length);
@@ -679,7 +675,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     
 #ifdef CONTIKI_TARGET_AVR_RSS2
     NETSTACK_RADIO.off();
-    rf230_set_rpc(0x0); /* Disbable reduced power (RPC) features */
+    rf230_set_rpc(0x0); /* Disable reduced power (RPC) features */
     NETSTACK_RADIO.on();
 #endif
     
