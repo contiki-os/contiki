@@ -84,7 +84,35 @@ extern resource_t
 #endif
   res_event,
   res_separate;
+/*---------------------------------------------------------------------------*/
+static void
+print_radio_values(void)
+{
+  radio_value_t aux;
 
+  printf("\n* Radio parameters:\n");
+
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &aux);
+  printf("   Channel %u", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_CHANNEL_MIN, &aux);
+  printf(" (Min: %u, ", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_CHANNEL_MAX, &aux);
+  printf("Max: %u)\n", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &aux);
+  printf("   Tx Power %3d dBm", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_TXPOWER_MIN, &aux);
+  printf(" (Min: %3d dBm, ", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_TXPOWER_MAX, &aux);
+  printf("Max: %3d dBm)\n", aux);
+
+  /* This value is set in contiki-conf.h and can be changed */
+  printf("   PAN ID: 0x%02X\n", IEEE802154_CONF_PANID);
+}
 /*---------------------------------------------------------------------------*/
 PROCESS(er_example_server, "Erbium Example Server");
 AUTOSTART_PROCESSES(&er_example_server);
@@ -126,6 +154,9 @@ PROCESS_THREAD(er_example_server, ev, data)
 #else
   rest_activate_resource(&res_adxl345, "sensors/adxl345");
 #endif
+
+  printf("\nCoAP server started\n");
+  print_radio_values();
 
   while(1) {
     /* Wait forever */

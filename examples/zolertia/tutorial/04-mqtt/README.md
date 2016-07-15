@@ -109,7 +109,7 @@ Sending as payload `1` will turn on the red LED, and a `0` off.
 Execute this from the command line:
 
 ````
-mosquitto_pub -h "test.mosquitto.org"  -t "zolertia/cmd/led" -m "1" -q 0
+mosquitto_pub -h "test.mosquitto.org"  -t "zolertia/cmd/leds" -m "1" -q 0
 ````
 
 The above command will publish to the `cmd` topic, all nodes subscribed to it will turn its red LED on.

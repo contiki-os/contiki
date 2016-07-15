@@ -61,6 +61,13 @@
 #define DEFAULT_PUBLISH_INTERVAL     (45 * CLOCK_SECOND)
 #define DEFAULT_KEEP_ALIVE_TIMER     60
 
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID        0xABCD
+
+/* The following are Zoul (RE-Mote, etc) specific */
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL       26
+
 /* Specific platform values */
 #if CONTIKI_TARGET_ZOUL
 #define BUFFER_SIZE                  64

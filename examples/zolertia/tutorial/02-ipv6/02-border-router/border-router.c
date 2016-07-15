@@ -87,11 +87,42 @@ AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
 #if WEBSERVER_CONF_ROUTE_LINKS
 #define BUF_USES_STACK 1
 #endif
+/*---------------------------------------------------------------------------*/
+static void
+print_radio_values(void)
+{
+  radio_value_t aux;
 
+  printf("\n* Radio parameters:\n");
+
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &aux);
+  printf("   Channel %u", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_CHANNEL_MIN, &aux);
+  printf(" (Min: %u, ", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_CHANNEL_MAX, &aux);
+  printf("Max: %u)\n", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &aux);
+  printf("   Tx Power %3d dBm", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_TXPOWER_MIN, &aux);
+  printf(" (Min: %3d dBm, ", aux);
+
+  NETSTACK_RADIO.get_value(RADIO_CONST_TXPOWER_MAX, &aux);
+  printf("Max: %3d dBm)\n", aux);
+
+  /* This value is set in contiki-conf.h and can be changed */
+  printf("   PAN ID: 0x%02X\n", IEEE802154_CONF_PANID);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS(webserver_nogui_process, "Web server");
 PROCESS_THREAD(webserver_nogui_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  print_radio_values();
 
   httpd_init();
 

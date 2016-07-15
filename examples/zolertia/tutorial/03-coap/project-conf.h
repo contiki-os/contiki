@@ -44,7 +44,7 @@
 #define UIP_CONF_BUFFER_SIZE           256
 
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID      0xABCD
+#define IEEE802154_CONF_PANID          0xABCD
 
 /* Disabling RDC for demo purposes */
 #undef NETSTACK_CONF_RDC
@@ -75,7 +75,7 @@
 
 /* Change Radio default parameters */
 #undef RF_CHANNEL
-#define RF_CHANNEL	                   26
+#define RF_CHANNEL	               26
 
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL            26
