@@ -210,9 +210,9 @@ set_channel(uint8_t channel)
     was_on = 1;
     off();
   }
-  REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN +
-                               (channel - CC2538_RF_CHANNEL_MIN) *
-                               CC2538_RF_CHANNEL_SPACING);
+  REG(RFCORE_XREG_FREQCTRL) = CC2538_RF_CHANNEL_MIN +
+    (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING;
+
   /* switch radio back on only if radio was on before - otherwise will turn on radio foor sleepy nodes */
   if(was_on) {
     on();
