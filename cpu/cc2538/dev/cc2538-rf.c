@@ -185,8 +185,8 @@ get_channel()
 {
   uint8_t chan = REG(RFCORE_XREG_FREQCTRL) & RFCORE_XREG_FREQCTRL_FREQ;
 
-  return ((chan - CC2538_RF_CHANNEL_MIN) / CC2538_RF_CHANNEL_SPACING
-          + CC2538_RF_CHANNEL_MIN);
+  return (chan - CC2538_RF_CHANNEL_MIN) / CC2538_RF_CHANNEL_SPACING
+         + CC2538_RF_CHANNEL_MIN;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -207,14 +207,15 @@ set_channel(uint8_t channel)
   }
 
   /* Changes to FREQCTRL take effect after the next recalibration */
-    
+
   /* If we are off, save state, otherwise switch off and save state */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) != 0) {
     was_on = 1;
     off();
   }
-  REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN
-      + (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING);
+  REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN +
+                               (channel - CC2538_RF_CHANNEL_MIN) *
+                               CC2538_RF_CHANNEL_SPACING);
   /* switch radio back on only if radio was on before - otherwise will turn on radio foor sleepy nodes */
   if(was_on) {
     on();
@@ -222,7 +223,7 @@ set_channel(uint8_t channel)
 
   rf_channel = channel;
 
-  return (int8_t) channel;
+  return (int8_t)channel;
 }
 /*---------------------------------------------------------------------------*/
 static radio_value_t
@@ -351,15 +352,15 @@ static void
 set_poll_mode(uint8_t enable)
 {
   poll_mode = enable;
-  
+
   if(enable) {
     mac_timer_init();
-    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP; // mask out FIFOP interrupt source
-    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;   // clear pending FIFOP interrupt
-    nvic_interrupt_disable(NVIC_INT_RF_RXTX);               // disable RF interrupts
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP; /* mask out FIFOP interrupt source */
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;   /* clear pending FIFOP interrupt */
+    nvic_interrupt_disable(NVIC_INT_RF_RXTX);               /* disable RF interrupts */
   } else {
-    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;  // enable FIFOP interrupt source
-    nvic_interrupt_enable(NVIC_INT_RF_RXTX);			    // enable RF interrupts
+    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;  /* enable FIFOP interrupt source */
+    nvic_interrupt_enable(NVIC_INT_RF_RXTX);                /* enable RF interrupts */
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -527,7 +528,7 @@ init(void)
      */
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
-  
+
   set_poll_mode(poll_mode);
 
   process_start(&cc2538_rf_process, NULL);
@@ -782,10 +783,10 @@ read(void *buf, unsigned short bufsize)
       }
     }
   }
-  
+
   CC2538_RF_CSP_ISFLUSHRX();
 
-  return (len);
+  return len;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -799,9 +800,9 @@ receiving_packet(void)
    *
    * FSMSTAT1 & (TX_ACTIVE | SFD) == SFD <=> receiving
    */
-  return ((REG(RFCORE_XREG_FSMSTAT1)
-           & (RFCORE_XREG_FSMSTAT1_TX_ACTIVE | RFCORE_XREG_FSMSTAT1_SFD))
-          == RFCORE_XREG_FSMSTAT1_SFD);
+  return (REG(RFCORE_XREG_FSMSTAT1)
+          & (RFCORE_XREG_FSMSTAT1_TX_ACTIVE | RFCORE_XREG_FSMSTAT1_SFD))
+         == RFCORE_XREG_FSMSTAT1_SFD;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -809,7 +810,7 @@ pending_packet(void)
 {
   PRINTF("RF: Pending\n");
 
-  return (REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP);
+  return REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP;
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
@@ -963,15 +964,15 @@ get_object(radio_param_t param, void *dest, size_t size)
 
     return RADIO_RESULT_OK;
   }
-  
+
   if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    *(rtimer_clock_t*)dest = get_sfd_timestamp();
+    *(rtimer_clock_t *)dest = get_sfd_timestamp();
     return RADIO_RESULT_OK;
   }
-  
+
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
@@ -1075,7 +1076,7 @@ void
 cc2538_rf_rx_tx_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  
+
   if(!poll_mode) {
     process_poll(&cc2538_rf_process);
   }
