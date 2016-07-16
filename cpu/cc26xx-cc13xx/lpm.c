@@ -83,7 +83,7 @@ LIST(modules_list);
 #define SLEEP_GUARD_TIME (RTIMER_SECOND / 1000) /* 1.0 ms */
 
 #define MAX_SLEEP_TIME        RTIMER_SECOND
-#define MINIMAL_SAFE_SCHEDULE 8u
+#define MIN_SAFE_SCHEDULE     8u
 /*---------------------------------------------------------------------------*/
 /* Prototype of a function in clock.c. Called every time we come out of DS */
 void clock_update(void);
@@ -251,69 +251,69 @@ wake_up(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static int
-setup_sleep_mode(rtimer_clock_t *next_timer)
+static uint8_t
+check_next_rtimer(rtimer_clock_t now, rtimer_clock_t *next_rtimer, bool *next_rtimer_set)
+{
+  uint8_t max_pm = LPM_MODE_MAX_SUPPORTED;
+
+  if(ti_lib_aon_rtc_channel_active(AON_RTC_CH0)) {
+    *next_rtimer_set = true;
+
+    /* find out the timer of the next rtimer interrupt */
+    *next_rtimer = ti_lib_aon_rtc_compare_value_get(AON_RTC_CH0);
+
+    if(RTIMER_CLOCK_LT(*next_rtimer, now + 2)) {
+      max_pm = MIN(max_pm, LPM_MODE_AWAKE);
+    } else if(RTIMER_CLOCK_LT(*next_rtimer, now + STANDBY_MIN_DURATION)) {
+      max_pm = MIN(max_pm, LPM_MODE_SLEEP);
+    }
+  } else {
+    *next_rtimer_set = false;
+  }
+
+  return max_pm;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+check_next_etimer(rtimer_clock_t now, rtimer_clock_t *next_etimer, bool *next_etimer_set)
+{
+  uint8_t max_pm = LPM_MODE_MAX_SUPPORTED;
+
+  *next_etimer_set = false;
+
+  /* Find out the time of the next etimer */
+  if(etimer_pending()) {
+    int32_t until_next_etimer = (int32_t)etimer_next_expiration_time() - (int32_t)clock_time();
+    if(until_next_etimer < 1) {
+      max_pm = MIN(max_pm, LPM_MODE_AWAKE);
+    } else {
+      *next_etimer_set = true;
+      *next_etimer = soc_rtc_last_isr_time() + (until_next_etimer * (RTIMER_SECOND / CLOCK_SECOND));
+      if(RTIMER_CLOCK_LT(*next_etimer, now + STANDBY_MIN_DURATION)) {
+        max_pm = MIN(max_pm, LPM_MODE_SLEEP);
+      }
+    }
+  }
+
+  return max_pm;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+setup_sleep_mode(void)
 {
   lpm_registered_module_t *module;
   uint8_t max_pm = LPM_MODE_MAX_SUPPORTED;
+  uint8_t pm;
 
-  rtimer_clock_t now = RTIMER_NOW();
-  const rtimer_clock_t max_sleep = now + MAX_SLEEP_TIME;
-
-  /* next_timer will hold the time of the next system wakeup due to a timer*/
-  *next_timer = max_sleep;
+  rtimer_clock_t now;
+  rtimer_clock_t next_rtimer = 0;
+  rtimer_clock_t next_etimer = 0;
+  bool next_rtimer_set = false;
+  bool next_etimer_set = false;
 
   /* Check if any events fired before we turned interrupts off. If so, abort */
   if(LPM_MODE_MAX_SUPPORTED == LPM_MODE_AWAKE || process_nevents()) {
     return LPM_MODE_AWAKE;
-  }
-
-  if(ti_lib_aon_rtc_channel_active(AON_RTC_CH0)) {
-    rtimer_clock_t next_rtimer;
-    /* find out the timer of the next rtimer interrupt */
-    next_rtimer = ti_lib_aon_rtc_compare_value_get(AON_RTC_CH0);
-    if(RTIMER_CLOCK_LT(next_rtimer, now + 2)) {
-      return LPM_MODE_AWAKE;
-    }
-    if(RTIMER_CLOCK_LT(next_rtimer, now + STANDBY_MIN_DURATION)) {
-      return LPM_MODE_SLEEP;
-    }
-    *next_timer = next_rtimer;
-  }
-
-  /* also find out the timer of the next etimer */
-  if(etimer_pending()) {
-    int32_t until_next_etimer;
-    rtimer_clock_t next_etimer;
-
-    until_next_etimer = (int32_t)etimer_next_expiration_time() - (int32_t)clock_time();
-    if(until_next_etimer < 1) {
-      return LPM_MODE_AWAKE;
-    }
-
-    next_etimer = soc_rtc_last_isr_time() + (until_next_etimer * (RTIMER_SECOND / CLOCK_SECOND));
-    if(RTIMER_CLOCK_LT(next_etimer, now + STANDBY_MIN_DURATION)) {
-      /* ensure that we schedule sleep a minimal number of ticks into the
-         future */
-      soc_rtc_schedule_one_shot(AON_RTC_CH1, now + MINIMAL_SAFE_SCHEDULE);
-      return LPM_MODE_SLEEP;
-    }
-
-    if(RTIMER_CLOCK_LT(max_sleep, next_etimer)) {
-      /* if max_pm is LPM_MODE_SLEEP, we could trigger the watchdog if we slept
-         for too long. */
-      if(RTIMER_CLOCK_LT(max_sleep, *next_timer)) {
-        soc_rtc_schedule_one_shot(AON_RTC_CH1, max_sleep);
-      }
-    } else {
-      /* Reschedule AON RTC CH1 to fire just in time for the next etimer event */
-      soc_rtc_schedule_one_shot(AON_RTC_CH1, next_etimer);
-    }
-
-    if(RTIMER_CLOCK_LT(next_etimer, *next_timer)) {
-      /* set `next_timer` to the time the first etimer fires */
-      *next_timer = next_etimer;
-    }
   }
 
   /* Collect max allowed PM permission from interested modules */
@@ -324,6 +324,60 @@ setup_sleep_mode(rtimer_clock_t *next_timer)
       if(module_pm < max_pm) {
         max_pm = module_pm;
       }
+    }
+  }
+
+  now = RTIMER_NOW();
+
+  pm = check_next_rtimer(now, &next_rtimer, &next_rtimer_set);
+  if(pm < max_pm) {
+    max_pm = pm;
+  }
+  pm = check_next_etimer(now, &next_etimer, &next_etimer_set);
+  if(pm < max_pm) {
+    max_pm = pm;
+  }
+
+  if(max_pm == LPM_MODE_SLEEP) {
+    if(next_etimer_set) {
+      /* Schedule the next system wakeup due to etimer */
+      if(RTIMER_CLOCK_LT(next_etimer, now + MIN_SAFE_SCHEDULE)) {
+        /* Too soon in future, use this minimal interval instead */
+        next_etimer = now + MIN_SAFE_SCHEDULE;
+      } else if(RTIMER_CLOCK_LT(now + MAX_SLEEP_TIME, next_etimer)) {
+        /* Too far in future, use MAX_SLEEP_TIME instead */
+        next_etimer = now + MAX_SLEEP_TIME;
+      }
+      soc_rtc_schedule_one_shot(AON_RTC_CH1, next_etimer);
+    } else {
+      /* No etimers set. Since by default the CH1 RTC fires once every clock tick,
+       * need to explicitly schedule a wakeup in the future to save energy.
+       * But do not stay in this mode for too long, otherwise watchdog will be trigerred. */
+      soc_rtc_schedule_one_shot(AON_RTC_CH1, now + MAX_SLEEP_TIME);
+    }
+
+  } else if(max_pm == LPM_MODE_DEEP_SLEEP) {
+    /* Watchdog is not enabled, so deep sleep can continue an arbitrary long time.
+     * On the other hand, if `CC2650_FAST_RADIO_STARTUP` is defined,
+     * early wakeup before the next rtimer should be scheduled. */
+
+#if CC2650_FAST_RADIO_STARTUP
+    if(next_rtimer_set) {
+      if(!next_etimer_set || RTIMER_CLOCK_LT(next_rtimer - SLEEP_GUARD_TIME, next_etimer)) {
+        /* schedule a wakeup briefly before the next rtimer to wake up the system */
+        soc_rtc_schedule_one_shot(AON_RTC_CH2, next_rtimer - SLEEP_GUARD_TIME);
+      }
+    }
+#endif
+
+    if(next_etimer_set) {
+      /* Schedule the next system wakeup due to etimer.
+       * No need to compare the `next_etimer` to `now` here as this branch
+       * is only entered when there's sufficient time for deep sleeping. */
+      soc_rtc_schedule_one_shot(AON_RTC_CH1, next_etimer);
+    } else {
+      /* Use the farthest possible wakeup time */
+      soc_rtc_schedule_one_shot(AON_RTC_CH1, now - 1);
     }
   }
 
@@ -350,15 +404,10 @@ lpm_sleep(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-deep_sleep(rtimer_clock_t next_timer)
+deep_sleep(void)
 {
   uint32_t domains = LOCKABLE_DOMAINS;
   lpm_registered_module_t *module;
-
-#if CC2650_FAST_RADIO_STARTUP
-  /* schedule a wakeup briefly before the next etimer/rtimer to wake up the system */
-  soc_rtc_schedule_one_shot(AON_RTC_CH2, next_timer - SLEEP_GUARD_TIME);
-#endif
 
   /*
    * Notify all registered modules that we are dropping to mode X. We do not
@@ -490,18 +539,17 @@ void
 lpm_drop()
 {
   uint8_t max_pm;
-  rtimer_clock_t next_timer;
 
   /* Critical. Don't get interrupted! */
   ti_lib_int_master_disable();
 
-  max_pm = setup_sleep_mode(&next_timer);
+  max_pm = setup_sleep_mode();
 
   /* Drop */
   if(max_pm == LPM_MODE_SLEEP) {
     lpm_sleep();
   } else if(max_pm == LPM_MODE_DEEP_SLEEP) {
-    deep_sleep(next_timer);
+    deep_sleep();
   }
 
   ti_lib_int_master_enable();
