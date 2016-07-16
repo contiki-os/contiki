@@ -70,13 +70,14 @@ int slipfd = 0;
 uint16_t basedelay=0,delaymsec=0;
 uint32_t startsec,startmsec,delaystartsec,delaystartmsec;
 int timestamp = 0, flowcontrol=0, showprogress=0, flowcontrol_xonxoff=0;
+int usecrc = 0;
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
 void write_to_serial(int outfd, void *inbuf, int len);
 
-void slip_send(int fd, unsigned char c);
-void slip_send_char(int fd, unsigned char c);
+unsigned char slip_send(int fd, unsigned char c);
+unsigned char slip_send_char(int fd, unsigned char c);
 
 #define PROGRESS(s) if(showprogress) fprintf(stderr, s)
 
@@ -164,6 +165,23 @@ is_sensible_string(const unsigned char *s, int len)
   return 1;
 }
 
+/* Polynomial ^8 + ^5 + ^4 + 1 */
+uint8_t
+crc8_add(uint8_t acc, uint8_t byte)
+{
+  int i;
+  acc ^= byte;
+  for(i = 0; i < 8; i++) {
+    if(acc & 1) {
+      acc = (acc >> 1) ^ 0x8c;
+    } else {
+      acc >>= 1;
+    }
+  }
+
+  return acc;
+}
+
 /*
  * Read from serial, when we have a packet write it to tun. No output
  * buffering, input buffered by stdio.
@@ -232,6 +250,7 @@ serial_to_tun(FILE *inslip, int outfd)
           /* Prefix info requested */
           struct in6_addr addr;
 	  int i;
+	  uint8_t crc = 0;
 	  char *s = strchr(ipaddr, '/');
 	  if(s != NULL) {
 	    *s = '\0';
@@ -244,11 +263,14 @@ serial_to_tun(FILE *inslip, int outfd)
 		 addr.s6_addr[2], addr.s6_addr[3],
 		 addr.s6_addr[4], addr.s6_addr[5],
 		 addr.s6_addr[6], addr.s6_addr[7]);
-	  slip_send(slipfd, '!');
-	  slip_send(slipfd, 'P');
+	  crc = crc8_add(crc, slip_send(slipfd, '!'));
+	  crc = crc8_add(crc, slip_send(slipfd, 'P'));
 	  for(i = 0; i < 8; i++) {
 	    /* need to call the slip_send_char for stuffing */
-	    slip_send_char(slipfd, addr.s6_addr[i]);
+	    crc = crc8_add(crc, slip_send_char(slipfd, addr.s6_addr[i]));
+	  }
+	  if(usecrc) {
+	    slip_send_char(slipfd, crc);
 	  }
 	  slip_send(slipfd, SLIP_END);
         }
@@ -261,7 +283,15 @@ serial_to_tun(FILE *inslip, int outfd)
           fwrite(uip.inbuf, inbufptr, 1, stdout);
         }
       } else {
-        if(verbose>2) {
+        uint8_t crc = 0;
+        for(i = 0; i < inbufptr; i++) {
+          crc = crc8_add(crc, uip.inbuf[i]);
+        }
+        if(crc) {
+          /* report error and ignore the packet */
+          printf("Packet from SLIP: invalid CRC\n");
+        } else {
+          inbufptr--; /* remove the CRC byte */
           if (timestamp) stamptime();
           printf("Packet from SLIP of length %d - write TUN\n", inbufptr);
           if (verbose>4) {
@@ -339,7 +369,7 @@ serial_to_tun(FILE *inslip, int outfd)
 unsigned char slip_buf[2000];
 int slip_end, slip_begin;
 
-void
+unsigned char
 slip_send_char(int fd, unsigned char c)
 {
   switch(c) {
@@ -371,9 +401,10 @@ slip_send_char(int fd, unsigned char c)
     slip_send(fd, c);
     break;
   }
+  return c;
 }
 
-void
+unsigned char
 slip_send(int fd, unsigned char c)
 {
   if(slip_end >= sizeof(slip_buf)) {
@@ -381,6 +412,7 @@ slip_send(int fd, unsigned char c)
   }
   slip_buf[slip_end] = c;
   slip_end++;
+  return c;
 }
 
 int
@@ -416,6 +448,7 @@ void
 write_to_serial(int outfd, void *inbuf, int len)
 {
   u_int8_t *p = inbuf;
+  u_int8_t crc = 0;
   int i;
 
   if(verbose>2) {
@@ -443,6 +476,8 @@ write_to_serial(int outfd, void *inbuf, int len)
   /* slip_send(outfd, SLIP_END); */
 
   for(i = 0; i < len; i++) {
+    crc = crc8_add(crc, p[i]);
+
     switch(p[i]) {
     case SLIP_END:
       slip_send(outfd, SLIP_ESC);
@@ -472,6 +507,9 @@ write_to_serial(int outfd, void *inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
+  }
+  if(usecrc) {
+    slip_send_char(outfd, crc);
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");
@@ -762,7 +800,7 @@ main(int argc, char **argv)
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:HILPhXM:s:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:HILPhXcM:s:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -824,6 +862,10 @@ main(int argc, char **argv)
       if (optarg) basedelay = atoi(optarg);
       break;
 
+    case 'c':
+      usecrc = 1;
+      break;
+
     case 'v':
       verbose = 2;
       if (optarg) verbose = atoi(optarg);
@@ -863,6 +905,7 @@ fprintf(stderr,"    -v          Equivalent to -v3\n");
 fprintf(stderr," -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
 fprintf(stderr,"                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
 fprintf(stderr,"                -d is equivalent to -d10.\n");
+fprintf(stderr," -c             Add CRC field to outgoing packets and verify it for incoming.\n");
 fprintf(stderr," -a serveraddr  \n");
 fprintf(stderr," -p serverport  \n");
 exit(1);
@@ -873,7 +916,7 @@ exit(1);
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
+    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-c] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 
@@ -980,10 +1023,14 @@ exit(1);
 
     if(got_sigalarm && ipa_enable) {
       /* Send "?IPA". */
-      slip_send(slipfd, '?');
-      slip_send(slipfd, 'I');
-      slip_send(slipfd, 'P');
-      slip_send(slipfd, 'A');
+      uint8_t crc = 0;
+      crc = crc8_add(crc, slip_send(slipfd, '?'));
+      crc = crc8_add(crc, slip_send(slipfd, 'I'));
+      crc = crc8_add(crc, slip_send(slipfd, 'P'));
+      crc = crc8_add(crc, slip_send(slipfd, 'A'));
+      if(usecrc) {
+        slip_send_char(slipfd, crc);
+      }
       slip_send(slipfd, SLIP_END);
       got_sigalarm = 0;
     }
