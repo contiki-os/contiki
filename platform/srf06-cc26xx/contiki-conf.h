@@ -66,8 +66,8 @@
 #endif
 
 /*
- * Disable turning off HF oscillator when the radio is off:
- * You need to set this in order to use TSCH, disable to save more energy.
+ * If set, the systems keeps the HF crystal oscillator on even when the radio is off.
+ * You need to set this to 1 to use TSCH with its default 2.2ms or larger guard time.
  */
 #ifndef CC2650_FAST_RADIO_STARTUP
 #define CC2650_FAST_RADIO_STARTUP               0
@@ -372,12 +372,22 @@ typedef uint32_t rtimer_clock_t;
 #define TSCH_CONF_TIMESYNC_REMOVE_JITTER 0
 #endif
 
+#ifndef TSCH_CONF_BASE_DRIFT_PPM
 /* The drift compared to "true" 10ms slots.
-   Enable adaptive sync to enable compensation for this. */
+ * Enable adaptive sync to enable compensation for this. */
 #define TSCH_CONF_BASE_DRIFT_PPM -977
+#endif
 
 /* 10 times per second */
-#define TSCH_CONF_ASSOCIATION_CHANNEL_SWITCH_FREQUENCY 10
+#ifndef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CONF_CHANNEL_SCAN_DURATION (CLOCK_SECOND / 10)
+#endif
+
+/* Slightly reduce the TSCH guard time (from 2200 usec to 1800 usec) to make sure
+ * the CC26xx radio has sufficient time to start up. */
+#ifndef TSCH_CONF_RX_WAIT
+#define TSCH_CONF_RX_WAIT 1800
+#endif
 
 /** @} */
 /*---------------------------------------------------------------------------*/
