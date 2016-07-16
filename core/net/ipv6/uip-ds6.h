@@ -50,14 +50,15 @@
 #include "net/ipv6/uip-ds6-nbr.h"
 
 /*--------------------------------------------------*/
-/** Configuration. For (Prefix List, Default Router List,
- * Unicast address list, multicast address list, anycast address list) tables,
- * Configuration. For Neighbor cache could be found in  "net/nbr-table.h", 
- * Configuration. For Routing Table could be found in  "net/ipv6/uip-ds6-route.h",,
+/** Configuration. For all tables (Neighbor cache, Prefix List, Routing Table,
+ * Default Router List, Unicast address list, multicast address list, anycast address list),
  * we define:
  * - the number of elements requested by the user in contiki configuration (name suffixed by _NBU)
  * - the number of elements assigned by the system (name suffixed by _NBS)
  * - the total number of elements is the sum (name suffixed by _NB)
+ * 
+ * The routing table definitions can be found in uip-ds6-route.h
+ * The Neighbor cache definitions can be found in nbr-table.h
 */
 
 /* Default router list */
