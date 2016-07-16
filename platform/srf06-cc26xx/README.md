@@ -178,6 +178,26 @@ the jumper configuration on P408 as discussed in
 [this thread](https://e2e.ti.com/support/wireless_connectivity/f/158/p/411992/1483824#1483824)
 on E2E. For this to work, you need to set `BOARD_CONF_DEBUGGER_DEVPACK` to 0.
 
+Sub-GHz Sniffer
+===============
+Devices with sub-ghz capability (e.g. the CC1310) can be used as sniffers with
+`examples/cc2538-common/sniffer` and [sensniff](https://github.com/g-oikonomou/sensniff).
+
+In order to achieve this, you need to make the following configuration changes:
+
+    #define PROP_MODE_CONF_SNIFFER             1
+    #define CC26XX_UART_CONF_BAUD_RATE    460800
+
+You can apply these chagnes by adding those lines to the example's
+`project-conf.h` or by modifying the respective lines in the platform's
+`contiki-conf.h`.
+
+Don't forget to double-check that your sniffer is configured to the same RF
+channel as the rest of your deployment (`RF_CORE_CONF_CHANNEL`).
+
+Make sure to run sensniff with the correct baud rate by using the `-b` argument.
+For the settings shown above you thus need to run it with `-b 460800`.
+
 Low Power Operation
 ===================
 The platform takes advantage of the CC26xx's power saving features. In a
