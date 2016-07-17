@@ -50,8 +50,8 @@
  * Set the TCP MSS
  */
 #define UIP_CONF_BUFFER_SIZE                900
-#define NBR_TABLE_CONF_MAX_NEIGHBORS          8
-#define UIP_CONF_MAX_ROUTES                   8
+#define NBR_TABLE_CONF_MAX_NEIGHBORS          5
+#define UIP_CONF_MAX_ROUTES                   5
 #define UIP_CONF_TCP_MSS                    128
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
