@@ -422,7 +422,7 @@ get_sfd_timestamp(void)
 /* Netstack API radio driver functions */
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   int cca;
   uint8_t was_off = 0;

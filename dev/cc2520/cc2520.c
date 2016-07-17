@@ -109,7 +109,7 @@ static int cc2520_send(const void *data, unsigned short len);
 
 static int cc2520_receiving_packet(void);
 static int pending_packet(void);
-static int cc2520_cca(void);
+static int cc2520_cca(radio_cca_reason_t reason);
 /* static int detected_energy(void); */
 
 signed char cc2520_last_rssi;
@@ -839,7 +839,7 @@ cc2520_cca_valid(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-cc2520_cca(void)
+cc2520_cca(radio_cca_reason_t reason)
 {
   int cca;
   int radio_was_off = 0;

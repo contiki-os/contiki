@@ -806,7 +806,7 @@ read_frame(void *buf, unsigned short buf_len)
 }
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   uint8_t was_off = 0;
   uint32_t cmd_status;
@@ -863,7 +863,7 @@ receiving_packet(void)
     return 0;
   }
 
-  if(channel_clear() == RF_CCA_CLEAR) {
+  if(channel_clear(RADIO_CCA_FRAME_DETECT) == RF_CCA_CLEAR) {
     return 0;
   }
 

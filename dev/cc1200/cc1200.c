@@ -447,7 +447,7 @@ read(void *buf, unsigned short bufsize);
  * a packet in the air or not.
  */
 static int
-channel_clear(void);
+channel_clear(radio_cca_reason_t reason);
 /* Check if the radio driver is currently receiving a packet. */
 static int
 receiving_packet(void);
@@ -940,7 +940,7 @@ read(void *buf, unsigned short buf_len)
  * packet in the air or not.
  */
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
 
   uint8_t cca, was_off = 0;

@@ -159,7 +159,7 @@ radio_read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   if(simSignalStrength > CCA_SS_THRESHOLD) {
     return 0;

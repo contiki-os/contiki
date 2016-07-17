@@ -75,7 +75,7 @@ int contiki_maca_read(void *buf, unsigned short bufsize);
 int contiki_maca_prepare(const void *payload, unsigned short payload_len);
 int contiki_maca_transmit(unsigned short transmit_len);
 int contiki_maca_send(const void *payload, unsigned short payload_len);
-int contiki_maca_channel_clear(void);
+int contiki_maca_channel_clear(radio_cca_reason_t reason);
 int contiki_maca_receiving_packet(void);
 int contiki_maca_pending_packet(void);
 
@@ -173,7 +173,7 @@ int contiki_maca_init(void) {
 }
 
 /* CCA not implemented */
-int contiki_maca_channel_clear(void) {
+int contiki_maca_channel_clear(radio_cca_reason_t reason) {
 	return 1;
 }
 
