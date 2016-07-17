@@ -340,13 +340,12 @@ transmitting(void)
  * It is the caller's responsibility to make sure the RF is on. This function
  * will return RF_GET_CCA_INFO_ERROR if the RF is off
  *
- * This function will in fact wait for a valid RSSI signal
+ * This function will in fact wait for a valid CCA state
  */
 static uint8_t
 get_cca_info(void)
 {
   uint32_t cmd_status;
-  int8_t rssi;
   rfc_CMD_IEEE_CCA_REQ_t cmd;
 
   if(!rf_is_on()) {
@@ -354,9 +353,10 @@ get_cca_info(void)
     return RF_GET_CCA_INFO_ERROR;
   }
 
-  rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+  memset(&cmd, 0x00, sizeof(cmd));
+  cmd.ccaInfo.ccaState = RF_CMD_CCA_REQ_CCA_STATE_INVALID;
 
-  while(rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) {
+  while(cmd.ccaInfo.ccaState == RF_CMD_CCA_REQ_CCA_STATE_INVALID) {
     memset(&cmd, 0x00, sizeof(cmd));
     cmd.commandNo = CMD_IEEE_CCA_REQ;
 
@@ -365,11 +365,9 @@ get_cca_info(void)
 
       return RF_GET_CCA_INFO_ERROR;
     }
-
-    rssi = cmd.currentRssi;
   }
 
-  /* We have a valid RSSI signal. Return the CCA Info */
+  /* We have a valid CCA state. Return the CCA Info */
   return *((uint8_t *)&cmd.ccaInfo);
 }
 /*---------------------------------------------------------------------------*/
