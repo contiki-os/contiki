@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the LaunchPad Flash and the Sensortag WinBond W25X20CL/W25X40CL
+ * Sensortag/LaunchPad External Flash Driver
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"

@@ -31,9 +31,9 @@
 /** \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup sensortag-cc13xx-peripherals Sensortag Peripherals
+ * \defgroup sensortag-cc13xx-peripherals CC1350 Sensortag Peripherals
  *
- * Defines related to the Sensortag-CC1350
+ * Defines related to the CC1350 Sensortag
  *
  * This file provides connectivity information on LEDs, Buttons, UART and
  * other peripherals

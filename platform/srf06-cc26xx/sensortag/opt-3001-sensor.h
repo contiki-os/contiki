@@ -53,7 +53,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx Opt3001 light sensor
+ * Header file for the Sensortag Opt3001 light sensor
  */
 /*---------------------------------------------------------------------------*/
 #ifndef OPT_3001_SENSOR_H_

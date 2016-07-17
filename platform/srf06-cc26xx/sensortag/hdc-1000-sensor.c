@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx HDC sensor
+ *  Driver for the Sensortag HDC sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

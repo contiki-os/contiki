@@ -56,7 +56,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx TI TMP007 infrared thermophile sensor
+ * Header file for the Sensortag TI TMP007 infrared thermophile sensor
  */
 /*---------------------------------------------------------------------------*/
 #ifndef TMP_007_SENSOR_H_
