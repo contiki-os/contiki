@@ -774,7 +774,7 @@ transmit(unsigned short transmit_len)
 
   if(tx_mode_value & RADIO_TX_MODE_SEND_ON_CCA) {
     /* Perform clear channel assessment */
-    if(!channel_clear()) {
+    if(!channel_clear(RADIO_CCA_CA)) {
       /* Channel occupied */
       RIMESTATS_ADD(contentiondrop);
       if(was_off) {
