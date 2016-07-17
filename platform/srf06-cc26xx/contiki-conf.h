@@ -89,7 +89,18 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
+/*
+ * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
+ * project has specified otherwise. Depending on the final mode, determine a
+ * default channel (again, if unspecified) and configure RDC params
+ */
 #if CPU_FAMILY_CC13XX
+#ifndef CC13XX_CONF_PROP_MODE
+#define CC13XX_CONF_PROP_MODE 1
+#endif /* CC13XX_CONF_PROP_MODE */
+#endif /* CPU_FAMILY_CC13XX */
+
+#if CC13XX_CONF_PROP_MODE
 #define NETSTACK_CONF_RADIO        prop_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL

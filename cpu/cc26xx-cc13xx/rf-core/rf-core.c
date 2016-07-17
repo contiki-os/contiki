@@ -97,6 +97,8 @@
 #define cc26xx_rf_cpe0_isr RFCCPE0IntHandler
 #define cc26xx_rf_cpe1_isr RFCCPE1IntHandler
 /*---------------------------------------------------------------------------*/
+typedef ChipType_t chip_type_t;
+/*---------------------------------------------------------------------------*/
 /* Remember the last Radio Op issued to the radio */
 static rfc_radioOp_t *last_radio_op = NULL;
 /*---------------------------------------------------------------------------*/
@@ -371,7 +373,7 @@ uint8_t
 rf_core_set_modesel()
 {
   uint8_t rv = RF_CORE_CMD_ERROR;
-  ChipType_t chip_type = ti_lib_chipinfo_get_chip_type();
+  chip_type_t chip_type = ti_lib_chipinfo_get_chip_type();
 
   if(chip_type == CHIP_TYPE_CC2650) {
     HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE5;
@@ -381,6 +383,9 @@ rf_core_set_modesel()
     rv = RF_CORE_CMD_OK;
   } else if(chip_type == CHIP_TYPE_CC1310) {
     HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE3;
+    rv = RF_CORE_CMD_OK;
+  } else if(chip_type == CHIP_TYPE_CC1350) {
+    HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE5;
     rv = RF_CORE_CMD_OK;
   }
 
