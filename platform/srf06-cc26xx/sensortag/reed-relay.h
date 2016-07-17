@@ -41,7 +41,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26XX Reed Relay
+ * Header file for the Sensortag Reed Relay
  */
 /*---------------------------------------------------------------------------*/
 #ifndef REED_RELAY_H

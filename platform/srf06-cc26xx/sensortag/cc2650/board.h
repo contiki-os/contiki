@@ -31,7 +31,7 @@
 /** \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup sensortag-cc26xx-peripherals Sensortag Peripherals
+ * \defgroup sensortag-cc26xx-specific CC2650 Sensortag Peripherals
  *
  * Defines related to the CC2650 Sensortag
  *
