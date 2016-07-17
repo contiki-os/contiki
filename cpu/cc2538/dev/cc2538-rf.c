@@ -653,7 +653,7 @@ transmit(unsigned short transmit_len)
   }
 
   if(send_on_cca) {
-    if(channel_clear() == CC2538_RF_CCA_BUSY) {
+    if(channel_clear(RADIO_CCA_CA) == CC2538_RF_CCA_BUSY) {
       RIMESTATS_ADD(contentiondrop);
       return RADIO_TX_COLLISION;
     }

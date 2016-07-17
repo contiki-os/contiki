@@ -198,7 +198,7 @@ radio_send(const void *payload, unsigned short payload_len)
 
   /* Transmit on CCA */
 #if WITH_SEND_CCA
-  if(!channel_clear()) {
+  if(!channel_clear(RADIO_CCA_CA)) {
     return RADIO_TX_COLLISION;
   }
 #endif /* WITH_SEND_CCA */
