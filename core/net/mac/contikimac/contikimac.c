@@ -429,6 +429,13 @@ powercycle(struct rtimer *t, void *ptr)
         }
         powercycle_turn_radio_off();
       }
+
+      // If this is the last CCA check, avoid yielding and go straight to scheduling
+      // our next cycle
+      if (count == CCA_COUNT_MAX - 1) {
+          break;
+      }
+
       schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
       PT_YIELD(&pt);
     }
