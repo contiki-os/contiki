@@ -111,6 +111,19 @@ enum {
   PACKET_INPUT
 };
 
+#if UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING
+#define NEXTHOP_NON_STORING(addr) rpl_srh_get_next_hop(addr)
+#else
+#define NEXTHOP_NON_STORING(addr) 0
+#endif
+/*---------------------------------------------------------------------------*/
+static void
+init_appstate(uip_tcp_appstate_t *as, void *state)
+{
+  as->p = PROCESS_CURRENT();
+  as->state = state;
+}
+/*---------------------------------------------------------------------------*/
 /* Called on IP packet output. */
 #if NETSTACK_CONF_WITH_IPV6
 
@@ -230,8 +243,7 @@ tcp_connect(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
     return NULL;
   }
 
-  c->appstate.p = PROCESS_CURRENT();
-  c->appstate.state = appstate;
+  init_appstate(&c->appstate, appstate);
 
   tcpip_poll_tcp(c);
 
@@ -276,44 +288,29 @@ tcp_listen(uint16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-tcp_attach(struct uip_conn *conn,
-	   void *appstate)
+tcp_attach(struct uip_conn *conn, void *appstate)
 {
-  uip_tcp_appstate_t *s;
-
-  s = &conn->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&conn->appstate, appstate);
 }
-
 #endif /* UIP_TCP */
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 void
-udp_attach(struct uip_udp_conn *conn,
-	   void *appstate)
+udp_attach(struct uip_udp_conn *conn, void *appstate)
 {
-  uip_udp_appstate_t *s;
-
-  s = &conn->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&conn->appstate, appstate);
 }
 /*---------------------------------------------------------------------------*/
 struct uip_udp_conn *
 udp_new(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 {
-  struct uip_udp_conn *c;
-  uip_udp_appstate_t *s;
+  struct uip_udp_conn *c = uip_udp_new(ripaddr, port);
 
-  c = uip_udp_new(ripaddr, port);
   if(c == NULL) {
     return NULL;
   }
 
-  s = &c->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&c->appstate, appstate);
 
   return c;
 }
@@ -341,8 +338,7 @@ udp_broadcast_new(uint16_t port, void *appstate)
 uint8_t
 icmp6_new(void *appstate) {
   if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
-    uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
-    uip_icmp6_conns.appstate.state = appstate;
+    init_appstate(&uip_icmp6_conns.appstate, appstate);
     return 0;
   }
   return 1;
@@ -526,222 +522,269 @@ tcpip_input(void)
 }
 /*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
+/*---------------------------------------------------------------------------*/
+extern void remove_ext_hdr(void);
+/*---------------------------------------------------------------------------*/
+static void
+output_fallback(void)
+{
+#ifdef UIP_FALLBACK_INTERFACE
+  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n",
+         uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+  if(uip_ext_len > 0) {
+    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
+    remove_ext_hdr();
+    /* This should be copied from the ext header... */
+    UIP_IP_BUF->proto = proto;
+  }
+  /* Inform the other end that the destination is not reachable. If it's
+   * not informed routes might get lost unexpectedly until there's a need
+   * to send a new packet to the peer */
+  if(UIP_FALLBACK_INTERFACE.output() < 0) {
+    PRINTF("FALLBACK: output error. Reporting DST UNREACH\n");
+    uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_ADDR, 0);
+    uip_flags = 0;
+    tcpip_ipv6_output();
+    return;
+  }
+#else
+  PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+#endif /* !UIP_FALLBACK_INTERFACE */
+}
+/*---------------------------------------------------------------------------*/
+static void
+drop_route(uip_ds6_route_t *route)
+{
+#if UIP_CONF_IPV6_RPL
+  rpl_dag_t *dag;
+  rpl_instance_t *instance;
+
+  /* If we are running RPL, and if we are the root of the
+     network, we'll trigger a global repair before we remove
+     the route. */
+
+  dag = (rpl_dag_t *)route->state.dag;
+  if(dag != NULL) {
+    instance = dag->instance;
+
+    rpl_repair_root(instance->instance_id);
+  }
+#endif /* UIP_CONF_IPV6_RPL */
+  uip_ds6_route_rm(route);
+}
+/*---------------------------------------------------------------------------*/
+static void
+annotate_transmission(uip_ipaddr_t *nexthop)
+{
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+  static uint8_t annotate_last;
+  static uint8_t annotate_has_last = 0;
+
+  if(annotate_has_last) {
+    printf("#L %u 0; red\n", annotate_last);
+  }
+  printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+  annotate_last = nexthop->u8[sizeof(uip_ipaddr_t) - 1];
+  annotate_has_last = 1;
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+}
+/*---------------------------------------------------------------------------*/
+static uip_ipaddr_t*
+get_nexthop(uip_ipaddr_t *addr)
+{
+  uip_ipaddr_t *nexthop;
+  uip_ds6_route_t *route;
+
+  if(NEXTHOP_NON_STORING(addr)) {
+    return addr;
+  }
+
+  /* We first check if the destination address is on our immediate
+     link. If so, we simply use the destination address as our
+     nexthop address. */
+  if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+    return &UIP_IP_BUF->destipaddr;
+  }
+
+  /* Check if we have a route to the destination address. */
+  route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
+
+  /* No route was found - we send to the default route instead. */
+  if(route == NULL) {
+    PRINTF("tcpip_ipv6_output: no route found, using default route\n");
+    nexthop = uip_ds6_defrt_choose();
+    if(nexthop == NULL) {
+      output_fallback();
+    }
+
+  } else {
+    /* A route was found, so we look up the nexthop neighbor for
+       the route. */
+    nexthop = uip_ds6_route_nexthop(route);
+
+    /* If the nexthop is dead, for example because the neighbor
+       never responded to link-layer acks, we drop its route. */
+    if(nexthop == NULL) {
+      drop_route(route);
+      /* We don't have a nexthop to send the packet to, so we drop
+         it. */
+    }
+  }
+
+  return nexthop;
+}
+/*---------------------------------------------------------------------------*/
+#if UIP_ND6_SEND_NA
+static int
+queue_packet(uip_ds6_nbr_t *nbr)
+{
+  /* Copy outgoing pkt in the queuing buffer for later transmit. */
+#if UIP_CONF_IPV6_QUEUE_PKT
+  if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+    memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+    uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+    return 0;
+  }
+#endif
+
+  return 1;
+}
+#endif
+/*---------------------------------------------------------------------------*/
+static void
+send_queued(uip_ds6_nbr_t *nbr)
+{
+#if UIP_CONF_IPV6_QUEUE_PKT
+  /*
+   * Send the queued packets from here, may not be 100% perfect though.
+   * This happens in a few cases, for example when instead of receiving a
+   * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
+   * to STALE, and you must both send a NA and the queued packet.
+   */
+  if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+    uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+    memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+    uip_packetqueue_free(&nbr->packethandle);
+    tcpip_output(uip_ds6_nbr_get_ll(nbr));
+  }
+#endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+}
+/*---------------------------------------------------------------------------*/
+static int
+send_nd6_ns(uip_ipaddr_t *nexthop)
+{
+  int err = 1;
+
+#if UIP_ND6_SEND_NA
+   uip_ds6_nbr_t *nbr = NULL;
+  if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) != NULL) {
+    err = 0;
+
+    queue_packet(nbr);
+  /* RFC4861, 7.2.2:
+   * "If the source address of the packet prompting the solicitation is the
+   * same as one of the addresses assigned to the outgoing interface, that
+   * address SHOULD be placed in the IP Source Address of the outgoing
+   * solicitation.  Otherwise, any one of the addresses assigned to the
+   * interface should be used."*/
+   if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)){
+      uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr);
+    } else {
+      uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+    }
+
+    stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+    nbr->nscount = 1;
+    /* Send the first NS try from here (multicast destination IP address). */
+  }
+#else
+  PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
+#endif
+
+  return err;
+}
+/*---------------------------------------------------------------------------*/
 void
 tcpip_ipv6_output(void)
 {
+  uip_ipaddr_t ipaddr;
   uip_ds6_nbr_t *nbr = NULL;
-  uip_ipaddr_t *nexthop = NULL;
+  const uip_lladdr_t *linkaddr;
+  uip_ipaddr_t *nexthop;
 
   if(uip_len == 0) {
     return;
   }
 
   if(uip_len > UIP_LINK_MTU) {
-    UIP_LOG("tcpip_ipv6_output: Packet to big");
-    uip_clear_buf();
-    return;
+    UIP_LOG("tcpip_ipv6_output: Packet too big");
+    goto exit;
   }
 
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
-    uip_clear_buf();
-    return;
+    goto exit;
   }
 
-  if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
-    /* Next hop determination */
+  if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+    linkaddr = NULL;
+    goto send_packet;
+  }
 
-#if UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING
-    uip_ipaddr_t ipaddr;
-    /* Look for a RPL Source Route */
-    if(rpl_srh_get_next_hop(&ipaddr)) {
-      nexthop = &ipaddr;
-    }
-#endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
-
-    nbr = NULL;
-
-    /* We first check if the destination address is on our immediate
-       link. If so, we simply use the destination address as our
-       nexthop address. */
-    if(nexthop == NULL && uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
-      nexthop = &UIP_IP_BUF->destipaddr;
-    }
-
-    if(nexthop == NULL) {
-      uip_ds6_route_t *route;
-      /* Check if we have a route to the destination address. */
-      route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
-
-      /* No route was found - we send to the default route instead. */
-      if(route == NULL) {
-        PRINTF("tcpip_ipv6_output: no route found, using default route\n");
-        nexthop = uip_ds6_defrt_choose();
-        if(nexthop == NULL) {
-#ifdef UIP_FALLBACK_INTERFACE
-          PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n",
-              uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
-          if(uip_ext_len > 0) {
-            extern void remove_ext_hdr(void);
-            uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
-            remove_ext_hdr();
-            /* This should be copied from the ext header... */
-            UIP_IP_BUF->proto = proto;
-          }
-          /* Inform the other end that the destination is not reachable. If it's
-           * not informed routes might get lost unexpectedly until there's a need
-           * to send a new packet to the peer */
-          if(UIP_FALLBACK_INTERFACE.output() < 0) {
-            PRINTF("FALLBACK: output error. Reporting DST UNREACH\n");
-            uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_ADDR, 0);
-            uip_flags = 0;
-            tcpip_ipv6_output();
-            return;
-          }
-#else
-          PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
-#endif /* !UIP_FALLBACK_INTERFACE */
-          uip_clear_buf();
-          return;
-        }
-
-      } else {
-        /* A route was found, so we look up the nexthop neighbor for
-           the route. */
-        nexthop = uip_ds6_route_nexthop(route);
-
-        /* If the nexthop is dead, for example because the neighbor
-           never responded to link-layer acks, we drop its route. */
-        if(nexthop == NULL) {
-#if UIP_CONF_IPV6_RPL
-          /* If we are running RPL, and if we are the root of the
-             network, we'll trigger a global repair berfore we remove
-             the route. */
-          rpl_dag_t *dag;
-          rpl_instance_t *instance;
-
-          dag = (rpl_dag_t *)route->state.dag;
-          if(dag != NULL) {
-            instance = dag->instance;
-
-            rpl_repair_root(instance->instance_id);
-          }
-#endif /* UIP_CONF_IPV6_RPL */
-          uip_ds6_route_rm(route);
-
-          /* We don't have a nexthop to send the packet to, so we drop
-             it. */
-          return;
-        }
-      }
-#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
-      if(nexthop != NULL) {
-        static uint8_t annotate_last;
-        static uint8_t annotate_has_last = 0;
-
-        if(annotate_has_last) {
-          printf("#L %u 0; red\n", annotate_last);
-        }
-        printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-        annotate_last = nexthop->u8[sizeof(uip_ipaddr_t) - 1];
-        annotate_has_last = 1;
-      }
-#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
-    }
-
-    /* End of next hop determination */
+  if((nexthop = get_nexthop(&ipaddr)) == NULL) {
+    goto exit;
+  }
+  annotate_transmission(nexthop);
 
 #if UIP_CONF_IPV6_RPL
-    if(!rpl_finalize_header(nexthop)) {
-      uip_clear_buf();
-      return;
-    }
+  if(!rpl_finalize_header(nexthop)) {
+    goto exit;
+  }
 #endif /* UIP_CONF_IPV6_RPL */
-    nbr = uip_ds6_nbr_lookup(nexthop);
-    if(nbr == NULL) {
-#if UIP_ND6_SEND_NA
-      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) == NULL) {
-        uip_clear_buf();
-        PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
-        return;
-      } else {
-#if UIP_CONF_IPV6_QUEUE_PKT
-        /* Copy outgoing pkt in the queuing buffer for later transmit. */
-        if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
-          memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
-          uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
-        }
-#endif
-        /* RFC4861, 7.2.2:
-         * "If the source address of the packet prompting the solicitation is the
-         * same as one of the addresses assigned to the outgoing interface, that
-         * address SHOULD be placed in the IP Source Address of the outgoing
-         * solicitation.  Otherwise, any one of the addresses assigned to the
-         * interface should be used."*/
-        if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)){
-          uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr);
-        } else {
-          uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
-        }
 
-        stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
-        nbr->nscount = 1;
-        /* Send the first NS try from here (multicast destination IP address). */
-      }
-#else /* UIP_ND6_SEND_NA */
-      PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
-      uip_len = 0;
-      return;  
-#endif /* UIP_ND6_SEND_NA */
+  nbr = uip_ds6_nbr_lookup(nexthop);
+  if(nbr == NULL) {
+    if(send_nd6_ns(nexthop)) {
+      PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
+      goto exit;
     } else {
-#if UIP_ND6_SEND_NA
-      if(nbr->state == NBR_INCOMPLETE) {
-        PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
-#if UIP_CONF_IPV6_QUEUE_PKT
-        /* Copy outgoing pkt in the queuing buffer for later transmit and set
-           the destination nbr to nbr. */
-        if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
-          memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
-          uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
-        }
-#endif /*UIP_CONF_IPV6_QUEUE_PKT*/
-        uip_clear_buf();
-        return;
-      }
-      /* Send in parallel if we are running NUD (nbc state is either STALE,
-         DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
-      if(nbr->state == NBR_STALE) {
-        nbr->state = NBR_DELAY;
-        stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
-        nbr->nscount = 0;
-        PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
-      }
-#endif /* UIP_ND6_SEND_NA */
-
-      tcpip_output(uip_ds6_nbr_get_ll(nbr));
-
-#if UIP_CONF_IPV6_QUEUE_PKT
-      /*
-       * Send the queued packets from here, may not be 100% perfect though.
-       * This happens in a few cases, for example when instead of receiving a
-       * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
-       * to STALE, and you must both send a NA and the queued packet.
-       */
-      if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
-        uip_len = uip_packetqueue_buflen(&nbr->packethandle);
-        memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
-        uip_packetqueue_free(&nbr->packethandle);
-        tcpip_output(uip_ds6_nbr_get_ll(nbr));
-      }
-#endif /*UIP_CONF_IPV6_QUEUE_PKT*/
-
-      uip_clear_buf();
-      return;
+      /* We're sending NS here instead of original packet */
+      goto send_packet;
     }
   }
-  /* Multicast IP destination address. */
-  tcpip_output(NULL);
+
+#if UIP_ND6_SEND_NA
+  if(nbr->state == NBR_INCOMPLETE) {
+    PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
+    queue_packet(nbr);
+    goto exit;
+  }
+  /* Send in parallel if we are running NUD (nbc state is either STALE,
+     DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
+  if(nbr->state == NBR_STALE) {
+    nbr->state = NBR_DELAY;
+    stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+    nbr->nscount = 0;
+    PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
+  }
+#endif /* UIP_ND6_SEND_NA */
+
+send_packet:
+  if(nbr) {
+    linkaddr = uip_ds6_nbr_get_ll(nbr);
+  } else {
+    linkaddr = NULL;
+  }
+
+  tcpip_output(linkaddr);
+
+  if(nbr) {
+    send_queued(nbr);
+  }
+
+exit:
   uip_clear_buf();
+  return;
 }
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
@@ -811,14 +854,8 @@ PROCESS_THREAD(tcpip_process, ev, data)
   PROCESS_BEGIN();
 
 #if UIP_TCP
-  {
-    unsigned char i;
-
-    for(i = 0; i < UIP_LISTENPORTS; ++i) {
-      s.listenports[i].port = 0;
-    }
-    s.p = PROCESS_CURRENT();
-  }
+  memset(s.listenports, 0, UIP_LISTENPORTS*sizeof(*(s.listenports)));
+  s.p = PROCESS_CURRENT();
 #endif
 
   tcpip_event = process_alloc_event();
