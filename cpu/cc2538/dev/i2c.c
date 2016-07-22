@@ -171,7 +171,7 @@ i2c_single_send(uint8_t slave_addr, uint8_t data)
 uint8_t
 i2c_single_receive(uint8_t slave_addr, uint8_t *data)
 {
-  uint32_t temp;
+  uint8_t temp;
 
   i2c_master_set_slave_address(slave_addr, I2C_RECEIVE);
   i2c_master_command(I2C_MASTER_CMD_SINGLE_RECEIVE);
