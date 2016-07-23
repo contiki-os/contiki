@@ -738,6 +738,19 @@ typedef struct
 
 
 /**
+  \brief   Get External Interrupt Enable State
+  \details Returns whether a device-specific interrupt is enabled in the NVIC interrupt controller.
+  \param [in]      IRQn  External interrupt number. Value cannot be negative.
+  \return             0  Interrupt is disabled.
+  \return             1  Interrupt is enabled.
+ */
+__STATIC_INLINE uint32_t NVIC_IsIRQEnabled(IRQn_Type IRQn)
+{
+  return((uint32_t)(((NVIC->ISER[0U] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+}
+
+
+/**
   \brief   Enable External Interrupt
   \details Enables a device-specific interrupt in the NVIC interrupt controller.
   \param [in]      IRQn  External interrupt number. Value cannot be negative.
