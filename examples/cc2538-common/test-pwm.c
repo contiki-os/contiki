@@ -50,7 +50,6 @@
 #include "dev/watchdog.h"
 #include "dev/sys-ctrl.h"
 #include "pwm.h"
-#include "systick.h"
 #include "lpm.h"
 #include "dev/ioc.h"
 #include <stdio.h>

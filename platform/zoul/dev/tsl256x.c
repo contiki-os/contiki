@@ -453,7 +453,7 @@ configure(int type, int value)
    * resistor instead if no external pull-up is present.
    */
   ioc_set_over(I2C_INT_PORT, I2C_INT_PIN, IOC_OVERRIDE_PUE);
-  nvic_interrupt_enable(I2C_INT_VECTOR);
+  NVIC_EnableIRQ(I2C_INT_VECTOR);
 
   PRINTF("TSL256X: Interrupt configured\n");
   return TSL256X_SUCCESS;
