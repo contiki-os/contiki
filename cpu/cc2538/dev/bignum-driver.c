@@ -130,8 +130,8 @@ bignum_mod_start(const uint32_t *number,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -158,7 +158,7 @@ bignum_mod_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -238,8 +238,8 @@ bignum_cmp_start(const uint32_t *number1,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -257,7 +257,7 @@ bignum_cmp_get_result(void)
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Check the compare register. */
@@ -346,8 +346,8 @@ bignum_inv_mod_start(const uint32_t *number,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -374,7 +374,7 @@ bignum_inv_mod_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -469,8 +469,8 @@ bignum_mul_start(const uint32_t *multiplicand,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -498,7 +498,7 @@ bignum_mul_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -594,8 +594,8 @@ bignum_add_start(const uint32_t *number1,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -623,7 +623,7 @@ bignum_add_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -720,8 +720,8 @@ bignum_subtract_start(const uint32_t *number1,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -749,7 +749,7 @@ bignum_subtract_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -864,8 +864,8 @@ bignum_exp_mod_start(const uint32_t *number,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -892,7 +892,7 @@ bignum_exp_mod_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
@@ -1000,8 +1000,8 @@ bignum_divide_start(const uint32_t *dividend,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -1029,7 +1029,7 @@ bignum_divide_get_result(uint32_t *buffer,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   /* Get the MSW register value. */
