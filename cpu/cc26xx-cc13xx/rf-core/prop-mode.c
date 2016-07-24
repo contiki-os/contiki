@@ -107,16 +107,6 @@
 #define PROP_MODE_USE_CRC16 0
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_SNIFFER PROP_MODE_CONF_SNIFFER
-#else
-#define PROP_MODE_SNIFFER 0
-#endif
-
-#if PROP_MODE_SNIFFER
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };
-#endif
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -773,28 +763,6 @@ read_frame(void *buf, unsigned short buf_len)
       }
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
-
-#if PROP_MODE_SNIFFER
-      {
-        int i;
-
-        cc26xx_uart_write_byte(magic[0]);
-        cc26xx_uart_write_byte(magic[1]);
-        cc26xx_uart_write_byte(magic[2]);
-        cc26xx_uart_write_byte(magic[3]);
-
-        cc26xx_uart_write_byte(len + 2);
-
-        for(i = 0; i < len; ++i) {
-          cc26xx_uart_write_byte(((uint8_t *)(buf))[i]);
-        }
-
-        cc26xx_uart_write_byte((uint8_t)rx_stats.lastRssi);
-        cc26xx_uart_write_byte(0x80);
-
-        while(cc26xx_uart_busy() == UART_BUSY);
-      }
-#endif
     }
 
     /* Move read entry pointer to next entry */
