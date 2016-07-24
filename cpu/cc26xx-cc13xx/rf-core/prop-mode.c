@@ -1104,7 +1104,7 @@ set_value(radio_param_t param, radio_value_t value)
     rv = RADIO_RESULT_ERROR;
   }
 
-  if(rx_on_prop() != RF_CORE_CMD_OK) {
+  if(soft_on_prop() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on_prop() failed\n");
     rv = RADIO_RESULT_ERROR;
   }
