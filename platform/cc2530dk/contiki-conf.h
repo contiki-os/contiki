@@ -85,17 +85,6 @@
 #define UART0_CONF_WITH_INPUT 1
 #endif
 
-/* Output all captured frames over the UART in hexdump format */
-#ifndef CC2530_RF_CONF_HEXDUMP
-#define CC2530_RF_CONF_HEXDUMP 0
-#endif
-
-#if CC2530_RF_CONF_HEXDUMP
-/* We need UART1 output */
-#undef UART_ZERO_CONF_ENABLE
-#define UART_ZERO_CONF_ENABLE   1
-#endif
-
 /* Code Shortcuts */
 /*
  * When set, this directive also configures the following bypasses:
