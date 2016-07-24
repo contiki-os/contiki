@@ -763,6 +763,7 @@ read_frame(void *buf, unsigned short buf_len)
       }
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
     }
 
     /* Move read entry pointer to next entry */
@@ -1050,6 +1051,8 @@ set_value(radio_param_t param, radio_value_t value)
       rv = RADIO_RESULT_ERROR;
     }
 
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
     rssi_threshold = (int8_t)value;
