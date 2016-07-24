@@ -6,7 +6,6 @@ hello-world/ev-aducrf101mkxz \
 ipv6/rpl-border-router/ev-aducrf101mkxz \
 webserver-ipv6/ev-aducrf101mkxz \
 ipv6/multicast/ev-aducrf101mkxz \
-cc2538-common/sniffer/ev-aducrf101mkxz \
 cc26xx/cc26xx-web-demo/srf06-cc26xx \
 cc26xx/very-sleepy-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
@@ -24,12 +23,10 @@ cc2538dk/cc2538dk \
 cc2538dk/udp-ipv6-echo-server/cc2538dk \
 ipv6/multicast/cc2538dk \
 cc2538-common/cc2538dk \
-cc2538-common/sniffer/cc2538dk \
 cc2538-common/mqtt-demo/cc2538dk \
 cc2538-common/crypto/cc2538dk \
 cc2538-common/pka/cc2538dk \
 cc2538-common/zoul \
-cc2538-common/sniffer/zoul \
 cc2538-common/mqtt-demo/zoul \
 cc2538-common/crypto/zoul \
 cc2538-common/pka/zoul \
