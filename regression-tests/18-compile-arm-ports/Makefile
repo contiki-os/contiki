@@ -44,6 +44,13 @@ stm32nucleo-spirit1/sensor-demo/stm32nucleo-spirit1 \
 ipv6/multicast/stm32nucleo-spirit1 \
 udp-ipv6/stm32nucleo-spirit1 \
 hello-world/stm32nucleo-spirit1 \
+sensniff/cc2538dk \
+sensniff/openmote-cc2538 \
+sensniff/zoul \
+sensniff/zoul:ZOUL_CONF_SUB_GHZ_SNIFFER=1 \
+sensniff/srf06-cc26xx \
+sensniff/srf06-cc26xx:BOARD=launchpad/cc1310 \
+sensniff/ev-aducrf101mkxz \
 cfs-coffee/cc2538dk \
 cfs-coffee/openmote-cc2538 \
 cfs-coffee/zoul \
