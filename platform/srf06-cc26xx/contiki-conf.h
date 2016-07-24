@@ -172,10 +172,6 @@
 #ifndef RF_BLE_CONF_ENABLED
 #define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
-
-#ifndef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** @} */
