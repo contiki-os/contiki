@@ -104,7 +104,12 @@ static uint8_t is_gateway;
 #endif
 
 void init_platform(void);
-
+/*---------------------------------------------------------------------------*/
+#ifdef UART0_CONF_BAUD_RATE
+#define UART0_BAUD_RATE UART0_CONF_BAUD_RATE
+#else
+#define UART0_BAUD_RATE 115200
+#endif
 /*---------------------------------------------------------------------------*/
 #if 0
 int
@@ -202,9 +207,9 @@ main(int argc, char **argv)
 
   clock_wait(100);
 
-  uart0_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart0_init(BAUD2UBR(UART0_BAUD_RATE)); /* Must come before first printf */
 #if NETSTACK_CONF_WITH_IPV4
-  slip_arch_init(BAUD2UBR(115200));
+  slip_arch_init(BAUD2UBR(UART0_BAUD_RATE));
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
   xmem_init();
