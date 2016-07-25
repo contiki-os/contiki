@@ -73,6 +73,7 @@
 
 #include "sys/cc.h"
 #include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
@@ -1842,8 +1843,10 @@ uip_process(uint8_t flag)
       if((UIP_TCP_BUF->flags & TCP_SYN)) {
         if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) {
           goto tcp_send_synack;
+#if UIP_ACTIVE_OPEN
         } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
           goto tcp_send_syn;
+#endif
         }
       }
       goto tcp_send_ack;
