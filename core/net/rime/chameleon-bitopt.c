@@ -169,7 +169,7 @@ header_size(const struct packetbuf_attrlist *a)
   return size;
 }
 /*---------------------------------------------------------------------------*/
-void CC_INLINE
+static void CC_INLINE
 set_bits_in_byte(uint8_t *target, int bitpos, uint8_t val, int vallen)
 {
   unsigned short shifted_val;
