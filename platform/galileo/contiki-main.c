@@ -86,8 +86,10 @@ main(void)
   quarkX1000_imr_conf();
 #endif
   irq_init();
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
+  /* Initialize UART connected to Galileo Gen1 3.5mm audio-style jack or
+   * Galileo Gen2 FTDI header
+   */
+  quarkX1000_uart_init(QUARK_X1000_UART_1, 115200);
   clock_init();
   rtimer_init();
 
