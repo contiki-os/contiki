@@ -35,10 +35,10 @@
 PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart0);
 PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart1);
 
-/* Divisor setting for 115200 baud from section 18.2.2 of Intel Quark SoC
- * X1000 Datasheet.
+/* UART base frequency from section 18.2.2 of Intel Quark SoC X1000
+ * Datasheet.
  */
-#define QUARK_X1000_UART_DL_115200 24
+#define QUARK_X1000_UART_FBASE 44236800
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -46,8 +46,9 @@ PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart1);
  * \param dev Device to initialize.
  */
 void
-quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
+quarkX1000_uart_init(quarkX1000_uart_dev_t dev, unsigned baud)
 {
+  uint16_t dl;
   pci_config_addr_t pci_addr;
   uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *drv;
 
@@ -67,7 +68,9 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
     drv = &quarkX1000_uart1;
     PROT_DOMAINS_INIT_ID(quarkX1000_uart1);
   }
-  uart_16x50_init(drv, pci_addr, QUARK_X1000_UART_DL_115200);
+  /* Divisor setting from section 18.2.2 of Intel Quark SoC X1000 Datasheet. */
+  dl = QUARK_X1000_UART_FBASE / (16 * baud);
+  uart_16x50_init(drv, pci_addr, dl);
 }
 /*---------------------------------------------------------------------------*/
 /**
