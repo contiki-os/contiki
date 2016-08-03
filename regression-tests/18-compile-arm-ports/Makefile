@@ -49,7 +49,10 @@ udp-ipv6/stm32nucleo-spirit1 \
 hello-world/stm32nucleo-spirit1 \
 cfs-coffee/cc2538dk \
 cfs-coffee/openmote-cc2538 \
-cfs-coffee/zoul
+cfs-coffee/zoul \
+ipv6/rpl-tsch/zoul \
+ipv6/rpl-tsch/zoul:MAKE_WITH_ORCHESTRA=1 \
+ipv6/rpl-tsch/zoul:MAKE_WITH_SECURITY=1
 
 TOOLS=
 
