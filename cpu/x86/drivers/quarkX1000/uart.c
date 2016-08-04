@@ -42,11 +42,21 @@ PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart1);
 
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief Perform common initialization that must precede per-port
+ *        initialization.
+ */
+void
+quarkX1000_uart_init(void)
+{
+  uart_16x50_init();
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief     Initialize a UART.
  * \param dev Device to initialize.
  */
 void
-quarkX1000_uart_init(quarkX1000_uart_dev_t dev, unsigned baud)
+quarkX1000_uart_init_port(quarkX1000_uart_dev_t dev, unsigned baud)
 {
   uint16_t dl;
   pci_config_addr_t pci_addr;
@@ -70,7 +80,7 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev, unsigned baud)
   }
   /* Divisor setting from section 18.2.2 of Intel Quark SoC X1000 Datasheet. */
   dl = QUARK_X1000_UART_FBASE / (16 * baud);
-  uart_16x50_init(drv, pci_addr, dl);
+  uart_16x50_init_port(drv, pci_addr, dl);
 }
 /*---------------------------------------------------------------------------*/
 /**
