@@ -8,7 +8,7 @@ CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c galileo-pinmux.c eth-proc.c eth-conf.c
 
 ifeq ($(CONTIKI_WITH_IPV6),1)
-	CONTIKI_SOURCEFILES += nbr-table.c packetbuf.c linkaddr.c
+	CONTIKI_SOURCEFILES += nbr-table.c packetbuf.c linkaddr.c link-stats.c
 endif
 
 PROJECT_SOURCEFILES += newlib-syscalls.c
