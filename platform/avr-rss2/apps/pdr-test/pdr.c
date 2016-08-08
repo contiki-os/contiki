@@ -198,6 +198,18 @@ static char *get_txpower_string(uint8_t p)
   return "N/A";
 }
 
+void debugHexdump(char *p, int len)
+{
+  int i;
+  for(i=0; i<len; ++i) 
+    {
+      printf("%02x ", p[i] & 0xFF);
+      if(! (i % 16)) 
+	printf("\n");
+    }
+  printf("\n");
+}
+
 void printStats(struct stats_info *s)
 {
     int16_t temp = 0;
@@ -205,7 +217,7 @@ void printStats(struct stats_info *s)
     int16_t rssi;
     uint8_t lqi;
     
-    if (s->node_id == 0) return;
+    if (s->channel == 0) return;
     
     if (s->fine == 0) {
         rssi = 0;
