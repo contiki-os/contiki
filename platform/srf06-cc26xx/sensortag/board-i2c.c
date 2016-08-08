@@ -256,12 +256,11 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   for(i = 1; i < wlen && success; i++) {
     /* Write next byte */
     ti_lib_i2c_master_data_put(I2C0_BASE, wdata[i]);
-    if(i < wlen - 1) {
-      /* Clear START */
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-      while(ti_lib_i2c_master_busy(I2C0_BASE));
-      success = i2c_status();
-    }
+
+    /* Clear START */
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
+    while(ti_lib_i2c_master_busy(I2C0_BASE));
+    success = i2c_status();
   }
   if(!success) {
     return false;
