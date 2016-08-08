@@ -69,7 +69,7 @@
 
 #define WITH_SEND_CCA 0
 /* Nonzero FOOTER_LEN has not been tested */
-#define FOOTER_LEN 2
+#define FOOTER_LEN 0
 
 /* Timestamps have not been tested */
 #if RF230_CONF_TIMESTAMPS
@@ -1077,6 +1077,7 @@ rf230_transmit(unsigned short payload_len)
   }
  
 #if RF230_CONF_TIMESTAMPS
+
   setup_time_for_transmission = txtime - timestamp.time;
 
   if(num_transmissions < 10000) {
