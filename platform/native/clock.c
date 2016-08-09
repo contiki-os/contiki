@@ -45,21 +45,36 @@
 clock_time_t
 clock_time(void)
 {
+#ifdef __linux
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+#else
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
 
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
+#ifdef __linux
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  return ts.tv_sec;
+#else
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
 
   return tv.tv_sec;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
