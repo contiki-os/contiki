@@ -100,6 +100,7 @@ mt_yield(void)
 void
 mt_exit(void)
 {
+  mtarch_pstop();
   current->state = MT_STATE_EXITED;
   current = NULL;
   mtarch_yield();
