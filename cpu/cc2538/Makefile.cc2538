@@ -14,7 +14,7 @@ LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
-CFLAGS += -Wall
+CFLAGS += -Wall -DCMSIS_DEV_HDR=\"cc2538_cm3.h\"
 LDFLAGS += -mcpu=cortex-m3 -mthumb -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
 LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
@@ -79,7 +79,7 @@ CPU_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CPU_START_SOURCEFILES
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 
-MODULES += lib/newlib
+MODULES += lib/newlib cpu/arm/common/sys
 
 .SECONDEXPANSION:
 
