@@ -29,7 +29,7 @@
  * SUCH DAMAGE.
  */
 /**
- * \addtogroup c2538-ecc-algo
+ * \addtogroup cc2538-ecc-algo
  * @{
  *
  * \file

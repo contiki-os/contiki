@@ -29,7 +29,7 @@
  * SUCH DAMAGE.
  */
 /**
- * \addtogroup c2538-ecc-curves
+ * \addtogroup cc2538-ecc-curves
  * @{
  */
 #include "contiki.h"

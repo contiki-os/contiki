@@ -29,7 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-common-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
