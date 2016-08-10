@@ -183,17 +183,8 @@ void mtarch_pstop(void);
 
 struct mt_thread {
   int state;
-  process_event_t *evptr;
-  process_data_t *dataptr;
   struct mtarch_thread thread;
 };
-
-/**
- * No error.
- *
- * \hideinitializer
- */
-#define MT_OK 1
 
 /**
  * Initializes the multithreading library.
