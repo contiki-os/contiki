@@ -65,6 +65,16 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name CC2538 System Control configuration
+ *
+ * @{
+ */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1 /**< Use the on-board 32.768-kHz crystal */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Watchdog Timer configuration
  *
  * @{
