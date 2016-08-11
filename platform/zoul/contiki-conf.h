@@ -100,7 +100,16 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * \name CC2538 System Control configuration
+ *
+ * @{
+ */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1 /**< Use the on-board 32.768-kHz crystal */
+#endif
+/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name CFS configuration
