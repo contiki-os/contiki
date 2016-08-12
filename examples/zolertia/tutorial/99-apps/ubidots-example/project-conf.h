@@ -44,8 +44,8 @@
 #define POST_PERIOD                      (CLOCK_SECOND * 40)
 #define VARIABLE_BUF_LEN                 16
 #define UBIDOTS_CONF_AUTH_TOKEN          ""
-#define VARKEY_TEMPERATURE               ""
-#define VARKEY_HUMIDITY                  ""
+#define VARKEY_VARIABLE_ONE              ""
+#define VARKEY_VARIABLE_TWO              ""
 #define UBIDOTS_CONF_IN_BUFFER_SIZE      64
 /*---------------------------------------------------------------------------*/
 /* IPv6 address of things.ubidots.com is "2607:f0d0:2101:39::2", leave
@@ -57,6 +57,20 @@
 #define NETSTACK_CONF_RADIO              cc2538_rf_driver
 #define ANTENNA_SW_SELECT_DEF_CONF       ANTENNA_SW_SELECT_2_4GHZ
 #define NETSTACK_CONF_RDC                nullrdc_driver
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID            0xABCD
+/*---------------------------------------------------------------------------*/
+/* The following are Z1 specific */
+#undef RF_CHANNEL
+#define RF_CHANNEL	                     26
+
+#undef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL              26
+
+/* The following are Zoul (RE-Mote, etc) specific */
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL           26
 /*---------------------------------------------------------------------------*/
 #define RESOLV_CONF_SUPPORTS_MDNS        0
 #define UIP_CONF_MAX_ROUTES              3

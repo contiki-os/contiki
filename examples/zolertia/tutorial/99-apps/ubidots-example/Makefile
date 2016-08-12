@@ -13,6 +13,6 @@ CONTIKI_WITH_IPV6 = 1
 # If using a NAT64 address
 # WITH_IP64 = 1
 
-CONTIKI = ../../../..
+CONTIKI = ../../../../..
 
 include $(CONTIKI)/Makefile.include
