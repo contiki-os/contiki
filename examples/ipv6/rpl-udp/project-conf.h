@@ -60,10 +60,6 @@
 
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
 
-#ifndef RPL_CONF_WITH_NON_STORING
-#define RPL_CONF_WITH_NON_STORING 0 /* Set this to run with non-storing mode */
-#endif /* RPL_CONF_WITH_NON_STORING */
-
 #if WITH_NON_STORING
 #undef RPL_NS_CONF_LINK_NUM
 #define RPL_NS_CONF_LINK_NUM 40 /* Number of links maintained at the root. Can be set to 0 at non-root nodes. */
