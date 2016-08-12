@@ -823,8 +823,6 @@ read(void *buf, unsigned short bufsize)
     }
   }
 
-  CC2538_RF_CSP_ISFLUSHRX();
-
   return len;
 }
 /*---------------------------------------------------------------------------*/
