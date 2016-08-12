@@ -57,6 +57,8 @@ if( $Opt{board} eq "z1" ) {
   $Opt{board} = "Zolertia Z1";
 } elsif( $Opt{board} eq "remote" ) {
   $Opt{board} = "Zolertia RE-Mote platform";
+} elsif( $Opt{board} eq "firefly" ) {
+  $Opt{board} = "Zolertia Firefly platform";
 }
 
 my @devs = $Opt{method} eq "procfs" ? scan_procfs() : scan_sysfs();
