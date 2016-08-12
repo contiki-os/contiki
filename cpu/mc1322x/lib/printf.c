@@ -28,13 +28,13 @@
  * SUCH DAMAGE.
  *
  * This file is part of libmc1322x: see http://mc1322x.devl.org
- * for details. 
+ * for details.
  *
  *
  */
 
 /**
- * \file printf-stdarg.c
+ * \file lib/printf.c
  *
  * \brief sprintf functions to replace newlib for AVR32 UC3.
  *

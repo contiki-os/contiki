@@ -76,7 +76,6 @@ value(int type)
 {
   static uint16_t ADCvalue;
   static int16_t volts;
-  uint16_t scale=1;
   
   halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE(halGetADCChannelFromGPIO(TEMPERATURE_SENSOR_GPIO),ADC_MUX_VREF2), ADC_CONVERSION_TIME_US_4096);
   

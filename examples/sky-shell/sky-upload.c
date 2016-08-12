@@ -58,7 +58,6 @@ PROCESS_THREAD(test_shell_process, ev, data)
   shell_coffee_init();
   shell_exec_init();
   shell_file_init();
-  shell_netfile_init();
   shell_ps_init();
   shell_rime_init();
   shell_rime_netcmd_init();

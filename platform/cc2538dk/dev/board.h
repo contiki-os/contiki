@@ -28,7 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538
+/**
+ * \addtogroup cc2538dk
  * @{
  *
  * \defgroup cc2538-smartrf SmartRF06EB Peripherals
@@ -77,28 +78,28 @@
 #undef LEDS_RED
 #undef LEDS_CONF_ALL
 
-#define LEDS_YELLOW    2 /**< LED2 (Yellow) -> PC1 */
-#define LEDS_GREEN     4 /**< LED3 (Green)  -> PC2 */
-#define LEDS_ORANGE    8 /**< LED4 (Orange) -> PC3 */
+#define LEDS_YELLOW             2 /**< LED2 (Yellow) -> PC1 */
+#define LEDS_GREEN              4 /**< LED3 (Green)  -> PC2 */
+#define LEDS_ORANGE             8 /**< LED4 (Orange) -> PC3 */
 
 #if USB_SERIAL_CONF_ENABLE
-#define LEDS_CONF_ALL 14
-#define LEDS_RED LEDS_ORANGE
+#define LEDS_CONF_ALL           14
+#define LEDS_RED                LEDS_ORANGE
 #else
-#define LEDS_CONF_ALL 15
-#define LEDS_RED       1 /**< LED1 (Red)    -> PC0 */
+#define LEDS_CONF_ALL           15
+#define LEDS_RED                1 /**< LED1 (Red)    -> PC0 */
 #endif
 
 /* Notify various examples that we have LEDs */
-#define PLATFORM_HAS_LEDS        1
+#define PLATFORM_HAS_LEDS       1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name USB configuration
  *
  * The USB pullup is driven by PC0 and is shared with LED1
  */
-#define USB_PULLUP_PORT          GPIO_C_NUM
-#define USB_PULLUP_PIN           0
+#define USB_PULLUP_PORT         GPIO_C_NUM
+#define USB_PULLUP_PIN          0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART configuration
@@ -114,17 +115,17 @@
  * UART1_* below.
  * @{
  */
-#define UART0_RX_PORT            GPIO_A_NUM
-#define UART0_RX_PIN             0
+#define UART0_RX_PORT           GPIO_A_NUM
+#define UART0_RX_PIN            0
 
-#define UART0_TX_PORT            GPIO_A_NUM
-#define UART0_TX_PIN             1
+#define UART0_TX_PORT           GPIO_A_NUM
+#define UART0_TX_PIN            1
 
-#define UART1_CTS_PORT           GPIO_B_NUM
-#define UART1_CTS_PIN            0
+#define UART1_CTS_PORT          GPIO_B_NUM
+#define UART1_CTS_PIN           0
 
-#define UART1_RTS_PORT           GPIO_D_NUM
-#define UART1_RTS_PIN            3
+#define UART1_RTS_PORT          GPIO_D_NUM
+#define UART1_RTS_PIN           3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration
@@ -138,32 +139,32 @@
  * @{
  */
 /** BUTTON_SELECT -> PA3 */
-#define BUTTON_SELECT_PORT       GPIO_A_NUM
-#define BUTTON_SELECT_PIN        3
-#define BUTTON_SELECT_VECTOR     NVIC_INT_GPIO_PORT_A
+#define BUTTON_SELECT_PORT      GPIO_A_NUM
+#define BUTTON_SELECT_PIN       3
+#define BUTTON_SELECT_VECTOR    NVIC_INT_GPIO_PORT_A
 
 /** BUTTON_LEFT -> PC4 */
-#define BUTTON_LEFT_PORT         GPIO_C_NUM
-#define BUTTON_LEFT_PIN          4
-#define BUTTON_LEFT_VECTOR       NVIC_INT_GPIO_PORT_C
+#define BUTTON_LEFT_PORT        GPIO_C_NUM
+#define BUTTON_LEFT_PIN         4
+#define BUTTON_LEFT_VECTOR      NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_RIGHT -> PC5 */
-#define BUTTON_RIGHT_PORT        GPIO_C_NUM
-#define BUTTON_RIGHT_PIN         5
-#define BUTTON_RIGHT_VECTOR      NVIC_INT_GPIO_PORT_C
+#define BUTTON_RIGHT_PORT       GPIO_C_NUM
+#define BUTTON_RIGHT_PIN        5
+#define BUTTON_RIGHT_VECTOR     NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_UP -> PC6 */
-#define BUTTON_UP_PORT           GPIO_C_NUM
-#define BUTTON_UP_PIN            6
-#define BUTTON_UP_VECTOR         NVIC_INT_GPIO_PORT_C
+#define BUTTON_UP_PORT          GPIO_C_NUM
+#define BUTTON_UP_PIN           6
+#define BUTTON_UP_VECTOR        NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_DOWN -> PC7 */
 #define BUTTON_DOWN_PORT        GPIO_C_NUM
-#define BUTTON_DOWN_PIN          7
-#define BUTTON_DOWN_VECTOR       NVIC_INT_GPIO_PORT_C
+#define BUTTON_DOWN_PIN         7
+#define BUTTON_DOWN_VECTOR      NVIC_INT_GPIO_PORT_C
 
 /* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
+#define PLATFORM_HAS_BUTTON     1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -175,23 +176,49 @@
  * ADC inputs can only be on port A.
  * @{
  */
-#define ADC_ALS_PWR_PORT         GPIO_A_NUM /**< ALS power GPIO control port */
-#define ADC_ALS_PWR_PIN          7 /**< ALS power GPIO control pin */
-#define ADC_ALS_OUT_PIN          6 /**< ALS output ADC input pin on port A */
+#define ADC_ALS_PWR_PORT        GPIO_A_NUM /**< ALS power GPIO control port */
+#define ADC_ALS_PWR_PIN         7 /**< ALS power GPIO control pin */
+#define ADC_ALS_OUT_PIN         6 /**< ALS output ADC input pin on port A */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name SPI configuration
  *
- * These values configure which CC2538 pins to use for the SPI lines.
+ * These values configure which CC2538 pins to use for the SPI lines. Both
+ * SPI instances can be used independently by providing the corresponding
+ * port / pin macros.
  * @{
  */
-#define SPI_CLK_PORT             GPIO_A_NUM
-#define SPI_CLK_PIN              2
-#define SPI_MOSI_PORT            GPIO_A_NUM
-#define SPI_MOSI_PIN             4
-#define SPI_MISO_PORT            GPIO_A_NUM
-#define SPI_MISO_PIN             5
+#define SPI0_IN_USE             0
+#define SPI1_IN_USE             0
+#if SPI0_IN_USE
+/** Clock port SPI0 */
+#define SPI0_CLK_PORT           GPIO_A_NUM
+/** Clock pin SPI0 */
+#define SPI0_CLK_PIN            2
+/** TX port SPI0 (master mode: MOSI) */
+#define SPI0_TX_PORT            GPIO_A_NUM
+/** TX pin SPI0 */
+#define SPI0_TX_PIN             4
+/** RX port SPI0 (master mode: MISO */
+#define SPI0_RX_PORT            GPIO_A_NUM
+/** RX pin SPI0 */
+#define SPI0_RX_PIN             5
+#endif  /* #if SPI0_IN_USE */
+#if SPI1_IN_USE
+/** Clock port SPI1 */
+#define SPI1_CLK_PORT           GPIO_A_NUM
+/** Clock pin SPI1 */
+#define SPI1_CLK_PIN            2
+/** TX port SPI1 (master mode: MOSI) */
+#define SPI1_TX_PORT            GPIO_A_NUM
+/** TX pin SPI1 */
+#define SPI1_TX_PIN             4
+/** RX port SPI1 (master mode: MISO) */
+#define SPI1_RX_PORT            GPIO_A_NUM
+/** RX pin SPI1 */
+#define SPI1_RX_PIN             5
+#endif  /* #if SPI1_IN_USE */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

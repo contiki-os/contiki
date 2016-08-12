@@ -1,13 +1,3 @@
-/**
- * \file
- * Default definitions of C compiler quirk work-arounds.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * This file is used for making use of extra functionality of some C
- * compilers used for Contiki, and defining work-arounds for various
- * quirks and problems with some other C compilers.
- */
-
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved.
@@ -41,10 +31,22 @@
  *
  *
  */
+
+/**
+ * \file
+ * Default definitions of C compiler quirk work-arounds.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * This file is used for making use of extra functionality of some C
+ * compilers used for Contiki, and defining work-arounds for various
+ * quirks and problems with some other C compilers.
+ */
+
 #ifndef CC_H_
 #define CC_H_
 
 #include "contiki-conf.h"
+#include "sys/cc-gcc.h"
 
 /**
  * Configure if the C compiler supports the "register" keyword for
@@ -67,23 +69,13 @@
 #endif /* CC_CONF_FUNCTION_POINTER_ARGS */
 
 /**
- * Configure if the C compiler supports fastcall function
- * declarations.
- */
-#ifdef CC_CONF_FASTCALL
-#define CC_FASTCALL CC_CONF_FASTCALL
-#else /* CC_CONF_FASTCALL */
-#define CC_FASTCALL
-#endif /* CC_CONF_FASTCALL */
-
-/**
  * Configure if the C compiler have problems with const function pointers
  */
 #ifdef CC_CONF_CONST_FUNCTION_BUG
 #define CC_CONST_FUNCTION
-#else /* CC_CONF_FASTCALL */
+#else /* CC_CONF_CONST_FUNCTION_BUG */
 #define CC_CONST_FUNCTION const
-#endif /* CC_CONF_FASTCALL */
+#endif /* CC_CONF_CONST_FUNCTION_BUG */
 
 /**
  * Configure work-around for unsigned char bugs with sdcc.
@@ -109,6 +101,10 @@
 #define CC_INLINE
 #endif /* CC_CONF_INLINE */
 
+#ifdef CC_CONF_ALIGN
+#define CC_ALIGN(n) CC_CONF_ALIGN(n)
+#endif /* CC_CONF_INLINE */
+
 /**
  * Configure if the C compiler supports the assignment of struct value.
  */
@@ -122,18 +118,48 @@
 #define CC_NO_VA_ARGS CC_CONF_VA_ARGS
 #endif
 
+/** \def CC_ACCESS_NOW(x)
+ * This macro ensures that the access to a non-volatile variable can
+ * not be reordered or optimized by the compiler.
+ * See also https://lwn.net/Articles/508991/ - In Linux the macro is
+ * called ACCESS_ONCE
+ * The type must be passed, because the typeof-operator is a gcc
+ * extension
+ */
+
+#define CC_ACCESS_NOW(type, variable) (*(volatile type *)&(variable))
+
 #ifndef NULL
 #define NULL 0
 #endif /* NULL */
 
+#ifndef MAX
+#define MAX(n, m)   (((n) < (m)) ? (m) : (n))
+#endif
+
+#ifndef MIN
+#define MIN(n, m)   (((n) < (m)) ? (n) : (m))
+#endif
+
+#ifndef ABS
+#define ABS(n)      (((n) < 0) ? -(n) : (n))
+#endif
+
+
 #define CC_CONCAT2(s1, s2) s1##s2
 /**
- * A C preprocessing macro for concatenating to
- * strings.
+ * A C preprocessing macro for concatenating two preprocessor tokens.
  *
  * We need use two macros (CC_CONCAT and CC_CONCAT2) in order to allow
- * concatenation of two #defined macros.
+ * concatenation of two \#defined macros.
  */
 #define CC_CONCAT(s1, s2) CC_CONCAT2(s1, s2)
+#define CC_CONCAT_EXT_2(s1, s2) CC_CONCAT2(s1, s2)
+
+/**
+ * A C preprocessing macro for concatenating three preprocessor tokens.
+ */
+#define CC_CONCAT3(s1, s2, s3) s1##s2##s3
+#define CC_CONCAT_EXT_3(s1, s2, s3) CC_CONCAT3(s1, s2, s3)
 
 #endif /* CC_H_ */

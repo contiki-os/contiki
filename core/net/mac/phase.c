@@ -122,7 +122,7 @@ phase_update(const linkaddr_t *neighbor, rtimer_clock_t time,
   } else {
     /* No matching phase was found, so we allocate a new one. */
     if(mac_status == MAC_TX_OK && e == NULL) {
-      e = nbr_table_add_lladdr(nbr_phase, neighbor);
+      e = nbr_table_add_lladdr(nbr_phase, neighbor, NBR_TABLE_REASON_MAC, NULL);
       if(e) {
         e->time = time;
 #if PHASE_DRIFT_CORRECT
@@ -217,7 +217,13 @@ phase_wait(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
       p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
         if(buf_list == NULL) {
+          packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
           p->q = queuebuf_new_from_packetbuf();
+          if(p->q == NULL) {
+            /* memory allocation failed */
+            memb_free(&queued_packets_memb, p);
+            return PHASE_UNKNOWN;
+          }
         }
         p->mac_callback = mac_callback;
         p->mac_callback_ptr = mac_callback_ptr;

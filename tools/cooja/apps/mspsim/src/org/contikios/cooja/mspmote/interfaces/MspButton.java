@@ -28,16 +28,9 @@
  */
 
 package org.contikios.cooja.mspmote.interfaces;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Collection;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import org.jdom.Element;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
-import org.contikios.cooja.TimeEvent;
 import org.contikios.cooja.interfaces.Button;
 import org.contikios.cooja.mspmote.MspMote;
 
@@ -51,6 +44,7 @@ public class MspButton extends Button {
     private final se.sics.mspsim.chip.Button button;
 
     public MspButton(Mote mote) {
+        super(mote);
         final MspMote mspMote = (MspMote) mote;
         sim = mote.getSimulation();
         button = mspMote.getCPU().getChip(se.sics.mspsim.chip.Button.class);
@@ -60,26 +54,13 @@ public class MspButton extends Button {
     }
 
     @Override
-    public void clickButton() {
-        sim.invokeSimulationThread(new ButtonClick());
+    protected void doPressButton() {
+        button.setPressed(true);
     }
 
     @Override
-    public void pressButton() {
-        sim.invokeSimulationThread(new Runnable() {
-            public void run() {
-                button.setPressed(true);
-            }
-        });
-    }
-
-    @Override
-    public void releaseButton() {
-        sim.invokeSimulationThread(new Runnable() {
-            public void run() {
-                button.setPressed(false);
-            }
-        });
+    protected void doReleaseButton() {
+        button.setPressed(false);
     }
 
     @Override
@@ -87,50 +68,4 @@ public class MspButton extends Button {
         return button.isPressed();
     }
 
-    @Override
-    public JPanel getInterfaceVisualizer() {
-        final JPanel panel = new JPanel();
-        final JButton clickButton = new JButton("Click button");
-
-        panel.add(clickButton);
-
-        clickButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                clickButton();
-            }
-        });
-
-        return panel;
-    }
-
-    @Override
-    public void releaseInterfaceVisualizer(JPanel panel) {
-    }
-
-    @Override
-    public Collection<Element> getConfigXML() {
-        return null;
-    }
-
-    @Override
-    public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    }
-
-    private class ButtonClick extends TimeEvent implements Runnable {
-
-        public ButtonClick() {
-            super(0);
-        }
-
-        @Override
-        public void run() {
-            button.setPressed(true);
-            sim.scheduleEvent(this, sim.getSimulationTime() + Simulation.MILLISECOND);
-        }
-
-        @Override
-        public void execute(long t) {
-            button.setPressed(false);
-        }
-    }
 }

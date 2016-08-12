@@ -51,22 +51,20 @@ void
 uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
 {
 #if UIP_UDP
-  if(data != NULL) {
+  if(data != NULL && len <= (UIP_BUFSIZE - (UIP_LLH_LEN + UIP_IPUDPH_LEN))) {
     uip_udp_conn = c;
     uip_slen = len;
-    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
-           len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
-           UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
+    memmove(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data, len);
     uip_process(UIP_UDP_SEND_CONN);
 
-#if UIP_CONF_IPV6_MULTICAST
+#if UIP_IPV6_MULTICAST
   /* Let the multicast engine process the datagram before we send it */
   if(uip_is_addr_mcast_routable(&uip_udp_conn->ripaddr)) {
     UIP_MCAST6.out();
   }
 #endif /* UIP_IPV6_MULTICAST */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     tcpip_ipv6_output();
 #else
     if(uip_len > 0) {

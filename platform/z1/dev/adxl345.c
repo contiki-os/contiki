@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,59 +30,52 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Device drivers for adxl345 accelerometer in Zolertia Z1.
  * \author
  *         Marcus Lundén, SICS <mlunden@sics.se>
  *         Enric M. Calvo, Zolertia <ecalvo@zolertia.com>
+ *         Antonio Lignan, Zolertia <alinan@zolertia.com>
  */
-
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "adxl345.h"
 #include "cc2420.h"
 #include "i2cmaster.h"
 #include "isr_compat.h"
-
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+/*---------------------------------------------------------------------------*/
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
 /* Callback pointers when interrupt occurs */
 void (*accm_int1_cb)(uint8_t reg);
 void (*accm_int2_cb)(uint8_t reg);
-
-process_event_t int1_event, int2_event;
-
+/*---------------------------------------------------------------------------*/
 /* Bitmasks for the interrupts */
 static uint16_t int1_mask = 0, int2_mask = 0;
 
-/* Keep track of when the interrupt was last seen in order to reduce the amount
-  of interrupts. Kind of like button debouncing. This can't be per int-pin, as
-  there can be several very different int per pin (eg tap && freefall). */
-// XXX Not used now, only one global timer.
-//static volatile clock_time_t ints_lasttime[] = {0, 0, 0, 0, 0, 0, 0, 0};
+/* Default values for adxl345 at startup.
+ * This will be sent to the adxl345 in a
+ * stream at init to set it up in a default state
+ */
 
-/* Bitmasks and bit flag variable for keeping track of adxl345 status. */
-enum ADXL345_STATUSTYPES {
-    /* must be a bit and not more, not using 0x00. */
-    INITED = 0x01,
-    RUNNING = 0x02,
-    STOPPED = 0x04,
-    LOW_POWER = 0x08,
-    AAA = 0x10,   // available to extend this...
-    BBB = 0x20,   // available to extend this...
-    CCC = 0x40,   // available to extend this...
-    DDD = 0x80,   // available to extend this...
-};
-static enum ADXL345_STATUSTYPES _ADXL345_STATUS = 0x00;
-
-/* Default values for adxl345 at startup. This will be sent to the adxl345 in a
-    stream at init to set it up in a default state */
 static uint8_t adxl345_default_settings[] = {
   /* Note, as the two first two bulks are to be written in a stream, they contain
-    the register address as first byte in that section. */
-  /* 0--14 are in one stream, start at ADXL345_THRESH_TAP */
-  ADXL345_THRESH_TAP,         // XXX NB Register address, not register value!!
+   * the register address as first byte in that section.
+   * 0--14 are in one stream, start at ADXL345_THRESH_TAP
+   */
+  /* XXX NB Register address, not register value!! */
+  ADXL345_THRESH_TAP,
   ADXL345_THRESH_TAP_DEFAULT,
   ADXL345_OFSX_DEFAULT,
   ADXL345_OFSY_DEFAULT,
@@ -98,7 +92,8 @@ static uint8_t adxl345_default_settings[] = {
   ADXL345_TAP_AXES_DEFAULT,
 
   /* 15--19 start at ADXL345_BW_RATE */
-  ADXL345_BW_RATE,    // XXX NB Register address, not register value!!
+  /* XXX NB Register address, not register value!! */
+  ADXL345_BW_RATE,    
   ADXL345_BW_RATE_DEFAULT,
   ADXL345_POWER_CTL_DEFAULT,
   ADXL345_INT_ENABLE_DEFAULT,
@@ -108,61 +103,45 @@ static uint8_t adxl345_default_settings[] = {
   ADXL345_DATA_FORMAT_DEFAULT,
   ADXL345_FIFO_CTL_DEFAULT
 };
-
-
 /*---------------------------------------------------------------------------*/
 PROCESS(accmeter_process, "Accelerometer process");
 /*---------------------------------------------------------------------------*/
-/* Write to a register.
-    args:
-      reg       register to write to
-      val       value to write
-*/
-
-void
-accm_write_reg(uint8_t reg, uint8_t val) {
+static void
+accm_write_reg(uint8_t reg, uint8_t val)
+{
   uint8_t tx_buf[] = {reg, val};
 
   i2c_transmitinit(ADXL345_ADDR);
   while (i2c_busy());
-  PRINTFDEBUG("I2C Ready to TX\n");
+  PRINTF("ADXL345: I2C Ready to TX\n");
 
   i2c_transmit_n(2, tx_buf);
   while (i2c_busy());
-  PRINTFDEBUG("WRITE_REG 0x%02X @ reg 0x%02X\n", val, reg);
+  PRINTF("ADXL345: WRITE_REG 0x%02X @ reg 0x%02X\n", val, reg);
 }
 /*---------------------------------------------------------------------------*/
-/* Write several registers from a stream.
-    args:
-      len       number of bytes to read
-      data      pointer to where the data is read from
-
-  First byte in stream must be the register address to begin writing to.
-  The data is then written from second byte and increasing. */
-
-void
-accm_write_stream(uint8_t len, uint8_t *data) {
+/* First byte in stream must be the register address to begin writing to.
+ * The data is then written from second byte and increasing.
+ */
+static void
+accm_write_stream(uint8_t len, uint8_t *data)
+{
   i2c_transmitinit(ADXL345_ADDR);
   while (i2c_busy());
-  PRINTFDEBUG("I2C Ready to TX(stream)\n");
+  PRINTF("ADXL345: I2C Ready to TX(stream)\n");
 
   i2c_transmit_n(len, data);	// start tx and send conf reg 
   while (i2c_busy());
-  PRINTFDEBUG("WRITE_STR %u B to 0x%02X\n", len, data[0]);
+  PRINTF("ADXL345: WRITE_STR %u B to 0x%02X\n", len, data[0]);
 }
 
 /*---------------------------------------------------------------------------*/
-/* Read one register.
-    args:
-      reg       what register to read
-    returns the value of the read register
-*/
-
-uint8_t
-accm_read_reg(uint8_t reg) {
+static uint8_t
+accm_read_reg(uint8_t reg)
+{
   uint8_t retVal = 0;
   uint8_t rtx = reg;
-  PRINTFDEBUG("READ_REG 0x%02X\n", reg);
+  PRINTF("ADXL345: READ_REG 0x%02X\n", reg);
 
   /* transmit the register to read */
   i2c_transmitinit(ADXL345_ADDR);
@@ -178,19 +157,12 @@ accm_read_reg(uint8_t reg) {
 
   return retVal;
 }
-
 /*---------------------------------------------------------------------------*/
-/* Read several registers in a stream.
-    args:
-      reg       what register to start reading from
-      len       number of bytes to read
-      whereto   pointer to where the data is saved
-*/
-
-void
-accm_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto) {
+static void
+accm_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto)
+{
   uint8_t rtx = reg;
-  PRINTFDEBUG("READ_STR %u B from 0x%02X\n", len, reg);
+  PRINTF("ADXL345: READ_STR %u B from 0x%02X\n", len, reg);
 
   /* transmit the register to start reading from */
   i2c_transmitinit(ADXL345_ADDR);
@@ -206,13 +178,15 @@ accm_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto) {
 }
 
 /*---------------------------------------------------------------------------*/
-/* Read an axis of the accelerometer (x, y or z). Return value is a signed 10 bit int.
-  The resolution of the acceleration measurement can be increased up to 13 bit, but
-  will change the data format of this read out. Refer to the data sheet if so is
-  wanted/needed. */
-
+/* Read an axis of the accelerometer (x, y or z). Return value is a signed
+ * 10 bit int.
+ * The resolution of the acceleration measurement can be increased up to 13 bit,
+ * but will change the data format of this read out. Refer to the data sheet if
+ * so is wanted/needed.
+ */
 int16_t
-accm_read_axis(enum ADXL345_AXIS axis){
+accm_read_axis(enum ADXL345_AXIS axis)
+{
   int16_t rd = 0;
   uint8_t tmp[2];
   if(axis > Z_AXIS){
@@ -222,165 +196,144 @@ accm_read_axis(enum ADXL345_AXIS axis){
   rd = (int16_t)(tmp[0] | (tmp[1]<<8));  
   return rd;
 }
-
 /*---------------------------------------------------------------------------*/
-/* Sets the g-range, ie the range the accelerometer measures (ie 2g means -2 to +2 g
-    on every axis). Possible values:
-        ADXL345_RANGE_2G
-        ADXL345_RANGE_4G
-        ADXL345_RANGE_8G
-        ADXL345_RANGE_16G
-    Example:
-        accm_set_grange(ADXL345_RANGE_4G);
-    */
-
-void
-accm_set_grange(uint8_t grange){
-  if(grange > ADXL345_RANGE_16G) {
-    // invalid g-range.
-    PRINTFDEBUG("ADXL grange invalid: %u\n", grange);
-    return;
-  }
+int
+accm_set_grange(uint8_t grange)
+{
   uint8_t tempreg = 0;
 
-  /* preserve the previous contents of the register */
-  tempreg = (accm_read_reg(ADXL345_DATA_FORMAT) & 0xFC);  // zero out the last two bits (grange)
-  tempreg |= grange;                                      // set new range
-  accm_write_reg(ADXL345_DATA_FORMAT, tempreg);
-}
-
-/*---------------------------------------------------------------------------*/
-/* Init the accelerometer: ports, pins, registers, interrupts (none enabled), I2C,
-    default threshold values etc. */
-
-void
-accm_init(void) {
-  if(!(_ADXL345_STATUS & INITED)){
-    PRINTFDEBUG("ADXL345 init\n");
-    _ADXL345_STATUS |= INITED;
-    accm_int1_cb = NULL;
-    accm_int2_cb = NULL;
-    int1_event = process_alloc_event();
-    int2_event = process_alloc_event();
-
-    /* Set up ports and pins for interrups. */
-    ADXL345_DIR  &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
-    ADXL345_SEL  &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
-    ADXL345_SEL2 &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
-
-    /* Set up ports and pins for I2C communication */
-    i2c_enable();
-
-    /* set default register values. */
-    accm_write_stream(15, &adxl345_default_settings[0]);
-    accm_write_stream(5, &adxl345_default_settings[15]);
-    accm_write_reg(ADXL345_DATA_FORMAT, adxl345_default_settings[20]);
-    accm_write_reg(ADXL345_FIFO_CTL, adxl345_default_settings[21]);
-
-    process_start(&accmeter_process, NULL);
-
-    /* Enable msp430 interrupts on the two interrupt pins. */
-    dint();
-    ADXL345_IES &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);   // low to high transition interrupts
-    ADXL345_IE |= (ADXL345_INT1_PIN | ADXL345_INT2_PIN);     // enable interrupts
-    eint();
+  if(grange > ADXL345_RANGE_16G) {
+    PRINTF("ADXL345: grange invalid: %u\n", grange);
+    return ADXL345_ERROR;
   }
+
+  if(!enabled) {
+    return ADXL345_ERROR;
+  }
+
+  /* Keep the previous contents of the register, zero out the last two bits */
+  tempreg = (accm_read_reg(ADXL345_DATA_FORMAT) & 0xFC);
+  tempreg |= grange;
+  accm_write_reg(ADXL345_DATA_FORMAT, tempreg);
+  return ADXL345_SUCCESS;
 }
 
 /*---------------------------------------------------------------------------*/
-/* Map interrupt (FF, tap, dbltap etc) to interrupt pin (IRQ_INT1, IRQ_INT2).
-    This must come after accm_init() as the registers will otherwise be overwritten. */
-    
 void
-accm_set_irq(uint8_t int1, uint8_t int2){
+accm_init(void)
+{
+  PRINTF("ADXL345: init\n");
+  accm_int1_cb = NULL;
+  accm_int2_cb = NULL;
+
+  /* Set up ports and pins for interrups. */
+  ADXL345_DIR  &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+  ADXL345_SEL  &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+  ADXL345_SEL2 &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+
+  /* Set up ports and pins for I2C communication */
+  i2c_enable();
+
+  /* set default register values. */
+  accm_write_stream(15, &adxl345_default_settings[0]);
+  accm_write_stream(5, &adxl345_default_settings[15]);
+  accm_write_reg(ADXL345_DATA_FORMAT, adxl345_default_settings[20]);
+  accm_write_reg(ADXL345_FIFO_CTL, adxl345_default_settings[21]);
+
+  process_start(&accmeter_process, NULL);
+
+  /* Enable msp430 interrupts on the two interrupt pins. */
+  dint();
+  /* low to high transition interrupts */
+  ADXL345_IES &=~ (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+  /* enable interrupts */
+  ADXL345_IE |= (ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+  eint();
+
+  enabled = 1;
+}
+/*---------------------------------------------------------------------------*/
+void
+accm_stop(void)
+{
+  dint();
+  ADXL345_IE &= ~(ADXL345_INT1_PIN | ADXL345_INT2_PIN);
+  accm_write_reg(ADXL345_INT_ENABLE, ~(int1_mask | int2_mask));
+  accm_write_reg(ADXL345_INT_MAP, ~int2_mask);
+  eint();
+  enabled = 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+accm_set_irq(uint8_t int1, uint8_t int2)
+{
+  if(!enabled) {
+    return ADXL345_ERROR;
+  }
+
   /* Set the corresponding interrupt mapping to INT1 or INT2 */
-  PRINTFDEBUG("IRQs set to INT1: 0x%02X IRQ2: 0x%02X\n", int1, int2);
+  PRINTF("ADXL345: IRQs set to INT1: 0x%02X IRQ2: 0x%02X\n", int1, int2);
 
   int1_mask = int1;
   int2_mask = int2;
 
   accm_write_reg(ADXL345_INT_ENABLE, (int1 | int2));
-  accm_write_reg(ADXL345_INT_MAP, int2);  // int1 bits are zeroes in the map register so this is for both ints
+  /* int1 bits are zeroes in the map register so this is for both ints */
+  accm_write_reg(ADXL345_INT_MAP, int2);
+  return ADXL345_SUCCESS;
 }
-
-/*---------------------------------------------------------------------------*/
-#if 0
-/* now unused code that is later supposed to be turned into keeping track of every
-    interrupt by themselves instead of only one per INT1/2 */
-
-/* XXX MUST HAVE some way of resetting the time so that we are not suppressing
-        erronous due to clock overflow.... XXX XXX XXX */
-/* Table with back off time periods */
-static volatile clock_time_t ints_backoffs[] = {ADXL345_INT_OVERRUN_BACKOFF, ADXL345_INT_WATERMARK_BACKOFF,
-                                                ADXL345_INT_FREEFALL_BACKOFF, ADXL345_INT_INACTIVITY_BACKOFF,
-                                                ADXL345_INT_ACTIVITY_BACKOFF, ADXL345_INT_DOUBLETAP_BACKOFF,
-                                                ADXL345_INT_TAP_BACKOFF, ADXL345_INT_DATAREADY_BACKOFF};
-
-/*---------------------------------------------------------------------------*/
-/* Checks to see if an event occurred after backoff period (returns time period
-    past since) or not (returns 0) */
-
-static clocktime_t
-backoff_passed(clocktime_t happenedAt, const clocktime_t backoff){
-  if(timenow-lasttime >= backoff) {
-    return 0;
-  } else {
-    return (timenow-lasttime);
-  }
-}
-#endif
 /*---------------------------------------------------------------------------*/
 /* Invoked after an interrupt happened. Reads the interrupt source reg at the
-  accelerometer, which resets the interrupts, and invokes the corresponding
-  callback. It passes the source register value so the callback can determine
-  what interrupt happened, if several interrupts are mapped to the same pin. */
-
+ * accelerometer, which resets the interrupts, and invokes the corresponding
+ * callback. It passes the source register value so the callback can determine
+ * what interrupt happened, if several interrupts are mapped to the same pin.
+ */
 static void
-poll_handler(void){
+poll_handler(void)
+{
   uint8_t ireg = 0;
   ireg = accm_read_reg(ADXL345_INT_SOURCE);
-  //printf("0x%02X, 0x%02X, 0x%02X, 0x%02X\n", ireg, ireg2, int1_mask, int2_mask);
 
   /* Invoke callbacks for the corresponding interrupts */
   if(ireg & int1_mask){
     if(accm_int1_cb != NULL){
-      PRINTFDEBUG("INT1 cb invoked\n");
+      PRINTF("ADXL345: INT1 cb invoked\n");
       accm_int1_cb(ireg);
     }
   } else if(ireg & int2_mask){
     if(accm_int2_cb != NULL){
-      PRINTFDEBUG("INT2 cb invoked\n");
+      PRINTF("ADXL345: INT2 cb invoked\n");
       accm_int2_cb(ireg);
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
-/* This process is sleeping until an interrupt from the accelerometer occurs, which
-    polls this process from the interrupt service routine. */
-
-PROCESS_THREAD(accmeter_process, ev, data) {
+/* This process is sleeping until an interrupt from the accelerometer occurs,
+ * which polls this process from the interrupt service routine. */
+PROCESS_THREAD(accmeter_process, ev, data)
+{
   PROCESS_POLLHANDLER(poll_handler());
   PROCESS_EXITHANDLER();
   PROCESS_BEGIN();
   while(1){
-    PROCESS_WAIT_EVENT_UNTIL(0);    // should do nothing in while loop.
+    PROCESS_WAIT_EVENT_UNTIL(0);
   }
   PROCESS_END();
 }
-
 /*---------------------------------------------------------------------------*/
-/* XXX This interrupt vector is shared with the interrupts from CC2420, so that
-  was moved here but should find a better home. XXX */
-
-#if 1
+/* This interrupt vector is shared with the interrupts from CC2420, so that
+ * was moved here
+ */
 static struct timer suppressTimer1, suppressTimer2;
 
 ISR(PORT1, port1_isr)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  /* ADXL345_IFG.x goes high when interrupt occurs, use to check what interrupted */
-  if ((ADXL345_IFG & ADXL345_INT1_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
+
+  /* ADXL345_IFG.x goes high when interrupt occurs, use to check what
+   * interrupted
+   */
+  if((ADXL345_IFG & ADXL345_INT1_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer1)) {
       timer_set(&suppressTimer1, SUPPRESS_TIME_INT1);
@@ -388,11 +341,13 @@ ISR(PORT1, port1_isr)
       process_poll(&accmeter_process);
       LPM4_EXIT;
     }
-  } else if ((ADXL345_IFG & ADXL345_INT2_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
+  } else if((ADXL345_IFG & ADXL345_INT2_PIN) &&
+           !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer2)) {
       timer_set(&suppressTimer2, SUPPRESS_TIME_INT2);
-      ADXL345_IFG &= ~ADXL345_INT2_PIN;   // clear interrupt flag
+      /* clear interrupt flag */
+      ADXL345_IFG &= ~ADXL345_INT2_PIN;
       process_poll(&accmeter_process);
       LPM4_EXIT;
     }
@@ -404,7 +359,56 @@ ISR(PORT1, port1_isr)
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
-
 /*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type != SENSORS_ACTIVE) {
+    return ADXL345_ERROR;
+  }
 
-#endif
+  if(value) {
+    accm_init();
+  } else {
+    accm_stop();
+  }
+  enabled = value;
+  return ADXL345_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return enabled;
+  }
+  return ADXL345_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  if(!enabled) {
+    return ADXL345_ERROR;
+  }
+
+  if((type != X_AXIS) && (type != Y_AXIS) && (type != Z_AXIS)) {
+    return ADXL345_ERROR;
+  }
+
+  switch(type) {
+    case X_AXIS:
+      return accm_read_axis(X_AXIS);
+    case Y_AXIS:
+      return accm_read_axis(Y_AXIS);
+    case Z_AXIS:
+      return accm_read_axis(Z_AXIS);
+    default:
+      return ADXL345_ERROR;
+  }
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(adxl345, ADXL345_SENSOR, value, configure, status);
+/*---------------------------------------------------------------------------*/

@@ -113,15 +113,9 @@ coap_send_transaction(coap_transaction_t *t)
                (float)t->retrans_timer.timer.interval / CLOCK_SECOND);
       }
 
-      /*FIXME
-       * Hack: Setting timer for responsible process.
-       * Maybe there is a better way, but avoid posting everything to the process.
-       */
-      struct process *process_actual = PROCESS_CURRENT();
-
-      process_current = transaction_handler_process;
+      PROCESS_CONTEXT_BEGIN(transaction_handler_process);
       etimer_restart(&t->retrans_timer);        /* interval updated above */
-      process_current = process_actual;
+      PROCESS_CONTEXT_END(transaction_handler_process);
 
       t = NULL;
     } else {

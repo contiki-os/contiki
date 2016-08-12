@@ -38,16 +38,15 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import avrora.sim.State;
-import avrora.sim.Simulator.Watch;
-
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteTimeEvent;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.TimeEvent;
-import org.contikios.cooja.avrmote.AvrMoteMemory;
 import org.contikios.cooja.avrmote.MicaZMote;
 import org.contikios.cooja.interfaces.MoteID;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 public class MicaZID extends MoteID {
 
@@ -57,7 +56,7 @@ public class MicaZID extends MoteID {
 
     private int moteID = -1; /* TODO Implement */
 
-    private AvrMoteMemory moteMem;
+    private VarMemory moteMem;
     boolean tosID = false;
     boolean contikiID = false;
     private MicaZMote mote;
@@ -80,23 +79,26 @@ public class MicaZID extends MoteID {
 
     public MicaZID(Mote mote) {
         this.mote = (MicaZMote) mote;
-        this.moteMem = (AvrMoteMemory) mote.getMemory();
+        this.moteMem = new VarMemory(mote.getMemory());
 
         if (moteMem.variableExists("node_id")) {
             contikiID = true;
 
-            int addr = moteMem.getVariableAddress("node_id");
-            moteMem.insertWatch(new Watch() {
-                public void fireAfterRead(State arg0, int arg1, byte arg2) {
-                    System.out.println("Read from node_id: " + arg2);
+            int addr = (int) moteMem.getVariableAddress("node_id");
+            moteMem.addVarMonitor(
+                            SegmentMonitor.EventType.READWRITE, 
+                            "node_id", 
+                            new SegmentMonitor() {
+
+                @Override
+                public void memoryChanged(MemoryInterface memory, SegmentMonitor.EventType type, long address) {
+                    if (type == EventType.READ) {
+                        System.out.println("Read from node_id.");
+                    } else {
+                        System.out.println("Writing to node_id.");
+                    }
                 }
-                public void fireAfterWrite(State arg0, int arg1, byte arg2) {
-                }
-                public void fireBeforeRead(State arg0, int arg1) {
-                }
-                public void fireBeforeWrite(State arg0, int arg1, byte arg2) {
-                    System.out.println("Writing to node_id: " + arg2);
-                }}, addr);
+            });
         }
 
         if (moteMem.variableExists("TOS_NODE_ID")) {

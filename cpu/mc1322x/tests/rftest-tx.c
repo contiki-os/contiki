@@ -94,7 +94,7 @@ void main(void) {
 		check_maca();
 
 		while((p = rx_packet())) {
-			if(p) free_packet(p);
+			if(p) maca_free_packet(p);
 		}
 
 		p = get_free_packet();

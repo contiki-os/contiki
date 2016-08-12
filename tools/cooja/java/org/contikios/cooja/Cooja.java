@@ -133,12 +133,14 @@ import org.contikios.cooja.dialogs.ConfigurationWizard;
 import org.contikios.cooja.dialogs.CreateSimDialog;
 import org.contikios.cooja.dialogs.ExternalToolsDialog;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.dialogs.ProjectDirectoriesDialog;
 import org.contikios.cooja.plugins.MoteTypeInformation;
 import org.contikios.cooja.plugins.ScriptRunner;
 import org.contikios.cooja.plugins.SimControl;
 import org.contikios.cooja.plugins.SimInformation;
 import org.contikios.cooja.util.ExecuteJAR;
+import org.contikios.cooja.util.ScnObservable;
 
 /**
  * Main file of COOJA Simulator. Typically contains a visualizer for the
@@ -274,7 +276,7 @@ public class Cooja extends Observable {
     "MAPFILE_VAR_SIZE_1", "MAPFILE_VAR_SIZE_2",
 
     "PARSE_COMMAND",
-    "COMMAND_VAR_NAME_ADDRESS",
+    "COMMAND_VAR_NAME_ADDRESS_SIZE",
     "COMMAND_DATA_START", "COMMAND_DATA_END",
     "COMMAND_BSS_START", "COMMAND_BSS_END",
     "COMMAND_COMMON_START", "COMMAND_COMMON_END",
@@ -325,21 +327,10 @@ public class Cooja extends Observable {
 
   private Vector<Class<? extends Positioner>> positionerClasses = new Vector<Class<? extends Positioner>>();
 
-  private class HighlightObservable extends Observable {
-    private void setChangedAndNotify(Mote mote) {
-      setChanged();
-      notifyObservers(mote);
-    }
-  }
-  private HighlightObservable moteHighlightObservable = new HighlightObservable();
 
-  private class MoteRelationsObservable extends Observable {
-    private void setChangedAndNotify() {
-      setChanged();
-      notifyObservers();
-    }
-  }
-  private MoteRelationsObservable moteRelationObservable = new MoteRelationsObservable();
+  private ScnObservable moteHighlightObservable = new ScnObservable();
+
+  private ScnObservable moteRelationObservable = new ScnObservable();
 
   private JTextPane quickHelpTextPane;
   private JScrollPane quickHelpScroll;
@@ -952,7 +943,8 @@ public class Cooja extends Observable {
         String tooltip = "<html><pre>";
         if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
           tooltip += "Cooja plugin: ";
-        } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+        		|| pluginType == PluginType.SIM_CONTROL_PLUGIN) {
           tooltip += "Simulation plugin: ";
           if (getSimulation() == null) {
             menuItem.setEnabled(false);
@@ -963,7 +955,8 @@ public class Cooja extends Observable {
         tooltip += description + " (" + newPluginClass.getName() + ")";
 
         /* Check if simulation plugin depends on any particular radio medium */
-        if ((pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) && (getSimulation() != null)) {
+        if ((pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+        		|| pluginType == PluginType.SIM_CONTROL_PLUGIN) && (getSimulation() != null)) {
           if (newPluginClass.getAnnotation(SupportedArguments.class) != null) {
             boolean active = false;
             Class<? extends RadioMedium>[] radioMediums = newPluginClass.getAnnotation(SupportedArguments.class).radioMediums();
@@ -1020,7 +1013,8 @@ public class Cooja extends Observable {
           }
 
           int pluginType = pluginClass.getAnnotation(PluginType.class).value();
-          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN) {
+          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN
+        		  && pluginType != PluginType.SIM_CONTROL_PLUGIN) {
             continue;
           }
 
@@ -1848,8 +1842,8 @@ public class Cooja extends Observable {
           pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, Cooja.class })
           .newInstance(argMote, argSimulation, argGUI);
 
-      } else if (pluginType == PluginType.SIM_PLUGIN
-          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+    		  || pluginType == PluginType.SIM_CONTROL_PLUGIN) {
         if (argGUI == null) {
           throw new PluginConstructionException("No GUI argument for simulation plugin");
         }
@@ -1931,7 +1925,8 @@ public class Cooja extends Observable {
     try {
       if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Cooja.class });
-      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN 
+    		  || pluginType == PluginType.SIM_CONTROL_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Simulation.class, Cooja.class });
       } else if (pluginType == PluginType.MOTE_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, Cooja.class });
@@ -3152,7 +3147,7 @@ public class Cooja extends Observable {
         if (new File(logConfigFile).exists()) {
           DOMConfigurator.configure(logConfigFile);
         } else {
-          System.err.println("Failed to open " + logConfigFile);
+          logger.error("Failed to open " + logConfigFile);
           System.exit(1);
         }
       } else if (new File(LOG_CONFIG_FILE).exists()) {
@@ -3247,19 +3242,19 @@ public class Cooja extends Observable {
       }
       Cooja gui = sim.getCooja();
 
-      /* Make sure at least one test editor is controlling the simulation */
-      boolean hasEditor = false;
+      /* Make sure at least one plugin controlling the simulation */
+      boolean hasController = false;
       for (Plugin startedPlugin : gui.startedPlugins) {
-        if (startedPlugin instanceof ScriptRunner) {
-          hasEditor = true;
-          break;
-        }
+    	int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+    	if (pluginType == PluginType.SIM_CONTROL_PLUGIN) {
+    	  hasController = true;
+    	}
       }
 
       /* Backwards compatibility:
-       * simulation has no test editor, but has external (old style) test script.
+       * simulation has no control plugin, but has external (old style) test script.
        * We will manually start a test editor from here. */
-      if (!hasEditor) {
+      if (!hasController) {
         File scriptFile = new File(config.substring(0, config.length()-4) + ".js");
         if (scriptFile.exists()) {
           logger.info("Detected old simulation test, starting test editor manually from: " + scriptFile);
@@ -3275,13 +3270,12 @@ public class Cooja extends Observable {
             System.exit(1);
           }
         } else {
-          logger.fatal("No test editor controlling simulation, aborting");
+          logger.fatal("No plugin controlling simulation, aborting");
           System.exit(1);
         }
       }
 
-      sim.setSpeedLimit(null);
-      sim.startSimulation();
+
       
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 
@@ -3487,7 +3481,9 @@ public class Cooja extends Observable {
       }
 
       XMLOutputter outputter = new XMLOutputter();
-      outputter.setFormat(Format.getPrettyFormat());
+      Format fmt = Format.getPrettyFormat();
+      fmt.setLineSeparator("\n");
+      outputter.setFormat(fmt);
       outputter.output(doc, out);
       out.close();
 
@@ -3839,7 +3835,7 @@ public class Cooja extends Observable {
           /* Contiki error */
           if (exception instanceof ContikiError) {
             String contikiError = ((ContikiError) exception).getContikiError();
-            MessageList list = new MessageList();
+            MessageListUI list = new MessageListUI();
             for (String l: contikiError.split("\n")) {
               list.addMessage(l);
             }
@@ -3848,14 +3844,14 @@ public class Cooja extends Observable {
           }
 
           /* Compilation output */
-          MessageList compilationOutput = null;
+          MessageListUI compilationOutput = null;
           if (exception instanceof MoteTypeCreationException
               && ((MoteTypeCreationException) exception).hasCompilationOutput()) {
-            compilationOutput = ((MoteTypeCreationException) exception).getCompilationOutput();
+            compilationOutput = (MessageListUI) ((MoteTypeCreationException) exception).getCompilationOutput();
           } else if (exception.getCause() != null
               && exception.getCause() instanceof MoteTypeCreationException
               && ((MoteTypeCreationException) exception.getCause()).hasCompilationOutput()) {
-            compilationOutput = ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
+            compilationOutput = (MessageListUI) ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
           }
           if (compilationOutput != null) {
             compilationOutput.addPopupMenuItem(null, true);
@@ -3863,8 +3859,8 @@ public class Cooja extends Observable {
           }
 
           /* Stack trace */
-          MessageList stackTrace = new MessageList();
-          PrintStream printStream = stackTrace.getInputStream(MessageList.NORMAL);
+          MessageListUI stackTrace = new MessageListUI();
+          PrintStream printStream = stackTrace.getInputStream(MessageListUI.NORMAL);
           exception.printStackTrace(printStream);
           stackTrace.addPopupMenuItem(null, true);
           tabbedPane.addTab("Java stack trace", new JScrollPane(stackTrace));
@@ -3936,7 +3932,7 @@ public class Cooja extends Observable {
         Box buttonBox = Box.createHorizontalBox();
 
         /* Warnings message list */
-        MessageList compilationOutput = new MessageList();
+        MessageListUI compilationOutput = new MessageListUI();
         for (String w: warnings) {
           compilationOutput.addMessage(w, MessageList.ERROR);
         }
@@ -4359,14 +4355,14 @@ public class Cooja extends Observable {
   private static JProgressBar PROGRESS_BAR = null;
   private static ArrayList<String> PROGRESS_WARNINGS = new ArrayList<String>();
   public static void setProgressMessage(String msg) {
-    setProgressMessage(msg, MessageList.NORMAL);
+    setProgressMessage(msg, MessageListUI.NORMAL);
   }
   public static void setProgressMessage(String msg, int type) {
     if (PROGRESS_BAR != null && PROGRESS_BAR.isShowing()) {
       PROGRESS_BAR.setString(msg);
       PROGRESS_BAR.setStringPainted(true);
     }
-    if (type != MessageList.NORMAL) {
+    if (type != MessageListUI.NORMAL) {
       PROGRESS_WARNINGS.add(msg);
     }
   }

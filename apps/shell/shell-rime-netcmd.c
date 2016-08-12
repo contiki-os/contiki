@@ -129,7 +129,7 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
 
     /* Terminate the string with a NUL character. */
     msg->netcmd[len] = 0;
-    msg->crc = crc16_data(msg->netcmd, len, 0);
+    msg->crc = crc16_data((unsigned char *)msg->netcmd, len, 0);
     printf("netcmd sending '%s'\n", msg->netcmd);
     trickle_send(&trickle);
   }
@@ -157,7 +157,7 @@ recv_trickle(struct trickle_conn *c)
     msg->netcmd[len] = 0;
     memcpy(&crc, &msg->crc, sizeof(crc));
     
-    if(crc == crc16_data(msg->netcmd, len, 0)) {
+    if(crc == crc16_data((unsigned char *)msg->netcmd, len, 0)) {
       /* Start the server process with the incoming command. */
       process_start(&shell_netcmd_server_process, (void *)msg->netcmd);
     }

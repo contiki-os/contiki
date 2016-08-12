@@ -1,5 +1,5 @@
 
-#define UIP_CONF_IPV6 1
+#define NETSTACK_CONF_WITH_IPV6 1
 #define UIP_CONF_LL_802154 1
 
 #include <string.h>

@@ -586,7 +586,6 @@ derive_relation(lvm_instance_t *p, derivation_t *local_derivations)
   node_type_t type;
   operand_t operand[2];
   int i;
-  int var;
   int variable_id;
   operand_value_t *value;
   derivation_t *derivation;
@@ -640,11 +639,9 @@ derive_relation(lvm_instance_t *p, derivation_t *local_derivations)
     if(operand[1].type == LVM_VARIABLE) {
       return DERIVATION_ERROR;
     }
-    var = 0;
     variable_id = operand[0].value.id;
     value = &operand[1].value;
   } else {
-    var = 1;
     variable_id = operand[1].value.id;
     value = &operand[0].value;
   }

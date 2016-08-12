@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeexamples
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
+ */
+
+/**
+ * \addtogroup rimebroadcastannouncement
+ * @{
  */
 
 /**
@@ -91,8 +91,6 @@ static struct broadcast_announcement_state {
 #else
 #define PRINTF(...)
 #endif
-
-#define MIN(a, b) ((a)<(b)?(a):(b))
 
 /*---------------------------------------------------------------------------*/
 static void

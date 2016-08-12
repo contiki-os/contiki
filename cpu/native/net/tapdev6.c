@@ -36,7 +36,7 @@
 #include "net/ip/uip.h"
 #include "net/ip/uipopt.h"
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -331,7 +331,10 @@ tapdev_init(void)
   */
   /* freebsd */
   snprintf(buf, sizeof(buf), "ifconfig tap0 up");
-  system(buf);
+  if(system(buf) == -1) {
+    perror("tapdev: system: ifconfig");
+    return;
+  }
   printf("%s\n", buf);
   
   /*  */
@@ -419,4 +422,4 @@ tapdev_exit(void)
 }
 /*---------------------------------------------------------------------------*/
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */

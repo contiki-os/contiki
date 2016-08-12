@@ -64,13 +64,13 @@ static unsigned char gcr_bits = 0;
 static unsigned short gcr_val = 0;
 
 /* Call before starting encoding or decoding */
-void gcr_init() {
+void gcr_init(void) {
   gcr_val = 0;
   gcr_bits = 0;
 }
 
 /* Use this to check if encoding / decoding is complete for now */
-unsigned char gcr_finished() {
+unsigned char gcr_finished(void) {
   return gcr_bits == 0;
 }
 
@@ -100,7 +100,7 @@ void gcr_decode(unsigned char gcr_data) {
 }
 
 /* check if the current decoded stream is correct */
-unsigned char gcr_valid() {
+unsigned char gcr_valid(void) {
   if (gcr_bits >= 10) {
     unsigned short val = gcr_val & 0x3ff;
     if ((GCR_decode[val >> 5u] << 4u) == 0xff ||

@@ -70,7 +70,7 @@ clock_delay_usec(uint16_t len)
   ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Wait for a multiple of ~8 ms (a tick)
  */
 void

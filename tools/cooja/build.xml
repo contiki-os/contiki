@@ -51,6 +51,7 @@ The COOJA Simulator
           <pathelement location="lib/jdom.jar"/>
           <pathelement location="lib/log4j.jar"/>
           <pathelement location="lib/jsyntaxpane.jar"/>
+          <pathelement location="lib/swingx-all-1.6.4.jar"/>
         </classpath>
     </java>
   </target>
@@ -64,6 +65,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </javadoc>
   </target>
@@ -78,6 +80,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </javac>
   </target>
@@ -110,6 +113,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -125,6 +129,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -139,6 +144,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -153,6 +159,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -166,6 +173,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
         <pathelement location="../mspsim/lib/jfreechart-1.0.11.jar"/>
         <pathelement location="../mspsim/lib/jcommon-1.0.14.jar"/>
       </classpath>
@@ -181,6 +189,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -227,7 +236,7 @@ The COOJA Simulator
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
       <manifest>
         <attribute name="Main-Class" value="org.contikios.cooja.Cooja"/>
-        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar"/>
+        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar lib/swingx-all-1.6.4.jar"/>
       </manifest>
     </jar>
     <mkdir dir="${dist}/lib"/>

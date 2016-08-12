@@ -45,9 +45,9 @@
 
 #include "dev/button-sensor.h"
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include "net/rime/rime.h"
 #include "uart0.h"
@@ -66,7 +66,9 @@ SENSORS(&button_sensor);
 #endif
 
 static uint8_t serial_id[] = SERIAL_ID;
+#if !NETSTACK_CONF_WITH_IPV6
 static uint16_t node_id = 0x0102;
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -76,7 +78,7 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, serial_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
@@ -158,7 +160,7 @@ main(int argc, char **argv)
   PM3 &= ~BIT(0);  /* LED7 */
   PM5 &= ~BIT(0);  /* LED8 */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #if UIP_CONF_IPV6_RPL
   printf(CONTIKI_VERSION_STRING " started with IPV6, RPL" NEWLINE);
 #else
@@ -183,7 +185,7 @@ main(int argc, char **argv)
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s" NEWLINE, NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
@@ -201,7 +203,7 @@ main(int argc, char **argv)
 
     printf("%02x%02x" NEWLINE, lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-#else
+#elif NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 

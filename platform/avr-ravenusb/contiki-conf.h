@@ -70,18 +70,10 @@
  */
  /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -212,24 +204,18 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 /* These mostly have no effect when the Jackdaw is a repeater (CONTIKI_NO_NET=1 using fakeuip.c) */
 
-#if RF230BB
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
-#endif /*RF230BB */
-
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define LINKADDR_CONF_SIZE       8
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             0
-//#define UIP_CONF_IPV6_RPL        0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is thoroughly untested */
 #define LINKADDR_CONF_SIZE       2
 #define NETSTACK_CONF_NETWORK    rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* See uip-ds6.h */
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     2
@@ -245,10 +231,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_BUFSIZE		 UIP_LINK_MTU + UIP_LLH_LEN + 4   /* +4 for vlan on macosx */
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fd00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #//define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=UIP_DS6_DEFAULT_PREFIX_0;addr_contexts[0].prefix[1]=UIP_DS6_DEFAULT_PREFIX_1;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
@@ -285,9 +271,6 @@ typedef unsigned short uip_stats_t;
 #define RADIO_CONF_CALIBRATE_INTERVAL 256
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent by sicslowpan.c (else autoretry) */
-/* Broadcasts will be duplicated by the retry count, since no one will ACK them! */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
 #define RF230_CONF_FRAME_RETRIES    2
 /* CCA theshold energy -91 to -61 dBm (default -77). Set this smaller than the expected minimum rssi to avoid packet collisions */
@@ -312,7 +295,13 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_MAC         nullmac_driver
 //#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* Enable extended mode with autoack, but no csma/autoretry */
@@ -374,13 +363,12 @@ typedef unsigned short uip_stats_t;
 //#pragma mark RPL Settings
 /* ************************************************************************** */
 
-#define UIP_CONF_IPV6_RPL        0
 #if UIP_CONF_IPV6_RPL
 
 /* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */
 /* Dropping the NS on other OSs is more complicated, see http://www.sics.se/~adam/wiki/index.php/Jackdaw_RNDIS_RPL_border_router */
 
-/* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
+/* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to NETSTACK_CONF_WITH_IPV6=1 in the examples makefile,
    or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
 /* For the present the buffer_length calcs in rpl-icmp6.c will need adjustment by the length difference
    between 6lowpan (0) and ethernet (14) link-layer headers:

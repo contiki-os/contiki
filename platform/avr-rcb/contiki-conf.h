@@ -62,18 +62,10 @@
  */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -92,17 +84,25 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CCIF
 #define CLIF
 
-//#define UIP_CONF_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
-
 #define LINKADDR_CONF_SIZE       8
-#define PACKETBUF_CONF_HDR_SIZE    0
 
-/* 0 for IPv6, or 1 for HC1, 2 for HC01 */
-#define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
-#define SICSLOWPAN_CONF_COMPRESSION_HC1  1 
-#define SICSLOWPAN_CONF_COMPRESSION_HC01 2
+/* Uncomment this lines to activate the specific drivers */
+//#define NETSTACK_CONF_NETWORK     rime_driver		
+//#define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_RDC         sicslowmac_driver	
+//#define NETSTACK_CONF_FRAMER      framer_802154	/* Framer for 802.15.4 Medium Access Control */
+#define NETSTACK_CONF_RADIO       rf230_driver		/* Select the wireless driver, otherwise contiki would operate with the "nulldriver" which does nothing */
 
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
+#define RF230_CONF_AUTOACK        1
+#define CXMAC_CONF_ANNOUNCEMENTS  10
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+
+/* 211 bytes per queue buffer. Burst mode will need 15 for a 1280 byte MTU */
+#define QUEUEBUF_CONF_NUM         15
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     2
+
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1
 
@@ -122,19 +122,15 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#if UIP_CONF_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
-#define UIP_CONF_ICMP6           1
+#if NETSTACK_CONF_WITH_IPV6 //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
+#define UIP_CONF_ICMP6 1
 #endif
 
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             0
+#define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       0
-
-
 
 /* These names are deprecated, use C99 names. */
 /*typedef unsigned char u8_t;

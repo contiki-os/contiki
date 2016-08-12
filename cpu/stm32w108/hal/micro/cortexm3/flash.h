@@ -4,8 +4,13 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
  
-/** @addtogroup flash
- * @brief Definition and description of public flash manipulation routines.
+/**
+ * \addtogroup stm32w-cpu
+ * @{
+ */
+
+/** 
+ * @defgroup flash Definition and description of public flash manipulation routines.
  *
  * @note
  * During an erase or a write the flash is not available,
@@ -123,4 +128,5 @@ StStatus halInternalCibOptionByteWrite(uint8_t byte, uint8_t data);
 #endif //FLASH_H_
 
 /** @} END addtogroup */
+/** @} */
 

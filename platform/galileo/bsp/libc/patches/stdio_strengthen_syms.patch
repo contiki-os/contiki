@@ -1,0 +1,19 @@
+--- newlib/libc/stdio/nano-vfprintf_local.h	2014-07-04 10:21:43.000000000 -0700
++++ newlib/libc/stdio/nano-vfprintf_local.h	2015-07-17 12:51:12.974269921 -0700
+@@ -230,5 +230,5 @@ _printf_float (struct _reent *data,
+ 	       FILE *fp,
+ 	       int (*pfunc)(struct _reent *, FILE *,
+ 			    _CONST char *, size_t len),
+-	       va_list *ap) _ATTRIBUTE((__weak__));
++	       va_list *ap);
+ #endif
+--- newlib/libc/stdio/nano-vfscanf_local.h	2014-07-04 10:21:44.000000000 -0700
++++ newlib/libc/stdio/nano-vfscanf_local.h	2015-07-17 12:51:33.967362409 -0700
+@@ -173,6 +173,6 @@ _scanf_i (struct _reent *rptr,
+ extern int
+ _scanf_float (struct _reent *rptr,
+ 	      struct _scan_data_t *pdata,
+-	      FILE *fp, va_list *ap) _ATTRIBUTE((__weak__));
++	      FILE *fp, va_list *ap);
+ 
+ #endif

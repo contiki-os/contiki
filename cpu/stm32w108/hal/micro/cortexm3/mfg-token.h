@@ -7,6 +7,7 @@
 #ifndef MFG_TOKEN_H_
 #define MFG_TOKEN_H_
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 // The manufacturing tokens live in the Info Blocks, while all other tokens
 // live in the Simulated EEPROM.  This requires the token names to be defined
@@ -20,10 +21,13 @@
  * that point to the correct location in the Info Blocks.  (This is the
  * extern, the actual definition is found in hal/micro/cortexm3/token.c)
  *
- * \param name: The name of the token.
- *
- * \param TOKEN_##name##_ADDRESS: The address in EEPROM at which the token
- * will be stored.  This parameter is generated with a macro above.
+ * \param name:       The name of the token.
+ * \param creator:    The manufacturing creators.
+ * \param iscnt:
+ * \param isidx:
+ * \param type:       The token type.  The types are found in token-stack.h.
+ * \param arraysize:  The number of elements in an indexed token (arraysize=1
+ *                    for scalar tokens).
  */
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
   extern const uint16_t TOKEN_##name;
@@ -34,9 +38,13 @@
  * \brief Macro for translating token definitions into size variables.
  * This provides a convenience for abstracting the 'sizeof(type)' anywhere.
  *
- * \param name: The name of the token.
- *
- * \param type: The token type.  The types are found in token-stack.h.
+ * \param name:       The name of the token.
+ * \param creator:    The manufacturing creators.
+ * \param iscnt:
+ * \param isidx:
+ * \param type:       The token type.  The types are found in token-stack.h.
+ * \param arraysize:  The number of elements in an indexed token (arraysize=1
+ *                    for scalar tokens).
  */
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
   TOKEN_##name##_SIZE = sizeof(type),
@@ -49,12 +57,16 @@
 /**
  * \brief Macro for typedef'ing the CamelCase token type found in
  * token-stack.h to a capitalized TOKEN style name that ends in _TYPE.
- * This macro allows other macros below to use 'token##_TYPE' to declare
+ * This macro allows other macros below to use 'token\#\#_TYPE' to declare
  * a local copy of that token.
  *
- * \param name: The name of the token.
- *
- * \param type: The token type.  The types are found in token-stack.h.
+ * \param name:       The name of the token.
+ * \param creator:    The manufacturing creators.
+ * \param iscnt:
+ * \param isidx:
+ * \param type:       The token type.  The types are found in token-stack.h.
+ * \param arraysize:  The number of elements in an indexed token (arraysize=1
+ *                    for scalar tokens).
  */
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
   typedef type TOKEN_##name##_TYPE;
@@ -70,8 +82,7 @@
  * subsequent tokens to align against.  ( See hal/micro/cortexm3/token.c for
  * the instances of TOKEN_NEXT_ADDRESS() );
  *
- * \param region: The name to give to the element in the address enum..
- *
+ * \param region: The name to give to the element in the address enum.
  * \param address: The address in EEPROM where the region begins.
  */
 #define TOKEN_NEXT_ADDRESS(region, address)      \
@@ -80,14 +91,17 @@
 /**
  * \brief Macro for creating ADDRESS and END elements for each token in
  * the enum below.  The ADDRESS element is linked to from the the normal
- * TOKEN_##name macro and provides the value passed into the internal token
+ * TOKEN_\#\#name macro and provides the value passed into the internal token
  * system calls.  The END element is a placeholder providing the starting
  * point for the ADDRESS of the next dynamically positioned token.
  *
- * \param name: The name of the token.
- *
- * \param arraysize: The number of elements in an indexed token (arraysize=1
- * for scalar tokens).
+ * \param name:       The name of the token.
+ * \param creator:    The manufacturing creators.
+ * \param iscnt:
+ * \param isidx:
+ * \param type:       The token type.  The types are found in token-stack.h.
+ * \param arraysize:  The number of elements in an indexed token (arraysize=1
+ *                    for scalar tokens).
  */
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
   TOKEN_##name##_ADDRESS,                                      \
@@ -106,8 +120,6 @@ enum {
 
 #undef DEFINETOKENS
 
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /**
  * \brief Copies the token value from non-volatile storage into a RAM
  * location.  This is the internal function that the exposed API

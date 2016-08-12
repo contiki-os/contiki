@@ -1,0 +1,13 @@
+--- newlib/configure.host   2015-03-12 17:59:39.380318464 -0300
++++ newlib/configure.host	2015-03-12 17:55:05.933645678 -0300
+@@ -810,6 +810,10 @@
+   z8k-*-*)
+ 	syscall_dir=syscalls
+ 	;;
++  i586-*-elf)
++	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED"
++	syscall_dir=syscalls
++	;;
+   *)
+ 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
+ 	syscall_dir=

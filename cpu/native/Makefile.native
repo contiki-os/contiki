@@ -14,10 +14,10 @@ NM       ?= nm
 OBJCOPY  ?= objcopy
 STRIP    ?= strip
 ifdef WERROR
-CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
+CFLAGSWERROR=-Werror
 endif
 CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
-CFLAGS  += $(CFLAGSNO) -O
+CFLAGS  += $(CFLAGSNO)
 
 ifeq ($(HOST_OS),Darwin)
 AROPTS = -r
@@ -25,7 +25,7 @@ LDFLAGS += -Wl,-flat_namespace
 CFLAGS += -DHAVE_SNPRINTF=1 -U__ASSERT_USE_STDERR
 else
 ifeq ($(HOST_OS),Linux)
-LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 endif
 endif
 

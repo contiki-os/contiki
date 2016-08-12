@@ -97,5 +97,7 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_nullmac = {
-  hdr_length, create, parse
+  hdr_length,
+  create,
+  parse
 };

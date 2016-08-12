@@ -82,20 +82,32 @@ FUSES =
 	};
 	
 #if RF230BB
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 //PROCINIT(&etimer_process, &tcpip_process );
 #else
+//PROCINIT(&etimer_process );
+#endif
+#else
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &mac_process, &tcpip_process );
+#else
+PROCINIT(&etimer_process, &mac_process );
+#endif
 #endif
 /* Put default MAC address in EEPROM */
+#if MY_NODE_ID
+uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 
+  MY_NODE_ID};
+#else
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
-
+#endif
 
 void
 init_lowlevel(void)
 {
 
   /* Second rs232 port for debugging */
-  rs232_init(RS232_PORT_1, USART_BAUD_115200,
+  rs232_init(RS232_PORT_1, USART_BAUD_38400,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
   /* Redirect stdout to second port */
@@ -124,7 +136,7 @@ init_lowlevel(void)
   memset(&addr, 0, sizeof(linkaddr_t));
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
  
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
 #endif  
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
@@ -159,16 +171,18 @@ init_lowlevel(void)
 #if ANNOUNCE_BOOT
   printf_P(PSTR("Routing Enabled\n"));
 #endif
-  rime_init(rime_udp_init(NULL));
-  uip_router_register(&rimeroute);
+  //rime_init(rime_udp_init(NULL));
+  //uip_router_register(&rimeroute);
 #endif
-
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
-
+#endif
 #else
 /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 #endif /*RF230BB*/
 
 }
@@ -185,12 +199,12 @@ main(void)
   /* Register initial processes */
 //  procinit_init();
 
-  /* Autostart processes */
-  autostart_start(autostart_processes);
-
   printf_P(PSTR("\n********BOOTING CONTIKI*********\n"));
 
   printf_P(PSTR("System online.\n"));
+
+  /* Autostart processes */
+  autostart_start(autostart_processes);
 
   /* Main scheduler loop */
   while(1) {

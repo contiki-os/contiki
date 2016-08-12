@@ -41,7 +41,7 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32-dir.c ctk-console.
 CONTIKI_SOURCEFILES += $(CTK) cfs-posix.c ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
 
-MODULES += core/ctk core/net/ip core/net/ipv4 core/net/ipv6
+MODULES += core/ctk
 
 # Define the CPU directory
 

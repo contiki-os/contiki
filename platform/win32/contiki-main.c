@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #include "contiki-net.h"
 
@@ -101,6 +102,8 @@ char **contiki_argv;
 int
 main(int argc, char **argv)
 {
+  _set_fmode(O_BINARY);
+
   contiki_argc = argc;
   contiki_argv = argv;
 
@@ -124,7 +127,7 @@ main(int argc, char **argv)
 
   autostart_start(autostart_processes);
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   {
     uip_ipaddr_t addr;
     uip_ipaddr(&addr, 192,168,0,111);
@@ -140,11 +143,11 @@ main(int argc, char **argv)
     log_message("Def. Router: ", inet_ntoa(*(struct in_addr*)&addr));
 
     uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
+    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
     log_message("DNS Server:  ", inet_ntoa(*(struct in_addr*)&addr));
   }
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
 #if !UIP_CONF_IPV6_RPL
 #ifdef HARD_CODED_ADDRESS

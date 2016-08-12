@@ -1,8 +1,3 @@
-/**
- * \addtogroup shell
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         The shell application
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup shell
+ * @{
  */
 
 #include "contiki.h"
@@ -532,7 +532,7 @@ shell_strtolong(const char *str, const char **retstr)
     ++strptr;
   }
   
-  for(i = 0; i < 10 && isdigit(strptr[i]); ++i) {
+  for(i = 0; i < 10 && isdigit((int)strptr[i]); ++i) {
     num = num * 10 + strptr[i] - '0';
   }
   if(retstr != NULL) {

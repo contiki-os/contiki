@@ -260,11 +260,11 @@ main(void) CC_NON_BANKED
   ADC_SENSOR_ACTIVATE();
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if VIZTOOL_CONF_ON
   process_start(&viztool_process, NULL);
@@ -335,8 +335,7 @@ main(void) CC_NON_BANKED
     if(SLEEPCMD & SLEEP_MODE0) {
 #endif /* LPM_MODE==LPM_MODE_PM2 */
 
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
       /* We are only interested in IRQ energest while idle or in LPM */
       ENERGEST_IRQ_RESTORE(irq_energest);
@@ -352,8 +351,7 @@ main(void) CC_NON_BANKED
       /* Remember energest IRQ for next pass */
       ENERGEST_IRQ_SAVE(irq_energest);
 
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
-      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 
 #if (LPM_MODE==LPM_MODE_PM2)
       SLEEPCMD &= ~SLEEP_OSC_PD;            /* Make sure both HS OSCs are on */

@@ -5,7 +5,7 @@
 
 /**
  * \file
- *         Network interface and stateless autoconfiguration (RFC 4862)
+ *    Header file for IPv6-related data structures
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  *
@@ -66,6 +66,36 @@
 #define UIP_DS6_DEFRT_NBU UIP_CONF_DS6_DEFRT_NBU
 #endif
 #define UIP_DS6_DEFRT_NB UIP_DS6_DEFRT_NBS + UIP_DS6_DEFRT_NBU
+
+/* Default prefix */
+#ifdef UIP_CONF_DS6_DEFAULT_PREFIX
+#define UIP_DS6_DEFAULT_PREFIX UIP_CONF_DS6_DEFAULT_PREFIX
+#else
+/* From RFC4193, section 3.1:
+ *  | 7 bits |1|  40 bits   |  16 bits  |          64 bits           |
+ *  +--------+-+------------+-----------+----------------------------+
+ *  | Prefix |L| Global ID  | Subnet ID |        Interface ID        |
+ *  +--------+-+------------+-----------+----------------------------+
+ *     Prefix            FC00::/7 prefix to identify Local IPv6 unicast
+ *                       addresses.
+ *     L                 Set to 1 if the prefix is locally assigned.
+ *                       Set to 0 may be defined in the future.  See
+ *                       Section 3.2 for additional information.
+ *     Global ID         40-bit global identifier used to create a
+ *                       globally unique prefix.  See Section 3.2 for
+ *                       additional information.
+ *
+ * We set prefix to 0xfc00 and set the local bit, resulting in 0xfd00.
+ * For high probability of network uniqueness, Global ID must be generated
+ * pseudo-randomly. As this is a hard-coded default prefix, we simply use
+ * a Global ID of 0. For real deployments, make sure to install a pseudo-random
+ * Global ID, e.g. in a RPL network, by configuring it at the root.
+ */
+#define UIP_DS6_DEFAULT_PREFIX 0xfd00
+#endif /* UIP_CONF_DS6_DEFAULT_PREFIX */
+
+#define UIP_DS6_DEFAULT_PREFIX_0 ((UIP_DS6_DEFAULT_PREFIX >> 8) & 0xff)
+#define UIP_DS6_DEFAULT_PREFIX_1 (UIP_DS6_DEFAULT_PREFIX & 0xff)
 
 /* Prefix list */
 #define UIP_DS6_PREFIX_NBS  1
@@ -216,9 +246,15 @@ typedef struct uip_ds6_netif {
   uint32_t reachable_time;      /* in msec */
   uint32_t retrans_timer;       /* in msec */
   uint8_t maxdadns;
+#if UIP_DS6_ADDR_NB
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
+#endif /* UIP_DS6_ADDR_NB */
+#if UIP_DS6_AADDR_NB
   uip_ds6_aaddr_t aaddr_list[UIP_DS6_AADDR_NB];
+#endif /* UIP_DS6_AADDR_NB */
+#if UIP_DS6_MADDR_NB
   uip_ds6_maddr_t maddr_list[UIP_DS6_MADDR_NB];
+#endif /* UIP_DS6_MADDR_NB */
 } uip_ds6_netif_t;
 
 /** \brief Generic type for a DS6, to use a common loop though all DS */
@@ -276,6 +312,7 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 
 /** \name Unicast address list basic routines */
 /** @{ */
+/** \brief Add a unicast address to the interface */
 uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t *ipaddr,
                                  unsigned long vlifetime, uint8_t type);
 void uip_ds6_addr_rm(uip_ds6_addr_t *addr);

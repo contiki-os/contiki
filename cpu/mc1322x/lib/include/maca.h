@@ -71,7 +71,7 @@ extern volatile uint8_t prm_mode;
 void tx_packet(volatile packet_t *p);
 volatile packet_t* rx_packet(void);
 volatile packet_t* get_free_packet(void);
-void free_packet(volatile packet_t *p);
+void maca_free_packet(volatile packet_t *p);
 void free_all_packets(void);
 
 extern volatile packet_t *rx_head, *tx_head;

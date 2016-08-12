@@ -51,6 +51,10 @@ nvmErr_t (*nvm_erase)
 (nvmInterface_t nvmInterface, nvmType_t nvmType ,uint32_t sectorBitfield) 
 = (void*) 0x00006e05;
 
+nvmErr_t (*nvm_verify)
+(nvmInterface_t nvmInterface, nvmType_t nvmType, void *pSrc, uint32_t address, uint32_t numBytes)
+= (void*) 0x00006f85;
+
 void(*nvm_setsvar)
 (uint32_t zero_for_awesome) 
 = (void *)0x00007085;

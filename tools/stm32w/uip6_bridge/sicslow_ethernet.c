@@ -267,13 +267,13 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   if (((struct uip_eth_hdr *) ethHeader)->type != UIP_HTONS(UIP_ETHTYPE_IPV6)) {
     PRINTF("eth2low: Packet is not IPv6, dropping\n");
 /*     rndis_stat.txbad++; */
-    uip_len = 0;
+    uip_clear_buf();
     return;
   }
 
   // In sniffer mode we don't ever send anything
   if (usbstick_mode.sendToRf == 0) {
-    uip_len = 0;
+    uip_clear_buf();
     return;
   }
 
@@ -292,7 +292,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
     /* IPv6 does not use broadcast addresses, hence this should not happen */
     PRINTF("eth2low: Ethernet broadcast address received, should not happen?\n");
 /*     rndis_stat.txbad++; */
-    uip_len = 0;
+    uip_clear_buf();
     return;
   } else {
     PRINTF("eth2low: Addressed packet received... ");
@@ -300,7 +300,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
     if (mac_createSicslowpanLongAddr( &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), &destAddr) == 0) {
       PRINTF(" translation failed\n");
 /*       rndis_stat.txbad++; */
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
     PRINTF(" translated OK\n");
@@ -322,7 +322,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 /* 	  rndis_stat.txok++; */
   }
 
-  uip_len = 0;
+  uip_clear_buf();
 
 }
 
@@ -339,7 +339,7 @@ void mac_LowpanToEthernet(void)
   ETHBUF(uip_buf)->type = htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
 /*   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) && */
 /*        ( parsed_frame->dest_addr->addr16 == 0xffff) ) { */
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
@@ -370,7 +370,7 @@ void mac_LowpanToEthernet(void)
 
 /*   rndis_send(uip_buf, uip_len, 1); */
 /*   rndis_stat.rxok++; */
-/*   uip_len = 0; */
+/*   uip_clear_buf(); */
 }
 
 /**

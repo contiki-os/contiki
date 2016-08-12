@@ -66,7 +66,7 @@ extract_random_bit_() {
 	cli();
 
 #ifdef PRR
-	// Enable ADC module 
+	// Enable ADC module
 	PRR &= ~(1 << PRADC);
 #endif
 
@@ -100,7 +100,7 @@ extract_random_bit_() {
 		// Toggling the reference voltage
 		// seems to help introduce noise.
 		ADMUX^=(1<<REFS1);
-				
+
 		// We only want to exit the loop if the first
 		// and second sampled bits are different.
 		// This is preliminary conditioning.
@@ -156,7 +156,7 @@ static uint8_t
 extract_random_bit_() {
 	uint8_t ret;
 	uint8_t trx_ctrl_0 = hal_register_read(TRX_CTRL_0);
-	
+
 	// Set radio clock output to 8MHz
 	hal_register_write(TRX_CTRL_0,0x8|5);
 
@@ -170,10 +170,10 @@ extract_random_bit_() {
 
 	// Toss out the other bit, we only care about one of them.
 	ret &= 1;
-	
+
 	// Restore the clkm state
 	hal_register_write(TRX_CTRL_0,trx_ctrl_0);
-	
+
 	return ret;
 }
 

@@ -30,21 +30,19 @@
  *
  */
 
-/**
- *  \brief This module contains code to interface a Contiki-based
- *  project on the AVR Raven platform's ATMega1284P chip to the LCD
- *  driver chip (ATMega3290P) on the Raven.
- *  
- *  \author Durvy Mathilde <mdurvy@cisco.com>
- *
- */
-
 /**  \addtogroup raven
  * @{ 
  */
 
 /**
  *  \defgroup ravenserial Serial interface between Raven processors
+ *
+ *  \brief This module contains code to interface a Contiki-based
+ *  project on the AVR Raven platform's ATMega1284P chip to the LCD
+ *  driver chip (ATMega3290P) on the Raven.
+ *  
+ *  \author Durvy Mathilde <mdurvy@cisco.com>
+ *
  * @{
  */
 
@@ -97,7 +95,7 @@ raven_ping6(void)
   /* ping ipv6.google.com*/
   uip_ip6addr(&ping_addr,0x2001,0x420,0x5FFF,0x7D,0x2D0,0xB7FF,0xFE23,0xE6DB);
   //uip_ip6addr(&ping_addr, 0x2001, 0x4860, 0, 0x2001, 0, 0, 0, 0x68);
-  //uip_ip6addr(&ping_addr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
+  //uip_ip6addr(&ping_addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 1);
   
   UIP_IP_BUF->vtc = 0x60;
   UIP_IP_BUF->tcflow = 1;

@@ -6,7 +6,7 @@ $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
 	$(TRACE_CC)
-	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
+	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE $<
 
 CUSTOM_RULE_LINK = 1
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a

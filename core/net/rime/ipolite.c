@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeipolite
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,19 +37,17 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimeipolite
+ * @{
+ */
+
+#include "sys/cc.h"
 #include "net/rime/rime.h"
 #include "net/rime/ipolite.h"
 #include "lib/random.h"
 
 #include <string.h>
-
-#ifndef MAX
-#define MAX(a, b) ((a) > (b)? (a) : (b))
-#endif /* MAX */
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
 
 #define DEBUG 0
 #if DEBUG
@@ -148,6 +141,8 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
     PRINTF("%d.%d: ipolite_send: cancel old send\n",
 	   linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
     queuebuf_free(c->q);
+    c->q = NULL;
+    ctimer_stop(&c->t);
   }
   c->dups = 0;
   c->hdrsize = hdrsize;

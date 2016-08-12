@@ -1,0 +1,10 @@
+codeprop-tmp_src = codeprop-tmp.c
+
+# Enable LARGE MEMORY MODEL supports for WISMOTE and EXP5438 platform 
+ifeq ($(TARGET),wismote)
+  TARGET_MEMORY_MODEL = large
+endif
+
+ifeq ($(TARGET),exp5438)
+  TARGET_MEMORY_MODEL = large
+endif

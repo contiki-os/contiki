@@ -116,11 +116,13 @@ PROCESS_THREAD(shell_exec_process, ev, data)
     shell_output_str(&exec_command, print, symbol);
 
     if(ret == ELFLOADER_OK) {
+#if !PROCESS_CONF_NO_PROCESS_NAMES
       int i;
       for(i = 0; elfloader_autostart_processes[i] != NULL; ++i) {
 	shell_output_str(&exec_command, "exec: starting process ",
 			 elfloader_autostart_processes[i]->name);
       }
+#endif
       autostart_start(elfloader_autostart_processes);
     }
 

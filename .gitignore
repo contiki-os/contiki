@@ -4,6 +4,7 @@
 *.png
 *.log
 *.elf
+*.zip
 *.d
 *.ihex
 *.pyc
@@ -24,10 +25,15 @@
 *.c128
 *.c64
 *.cc2538dk
+*.zoul
+*.jn516x
+*.srf06-cc26xx
 *.ev-aducrf101mkxz
 *.report
 summary
 *.summary
+*.runerr
+*.runlog
 *.faillog
 *.orig
 *~
@@ -36,6 +42,7 @@ obj_*
 symbols.*
 Makefile.target
 doc/html
+doc/latex
 patches-*
 tools/tunslip
 tools/tunslip6
@@ -54,7 +61,6 @@ tools/cooja/apps/avrora/lib/cooja_avrora.jar
 tools/cooja/apps/collect-view/cooja-collect-view.jar
 
 # sdcc build artifacts
-contiki-sensinode.lib
 contiki-cc2530dk.lib
 *.ihx
 *.hex
@@ -63,7 +69,6 @@ contiki-cc2530dk.lib
 *.omf
 *.cdb
 *.banks
-*.sensinode
 *.cc2530dk
 
 # VC++ build artifacts
@@ -75,18 +80,52 @@ contiki-cc2530dk.lib
 *.dsc
 
 #cc65 build artifacts
-*.S
+*.s
 *.eth
 *.dsk
-*.2mg
+*.po
 *.atr
 *.d64
 *.d71
 *.d81
 
+# Cooja Build Artifacts
+*.cooja
+
 #regression tests artifacts
 *.testlog
+*.log.prog
+regression-tests/[0-9][0-9]-*/report
+regression-tests/[0-9][0-9]-*/org/
 
 # rl78 build artifacts
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
+
+# cscope files
+cscope.*
+
+# vim swap files
+*.swp
+*.swo
+
+# x86 UEFI files
+cpu/x86/uefi/Makefile.uefi
+cpu/x86/uefi/edk2
+
+# galileo bsp files
+platform/galileo/bsp/libc/Makefile.libc
+platform/galileo/bsp/libc/i586-elf/
+platform/galileo/bsp/libc/newlib-2.2.0-1*
+platform/galileo/bsp/grub/src/
+platform/galileo/bsp/grub/bin/
+
+# galileo build and debug artefacts
+*.galileo
+*.galileo.dll
+*.galileo.efi
+LOG_OPENOCD
+
+# nRF52 build artifacts
+*.jlink
+*.nrf52dk

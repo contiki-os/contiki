@@ -44,6 +44,7 @@
 #include "er-coap-transactions.h"
 #include "er-coap-observe.h"
 #include "er-coap-separate.h"
+#include "er-coap-observe-client.h"
 
 #define SERVER_LISTEN_PORT      UIP_HTONS(COAP_SERVER_PORT)
 

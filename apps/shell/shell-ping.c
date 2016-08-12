@@ -62,7 +62,7 @@ static unsigned char running;
 /*---------------------------------------------------------------------------*/
 static void
 send_ping(uip_ipaddr_t *dest_addr)
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 {
   static uint16_t count;
   UIP_IP_BUF->vtc = 0x60;
@@ -92,7 +92,7 @@ send_ping(uip_ipaddr_t *dest_addr)
   
   tcpip_ipv6_output();
 }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 {
   static uint16_t ipid = 0;
   static uint16_t seqno = 0;
@@ -128,7 +128,7 @@ send_ping(uip_ipaddr_t *dest_addr)
 
   tcpip_output();
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_ping_process, ev, data)
 {

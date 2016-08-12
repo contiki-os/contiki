@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell-time.h"
 
 #include "sys/clock.h"
@@ -50,11 +51,6 @@
 
 #define MAX_COMMANDLENGTH 64
 #define PERIOD_INTERVAL   60
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_time_process, "time");
@@ -162,7 +158,6 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
   static char *command;
   static struct process *started_process;
   char command_copy[MAX_COMMANDLENGTH];
-  int ret;
 
   if(ev == shell_event_input) {
     goto exit;
@@ -176,7 +171,7 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
 			   data == &shell_repeat_process);
   {
     strncpy(command_copy, command, MAX_COMMANDLENGTH);
-    ret = shell_start_command(command_copy, (int)strlen(command_copy),
+    shell_start_command(command_copy, (int)strlen(command_copy),
 			      &repeat_command, &started_process);
     
     if(started_process != NULL &&
@@ -206,11 +201,10 @@ repeat_print_usage(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_repeat_process, ev, data)
 {
-  static int reps, period, period_left;
+  static int reps, period;
   static char command[MAX_COMMANDLENGTH];
   static struct etimer etimer;
   static int i;
-  static clock_time_t start_time;
   const char *args, *next;
 
   if(ev == shell_event_input) {
@@ -262,7 +256,6 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   /*  printf("repeats %d period %d command '%s'\n",
       reps, period, command);*/
 
-  start_time = clock_time();
   etimer_set(&etimer, CLOCK_SECOND * period);
   for(i = 0; reps == 0 || i < reps; ++i) {
 
@@ -295,7 +288,6 @@ PROCESS_THREAD(shell_randwait_process, ev, data)
   static struct etimer etimer;
   static struct process *started_process;
   const char *args, *next;
-  int ret;
 
   /*  if(ev == shell_event_input) {
     struct shell_input *input;
@@ -343,7 +335,7 @@ PROCESS_THREAD(shell_randwait_process, ev, data)
 /*   printf("Starting '%s' child %p (%s)\n", command, randwait_command.child, */
 /* 	 randwait_command.child == NULL? "null": randwait_command.child->command); */
   
-  ret = shell_start_command(command, (int)strlen(command),
+  shell_start_command(command, (int)strlen(command),
 			    randwait_command.child, &started_process);
   
   if(started_process != NULL &&

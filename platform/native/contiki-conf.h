@@ -46,7 +46,6 @@ int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
 
@@ -79,7 +78,7 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -101,31 +100,21 @@ typedef unsigned short uip_stats_t;
 
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
-#define UIP_CONF_ROUTER                 1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               1
-#endif /* UIP_CONF_IPV6_RPL */
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
 
-#define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
-#define SICSLOWPAN_CONF_COMPRESSION_HC1         1
-#define SICSLOWPAN_CONF_COMPRESSION_HC01        2
+#define UIP_CONF_ROUTER                 1
+
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
 #define UIP_CONF_IPV6_CHECKS     1
 #define UIP_CONF_IPV6_QUEUE_PKT  1
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #define UIP_CONF_ICMP6           1
 
 /* configure number of neighbors and routes */
@@ -165,7 +154,7 @@ typedef unsigned short uip_stats_t;
 
 
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include <ctype.h>
 #define ctk_arch_isprint isprint

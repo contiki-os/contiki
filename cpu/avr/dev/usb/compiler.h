@@ -280,9 +280,6 @@ typedef char      r_uart_ptchar;
 #define OUT_X(addrx,value)      (*addrx = value)
 #define IN_X(addrx)             (*addrx)
 
-#  define Max(a, b)            ( (a)>(b) ? (a) : (b) )       // Take the max between a and b
-#  define Min(a, b)            ( (a)<(b) ? (a) : (b) )       // Take the min between a and b
-
 // Align on the upper value <val> on a <n> boundary
 // i.e. Upper(0, 4)= 4
 //      Upper(1, 4)= 4

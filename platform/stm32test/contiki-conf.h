@@ -6,7 +6,7 @@
 #define CCIF
 #define CLIF
 
-#define WITH_UIP 1
+#define NETSTACK_CONF_WITH_IPV4 1
 #define WITH_ASCII 1
 
 #define CLOCK_CONF_SECOND 100

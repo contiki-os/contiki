@@ -88,15 +88,6 @@ watchdog_periodic(void)
   REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_2 | SMWDTHROSC_WDCTL_CLR_0);
 }
 /*---------------------------------------------------------------------------*/
-/** \brief In watchdog mode, the WDT can not be stopped. This function is
- * defined here to satisfy API requirements.
- */
-void
-watchdog_stop(void)
-{
-  return;
-}
-/*---------------------------------------------------------------------------*/
 /** \brief Keeps control until the WDT throws a reset signal. Starts the WDT
  * if not already started. */
 void

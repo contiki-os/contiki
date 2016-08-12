@@ -73,6 +73,11 @@
 /* #define NETSTACK_CONF_MAC   csma_driver */
 #endif /* NETSTACK_CONF_MAC */
 
+/* NETSTACK_CONF_LLSEC specifies the link layer security driver. */
+#ifndef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC nullsec_driver
+#endif /* NETSTACK_CONF_LLSEC */
+
 /* NETSTACK_CONF_NETWORK specifies the network layer and can be either
    sicslowpan_driver, for IPv6 networking, or rime_driver, for the
    custom Rime network stack. */
@@ -111,11 +116,11 @@
  * project-specific configuration to save memory.
  */
 
-/* UIP_CONF_IPV6 specifies whether or not IPv6 should be used. If IPv6
+/* NETSTACK_CONF_WITH_IPV6 specifies whether or not IPv6 should be used. If IPv6
    is not used, IPv4 is used instead. */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6 0
-#endif /* UIP_CONF_IPV6 */
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6 0
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
    for the uIP packet buffer. This sets an upper bound on the largest
@@ -136,11 +141,31 @@
 #define UIP_CONF_IPV6_RPL 1
 #endif /* UIP_CONF_IPV6_RPL */
 
+/* If RPL is enabled also enable the RPL NBR Policy */
+#if UIP_CONF_IPV6_RPL
+#ifndef NBR_TABLE_FIND_REMOVABLE
+#define NBR_TABLE_FIND_REMOVABLE rpl_nbr_policy_find_removable
+#endif /* NBR_TABLE_FIND_REMOVABLE */
+#endif /* UIP_CONF_IPV6_RPL */
+
+/* RPL_CONF_MOP specifies the RPL mode of operation that will be
+ * advertised by the RPL root. Possible values: RPL_MOP_NO_DOWNWARD_ROUTES,
+ * RPL_MOP_NON_STORING, RPL_MOP_STORING_NO_MULTICAST, RPL_MOP_STORING_MULTICAST */
+#ifndef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_STORING_NO_MULTICAST
+#endif /* RPL_CONF_MOP */
+
 /* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
    node will be able to handle. */
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES 20
 #endif /* UIP_CONF_MAX_ROUTES */
+
+/* RPL_NS_CONF_LINK_NUM specifies the maximum number of links a RPL root
+ * will maintain in non-storing mode. */
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM 20
+#endif /* RPL_NS_CONF_LINK_NUM */
 
 /* UIP_CONF_UDP specifies if UDP support should be included or
    not. Disabling UDP saves memory but breaks a lot of stuff. */
@@ -180,10 +205,24 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 #endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 
+/* UIP_CONF_ND6_SEND_RA enables standard IPv6 Router Advertisement.
+ * We enable it by default when IPv6 is used without RPL. */
+#ifndef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
+#endif /* UIP_CONF_ND6_SEND_RA */
+
 /* UIP_CONF_ND6_SEND_NA enables standard IPv6 Neighbor Discovery Protocol.
-   This is unneeded when RPL is used. Disable to save ROM and a little RAM. */
+   We enable it by default when IPv6 is used without RPL.
+   With RPL, the neighbor cache (link-local IPv6 <-> MAC address mapping)
+   is fed whenever receiving DIO and DAO messages. This is always sufficient
+   for RPL routing, i.e. to send to the preferred parent or any child.
+   Link-local unicast to other neighbors may, however, not be possible if
+   we never receive any DIO from them. This may happen if the link from the
+   neighbor to us is weak, if DIO transmissions are suppressed (Trickle
+   timer) or if the neighbor chooses not to transmit DIOs because it is
+   a leaf node or for any reason. */
 #ifndef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA 1
+#define UIP_CONF_ND6_SEND_NA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
 #endif /* UIP_CONF_ND6_SEND_NA */
 
 /*---------------------------------------------------------------------------*/
@@ -194,27 +233,18 @@
  * on the target platform, and are therefore platform-specific.
  */
 
-/* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS specifies how many times the
-   MAC layer should resend packets if no link-layer ACK was
-   received. This only makes sense with the csma_driver
-   NETSTACK_CONF_MAC. */
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS 4
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
-
 /* SICSLOWPAN_CONF_FRAG specifies if 6lowpan fragmentation should be
    used or not. Fragmentation is on by default. */
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG 1
 #endif /* SICSLOWPAN_CONF_FRAG */
 
-/* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD specifies the maximum size of
-   packets before they get fragmented. The default is 127 bytes (the
-   maximum size of a 802.15.4 frame) - 25 bytes (for the 802.15.4 MAC
-   layer header). This can be increased for systems with larger packet
-   sizes. */
+/* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD is the maximum available size for
+   frame headers, link layer security-related overhead,  as well as
+   6LoWPAN payload. By default, SICSLOWPAN_CONF_MAC_MAX_PAYLOAD is
+   127 bytes (MTU of 802.15.4) - 2 bytes (Footer of 802.15.4). */
 #ifndef SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
-#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD (127 - 25)
+#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD (127 - 2)
 #endif /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 
 /* SICSLOWPAN_CONF_COMPRESSION_THRESHOLD sets a lower threshold for

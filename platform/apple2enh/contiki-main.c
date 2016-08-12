@@ -83,7 +83,9 @@ main(void)
   rebootafterexit();
 #endif /* WITH_REBOOT */
 
+#if WITH_80COL
   videomode(VIDEOMODE_80COL);
+#endif /* WITH_80COL */
 
   process_init();
 
@@ -104,7 +106,7 @@ main(void)
     uip_setdraddr(&addr);
 
     uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
+    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
     ethernet_config = &config;
   }

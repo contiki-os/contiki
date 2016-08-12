@@ -83,7 +83,7 @@
 #define NUMPORTS RS232_CONF_NUMPORTS
 #endif
 
-#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__) || defined(__AVR_ATmega128RFA1__)
+#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__) || defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 #ifndef NUMPORTS
 #define NUMPORTS 2
 #elif NUMPORTS > 2

@@ -43,6 +43,17 @@
 
 #include "contiki-conf.h"
 #include "net/mac/mac.h"
+#include "net/llsec/llsec802154.h"
+
+#ifdef RDC_CONF_WITH_DUPLICATE_DETECTION
+#define RDC_WITH_DUPLICATE_DETECTION RDC_CONF_WITH_DUPLICATE_DETECTION
+#else /* RDC_CONF_WITH_DUPLICATE_DETECTION */
+/* As frames can be spoofed, the RDC layer should not discard a
+   frame because it has seen its sequence number already. Replay
+   protection should be implemented at the LLSEC layer where the
+   authenticity of frames is verified. */
+#define RDC_WITH_DUPLICATE_DETECTION !LLSEC802154_ENABLED
+#endif /* RDC_CONF_WITH_DUPLICATE_DETECTION */
 
 /* List of packets to be sent by RDC layer */
 struct rdc_buf_list {

@@ -68,18 +68,10 @@
  */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -146,39 +138,36 @@ typedef unsigned short uip_stats_t;
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-#undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
 /* TX routine passes the cca/ack result in the return parameter */
 #define RDC_CONF_HARDWARE_ACK      1
 /* TX routine does automatic cca and optional backoff */
 #define RDC_CONF_HARDWARE_CSMA     1
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         0
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define LINKADDR_CONF_SIZE        8
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
-//#define UIP_CONF_IPV6_RPL         0
+#define UIP_CONF_BUFFER_SIZE      1300
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is largely untested */
 #define LINKADDR_CONF_SIZE        2
 #define NETSTACK_CONF_NETWORK     rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         0
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fd00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=UIP_DS6_DEFAULT_PREFIX_0;addr_contexts[0].prefix[1]=UIP_DS6_DEFAULT_PREFIX_1;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
@@ -207,8 +196,6 @@ typedef unsigned short uip_stats_t;
 #define RADIO_CONF_CALIBRATE_INTERVAL 256
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts+1, 1-16. Set zero to disable extended TX_ARET_ON mode with CCA) */
 #define RF230_CONF_FRAME_RETRIES    3
 /* Number of CSMA attempts 0-7. 802.15.4 2003 standard max is 5. */
@@ -253,15 +240,19 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC         contikimac_driver
 /* Default is two CCA separated by 500 usec */
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   8
-/* Wireshark won't decode with the header, but padded packets will fail ipv6 checksum */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 /* So without the header this needed for RPL mesh to form */
-#define CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
+#define CONTIKIMAC_FRAMER_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
 /* Not tested much yet */
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
 #define RIMESTATS_CONF_ENABLED                 1
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* The radio needs to interrupt during an rtimer interrupt */

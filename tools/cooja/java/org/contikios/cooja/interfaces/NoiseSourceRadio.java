@@ -29,24 +29,24 @@
 package org.contikios.cooja.interfaces;
 
 /**
- * The noise source radio is used to simulate ambient background noise or 
+ * The noise source radio is used to simulate ambient background noise or
  * point-sources of external interference (e.g. Wifi basestations).
- * 
- * Note that interference generated from these radios are different from 
+ *
+ * Note that interference generated from these radios are different from
  * transmissions; they will not appear in the radio logger but may still
  * hinder or interfere with ongoing transmissions.
- * 
+ *
  * Noise source radios require significant processing resources in comparison
  * to only transmission radios.
- * 
+ *
  * COOJA's radio mediums may or may not choose to respect noise source radios.
- * 
+ *
  * @see MRM
  * @author Fredrik Osterlind
  */
 public interface NoiseSourceRadio {
 	public int getNoiseLevel();
-	
+
 	public void addNoiseLevelListener(NoiseLevelListener l);
 	public void removeNoiseLevelListener(NoiseLevelListener l);
 

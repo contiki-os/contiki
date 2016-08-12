@@ -79,15 +79,10 @@ jsontree_write_string(const struct jsontree_context *js_ctx, const char *text)
 }
 /*---------------------------------------------------------------------------*/
 void
-jsontree_write_int(const struct jsontree_context *js_ctx, int value)
+jsontree_write_uint(const struct jsontree_context *js_ctx, unsigned int value)
 {
   char buf[10];
   int l;
-
-  if(value < 0) {
-    js_ctx->putchar('-');
-    value = -value;
-  }
 
   l = sizeof(buf) - 1;
   do {
@@ -98,6 +93,17 @@ jsontree_write_int(const struct jsontree_context *js_ctx, int value)
   while(++l < sizeof(buf)) {
     js_ctx->putchar(buf[l]);
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+jsontree_write_int(const struct jsontree_context *js_ctx, int value)
+{
+  if(value < 0) {
+    js_ctx->putchar('-');
+    value = -value;
+  }
+
+  jsontree_write_uint(js_ctx, value);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -132,6 +138,9 @@ jsontree_print_next(struct jsontree_context *js_ctx)
 {
   struct jsontree_value *v;
   int index;
+#if JSONTREE_PRETTY
+  int indent;
+#endif
 
   v = js_ctx->values[js_ctx->depth];
 
@@ -145,10 +154,19 @@ jsontree_print_next(struct jsontree_context *js_ctx)
     index = js_ctx->index[js_ctx->depth];
     if(index == 0) {
       js_ctx->putchar(v->type);
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+#endif
     }
     if(index >= o->count) {
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+      indent = js_ctx->depth;
+      while (indent--) {
+        js_ctx->putchar(' ');
+        js_ctx->putchar(' ');
+      }
+#endif
       js_ctx->putchar(v->type + 2);
       /* Default operation: back up one level! */
       break;
@@ -156,12 +174,26 @@ jsontree_print_next(struct jsontree_context *js_ctx)
 
     if(index > 0) {
       js_ctx->putchar(',');
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+#endif
     }
+
+#if JSONTREE_PRETTY
+    indent = js_ctx->depth + 1;
+    while (indent--) {
+      js_ctx->putchar(' ');
+      js_ctx->putchar(' ');
+    }
+#endif
+
     if(v->type == JSON_TYPE_OBJECT) {
       jsontree_write_string(js_ctx,
                             ((struct jsontree_object *)o)->pairs[index].name);
       js_ctx->putchar(':');
+#if JSONTREE_PRETTY
+      js_ctx->putchar(' ');
+#endif
       ov = ((struct jsontree_object *)o)->pairs[index].value;
     } else {
       ov = o->values[index];
@@ -175,6 +207,10 @@ jsontree_print_next(struct jsontree_context *js_ctx)
   }
   case JSON_TYPE_STRING:
     jsontree_write_string(js_ctx, ((struct jsontree_string *)v)->value);
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_UINT:
+    jsontree_write_uint(js_ctx, ((struct jsontree_uint *)v)->value);
     /* Default operation: back up one level! */
     break;
   case JSON_TYPE_INT:
@@ -196,6 +232,30 @@ jsontree_print_next(struct jsontree_context *js_ctx)
       js_ctx->index[js_ctx->depth]++;
       return 1;
     }
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_S8PTR:
+    jsontree_write_int(js_ctx, *((int8_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U8PTR:
+    jsontree_write_uint(js_ctx, *((uint8_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_S16PTR:
+    jsontree_write_int(js_ctx, *((int16_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U16PTR:
+    jsontree_write_uint(js_ctx, *((uint16_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_S32PTR:
+    jsontree_write_int(js_ctx, *((int32_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U32PTR:
+    jsontree_write_uint(js_ctx, *((uint32_t *)((struct jsontree_ptr *)v)->value));
     /* Default operation: back up one level! */
     break;
   }

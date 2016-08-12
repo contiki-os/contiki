@@ -29,12 +29,21 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
+ * \addtogroup platform
+ * @{
+ *
+ * \defgroup cc2538-platforms TI cc2538-powered platforms
+ *
+ * Documentation for all platforms powered by the TI cc2538 System-on-Chip
+ * @{
+ *
+ * \defgroup cc2538 The TI cc2538 System-on-Chip
+ * CPU-Specific functionality - available to all cc2538-based platforms
  * @{
  *
  * \defgroup cc2538-cpu cc2538 CPU
  *
- * cc2538 CPU-specific functions for the cc2538 core
+ * CPU-specific functions for the cc2538 core
  * @{
  *
  * \file
@@ -60,6 +69,8 @@ unsigned long cpu_cpsie(void);
 #endif /* CPU_H_ */
 
 /**
+ * @}
+ * @}
  * @}
  * @}
  */

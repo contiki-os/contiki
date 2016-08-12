@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimecollect
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,14 +37,18 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimecollect
+ * @{
+ */
+
 #include "contiki.h"
 #include "net/netstack.h"
 #include "net/rime/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/collect-link-estimate.h"
-
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 
 #include "dev/radio-sensor.h"
 
@@ -951,14 +950,18 @@ node_packet_received(struct unicast_conn *c, const linkaddr_t *from)
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
     linkaddr_t ack_to;
+#if DEBUG
     uint8_t packet_seqno;
+#endif
 
     stats.datarecv++;
 
     /* Remember to whom we should send the ACK, since we reuse the
        packet buffer and its attributes when sending the ACK. */
     linkaddr_copy(&ack_to, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#if DEBUG
     packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+#endif
 
     /* If the queue is more than half filled, we add the CONGESTED
        flag to our outgoing acks. */

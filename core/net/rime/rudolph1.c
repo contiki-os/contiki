@@ -1,8 +1,3 @@
-/**
- * \addtogroup rudolph1
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Rudolph1: a simple block data flooding protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rudolph1
+ * @{
  */
 
 #include <stdio.h>

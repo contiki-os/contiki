@@ -89,7 +89,7 @@ read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
   bytecount += size;
 
   if(bytecount == FILESIZE) {
-    printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, CLOCK_SECOND);
+    printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, (unsigned int)CLOCK_SECOND);
     print_stats();
   }
 

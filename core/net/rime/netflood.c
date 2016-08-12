@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimenetflood
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Best-effort network flooding (netflood)
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimenetflood
+ * @{
  */
 
 #include "net/rime/netflood.h"

@@ -115,7 +115,7 @@
 #define RPL_CONF_MAX_DAG_PER_INSTANCE				1
 #define PROCESS_CONF_NUMEVENTS					16
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
@@ -125,26 +125,16 @@
    larger than a specified size, if no ContikiMAC header should be
    used. */
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD			63
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER			0
 
 #define UIP_CONF_UDP                				1
 
-#if (WITH_COAP==7) || (WITH_COAP==6) || (WITH_COAP==3)
-#define UIP_CONF_TCP						0
-#else
-#define UIP_CONF_TCP						1
-#endif /* WITH_COAP */
-
 #define UIP_CONF_ROUTER						1
-#define UIP_CONF_IPV6_RPL					1
 #define UIP_CONF_ND6_SEND_RA					0
 
-#define UIP_CONF_IPV6						1
+#define NETSTACK_CONF_WITH_IPV6						1
 #define UIP_CONF_IPV6_QUEUE_PKT					0
 #define UIP_CONF_IPV6_CHECKS					1
 #define UIP_CONF_IPV6_REASSEMBLY				0
-#define UIP_CONF_ND6_MAX_PREFIXES				2
-#define UIP_CONF_ND6_MAX_DEFROUTERS				1
 #define UIP_CONF_IP_FORWARD					0
 #define UIP_CONF_BUFFER_SIZE					140
 #define UIP_CONF_MAX_CONNECTIONS				4
@@ -162,12 +152,12 @@
 #define SICSLOWPAN_CONF_MAXAGE					2
 #endif /* SICSLOWPAN_CONF_MAXAGE */
 
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Network setup for non-IPv6 (rime). */
 #define NETSTACK_CONF_NETWORK					rime_driver
 
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H

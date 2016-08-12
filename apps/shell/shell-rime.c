@@ -301,7 +301,7 @@ recv_collect(const linkaddr_t *originator, uint8_t seqno, uint8_t hops)
 
   /* Copy the collect message header. */
   memcpy(&collect_msg, packetbuf_dataptr(), sizeof(collect_msg));
-  dataptr = ((struct collect_msg *)packetbuf_dataptr())->data;
+  dataptr = (char *)((struct collect_msg *)packetbuf_dataptr())->data;
   
 #if TIMESYNCH_CONF_ENABLED
   latency = timesynch_time() - collect_msg.timestamp;
@@ -321,7 +321,7 @@ recv_collect(const linkaddr_t *originator, uint8_t seqno, uint8_t hops)
     if(packetbuf_datalen() >= COLLECT_MSG_HDRSIZE) {
       len = packetbuf_datalen() - COLLECT_MSG_HDRSIZE;
 
-      if(collect_msg.crc == crc16_data(dataptr, len, 0)) {
+      if(collect_msg.crc == crc16_data((unsigned char *)dataptr, len, 0)) {
 	msg.len = 5 + (packetbuf_datalen() - COLLECT_MSG_HDRSIZE) / 2;
 	linkaddr_copy((linkaddr_t *)&msg.originator, originator);
 	msg.seqno = seqno;

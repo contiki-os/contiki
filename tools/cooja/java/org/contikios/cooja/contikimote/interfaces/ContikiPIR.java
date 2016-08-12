@@ -37,10 +37,11 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jdom.Element;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMote;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.PIR;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Passive IR sensor mote interface.
@@ -65,7 +66,7 @@ import org.contikios.cooja.interfaces.PIR;
 public class ContikiPIR extends PIR implements ContikiMoteInterface {
 
   private ContikiMote mote;
-  private SectionMoteMemory moteMem;
+  private VarMemory moteMem;
 
   /**
    * Creates an interface to the PIR at mote.
@@ -77,7 +78,7 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
    */
   public ContikiPIR(Mote mote) {
     this.mote = (ContikiMote) mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {

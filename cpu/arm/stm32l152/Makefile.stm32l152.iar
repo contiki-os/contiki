@@ -1,0 +1,84 @@
+PROP_SYS_ARCH_S = startup_stm32l152xe.s
+
+
+# Compiler definitions
+IAR      = 1
+CC	 = iccarm
+LD       = ilinkarm
+AS       = iasmarm
+AR       = iarchive
+OBJCOPY  = ielftool
+STRIP    = iobjmanip
+SIZE     =
+NM       =
+
+%.ihex: %.$(TARGET)
+	$(OBJCOPY) $^ --ihex $@
+%.bin: %.$(TARGET)
+	$(OBJCOPY) --bin $@
+
+
+# Find the path to compiler; this works with cygwin
+ifndef IAR_PATH
+IAR_BIN_PATH := $(shell dirname "`which $(CC)`")
+IAR_PATH_C := $(shell dirname "$(IAR_BIN_PATH)")
+IAR_PATH := $(shell cygpath -m "$(IAR_PATH_C)")
+endif
+
+# ------------compiler flags
+CFLAGS+=\
+    -I"$(IAR_PATH)/CMSIS/Include" \
+	--diag_suppress Pa050 \
+	--no_unroll \
+	--no_inline \
+	--no_tbaa \
+	--no_scheduling \
+	--debug \
+	--endian=little \
+	--cpu=Cortex-M3 \
+	-Om \
+	-e \
+	--fpu=None \
+	--dlib_config "$(IAR_PATH)/inc/c/DLib_Config_Normal.h" \
+	-DIAR=1 \
+	-DWITH_USB_PRINTF=1
+
+#    -I$(CONTIKI)/cpu/arm/common/CMSIS   \
+
+# ------------assembler flags
+ASFLAGS+= -s+ -r -DIAR_ARM_CM3 -cAOM -B -t8 --cpu Cortex-M3 --fpu None
+
+#iasmarm -s+ -w+ -r -DIAR_ARM_CM3 -cAOM -B -t8 --cpu Cortex-M3 --fpu None startup_stm32l1xx_md.s
+
+# ------------archive creation flags
+AROPTS= --create --output
+
+# ----------linker flags
+# this will also generate log and symbol map files
+ICF_FILE="$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/linker/iar/stm32l1xx_flash.icf"
+LDFLAGS+= \
+	--config $(ICF_FILE) \
+	--entry __iar_program_start \
+	--redirect _Printf=_PrintfLarge \
+	--redirect _Scanf=_ScanfLarge \
+	--semihosting \
+	--no_exceptions \
+	--no_remove \
+	--cpu=Cortex-M3 \
+	--log libraries,initialization,modules,redirects,sections,veneers,unused_fragments \
+	--log_file contiki-$(TARGET).log \
+	--map contiki-$(TARGET).map \
+	--vfe
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(CC) $(CFLAGS) --dependencies=m $(@:.o=.P) $< -o $@
+ifeq ($(HOST_OS),Windows)
+	@$(FINALIZE_CYGWIN_DEPENDENCY)
+endif
+
+%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+
+
+

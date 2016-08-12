@@ -229,8 +229,8 @@ public class AreaViewer extends VisPlugin {
 
     // We want to listen to changes both in the channel model as well as in the radio medium
     currentChannelModel.addSettingsObserver(channelModelSettingsObserver);
-    currentRadioMedium.addSettingsObserver(radioMediumSettingsObserver);
-    currentRadioMedium.addRadioMediumObserver(radioMediumActivityObserver);
+    currentRadioMedium.addRadioMediumObserver(radioMediumSettingsObserver);
+    currentRadioMedium.addRadioTransmissionObserver(radioMediumActivityObserver);
 
     // Set initial size etc.
     setSize(500, 500);
@@ -2338,13 +2338,13 @@ public class AreaViewer extends VisPlugin {
     }
 
     if (currentRadioMedium != null && radioMediumSettingsObserver != null) {
-      currentRadioMedium.deleteSettingsObserver(radioMediumSettingsObserver);
+      currentRadioMedium.deleteRadioMediumObserver(radioMediumSettingsObserver);
     } else {
       logger.fatal("Could not remove observer: " + radioMediumSettingsObserver);
     }
 
     if (currentRadioMedium != null && radioMediumActivityObserver != null) {
-      currentRadioMedium.deleteRadioMediumObserver(radioMediumActivityObserver);
+      currentRadioMedium.deleteRadioTransmissionObserver(radioMediumActivityObserver);
     } else {
       logger.fatal("Could not remove observer: " + radioMediumActivityObserver);
     }

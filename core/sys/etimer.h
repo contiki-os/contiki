@@ -1,31 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup etimer Event timers
- *
- * Event timers provides a way to generate timed events. An event
- * timer will post an event to the process that set the timer when the
- * event timer expires.
- *
- * An event timer is declared as a \c struct \c etimer and all access
- * to the event timer is made by a pointer to the declared event
- * timer.
- *
- * \sa \ref timer "Simple timer library"
- * \sa \ref clock "Clock library" (used by the timer library)
- *
- * @{
- */
-
-
-/**
- * \file
- * Event timer header file.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -59,6 +31,34 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ * Event timer header file.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup etimer Event timers
+ *
+ * Event timers provides a way to generate timed events. An event
+ * timer will post an event to the process that set the timer when the
+ * event timer expires.
+ *
+ * An event timer is declared as a \c struct \c etimer and all access
+ * to the event timer is made by a pointer to the declared event
+ * timer.
+ *
+ * \sa \ref timer "Simple timer library"
+ * \sa \ref clock "Clock library" (used by the timer library)
+ *
+ * @{
+ */
+
 #ifndef ETIMER_H_
 #define ETIMER_H_
 
@@ -113,6 +113,19 @@ CCIF void etimer_set(struct etimer *et, clock_time_t interval);
  * \sa etimer_restart()
  */
 CCIF void etimer_reset(struct etimer *et);
+
+/**
+ * \brief      Reset an event timer with a new interval.
+ * \param et   A pointer to the event timer.
+ * \param interval The interval before the timer expires.
+ *
+ *             This function very similar to etimer_reset. Opposed to
+ *             etimer_reset it is possible to change the timout.
+ *             This allows accurate, non-periodic timers without drift.
+ *
+ * \sa etimer_reset()
+ */
+void etimer_reset_with_new_interval(struct etimer *et, clock_time_t interval);
 
 /**
  * \brief      Restart an event timer from the current point in time

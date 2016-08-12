@@ -6,8 +6,7 @@ CONTIKI=../../..
 endif
 endif
 
-DEFINES=WITH_UIP6=1,WITH_SLIP=1,PROJECT_CONF_H=\"bridge-conf.h\"
-UIP_CONF_IPV6=1
+DEFINES=WITH_SLIP=1,PROJECT_CONF_H=\"bridge-conf.h\"
 
 ifndef TARGET
 TARGET=sky
@@ -22,6 +21,7 @@ upload: uip6-bridge-tap.ihex
 	cp $< $(IHEXFILE)
 	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 ../../tapslip6: ../../tapslip6.c
@@ -36,5 +36,5 @@ connect: ../../tapslip6
 
 bridge:
 	@sudo service radvd restart || echo radvd could not be restarted
-	sudo route add -6 aaaa::/64 tap0
-	sudo ip -6 address add aaaa::1/64 dev tap0
+	sudo route add -6 fd00::/64 tap0
+	sudo ip -6 address add fd00::1/64 dev tap0

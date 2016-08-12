@@ -1,15 +1,3 @@
-/**
- * \addtogroup etimer
- * @{
- */
-
-/**
- * \file
- * Event timer library implementation.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +30,18 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
+ */
+
+/**
+ * \addtogroup etimer
+ * @{
+ */
+
+/**
+ * \file
+ * Event timer library implementation.
+ * \author
+ * Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki-conf.h"
@@ -177,6 +177,14 @@ void
 etimer_set(struct etimer *et, clock_time_t interval)
 {
   timer_set(&et->timer, interval);
+  add_timer(et);
+}
+/*---------------------------------------------------------------------------*/
+void
+etimer_reset_with_new_interval(struct etimer *et, clock_time_t interval)
+{
+  timer_reset(&et->timer);
+  et->timer.interval = interval;
   add_timer(et);
 }
 /*---------------------------------------------------------------------------*/

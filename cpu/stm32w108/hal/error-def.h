@@ -7,7 +7,11 @@
 */
 
 /**
- * @addtogroup status_codes
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/**
+ * @defgroup status_codes Status Codes
  *
  * Many StZNet API functions return an ::StStatus value to indicate
  * the success or failure of the call.
@@ -30,8 +34,9 @@
 /**
  * @name Generic Messages
  * These messages are system wide.
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -106,13 +111,14 @@ DEFINE_ERROR(EEPROM_MFG_VERSION_MISMATCH, 0x06)
 DEFINE_ERROR(EEPROM_STACK_VERSION_MISMATCH, 0x07)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} // END Generic Messages
+/** @} */ // END Generic Messages
 
 
 /**
  * @name Packet Buffer Module Errors
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -123,12 +129,13 @@ DEFINE_ERROR(EEPROM_STACK_VERSION_MISMATCH, 0x07)
 DEFINE_ERROR(NO_BUFFERS, 0x18)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} / END Packet Buffer Module Errors
+/** @} */ // END Packet Buffer Module Errors
 
 /**
  * @name Serial Manager Errors
+ *
+ * @{ 
  */
-//@{ 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -211,12 +218,13 @@ DEFINE_ERROR(SERIAL_RX_EMPTY, 0x26)
 DEFINE_ERROR(SERIAL_RX_OVERRUN_ERROR, 0x27)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name MAC Errors
- */  
-//@{
+ *  
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -341,22 +349,23 @@ DEFINE_ERROR(MAC_NO_ACK_RECEIVED, 0x40)
 DEFINE_ERROR(MAC_INDIRECT_TIMEOUT, 0x42)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Simulated EEPROM Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
  * @brief The Simulated EEPROM is telling the application that there
  * is at least one flash page to be erased.  The GREEN status means the
- * current page has not filled above the ::ERASE_CRITICAL_THRESHOLD.
+ * current page has not filled above the ERASE_CRITICAL_THRESHOLD.
  * 
- * The application should call the function ::halSimEepromErasePage() when it can
+ * The application should call the function halSimEepromErasePage() when it can
  * to erase a page.
  */
 #define ST_SIM_EEPROM_ERASE_PAGE_GREEN(0x43)
@@ -369,10 +378,10 @@ DEFINE_ERROR(SIM_EEPROM_ERASE_PAGE_GREEN, 0x43)
 /** 
  * @brief The Simulated EEPROM is telling the application that there
  * is at least one flash page to be erased.  The RED status means the
- * current page has filled above the ::ERASE_CRITICAL_THRESHOLD.
+ * current page has filled above the ERASE_CRITICAL_THRESHOLD.
  * 
  * Due to the shrinking availablity of write space, there is a danger of
- * data loss.  The application must call the function ::halSimEepromErasePage()
+ * data loss.  The application must call the function halSimEepromErasePage()
  * as soon as possible to erase a page.
  */
 #define ST_SIM_EEPROM_ERASE_PAGE_RED(0x44)
@@ -385,9 +394,9 @@ DEFINE_ERROR(SIM_EEPROM_ERASE_PAGE_RED, 0x44)
 /** 
  * @brief The Simulated EEPROM has run out of room to write any new data
  * and the data trying to be set has been lost.  This error code is the
- * result of ignoring the ::SIM_EEPROM_ERASE_PAGE_RED error code.
+ * result of ignoring the ::ST_SIM_EEPROM_ERASE_PAGE_RED error code.
  *
- * The application must call the function ::halSimEepromErasePage() to make room for
+ * The application must call the function halSimEepromErasePage() to make room for
  * any further calls to set a token.
  */
 #define ST_SIM_EEPROM_FULL(0x45)
@@ -431,8 +440,8 @@ DEFINE_ERROR(SIM_EEPROM_INIT_2_FAILED, 0x49)
 /** 
  * @brief Attempt 3 to initialize the Simulated EEPROM has failed.
  *
- * This failure means one or both of the tokens ::TOKEN_MFG_NVDATA_VERSION or
- * ::TOKEN_STACK_NVDATA_VERSION were incorrect and the token system failed to
+ * This failure means one or both of the tokens TOKEN_MFG_NVDATA_VERSION or
+ * TOKEN_STACK_NVDATA_VERSION were incorrect and the token system failed to
  * properly reload default tokens and reset the Simulated EEPROM.
  */
 #define ST_SIM_EEPROM_INIT_3_FAILED(0x4A)
@@ -440,13 +449,13 @@ DEFINE_ERROR(SIM_EEPROM_INIT_2_FAILED, 0x49)
 DEFINE_ERROR(SIM_EEPROM_INIT_3_FAILED, 0x4A)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Flash Errors
- */  
-//@{
+ *
+ * @{ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
@@ -477,7 +486,7 @@ DEFINE_ERROR(ERR_FLASH_VERIFY_FAILED, 0x47)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to write data to the
+ * @brief A fatal error has occured while trying to write data to the
  * flash, possibly due to write protection or an invalid address.  The data in
  * the flash cannot be trusted after this error, and it is possible this error
  * is the result of exceeding the life cycles of the flash.
@@ -490,7 +499,7 @@ DEFINE_ERROR(ERR_FLASH_PROG_FAIL, 0x4B)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to erase flash, possibly
+ * @brief A fatal error has occured while trying to erase flash, possibly
  * due to write protection.  The data in the flash cannot be trusted after
  * this error, and it is possible this error is the result of exceeding the
  * life cycles of the flash.
@@ -500,13 +509,14 @@ DEFINE_ERROR(ERR_FLASH_PROG_FAIL, 0x4B)
 DEFINE_ERROR(ERR_FLASH_ERASE_FAIL, 0x4C)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Bootloader Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -541,13 +551,14 @@ DEFINE_ERROR(ERR_BOOTLOADER_TRAP_UNKNOWN, 0x59)
 DEFINE_ERROR(ERR_BOOTLOADER_NO_IMAGE, 0x5A)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Transport Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -615,7 +626,7 @@ DEFINE_ERROR(COST_NOT_KNOWN, 0x71)
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
  * @brief The maximum number of in-flight messages (i.e. 
- * ::ST_APS_UNICAST_MESSAGE_COUNT)  has been reached.
+ * ST_APS_UNICAST_MESSAGE_COUNT)  has been reached.
  */
 #define ST_MAX_MESSAGE_LIMIT_REACHED(0x72)
 #else
@@ -653,12 +664,13 @@ DEFINE_ERROR(BINDING_IS_ACTIVE, 0x75)
 DEFINE_ERROR(ADDRESS_TABLE_ENTRY_IS_ACTIVE, 0x76)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  HAL Module Errors
- */  
-//@{
+ *
+ * @{
+ */
   
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -713,12 +725,13 @@ DEFINE_ERROR(ADC_NO_CONVERSION_PENDING, 0x84)
 DEFINE_ERROR(SLEEP_INTERRUPTED, 0x85)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  PHY Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -803,13 +816,14 @@ DEFINE_ERROR(PHY_OSCILLATOR_CHECK_FAILED, 0x8E)
 DEFINE_ERROR(PHY_ACK_RECEIVED, 0x8F)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  Return Codes Passed to stStackStatusHandler()
- * See also ::stStackStatusHandler(). 
+ * See also stStackStatusHandler().
+ *
+ * @{
  */
-//@{
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -868,7 +882,7 @@ DEFINE_ERROR(CANNOT_JOIN_AS_ROUTER, 0x98)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief The local node ID has changed. The application can obtain the new
- *  node ID by calling ::stGetNodeId().
+ *  node ID by calling stGetNodeId().
  */
 #define ST_NODE_ID_CHANGED(0x99)
 #else
@@ -878,7 +892,7 @@ DEFINE_ERROR(NODE_ID_CHANGED, 0x99)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief The local PAN ID has changed. The application can obtain the new PAN
- *  ID by calling ::stGetPanId().
+ *  ID by calling stGetPanId().
  */
 #define ST_PAN_ID_CHANGED(0x9A)
 #else
@@ -906,7 +920,7 @@ DEFINE_ERROR(NO_BEACONS, 0xAB)
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief An attempt was made to join a Secured Network using a pre-configured
  *  key, but the Trust Center sent back a Network Key in-the-clear when
- *  an encrypted Network Key was required. (::ST_REQUIRE_ENCRYPTED_KEY).
+ *  an encrypted Network Key was required. (ST_REQUIRE_ENCRYPTED_KEY).
  */
 #define ST_RECEIVED_KEY_IN_THE_CLEAR(0xAC)
 #else
@@ -926,7 +940,7 @@ DEFINE_ERROR(NO_NETWORK_KEY_RECEIVED, 0xAD)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief After a device joined a Secured Network, a Link Key was requested 
- *  (::ST_GET_LINK_KEY_WHEN_JOINING) but no response was ever received.
+ *  (ST_GET_LINK_KEY_WHEN_JOINING) but no response was ever received.
  */
 #define ST_NO_LINK_KEY_RECEIVED(0xAE)
 #else
@@ -945,10 +959,12 @@ DEFINE_ERROR(PRECONFIGURED_KEY_REQUIRED, 0xAF)
 #endif
 
 
-//@}
+/** @} */
 
 /**
  * @name  Security Errors
+ *
+ * @{
  */
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
@@ -962,7 +978,7 @@ DEFINE_ERROR(KEY_INVALID, 0xB2)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
- * @brief The chosen security level (the value of ::ST_SECURITY_LEVEL)
+ * @brief The chosen security level (the value of ST_SECURITY_LEVEL)
  *  is not supported by the stack.
  */
 #define ST_INVALID_SECURITY_LEVEL(0x95)
@@ -995,7 +1011,7 @@ DEFINE_ERROR(INVALID_SECURITY_LEVEL, 0x95)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief There was an attempt to form or join a network with security
- * without calling ::stSetInitialSecurityState() first.
+ * without calling stSetInitialSecurityState() first.
  */
 #define ST_SECURITY_STATE_NOT_SET(0xA8)
 #else
@@ -1057,14 +1073,14 @@ DEFINE_ERROR(SECURITY_CONFIGURATION_INVALID, 0xB7)
 #endif
 
 
-//@}
+/** @} */
 
 
 /**
  * @name  Miscellaneous Network Errors
- */  
-//@{
-
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1139,13 +1155,13 @@ DEFINE_ERROR(BINDING_HAS_CHANGED, 0xA4)
 #endif
 
 
-//@}
+/** @} */
 
 /**
  * @name  Miscellaneous Utility Errors
- */  
-//@{
-
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1209,13 +1225,14 @@ DEFINE_ERROR(LIBRARY_NOT_PRESENT, 0xB5)
 DEFINE_ERROR(OPERATION_IN_PROGRESS, 0xBA)
 #endif
 
-//@}
+/** @} */
 
 /**
  * @name  Application Errors
  * These error codes are available for application use.
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1257,7 +1274,9 @@ DEFINE_ERROR( APPLICATION_ERROR_14, 0xFE)
 DEFINE_ERROR( APPLICATION_ERROR_15, 0xFF)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} // END name group
+/** @} */
+
+/** @} END defgroup */
 
 /** @} END addtogroup */
 

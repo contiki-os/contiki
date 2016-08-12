@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimestunicast
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Stubborn unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimestunicast
+ * @{
  */
 
 #include "net/rime/stunicast.h"
@@ -112,10 +112,10 @@ send(void *ptr)
   PRINTF("%d.%d: stunicast: resend to %d.%d\n",
 	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
-	 if(c->buf) {
-  	queuebuf_to_packetbuf(c->buf);
-  	unicast_send(&c->c, &c->receiver);
-  	stunicast_set_timer(c, CLOCK_SECOND);
+  if(c->buf) {
+    queuebuf_to_packetbuf(c->buf);
+    unicast_send(&c->c, &c->receiver);
+    ctimer_restart(&c->t);
   }
   /*  if(c->u->sent != NULL) {
     c->u->sent(c);

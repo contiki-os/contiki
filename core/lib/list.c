@@ -1,16 +1,3 @@
-/**
- * \addtogroup list
- * @{
- */
-
-/**
- * \file
- * Linked list library implementation.
- *
- * \author Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -44,6 +31,20 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ * Linked list library implementation.
+ *
+ * \author Adam Dunkels <adam@sics.se>
+ *
+ */
+
+/**
+ * \addtogroup list
+ * @{
+ */
+
 #include "lib/list.h"
 
 #define NULL 0

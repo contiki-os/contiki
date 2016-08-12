@@ -90,7 +90,7 @@ request_prefix(void) CC_NON_BANKED
   uip_buf[1] = 'P';
   uip_len = 2;
   slip_send();
-  uip_len = 0;
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 /* Set our prefix when we receive one over SLIP */

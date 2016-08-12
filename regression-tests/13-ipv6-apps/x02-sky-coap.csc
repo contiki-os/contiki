@@ -141,7 +141,7 @@
     <minimized>true</minimized>
   </plugin>
   <plugin>
-    SerialSocketServer
+    org.contikios.cooja.serialsocket.SerialSocketServer
     <mote_arg>0</mote_arg>
     <width>428</width>
     <z>4</z>
@@ -181,14 +181,14 @@ PROCESS_CONF_NO_PROCESS_NAMES=1
 
 The test script communicates with the REST server via the RPL border router using external commands.
 (* $ make connect-router-cooja)
-* $ ping6 -c 10 -I tun0 aaaa::212:7401:1:101
-* $ ping6 -c 10 -I tun0 aaaa::212:7402:2:202
-* $ wget -t 1 -T 10 -O - http://[aaaa::212:7402:2:202]
+* $ ping6 -c 10 -I tun0 fd00::212:7401:1:101
+* $ ping6 -c 10 -I tun0 fd00::212:7402:2:202
+* $ wget -t 1 -T 10 -O - http://[fd00::212:7402:2:202]
 
 The final test uses the CoAP Java implementation by Matthias Kovatsch, downloaded from:
 https://github.com/mkovatsc/Californium/blob/master/run/ExampleClient.jar
-* $ java -jar ExampleClient.jar DISCOVER coap://[aaaa::212:7402:2:202]
-* $ java -jar ExampleClient.jar GET coap://[aaaa::212:7402:2:202]/hello</notes>
+* $ java -jar ExampleClient.jar DISCOVER coap://[fd00::212:7402:2:202]
+* $ java -jar ExampleClient.jar GET coap://[fd00::212:7402:2:202]/hello</notes>
       <decorations>true</decorations>
     </plugin_config>
     <width>751</width>

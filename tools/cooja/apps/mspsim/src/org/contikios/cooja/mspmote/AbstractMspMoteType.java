@@ -45,7 +45,6 @@ import org.apache.log4j.Logger;
 
 import org.contikios.cooja.*;
 import org.contikios.cooja.dialogs.*;
-import org.contikios.cooja.dialogs.MessageList.MessageContainer;
 
 /**
  *
@@ -119,7 +118,7 @@ public abstract class AbstractMspMoteType extends MspMoteType {
             throw new MoteTypeCreationException("No identifier");
         }
 
-        final MessageList compilationOutput = new MessageList();
+        final MessageList compilationOutput = visAvailable ? new MessageListUI() : new MessageListText();
 
         if (getCompileCommands() != null) {
             /* Handle multiple compilation commands one by one */

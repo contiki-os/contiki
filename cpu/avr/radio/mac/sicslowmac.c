@@ -402,14 +402,18 @@ sicslowmac_dataRequest(void)
   frame_create_params_t params;
   frame_result_t result;
 
+#if NETSTACK_CONF_WITH_RIME
   /* Save the msduHandle in a global variable. */
   msduHandle = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+#endif
 
   /* Build the FCF. */
   params.fcf.frameType = DATAFRAME;
   params.fcf.securityEnabled = false;
   params.fcf.framePending = false;
+#if NETSTACK_CONF_WITH_RIME
   params.fcf.ackRequired = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+#endif
   params.fcf.panIdCompression = false;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */
@@ -426,11 +430,7 @@ sicslowmac_dataRequest(void)
   params.fcf.srcAddrMode = LONGADDRMODE;
   params.dest_pid = ieee15_4ManagerAddress.get_dst_panid();
 
-  /*
-   *  If the output address is NULL in the Rime buf, then it is broadcast
-   *  on the 802.15.4 network.
-   */
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null) ) {
+  if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
     params.fcf.destAddrMode = SHORTADDRMODE;
     params.dest_pid = BROADCASTPANDID;

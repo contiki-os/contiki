@@ -1,18 +1,3 @@
-/**
- * \file
- * PETSCII/ASCII conversion functions.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * The Commodore based Contiki targets all have a special character
- * encoding called PETSCII which differs from the ASCII encoding that
- * normally is used for representing characters.
- *
- * \note For targets that do not use PETSCII encoding the C compiler
- * define WITH_ASCII should be used to avoid the PETSCII converting
- * functions.
- *
- */
-
 /*
  * Copyright (c) 2002, Adam Dunkels.
  * All rights reserved. 
@@ -46,6 +31,22 @@
  *
  *
  */
+
+/**
+ * \file
+ * PETSCII/ASCII conversion functions.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * The Commodore based Contiki targets all have a special character
+ * encoding called PETSCII which differs from the ASCII encoding that
+ * normally is used for representing characters.
+ *
+ * \note For targets that do not use PETSCII encoding the C compiler
+ * define WITH_ASCII should be used to avoid the PETSCII converting
+ * functions.
+ *
+ */
+
 #ifndef PETSCIICONV_H_
 #define PETSCIICONV_H_
 

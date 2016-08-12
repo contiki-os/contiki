@@ -85,10 +85,11 @@ import org.contikios.cooja.PluginType;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.VisPlugin;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.util.StringUtils;
 
 @ClassDescription("Simulation script editor")
-@PluginType(PluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_CONTROL_PLUGIN)
 public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
@@ -274,6 +275,14 @@ public class ScriptRunner extends VisPlugin {
     if (script != null) {
       updateScript(script);
     }
+  }
+
+  public void startPlugin() {
+	/* start simulation */
+	if (!Cooja.isVisualized()) {
+	  simulation.setSpeedLimit(null);
+	  simulation.startSimulation();
+	}
   }
 
   public void setLinkFile(File source) {
@@ -495,7 +504,7 @@ public class ScriptRunner extends VisPlugin {
       final BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
       /* GUI components */
-      final MessageList testOutput = new MessageList();
+      final MessageListUI testOutput = new MessageListUI();
       final AbstractAction abort = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
           process.destroy();
@@ -530,14 +539,14 @@ public class ScriptRunner extends VisPlugin {
           String line;
           try {
             while ((line = input.readLine()) != null) {
-              testOutput.addMessage(line, MessageList.NORMAL);
+              testOutput.addMessage(line, MessageListUI.NORMAL);
             }
           } catch (IOException e) {
           }
 
-          testOutput.addMessage("", MessageList.NORMAL);
-          testOutput.addMessage("", MessageList.NORMAL);
-          testOutput.addMessage("", MessageList.NORMAL);
+          testOutput.addMessage("", MessageListUI.NORMAL);
+          testOutput.addMessage("", MessageListUI.NORMAL);
+          testOutput.addMessage("", MessageListUI.NORMAL);
 
           /* Parse log file, check if test succeeded  */
           try {
@@ -551,7 +560,7 @@ public class ScriptRunner extends VisPlugin {
               if (l == null) {
                 line = "";
               }
-              testOutput.addMessage(l, MessageList.NORMAL);
+              testOutput.addMessage(l, MessageListUI.NORMAL);
               if (l.contains("TEST OK")) {
                 testSucceeded = true;
                 break;

@@ -39,8 +39,8 @@ import org.apache.log4j.Logger;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.interfaces.MoteID;
+import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.mspmote.MspMote;
-import org.contikios.cooja.mspmote.MspMoteMemory;
 import se.sics.mspsim.core.Memory;
 import se.sics.mspsim.core.MemoryMonitor;
 
@@ -53,7 +53,7 @@ public class MspMoteID extends MoteID {
 	private static Logger logger = Logger.getLogger(MspMoteID.class);
 
 	private MspMote mote;
-	private MspMoteMemory moteMem = null;
+	private VarMemory moteMem = null;
 
 	private boolean writeFlashHeader = true;
 	private int moteID = -1;
@@ -69,7 +69,7 @@ public class MspMoteID extends MoteID {
 	 */
 	public MspMoteID(Mote m) {
 		this.mote = (MspMote) m;
-		this.moteMem = (MspMoteMemory) mote.getMemory();
+		this.moteMem = new VarMemory(mote.getMemory());
 	}
 
 	public int getMoteID() {
@@ -144,7 +144,7 @@ public class MspMoteID extends MoteID {
 		            byte[] id = new byte[2];
 		            id[0] = (byte) (moteID & 0xff);
 		            id[1] = (byte) ((moteID >> 8) & 0xff);
-		            moteMem.setMemorySegment(dstAddress & ~1, id);
+		            mote.getMemory().setMemorySegment(dstAddress & ~1, id);
 		        }
 
 		    };
@@ -201,7 +201,7 @@ public class MspMoteID extends MoteID {
 
 	private void addMonitor(String variable, MemoryMonitor monitor) {
 	    if (moteMem.variableExists(variable)) {
-	        int address = moteMem.getVariableAddress(variable);
+	        int address = (int) moteMem.getVariableAddress(variable);
 	        if ((address & 1) != 0) {
 	            // Variable can not be a word - must be a byte
 	        } else {
@@ -213,7 +213,7 @@ public class MspMoteID extends MoteID {
 
         private void removeMonitor(String variable, MemoryMonitor monitor) {
             if (moteMem.variableExists(variable)) {
-                int address = moteMem.getVariableAddress(variable);
+                int address = (int) moteMem.getVariableAddress(variable);
                 mote.getCPU().removeWatchPoint(address, monitor);
                 mote.getCPU().removeWatchPoint(address + 1, monitor);
             }

@@ -3,9 +3,6 @@ all: $(CONTIKI_PROJECT)
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-CFLAGS+= -DUIP_CONF_IPV6_RPL
-
 #linker optimizations
 SMALL=1
 
@@ -24,19 +21,26 @@ PROJECT_SOURCEFILES += slip-bridge.c
 #of the slip connection. Large MSS together with low baud rates without flow
 #control will overrun the transmit buffer when the style sheet is requested.
 
+ifeq ($(MAKE_WITH_NON_STORING),1)
+CFLAGS += -DWITH_NON_STORING=1
+endif
+
 WITH_WEBSERVER=1
 ifeq ($(WITH_WEBSERVER),1)
+CFLAGS += -DUIP_CONF_TCP=1
 CFLAGS += -DWEBSERVER=1
 PROJECT_SOURCEFILES += httpd-simple.c
 else ifneq ($(WITH_WEBSERVER), 0)
 APPS += $(WITH_WEBSERVER)
+CFLAGS += -DUIP_CONF_TCP=1
 CFLAGS += -DWEBSERVER=2
 endif
 
 ifeq ($(PREFIX),)
- PREFIX = aaaa::1/64
+ PREFIX = fd00::1/64
 endif
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c

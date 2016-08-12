@@ -49,6 +49,10 @@
 #include "dev/rs232_at90usb1287.h"
 #elif defined (__AVR_ATmega128RFA1__)
 #include "dev/rs232_atmega128rfa1.h"
+#elif defined (__AVR_ATmega128RFR2__)
+#include "dev/rs232_atmega128rfa1.h"
+#elif defined (__AVR_ATmega256RFR2__)
+#include "dev/rs232_atmega128rfa1.h"
 #elif defined (__AVR_ATmega644__) || defined (__AVR_ATmega328P__)
 #include "dev/rs232_atmega644.h"
 #elif defined (__AVR_ATmega8__) || defined (__AVR_ATmega8515__) \

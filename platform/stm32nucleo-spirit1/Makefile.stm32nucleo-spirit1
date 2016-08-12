@@ -1,0 +1,246 @@
+
+CONTIKI_TARGET_DIRS = .
+
+ifeq ($(BOARD),)
+ BOARD=ids01a4
+ ${info ***************************************************}
+ ${info BOARD not specified, default to ids01a4 (868 MHz)!}
+ ${info ***************************************************}
+else ifeq ($(BOARD),ids01a4)
+ ${info ***************************************************}
+ ${info Using ids01a4 SPIRIT1 expansion board (868 MHz)}
+ ${info ***************************************************}
+else ifeq  ($(BOARD),ids01a5)
+ ${info ***************************************************}
+ ${info Using ids01a5 SPIRIT1 expansion board (915 MHz)}
+ ${info ***************************************************}
+else
+ ${info ***************************************************}
+ ${info You must specify a valid SPIRIT1 board to use:}
+ ${info make BOARD=ids01a4 for X-NUCLEO-IDS01A4 (868 MHz)}
+ ${info make BOARD=ids01a5 for X-NUCLEO-IDS01A5 (915 MHz)}
+ ${info ***************************************************}
+  ${error }
+endif
+
+### Include the board-specific makefile
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+-include $(PLATFORM_ROOT_DIR)/Makefile.$(BOARD)
+
+ifeq ($(SENSORBOARD),iks01a1)
+ ${info Compiling with X-NUCLEO-IKS01A1 sensors files}
+ ${info ***************************************************}
+ -include $(PLATFORM_ROOT_DIR)/Makefile.$(SENSORBOARD)
+else ifeq ($(SENSORBOARD),)
+ ${info NOT compiling files for any sensors expansion board}
+ ${info ***************************************************}
+else
+  ${info Error: SENSORBOARD can be: iks01a1}
+ ${info ***************************************************}
+  ${error }
+endif
+
+
+
+#Currently we support only GCC
+GCC=1
+
+CONTIKI_TARGET_DIRS += dev
+CONTIKI_TARGET_DIRS += stm32cube-lib/stm32cube-prj/Src
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/stm32l1xx_nucleo
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/x_nucleo_ids01ax
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/Common
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/spirit1/src stm32cube-lib/drivers/spirit1/inc
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/CMSIS
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Src
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Inc
+
+
+ARCH_DEV = button-sensor.c leds-arch.c radio-sensor.c
+
+ARCH_NUCLEOSPIRIT1 = contiki-spirit1-main.c  uart-msg.c  spirit1-arch.c  spirit1.c node-id.c
+
+ARCH_NUCLEOSPIRIT1_STM32CUBEHAL = spirit1_appli.c  stm32l1xx_hal_msp.c  stm32l1xx_it.c stm32cube_hal_init.c
+
+ARCH_DRIVERS_STM32L1xx = stm32l1xx_nucleo.c
+
+ARCH_DRIVERS_IDS01AX = radio_gpio.c  radio_shield_config.c  radio_spi.c
+
+ARCH_DRIVERS_SPIRIT1 = \
+				SPIRIT1_Util.c \
+				SPIRIT_Aes.c \
+				SPIRIT_Calibration.c \
+				SPIRIT_Commands.c \
+				SPIRIT_Csma.c \
+				SPIRIT_DirectRF.c \
+				SPIRIT_General.c \
+				SPIRIT_Gpio.c \
+				SPIRIT_Irq.c \
+				SPIRIT_LinearFifo.c \
+				SPIRIT_Management.c \
+				SPIRIT_PktBasic.c \
+				SPIRIT_PktCommon.c \
+				SPIRIT_PktMbus.c \
+				SPIRIT_PktStack.c \
+				SPIRIT_Qi.c \
+				SPIRIT_Radio.c \
+				SPIRIT_Timer.c \
+				SPIRIT_Types.c
+
+STM32L1XX_HAL =\
+	stm32l1xx_hal.c\
+	stm32l1xx_hal_adc_ex.c\
+	stm32l1xx_hal_adc.c\
+	stm32l1xx_hal_comp.c\
+	stm32l1xx_hal_cortex.c\
+	stm32l1xx_hal_crc.c\
+	stm32l1xx_hal_cryp_ex.c\
+	stm32l1xx_hal_cryp.c\
+	stm32l1xx_hal_dac_ex.c\
+	stm32l1xx_hal_dac.c\
+	stm32l1xx_hal_dma.c\
+	stm32l1xx_hal_flash_ex.c\
+	stm32l1xx_hal_flash.c\
+	stm32l1xx_hal_flash_ramfunc.c\
+	stm32l1xx_hal_gpio.c\
+	stm32l1xx_hal_i2c.c\
+	stm32l1xx_hal_i2s.c\
+	stm32l1xx_hal_irda.c\
+	stm32l1xx_hal_iwdg.c\
+	stm32l1xx_hal_lcd.c\
+	stm32l1xx_hal_nor.c\
+	stm32l1xx_hal_opamp_ex.c\
+	stm32l1xx_hal_opamp.c\
+	stm32l1xx_hal_pcd_ex.c\
+	stm32l1xx_hal_pcd.c\
+	stm32l1xx_hal_pwr_ex.c\
+	stm32l1xx_hal_pwr.c\
+	stm32l1xx_hal_rcc_ex.c\
+	stm32l1xx_hal_rcc.c\
+	stm32l1xx_hal_rtc_ex.c\
+	stm32l1xx_hal_rtc.c\
+	stm32l1xx_hal_sd.c\
+	stm32l1xx_hal_smartcard.c\
+	stm32l1xx_hal_spi_ex.c\
+	stm32l1xx_hal_spi.c\
+	stm32l1xx_hal_sram.c\
+	stm32l1xx_hal_tim_ex.c\
+	stm32l1xx_hal_tim.c\
+	stm32l1xx_hal_uart.c\
+	stm32l1xx_hal_usart.c\
+	stm32l1xx_hal_wwdg.c\
+	stm32l1xx_ll_fsmc.c\
+	stm32l1xx_ll_sdmmc.c
+
+ARCH+=$(ARCH_DEV)
+ARCH+=$(ARCH_NUCLEOSPIRIT1)
+ARCH+=$(ARCH_NUCLEOSPIRIT1_STM32CUBEHAL)
+ARCH+=$(ARCH_DRIVERS_STM32L1xx)
+ARCH+=$(ARCH_DRIVERS_IDS01AX)
+ARCH+=$(ARCH_DRIVERS_SPIRIT1)
+ARCH+=$(STM32L1XX_HAL)
+
+CFLAGS += -DUSE_STM32L152_EVAL \
+		-DSTM32L152xE \
+		-DUSE_STM32L1XX_NUCLEO \
+		-DUSE_HAL_DRIVER \
+		-DUSE_STDPERIPH_DRIVER \
+		-DNO_EEPROM \
+		-DSPIRIT1_ST_SHIELD \
+		-DSPIRIT_MODULE \
+		-DUSE_SPIRIT1_DEFAULT
+
+CFLAGS += -I. \
+	  -I$(CONTIKI)/platform/$(TARGET)/ \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/Inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/Common \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/spirit1/inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/CMSIS \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Inc \
+	  -I$(CONTIKI)/cpu/arm/stm32l152 \
+	  -I$(CONTIKI)/core                   \
+	  -I$(CONTIKI)/platform/$(TARGET)/dev
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-spirit1-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
+
+MCU=stm32l152
+CONTIKI_CPU=$(CONTIKI)/cpu/arm/stm32l152
+include $(CONTIKI)/cpu/arm/stm32l152/Makefile.stm32l152
+
+
+MODULES+=core/net \
+         core/net/mac core/net/mac/contikimac \
+         core/net/llsec
+
+
+# build rules ------------------------------------
+
+CLEAN += *.stm32nucleo-spirit1 symbols.c symbols.h contiki-stm32nucleo-spirit1.log 
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+help:
+	@echo A few useful make commands:
+	@echo make help - shows this help
+	@echo make TARGET=stm32nucleo-spirit1 savetarget - stores selection of target to avoid using TARGET= on every make invokation
+	@echo make program.upload - compiles and uploads program to connected board
+	@echo make program.upload IAR=1 - uses the IAR compiler instead of gcc (not implemented yet)
+	@echo make program.upload NODEID=x - uploads with node_id set to x
+
+# Serialdump rules
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP = serialdump-windows
+  # this ID is a string with which the node identifies itself as, and is used to
+  # find the proper /dev/comX-port in Cygwin to connect to.
+  CYGWIN_DEV_ID="stm32nucleo-spirit1 Spirit1 Platform"
+# include $(CONTIKI)/tools/cygwin/Makefile.cygwin
+endif
+ifeq ($(HOST_OS),Darwin)
+  SERIALDUMP = serialdump-macos
+endif
+ifndef SERIALDUMP
+  # Assume Linux
+  SERIALDUMP = serialdump-linux
+endif
+
+# IAR/windows/cygwin only for now; after GCC port, see if stm32flash works with Linux
+STLINKCLI=ST-LINK_CLI.exe
+%.upload: %.hex
+	#Note: this command only uploads to a single connected device
+	#$(STLINKCLI) -ME || $(STLINKCLI) -ME || $(STLINKCLI) -ME || $(STLINKCLI) -ME
+	$(STLINKCLI) -Q -P $*.hex -V -Run
+
+
+# devcon requires WinDriverKit, downloadable from microsoft.com
+DEVCON=devcon.exe
+DEVCON_ALLDEVS=$(shell $(DEVCON) find =USB | grep "STMicroelectronics STLink dongle" | cut -d " " -f 1)
+devcon_enableonly:
+	devcon disable =USB @"USB\VID_0483&PID_3748\*"
+	devcon enable =USB @"$(ID)"
+
+%.uploadall: %.hex
+	$(foreach D,$(DEVCON_ALLDEVS), echo D IS "$(D)" && make devcon_enableonly ID="$(D)" && make $*.upload && ) echo "Done"
+	devcon enable =USB @"USB\VID_0483&PID_3748\*"
+
+login:
+	@echo "Connecting to $(COMPORT)"
+	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b115200 $(COMPORT)
+
+%.ramusage: %.$(TARGET)
+	$(NM) -S $< --size-sort --line-numbers | grep -v " T " | grep -v " t "
+%.romusage: %.$(TARGET)
+	$(NM) -S $< --size-sort --line-numbers | grep -v " b " | grep -v " B " | grep -v " d " | grep -v " D "
+
+
+
+

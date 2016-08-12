@@ -56,7 +56,7 @@
 
 //_____ M A C R O S ________________________________________________________
 
-#define USB_ETH_MTU	UIP_BUFSIZE+4
+#define USB_ETH_MTU (UIP_BUFSIZE + 4)
 
 
 /*! Hook Documentation

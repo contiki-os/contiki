@@ -28,7 +28,7 @@ LDFLAGS = $(COMMON)
 LDFLAGS += -Wl,-Map=$(PROJECT).map,--cref
 
 ## Intel Hex file production flags
-HEX_FLASH_FLAGS = -R .eeprom
+HEX_FLASH_FLAGS = -j .text -j .data 
 
 HEX_EEPROM_FLAGS = -j .eeprom
 HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"

@@ -1,4 +1,6 @@
-all: codeprop tunslip
+all: tunslip
+
+tunslip6: tools-utils.c tunslip6.c
 
 gitclean:
 	@git clean -d -x -n ..

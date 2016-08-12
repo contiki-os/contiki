@@ -1,17 +1,3 @@
-/**
- * \addtogroup rt
- * @{
- */
-
-/**
- * \file
- *         Implementation of the architecture-agnostic parts of the real-time timer module.
- * \author
- *         Adam Dunkels <adam@sics.se>
- *
- */
-
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
@@ -42,6 +28,19 @@
  *
  * This file is part of the Contiki operating system.
  *
+ */
+
+/**
+ * \file
+ *         Implementation of the architecture-agnostic parts of the real-time timer module.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *
+ */
+
+/**
+ * \addtogroup rt
+ * @{
  */
 
 #include "sys/rtimer.h"

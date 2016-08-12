@@ -68,7 +68,7 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
   /* Print out IP address of requesting host. */
 #if LOG_CONF_ENABLED
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   char buf[48];
   uint8_t j;
   j=httpd_cgi_sprint_ip6((uip_ip6addr_t)*requester, buf);
@@ -77,7 +77,7 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
   char buf[20];
   sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
                                 requester->u8[2], requester->u8[3]);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   log_message(buf, file);
 #endif /* LOG_CONF_ENABLED */

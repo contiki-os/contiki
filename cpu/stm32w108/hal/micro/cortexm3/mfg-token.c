@@ -50,10 +50,10 @@ void halInternalGetMfgTokenData(void *data, uint16_t ID, uint8_t index, uint8_t 
     MEMCOPY(ram, eui64, 8 /*EUI64_SIZE*/);
   } else {
     //read from the Information Blocks.  The token ID is only the
-    //bottom 16bits of the token's actual address.  Since the info blocks
-    //exist in the range DATA_BIG_INFO_BASE-DATA_BIG_INFO_END, we need
-    //to OR the ID with DATA_BIG_INFO_BASE to get the real address.
-    uint32_t realAddress = (DATA_BIG_INFO_BASE|ID) + (len*index);
+    //DATA_BIG_INFO_BASE-relative 16-bit offset of the token.  Since the
+    //info blocks exist in the range DATA_BIG_INFO_BASE-DATA_BIG_INFO_END,
+    //we need to add the ID to DATA_BIG_INFO_BASE to get the real address.
+    uint32_t realAddress = (DATA_BIG_INFO_BASE+ID) + (len*index);
     uint8_t *flash = (uint8_t *)realAddress;
 
 
@@ -77,7 +77,7 @@ void halInternalGetMfgTokenData(void *data, uint16_t ID, uint8_t index, uint8_t 
 void halInternalSetMfgTokenData(uint16_t token, void *data, uint8_t len)
 {
   StStatus flashStatus;
-  uint32_t realAddress = (DATA_BIG_INFO_BASE|token);
+  uint32_t realAddress = (DATA_BIG_INFO_BASE+token);
   uint8_t * flash = (uint8_t *)realAddress;
   uint32_t i;
   

@@ -75,7 +75,7 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
 	   -I$(CONTIKI_CPU)/dbg-io \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
-           -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
+           -DWITH_ASCII -DMCK=$(MCK) \
            -Wall $(ARCH_FLAGS) -g -D SUBTARGET=$(SUBTARGET)
 
 CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN

@@ -48,6 +48,7 @@
 
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_specific_request.h"
@@ -73,6 +74,13 @@
 #include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+
+#if UIP_CONF_IPV6_RPL
+// Include needs to be up here instead of embedded in the other
+// UIP_CONF_IPV6_RPL block, as doxygen seems not to be compatible with
+// #includes embedded in other functions and spits out a warning.
+#include "rpl.h"
+#endif
 
 #if JACKDAW_CONF_USE_SETTINGS
 #include "settings.h"
@@ -102,7 +110,7 @@ void menu_process(char c);
 extern char usb_busy;
 
 //! Counter for USB Serial port
-extern U8    tx_counter;
+extern U8 tx_counter;
 
 //! Timers for LEDs
 uint8_t led3_timer;
@@ -578,7 +586,6 @@ void menu_process(char c)
 
 
 #if UIP_CONF_IPV6_RPL
-#include "rpl.h"
 extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':
 			{	uint8_t i,j;
@@ -604,7 +611,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 				uip_ds6_route_t *route;
 		    for(route = uip_ds6_route_head();
 		        route != NULL;
-		        route = uip_ds6_route_next(r)) {
+		        route = uip_ds6_route_next(route)) {
 					ipaddr_add(&route->ipaddr);
 					PRINTF_P(PSTR("/%u (via "), route->length);
 					ipaddr_add(uip_ds6_route_nexthop(route));
@@ -753,7 +760,7 @@ uint16_t p=(uint16_t)&__bss_end;
 							radio_get_rssi_value(&RSSI);
 							RSSI*=3;
 #endif
-							maxRSSI[i-11]=Max(maxRSSI[i-11],RSSI);
+							maxRSSI[i-11]=MAX(maxRSSI[i-11],RSSI);
 							accRSSI[i-11]+=RSSI;
 						}
 						if(j&(1<<7)) {
@@ -774,7 +781,7 @@ uint16_t p=(uint16_t)&__bss_end;
 #endif
 					PRINTF_P(PSTR("\n"));
 					for(i=11;i<=26;i++) {
-						uint8_t activity=Min(maxRSSI[i-11],accRSSI[i-11]/(1<<7));
+						uint8_t activity=MIN(maxRSSI[i-11],accRSSI[i-11]/(1<<7));
 						PRINTF_P(PSTR(" %d: %02ddB "),i, -91+(maxRSSI[i-11]-1));
 						for(;activity--;maxRSSI[i-11]--) {
 							PRINTF_P(PSTR("#"));

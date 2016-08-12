@@ -1,9 +1,3 @@
-/**
- * \file
- * uIP DNS resolver code header file.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved. 
@@ -36,6 +30,13 @@
  *
  *
  */
+
+/**
+ * \file
+ * uIP DNS resolver code header file.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
 #ifndef RESOLV_H_
 #define RESOLV_H_
 
@@ -55,11 +56,6 @@
  * Event that is broadcasted when a DNS name has been resolved.
  */
 CCIF extern process_event_t resolv_event_found;
-
-/* Functions. */
-CCIF void resolv_conf(const uip_ipaddr_t * dnsserver);
-
-CCIF uip_ipaddr_t *resolv_getserver(void);
 
 enum {
   /** Hostname is fresh and usable. This response is cached and will eventually
@@ -94,6 +90,7 @@ enum {
 
 typedef uint8_t resolv_status_t;
 
+/* Functions. */
 CCIF resolv_status_t resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr);
 
 CCIF void resolv_query(const char *name);

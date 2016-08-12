@@ -47,8 +47,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <sys/types.h>
-#include <sys/select.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -75,6 +73,18 @@ static int should_print = 0;
 
 #define IP_HLEN 20
 
+/*---------------------------------------------------------------------------*/
+uint16_t
+uip_htons(uint16_t val)
+{
+  return UIP_HTONS(val);
+}
+/*---------------------------------------------------------------------------*/
+uint32_t
+uip_htonl(uint32_t val)
+{
+  return UIP_HTONL(val);
+}
 /*---------------------------------------------------------------------------*/
 static void
 print_packet(uint8_t *packet, int len)
@@ -289,8 +299,9 @@ serial_to_wpcap(FILE *inslip)
        */
 #define DEBUG_LINE_MARKER '\r'
       int ecode;
+
       ecode = check_ip(&uip.iphdr, inbufptr);
-      if(ecode < 0 && inbufptr == 8 && strncmp(uip.inbuf, "=IPA", 4) == 0) {
+      if(ecode < 0 && inbufptr == 8 && strncmp((const char*)uip.inbuf, "=IPA", 4) == 0) {
 	static struct in_addr ipa;
 
 	inbufptr = 0;
@@ -902,7 +913,7 @@ main(int argc, char **argv)
 	if(iphdr->ip_id != last_id) {
 	  last_id = iphdr->ip_id;
 	  /*	  printf("------ wpcap_poll ret %d\n", ret);*/
-	  print_packet(pbuf, ret);
+	  print_packet((uint8_t*)pbuf, ret);
 	  write_to_serial(slipfd, pbuf, ret);
 	  slip_flushbuf(slipfd);
 	  sigalarm_reset();

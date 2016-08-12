@@ -36,6 +36,7 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
 #ifndef CC2420_H_
@@ -45,6 +46,7 @@
 #include "dev/spi.h"
 #include "dev/radio.h"
 #include "cc2420_const.h"
+#include "lib/aes-128.h"
 
 int cc2420_init(void);
 
@@ -88,116 +90,6 @@ int cc2420_off(void);
 
 void cc2420_set_cca_threshold(int value);
 
-/************************************************************************/
-/* Additional SPI Macros for the CC2420 */
-/************************************************************************/
-/* Send a strobe to the CC2420 */
-#define CC2420_STROBE(s)                                   \
-  do {                                                  \
-    CC2420_SPI_ENABLE();                                \
-    SPI_WRITE(s);                                       \
-    CC2420_SPI_DISABLE();                               \
-  } while (0)
-
-/* Write to a register in the CC2420                         */
-/* Note: the SPI_WRITE(0) seems to be needed for getting the */
-/* write reg working on the Z1 / MSP430X platform            */
-#define CC2420_WRITE_REG(adr,data)                              \
-  do {                                                       \
-    CC2420_SPI_ENABLE();                                     \
-    SPI_WRITE_FAST(adr);                                     \
-    SPI_WRITE_FAST((uint8_t)((data) >> 8));                  \
-    SPI_WRITE_FAST((uint8_t)(data & 0xff));                  \
-    SPI_WAITFORTx_ENDED();                                   \
-    SPI_WRITE(0);                                            \
-    CC2420_SPI_DISABLE();                                    \
-  } while(0)
-
-/* Read a register in the CC2420 */
-#define CC2420_READ_REG(adr,data)                          \
-  do {                                                  \
-    CC2420_SPI_ENABLE();                                \
-    SPI_WRITE(adr | 0x40);                              \
-    data = (uint8_t)SPI_RXBUF;                          \
-    SPI_TXBUF = 0;                                      \
-    SPI_WAITFOREORx();                                  \
-    data = SPI_RXBUF << 8;                              \
-    SPI_TXBUF = 0;                                      \
-    SPI_WAITFOREORx();                                  \
-    data |= SPI_RXBUF;                                  \
-    CC2420_SPI_DISABLE();                               \
-  } while(0)
-
-#define CC2420_READ_FIFO_BYTE(data)                        \
-  do {                                                  \
-    CC2420_SPI_ENABLE();                                \
-    SPI_WRITE(CC2420_RXFIFO | 0x40);                    \
-    (void)SPI_RXBUF;                                    \
-    SPI_READ(data);                                     \
-    clock_delay(1);                                     \
-    CC2420_SPI_DISABLE();                               \
-  } while(0)
-
-#define CC2420_READ_FIFO_BUF(buffer,count)                                 \
-  do {                                                                  \
-    uint8_t i;                                                          \
-    CC2420_SPI_ENABLE();                                                \
-    SPI_WRITE(CC2420_RXFIFO | 0x40);                                    \
-    (void)SPI_RXBUF;                                                    \
-    for(i = 0; i < (count); i++) {                                      \
-      SPI_READ(((uint8_t *)(buffer))[i]);                               \
-    }                                                                   \
-    clock_delay(1);                                                     \
-    CC2420_SPI_DISABLE();                                               \
-  } while(0)
-
-#define CC2420_WRITE_FIFO_BUF(buffer,count)                                \
-  do {                                                                  \
-    uint8_t i;                                                          \
-    CC2420_SPI_ENABLE();                                                \
-    SPI_WRITE_FAST(CC2420_TXFIFO);                                           \
-    for(i = 0; i < (count); i++) {                                      \
-      SPI_WRITE_FAST(((uint8_t *)(buffer))[i]);                              \
-    }                                                                   \
-    SPI_WAITFORTx_ENDED();                                              \
-    CC2420_SPI_DISABLE();                                               \
-  } while(0)
-
-/* Write to RAM in the CC2420 */
-#define CC2420_WRITE_RAM(buffer,adr,count)                 \
-  do {                                                       \
-    uint8_t i;                                               \
-    CC2420_SPI_ENABLE();                                     \
-    SPI_WRITE_FAST(0x80 | ((adr) & 0x7f));                   \
-    SPI_WRITE_FAST(((adr) >> 1) & 0xc0);                     \
-    for(i = 0; i < (count); i++) {                           \
-      SPI_WRITE_FAST(((uint8_t*)(buffer))[i]);               \
-    }                                                        \
-    SPI_WAITFORTx_ENDED();                                   \
-    CC2420_SPI_DISABLE();                                    \
-  } while(0)
-
-/* Read from RAM in the CC2420 */
-#define CC2420_READ_RAM(buffer,adr,count)                    \
-  do {                                                       \
-    uint8_t i;                                               \
-    CC2420_SPI_ENABLE();                                     \
-    SPI_WRITE(0x80 | ((adr) & 0x7f));                        \
-    SPI_WRITE((((adr) >> 1) & 0xc0) | 0x20);                 \
-    SPI_RXBUF;                                               \
-    for(i = 0; i < (count); i++) {                           \
-      SPI_READ(((uint8_t*)(buffer))[i]);                     \
-    }                                                        \
-    CC2420_SPI_DISABLE();                                    \
-  } while(0)
-
-/* Read status of the CC2420 */
-#define CC2420_GET_STATUS(s)                       \
-  do {                                          \
-    CC2420_SPI_ENABLE();                        \
-    SPI_WRITE(CC2420_SNOP);                     \
-    s = SPI_RXBUF;                              \
-    CC2420_SPI_DISABLE();                       \
-  } while (0)
+extern const struct aes_128_driver cc2420_aes_128_driver;
 
 #endif /* CC2420_H_ */

@@ -31,27 +31,33 @@
 ; Author: Kajtar Zsolt <soci@c64.rulez.org>
 ;
 ;---------------------------------------------------------------------
-	.define F_IDE64 1	; support IDE64, 100 byte only
+.define	F_IDE64		1	; support IDE64, >= $0100 bytes only
 
-	.importzp    ptr1, ptr2
-	.import	     pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
-	.if	F_IDE64
-	.import      ide64_rwprepare, ide64_rwfinish
-	.endif	
-	.export	     _pfs_write
+	.importzp	ptr1, ptr2
+	.import		pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
+.if	F_IDE64
+	.import		ide64_rwprepare, ide64_rwfinish
+.endif
+
+	.export		_pfs_write
 ;---------------------------------------------------------------------
-F_NBLK		= $40
-ST		= $90	;status
-CHKOUT		= $FFC9
-CLRCHN		= $FFCC
-CHROUT		= $FFD2
-WRITE		= $DEF1
+F_NBLK	=	%01000000	;block read/write not available
+
+ST	:=	$90		;status
+
+; IDEDOS function
+WRITE	:=	$DEF1
+
+; Kernal functions
+CHKOUT	:=	$FFC9
+CLRCHN	:=	$FFCC
+CHROUT	:=	$FFD2
 ;---------------------------------------------------------------------
 	.code
 
-error5: jsr     CLRCHN		; clrchn
+error5: jsr     CLRCHN
 
-error2:	ldx	#255
+error2:	ldx	#>-1
 	txa
 	rts
 
@@ -59,8 +65,8 @@ error2:	ldx	#255
         jsr     pfs_rwcommon    ; pop params, check handle
         beq	error2		; not open
 
-	.if	F_IDE64
-	asl
+.if	F_IDE64
+	asl	a
         bmi     nblk		; no block operation
 
         jsr     CHKOUT
@@ -70,7 +76,7 @@ error2:	ldx	#255
         jsr     ide64_rwprepare
         bcs     norm
 
-        ; write
+        ; do a block write
         jsr     WRITE
         bcs     nosup
         jmp     ide64_rwfinish
@@ -98,10 +104,9 @@ norm:	ldy	#0
 	lda	ST
 	beq	@L3
         bne     error5          ; bail out on errors
-@L2:
 
-        ; Wrote all chars, close the output channel
-        jsr     CLRCHN
+        ; Wrote all chars.; cancel the output channel
+@L2:    jsr     CLRCHN
 
         ; Return the number of chars written
         jmp     pfs_rwcommonend

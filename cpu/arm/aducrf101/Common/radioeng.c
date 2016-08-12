@@ -49,7 +49,7 @@
 #define RADIO_SPI_CLK_FREQ      4000000     // 4 MHz SPI CLK for radio interface
 #define SYSTEM_UCLK             16000000    // 16 MHz UCLK
 // Default Radio Parameters
-#define DEFAULT_CHNL_FREQ       915000000        
+#define DEFAULT_CHNL_FREQ       915000000
 #define FREQ_CNVRT_VAL          0.00252061538
 // Defines for radio memory mapped areas
 #define PACKETRAM_START        0x10
@@ -68,14 +68,14 @@
 #define MCR_rssi_readback_Adr          0x312
 #define MCR_gpio_configure_Adr         0x3fa
 #define MCR_ext_uc_clk_divide_Adr      0x32e
-#define MCR_interrupt_source_0_Adr     0x336  
+#define MCR_interrupt_source_0_Adr     0x336
 #define MCR_interrupt_source_1_Adr     0x337
 
 // Macros for manual GPIO checking of Radio MISO pin P2.0 (SPI0)
-#define RADIO_MISO_IN        GP2IN_IN0_BBA 
+#define RADIO_MISO_IN        GP2IN_IN0_BBA
 // Macros for manual GPIO control of P2.3 (Radio SPI CS) (SPI0)
-#define RADIO_CSN_DEASSERT   (pADI_GP2->GPSET = GP2SET_SET3) 
-#define RADIO_CSN_ASSERT     (pADI_GP2->GPCLR = GP2CLR_CLR3) 
+#define RADIO_CSN_DEASSERT   (pADI_GP2->GPSET = GP2SET_SET3)
+#define RADIO_CSN_ASSERT     (pADI_GP2->GPCLR = GP2CLR_CLR3)
 // Macros for Sending\Receiving single bytes via SPI
 #define SEND_SPI(x)   pADI_SPI0->SPITX = x
 #define WAIT_SPI_RX   while((pADI_SPI0->SPISTA & SPISTA_RXFSTA_MSK) == 0x0);
@@ -92,7 +92,7 @@
 /*************************************************************************/
 /*                     Radio Command Codes                               */
 /*************************************************************************/
-typedef enum  
+typedef enum
 {
    CMD_SYNC        = 0xA2, // Synchronizatio
    CMD_PHY_OFF     = 0xB0, // Transition to state PHY_OFF
@@ -137,54 +137,54 @@ typedef enum
 /*************************************************************************/
 /*                        Radio Configuration Structure                  */
 /*************************************************************************/
-/** 
+/**
     \internal Hide from Doxegen
     \var TyRadioConfiguration
  **/
 typedef struct
 {
-    RIE_U8 interrupt_mask_0_r;           // 0x100 
-    RIE_U8 cfg_101_r;                    // 0x101 
-    RIE_U8 cfg_102_r;                    // 0x102 
-    RIE_U8 cfg_103_r;                    // 0x103 
-    RIE_U8 cfg_104_r;                    // 0x104 
-    RIE_U8 cfg_105_r;                    // 0x105 
-    RIE_U8 cfg_106_r;                    // 0x106 
-    RIE_U8 cfg_107_r;                    // 0x107 
-    RIE_U8 cfg_108_r;                    // 0x108 
-    RIE_U8 channel_freq_0_r;             // 0x109 
-    RIE_U8 channel_freq_1_r;             // 0x10A 
-    RIE_U8 channel_freq_2_r;             // 0x10B 
-    RIE_U8 cfg_10C_r;                    // 0x10C 
-    RIE_U8 cfg_10D_r;                    // 0x10D 
-    RIE_U8 cfg_10E_r;                    // 0x10E 
-    RIE_U8 cfg_10F_r;                    // 0x10F 
-    RIE_U8 cfg_110_r;                    // 0x110 
-    RIE_U8 cfg_111_r;                    // 0x111 
-    RIE_U8 cfg_112_r;                    // 0x112 
-    RIE_U8 cfg_113_r;                    // 0x113 
-    RIE_U8 radio_cfg_8_r;                // 0x114 
-    RIE_U8 radio_cfg_9_r;                // 0x115 
-    RIE_U8 cfg_116_r;                    // 0x116 
-    RIE_U8 cfg_117_r;                    // 0x117 
-    RIE_U8 image_reject_cal_phase_r;     // 0x118 
-    RIE_U8 image_reject_cal_amplitude_r; // 0x119 
-    RIE_U8 cfg_11A_r;                    // 0x11A 
-    RIE_U8 cfg_11B_r;                    // 0x11B 
-    RIE_U8 symbol_mode_r;                // 0x11C 
-    RIE_U8 cfg_11D_r;                    // 0x11D 
-    RIE_U8 cfg_11E_r;                    // 0x11E 
-    RIE_U8 cfg_11F_r;                    // 0x11F 
-    RIE_U8 cfg_120_r;                    // 0x120 
-    RIE_U8 cfg_121_r;                    // 0x121 
-    RIE_U8 cfg_122_r;                    // 0x122 
-    RIE_U8 cfg_123_r;                    // 0x123 
-    RIE_U8 tx_base_adr_r;                // 0x124 
-    RIE_U8 rx_base_adr_r;                // 0x125 
-    RIE_U8 packet_length_control_r;      // 0x126 
-    RIE_U8 packet_length_max_r;          // 0x127 
-    RIE_U8 cfg_128_r;                    // 0x128 
-    RIE_U8 cfg_129_r;                    // 0x129 
+    RIE_U8 interrupt_mask_0_r;           // 0x100
+    RIE_U8 cfg_101_r;                    // 0x101
+    RIE_U8 cfg_102_r;                    // 0x102
+    RIE_U8 cfg_103_r;                    // 0x103
+    RIE_U8 cfg_104_r;                    // 0x104
+    RIE_U8 cfg_105_r;                    // 0x105
+    RIE_U8 cfg_106_r;                    // 0x106
+    RIE_U8 cfg_107_r;                    // 0x107
+    RIE_U8 cfg_108_r;                    // 0x108
+    RIE_U8 channel_freq_0_r;             // 0x109
+    RIE_U8 channel_freq_1_r;             // 0x10A
+    RIE_U8 channel_freq_2_r;             // 0x10B
+    RIE_U8 cfg_10C_r;                    // 0x10C
+    RIE_U8 cfg_10D_r;                    // 0x10D
+    RIE_U8 cfg_10E_r;                    // 0x10E
+    RIE_U8 cfg_10F_r;                    // 0x10F
+    RIE_U8 cfg_110_r;                    // 0x110
+    RIE_U8 cfg_111_r;                    // 0x111
+    RIE_U8 cfg_112_r;                    // 0x112
+    RIE_U8 cfg_113_r;                    // 0x113
+    RIE_U8 radio_cfg_8_r;                // 0x114
+    RIE_U8 radio_cfg_9_r;                // 0x115
+    RIE_U8 cfg_116_r;                    // 0x116
+    RIE_U8 cfg_117_r;                    // 0x117
+    RIE_U8 image_reject_cal_phase_r;     // 0x118
+    RIE_U8 image_reject_cal_amplitude_r; // 0x119
+    RIE_U8 cfg_11A_r;                    // 0x11A
+    RIE_U8 cfg_11B_r;                    // 0x11B
+    RIE_U8 symbol_mode_r;                // 0x11C
+    RIE_U8 cfg_11D_r;                    // 0x11D
+    RIE_U8 cfg_11E_r;                    // 0x11E
+    RIE_U8 cfg_11F_r;                    // 0x11F
+    RIE_U8 cfg_120_r;                    // 0x120
+    RIE_U8 cfg_121_r;                    // 0x121
+    RIE_U8 cfg_122_r;                    // 0x122
+    RIE_U8 cfg_123_r;                    // 0x123
+    RIE_U8 tx_base_adr_r;                // 0x124
+    RIE_U8 rx_base_adr_r;                // 0x125
+    RIE_U8 packet_length_control_r;      // 0x126
+    RIE_U8 packet_length_max_r;          // 0x127
+    RIE_U8 cfg_128_r;                    // 0x128
+    RIE_U8 cfg_129_r;                    // 0x129
     RIE_U8 cfg_12A_r;                    // 0x12A
     RIE_U8 cfg_12B_r;                    // 0x12B
     RIE_U8 cfg_12C_r;                    // 0x12C
@@ -205,14 +205,14 @@ typedef struct
     RIE_U8 cfg_13B_r;                    // 0x13B
     RIE_U8 cfg_13C_r;                    // 0x13C
     RIE_U8 cfg_13D_r;                    // 0x13D
-    RIE_U8 cfg_13E_r;                    // 0x13E 
-    RIE_U8 cfg_13F_r;                    // 0x13F 
+    RIE_U8 cfg_13E_r;                    // 0x13E
+    RIE_U8 cfg_13F_r;                    // 0x13F
 } TyRadioConfiguration;
 /*************************************************************************/
 /*                        Radio Configuration Constants                  */
 /*************************************************************************/
-#define interrupt_mask_0_interrupt_tx_eof                (0x1 << 4) 
-#define interrupt_mask_0_interrupt_crc_correct           (0x1 << 2) 
+#define interrupt_mask_0_interrupt_tx_eof                (0x1 << 4)
+#define interrupt_mask_0_interrupt_crc_correct           (0x1 << 2)
 
 #define packet_length_control_length_offset_offset       (0)
 #define packet_length_control_length_offset_minus0       (0x4 << packet_length_control_length_offset_offset)
@@ -237,7 +237,7 @@ typedef struct
 #define radio_cfg_8_pa_power_setting_63                  (0xF << radio_cfg_8_pa_power_offset)
 #define radio_cfg_8_pa_ramp_numbits                      (3)
 #define radio_cfg_8_pa_ramp_offset                       (0)
-#define radio_cfg_8_pa_ramp_16                           (0x5 << radio_cfg_8_pa_ramp_offset) 
+#define radio_cfg_8_pa_ramp_16                           (0x5 << radio_cfg_8_pa_ramp_offset)
 
 #define radio_cfg_9_demod_scheme_offset                  (0)
 #define radio_cfg_9_demod_scheme_FSK                     (0x0  << radio_cfg_9_demod_scheme_offset)
@@ -256,13 +256,13 @@ typedef struct
 /*                Local Variables                                        */
 /*************************************************************************/
 static TyRadioConfiguration RadioConfiguration;
-static RIE_BOOL             bRadioConfigurationChanged    = RIE_FALSE; 
-static RIE_BOOL             bTestModeEnabled              = RIE_FALSE; 
-static RIE_U32              DataRate                      = 38400; 
+static RIE_BOOL             bRadioConfigurationChanged    = RIE_FALSE;
+static RIE_BOOL             bTestModeEnabled              = RIE_FALSE;
+static RIE_U32              DataRate                      = 38400;
 static volatile RIE_BOOL    bPacketTx                     = RIE_FALSE;
 static volatile RIE_BOOL    bPacketRx                     = RIE_FALSE;
 
-const RIE_U8 DR_38_4kbps_Dev20kHz_Configuration[] = 
+const RIE_U8 DR_38_4kbps_Dev20kHz_Configuration[] =
 {
    0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x00,0x76,0x62,0x21,
 
@@ -272,11 +272,11 @@ const RIE_U8 DR_38_4kbps_Dev20kHz_Configuration[] =
 
    0x40,0x0C,0x00,0x0C,0x00,0x00,
    0x10,0x00,0xC3,0x36,0x10,0x10,0x24,0xF0,0x2A,0x00,0x2F,0x19,0x5E,0x46,0x5F,0x78,
-   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 
+   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
 
-const RIE_U8 DR_300_0kbps_Dev75_0kHz_Configuration[] = 
+const RIE_U8 DR_300_0kbps_Dev75_0kHz_Configuration[] =
 {
    0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x00,0x76,0x62,0x21,
 
@@ -291,7 +291,7 @@ const RIE_U8 DR_300_0kbps_Dev75_0kHz_Configuration[] =
 
 
 
-const RIE_U8 DR_1_0kbps_Dev10_0kHz_Configuration[] = 
+const RIE_U8 DR_1_0kbps_Dev10_0kHz_Configuration[] =
 {
    0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x00,0x76,0x62,0x21,
 //   0    1    2    3    4    5    6    7    8    9    A    B
@@ -312,8 +312,8 @@ static RIE_Responses RadioSendCommandBytes      (RIE_U8 *         pCmdBytes,
                                                  RIE_U8           NumBytes);
 static RIE_Responses RadioSendCommandNoWait     (Radio_CmdCodes   CmdCode);
 static RIE_Responses RadioSendCommandWait       (Radio_CmdCodes   CmdCode);
-static RIE_Responses RadioMMapRead              (RIE_U32          ulAdr, 
-                                                 RIE_U32          ulLen, 
+static RIE_Responses RadioMMapRead              (RIE_U32          ulAdr,
+                                                 RIE_U32          ulLen,
                                                  RIE_U8 *         pData);
 static RIE_Responses RadioMMapWrite             (RIE_U32          ulAdr,
                                                  RIE_U32          ulLen,
@@ -337,7 +337,7 @@ static RIE_Responses RadioWaitOnCmdLdr          (void);
    @brief Return the Radio Interface Engine API Version
    @param pVersion :{}
       pVersion Storage for Radio Interface Engine API version.
-   @code    
+   @code
       RIE_U32 Version;
       Response = RadioGetAPIVersion(&Version);
    @endcode
@@ -361,8 +361,8 @@ RIE_Responses RadioGetAPIVersion(RIE_U32 *pVersion)
       - DR_1_0kbps_Dev10_0kHz  Base configuration of 1 kbps datarate, 10.0 kHz frequency deviation.
       - DR_38_4kbps_Dev20kHz  Base configuration of 38.4 kbps datarate, 20 kHz frequency deviation.
       - DR_300_0kbps_Dev75_0kHz  Base configuration of 300 kbps datarate, 75 kHz frequency deviation.
-   @pre    
-      RadioInit() must be called before this function is called. 
+   @pre
+      RadioInit() must be called before this function is called.
    @return RIE_Responses  Error code.
 **/
 
@@ -388,7 +388,7 @@ RIE_Responses RadioSwitchConfig(RIE_BaseConfigs BaseConfig)
       - DR_1_0kbps_Dev10_0kHz  Base configuration of 1 kbps datarate, 10.0 kHz frequency deviation.
       - DR_38_4kbps_Dev20kHz  Base configuration of 38.4 kbps datarate, 20 kHz frequency deviation.
       - DR_300_0kbps_Dev75_0kHz  Base configuration of 300 kbps datarate, 75 kHz frequency deviation.
-   @note    
+   @note
       This must be called before any other function is called.
    @return RIE_Responses  Error code.
 **/
@@ -401,13 +401,13 @@ RIE_Responses RadioInit(RIE_BaseConfigs BaseConfig)
    NVIC_DisableIRQ(UHFTRX_IRQn);
 
    // Initialise GPIO Port 2 for Radio Use
-   pADI_GP2->GPCON   =  GP2CON_CON0_SPI0MISO  | GP2CON_CON1_SPI0SCLK | 
-                        GP2CON_CON2_SPI0MOSI  | GP2CON_CON3_GPIO     | 
+   pADI_GP2->GPCON   =  GP2CON_CON0_SPI0MISO  | GP2CON_CON1_SPI0SCLK |
+                        GP2CON_CON2_SPI0MOSI  | GP2CON_CON3_GPIO     |
                         GP2CON_CON4_IRQ8      | GP2CON_CON5_GPIO     |
                         GP2CON_CON6_GPIO      | GP2CON_CON7_GPIOIRQ7;
 
-   pADI_GP2->GPOEN   =  GP2OEN_OEN0_IN        |  GP2OEN_OEN1_IN      |  
-                        GP2OEN_OEN2_IN        |  GP2OEN_OEN3_OUT     |  
+   pADI_GP2->GPOEN   =  GP2OEN_OEN0_IN        |  GP2OEN_OEN1_IN      |
+                        GP2OEN_OEN2_IN        |  GP2OEN_OEN3_OUT     |
                         GP2OEN_OEN4_IN        |  GP2OEN_OEN5_IN      |
                         GP2OEN_OEN6_IN        |  GP2OEN_OEN7_IN;
 
@@ -435,8 +435,8 @@ RIE_Responses RadioInit(RIE_BaseConfigs BaseConfig)
    // we enable the Cortex interrupt handling of it
    if(Response == RIE_Success)
       Response = RadioPowerOff();
-   // Configure a "high level" radio interrupt ... 
-   pADI_INTERRUPT->EI2CFG = EI2CFG_IRQ8MDE_HIGHLEVEL | EI2CFG_IRQ8EN;  
+   // Configure a "high level" radio interrupt ...
+   pADI_INTERRUPT->EI2CFG = EI2CFG_IRQ8MDE_HIGHLEVEL | EI2CFG_IRQ8EN;
    // ... and set it up in the NVIC so that our interrupt handler is called
    // when the radio wants our attention. Clear any pre-existing condition
    // before enabling the interrupt.
@@ -463,7 +463,7 @@ RIE_Responses RadioInit(RIE_BaseConfigs BaseConfig)
 /**
    @fn RIE_U32 RadioDeInit(void)
    @brief Deinitialise the Radio, and power it down.
-   @note    
+   @note
       This can be called independently of all other functions to power down
       the radio
    @return RIE_Responses  Error code.
@@ -477,13 +477,13 @@ RIE_Responses RadioDeInit(void)
    NVIC_DisableIRQ(UHFTRX_IRQn);
 
    // Initialise GPIO Port 2 for Radio Use
-   pADI_GP2->GPCON   =  GP2CON_CON0_SPI0MISO  | GP2CON_CON1_SPI0SCLK | 
-                        GP2CON_CON2_SPI0MOSI  | GP2CON_CON3_GPIO     | 
+   pADI_GP2->GPCON   =  GP2CON_CON0_SPI0MISO  | GP2CON_CON1_SPI0SCLK |
+                        GP2CON_CON2_SPI0MOSI  | GP2CON_CON3_GPIO     |
                         GP2CON_CON4_IRQ8      | GP2CON_CON5_GPIO     |
                         GP2CON_CON6_GPIO      | GP2CON_CON7_GPIOIRQ7;
 
-   pADI_GP2->GPOEN   =  GP2OEN_OEN0_IN        |  GP2OEN_OEN1_IN      |  
-                        GP2OEN_OEN2_IN        |  GP2OEN_OEN3_OUT     |  
+   pADI_GP2->GPOEN   =  GP2OEN_OEN0_IN        |  GP2OEN_OEN1_IN      |
+                        GP2OEN_OEN2_IN        |  GP2OEN_OEN3_OUT     |
                         GP2OEN_OEN4_IN        |  GP2OEN_OEN5_IN      |
                         GP2OEN_OEN6_IN        |  GP2OEN_OEN7_IN;
 
@@ -512,8 +512,8 @@ RIE_Responses RadioDeInit(void)
 
 /**
    @fn RIE_Responses RadioPowerOff(void)
-   @brief Shutdown the radio and place it in its lowest power sleep mode.	
-   @pre    
+   @brief Shutdown the radio and place it in its lowest power sleep mode.
+   @pre
       RadioInit() must be called before this function is called.
    @return RIE_Response  Error code.
 **/
@@ -532,14 +532,14 @@ RIE_Responses RadioPowerOff(void)
    return Response;
 }
 
-/** 
+/**
    @fn      RIE_Responses RadioTerminateRadioOp(void)
    @brief   Terminate a currently running radio RX or TX operation.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioRxPacketFixedLen(12);
-      // Delay for a while waiting for a packet   
+      // Delay for a while waiting for a packet
       if (RIE_Response == RIE_Success)
          {
          // Abort the waiting
@@ -557,15 +557,15 @@ RIE_Responses RadioTerminateRadioOp        (void)
    return Response;
 }
 
-/** 
+/**
    @fn RIE_Responses RadioSetFrequency(RIE_U32 Frequency)
    @brief Set frequency for radio communications
-   @param Frequency :{431000000-928000000} 
-      - This must be within the available bands of the radio: 
-         - 431000000Hz to 464000000Hz and 
+   @param Frequency :{431000000-928000000}
+      - This must be within the available bands of the radio:
+         - 431000000Hz to 464000000Hz and
          - 862000000Hz to 928000000Hz.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioSetFrequency(915000000);
    @endcode
@@ -584,18 +584,18 @@ RIE_Responses RadioSetFrequency(RIE_U32 Frequency)
    RadioConfiguration.channel_freq_2_r  = (EncodedFrequency >> 16)& 0xFF;
    if (Frequency >= 862000000)
       {
-      RadioConfiguration.image_reject_cal_amplitude_r   = 0x07; 
+      RadioConfiguration.image_reject_cal_amplitude_r   = 0x07;
       RadioConfiguration.image_reject_cal_phase_r       = 0x16;
       }
    else
       {
-      RadioConfiguration.image_reject_cal_amplitude_r   = 0x03; 
+      RadioConfiguration.image_reject_cal_amplitude_r   = 0x03;
       RadioConfiguration.image_reject_cal_phase_r       = 0x08;
       }
    return Response;
 }
 
-/** 
+/**
    @fn RIE_Responses RadioSetModulationType(RIE_ModulationTypes ModulationType)
    @brief Set the Radio Transmitter Modulation Type. Can be FSK_Modulation or GFSK_Modulation.
    @param ModulationType :{DR_1_0kbps_Dev10_0kHz , DR_38_4kbps_Dev20kHz ,DR_300_0kbps_Dev75_0kHz }
@@ -603,7 +603,7 @@ RIE_Responses RadioSetFrequency(RIE_U32 Frequency)
       - DR_38_4kbps_Dev20kHz  Base configuration of 38.4 kbps datarate, 20 kHz frequency deviation.
       - DR_300_0kbps_Dev75_0kHz  Base configuration of 300 kbps datarate, 75 kHz frequency deviation.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       Response = RadioSetModulationType(GFSK_Modulation);
    @endcode
    @note   FSK_Modulation is used by default.
@@ -636,31 +636,31 @@ RIE_Responses RadioSetModulationType(RIE_ModulationTypes ModulationType)
       if (ucNewRegVal != RadioConfiguration.radio_cfg_9_r )
          {
          bRadioConfigurationChanged        = RIE_TRUE;
-         RadioConfiguration.radio_cfg_9_r  = ucNewRegVal; 
+         RadioConfiguration.radio_cfg_9_r  = ucNewRegVal;
          }
 
       }
    return Response;
 }
 
-/** 
-    @fn    RIE_Responses RadioPayldManchesterEncode(RIE_BOOL bEnable)  
+/**
+    @fn    RIE_Responses RadioPayldManchesterEncode(RIE_BOOL bEnable)
     @brief Enable or Disable Manchester Encoding of payload data.
 
-           Manchester encoding can be used to ensure a dc-free (zero mean) 
-           transmission. 
+           Manchester encoding can be used to ensure a dc-free (zero mean)
+           transmission.
 
-           A Binary 0 is mapped to 10, and a Binary 1 is mapped to 01. 
+           A Binary 0 is mapped to 10, and a Binary 1 is mapped to 01.
 
-           Manchester encoding and decoding are applied to the payload data 
-           and the CRC. 
-     
+           Manchester encoding and decoding are applied to the payload data
+           and the CRC.
+
     @param  bEnable :{RIE_FALSE,RIE_TRUE}
-         - RIE_TRUE if Manchester Encoding is to be enabled. 
+         - RIE_TRUE if Manchester Encoding is to be enabled.
          - RIE_FALSE if disabled.
 
     @pre     RadioInit() must be called before this function is called.
-     @code    
+     @code
              Response = RadioPayldManchesterEncode(RIE_TRUE);
 
      @endcode
@@ -689,37 +689,37 @@ RIE_Responses RadioPayldManchesterEncode(RIE_BOOL bEnable)
       if (ucNewRegVal != RadioConfiguration.symbol_mode_r )
          {
          bRadioConfigurationChanged        = RIE_TRUE;
-         RadioConfiguration.symbol_mode_r  = ucNewRegVal; 
+         RadioConfiguration.symbol_mode_r  = ucNewRegVal;
          }
       }
    return Response;
 }
-/** 
+/**
     @fn      RIE_Responses RadioPayldDataWhitening(RIE_BOOL bEnable)
-    @brief   Enable or Disable Data Whitening of payload data.  
+    @brief   Enable or Disable Data Whitening of payload data.
 
              Data whitening can be employed to avoid long runs of 1s or 0s
-             in the transmitted data stream. 
+             in the transmitted data stream.
 
-             This ensures sufficient bit transitions in the packet, which 
-             aids in receiver clock and data recovery because the encoding 
-             breaks up long runs of 1s or 0s in the transmit packet. 
+             This ensures sufficient bit transitions in the packet, which
+             aids in receiver clock and data recovery because the encoding
+             breaks up long runs of 1s or 0s in the transmit packet.
 
              The data, excluding the preamble and sync word, is automatically
-             whitened before transmission by XORing the data with an 8-bit 
-             pseudorandom sequence. 
+             whitened before transmission by XORing the data with an 8-bit
+             pseudorandom sequence.
 
-             At the receiver, the data is XORed with the same pseudorandom 
-             sequence, thereby reversing the whitening. 
+             At the receiver, the data is XORed with the same pseudorandom
+             sequence, thereby reversing the whitening.
 
              The linear feedback shift register polynomial used is x7 + x1 + 1.
 
     @param  bEnable :{RIE_FALSE, RIE_TRUE}
-         - RIE_TRUE if Manchester Encoding is to be enabled. 
+         - RIE_TRUE if Manchester Encoding is to be enabled.
          - RIE_FALSE if disabled.
 
     @pre     RadioInit() must be called before this function is called.
-    @code    
+    @code
              Response = RadioPayldDataWhitening(RIE_TRUE);
 
      @endcode
@@ -748,19 +748,19 @@ RIE_Responses RadioPayldDataWhitening(RIE_BOOL bEnable)
       if (ucNewRegVal != RadioConfiguration.symbol_mode_r )
          {
          bRadioConfigurationChanged        = RIE_TRUE;
-         RadioConfiguration.symbol_mode_r  = ucNewRegVal; 
+         RadioConfiguration.symbol_mode_r  = ucNewRegVal;
          }
       }
    return Response;
 }
 
-/** 
-   @fn     RIE_Responses RadioTxPacketFixedLen(RIE_U8 Len, RIE_U8 *pData)    
-   @brief  Transmit a fixed length packet. 
+/**
+   @fn     RIE_Responses RadioTxPacketFixedLen(RIE_U8 Len, RIE_U8 *pData)
+   @brief  Transmit a fixed length packet.
    @param  Len :{1-240}   Length of packet to be transmitted.
    @param  pData :{} Data bytes to be transmitted.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioTxSetPA(DifferentialPA,PowerLevel15);
       if (RIE_Response == RIE_Success)
@@ -795,13 +795,13 @@ RIE_Responses RadioTxPacketFixedLen(RIE_U8 Len, RIE_U8 *pData)
    return Response;
 }
 
-/** 
-   @fn     RIE_Responses RadioTxPacketVariableLen(RIE_U8 Len, RIE_U8 *pData)    
-   @brief  Transmit a Variable length packet. 
+/**
+   @fn     RIE_Responses RadioTxPacketVariableLen(RIE_U8 Len, RIE_U8 *pData)
+   @brief  Transmit a Variable length packet.
    @param  Len :{1-240}   Length of packet to be transmitted.
    @param  pData :{} Data bytes to be transmitted.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioTxSetPA(DifferentialPA,PowerLevel15);
       if (RIE_Response == RIE_Success)
@@ -841,12 +841,12 @@ RIE_Responses RadioTxPacketVariableLen(RIE_U8 Len, RIE_U8 *pData)
 }
 
 
-/** 
-   @fn    RIE_BOOL RadioTxPacketComplete(void)  
+/**
+   @fn    RIE_BOOL RadioTxPacketComplete(void)
    @brief Checks if a packet has finished transmitting
    @pre     RadioInit() must be called before this function is called.
    @pre     RadioRxPacketFixedLen() or equivalent should be called first.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioTxSetPA(DifferentialPA,PowerLevel15);
       if (RIE_Response == RIE_Success)
@@ -860,16 +860,16 @@ RIE_BOOL      RadioTxPacketComplete     (void)
    return bPacketTx;
 }
 
-/** 
-   @fn     RIE_Responses RadioTxSetPA(RIE_PATypes PAType,RIE_PAPowerLevel Power)    
-   @brief  Set PA Type and the Transmit Power Level for Radio Transmission. 
+/**
+   @fn     RIE_Responses RadioTxSetPA(RIE_PATypes PAType,RIE_PAPowerLevel Power)
+   @brief  Set PA Type and the Transmit Power Level for Radio Transmission.
    @param  PAType :{DifferentialPA, SingleEndedPA} Select Single Ended or Differential PA Type
    @param  Power :{PowerLevel0 ,PowerLevel1 ,PowerLevel2 ,PowerLevel3,
            PowerLevel4 ,PowerLevel5 ,PowerLevel6 ,PowerLevel7,
            PowerLevel8 ,PowerLevel9 ,PowerLevel10,PowerLevel11,
-           PowerLevel12,PowerLevel13,PowerLevel14,PowerLevel15} 
+           PowerLevel12,PowerLevel13,PowerLevel14,PowerLevel15}
    @pre    RadioInit() must be called before this function is called.
-   @code    
+   @code
              Response = RadioTxSetPA(SingleEndedPA,PowerLevel8);
    @endcode
    @note   Differential PA is enabled by default.
@@ -940,17 +940,17 @@ RIE_Responses RadioTxSetPA(RIE_PATypes PAType,RIE_PAPowerLevel Power)
       if (ucNewRegVal != RadioConfiguration.radio_cfg_8_r )
          {
          bRadioConfigurationChanged        = RIE_TRUE;
-         RadioConfiguration.radio_cfg_8_r  = ucNewRegVal; 
+         RadioConfiguration.radio_cfg_8_r  = ucNewRegVal;
          }
       }
    return Response;
 }
-/** 
+/**
    @fn      RIE_Responses RadioTxCarrier(void)
    @brief   Transmit a carrier tone
             using the current radio configuration.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       Response = RadioTxCarrier();
    @endcode
    @note   Terminate this mode by calling RadioTerminateRadioOp();
@@ -973,12 +973,12 @@ RIE_Responses RadioTxCarrier     (void)
       Response = RadioSendCommandWait(CMD_PHY_TX);
    return Response;
 }
-/** 
+/**
    @fn      RIE_Responses RadioTxPreamble(void)
    @brief   Transmit a pre-amble (alternating ones and zeros)
             using the current radio configuration.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       Response = RadioTxPreamble();
    @endcode
    @note   Terminate this mode by calling RadioTerminateRadioOp();
@@ -1002,14 +1002,14 @@ RIE_Responses RadioTxPreamble    (void)
    return Response;
 }
 
-/** 
+/**
    @fn     RIE_Responses RadioRxPacketFixedLen(RIE_U8 Len)
    @brief  Enter receive mode and wait for a packet to be received.
 
-      Radio will stay in Receive Mode until 
-         1) A packet is received. 
+      Radio will stay in Receive Mode until
+         1) A packet is received.
          2) User manually exits Receive Mode with a call to RadioTerminateRadioOp()
-     
+
    @param  Len :{1-240} Fixed Length of packet to be received.
    @pre     RadioInit() must be called before this function is called.
    @return  RIE_Responses  Error code
@@ -1036,14 +1036,14 @@ RIE_Responses RadioRxPacketFixedLen(RIE_U8 Len)
    return Response;
 }
 
-/** 
+/**
     @fn     RIE_Responses RadioRxPacketVariableLen(void)
     @brief  Enter receive mode and wait for a packet to be received.
 
-            Radio will stay in Receive Mode until 
-            1) A packet is received. 
+            Radio will stay in Receive Mode until
+            1) A packet is received.
             2) User manually exits Receive Mode with a call to RadioTerminateRadioOp()
-     
+
     @pre     RadioInit() must be called before this function is called.
     @return  RIE_Responses  Error code
 **/
@@ -1067,12 +1067,12 @@ RIE_Responses RadioRxPacketVariableLen(void)
    return Response;
 }
 
-/** 
-    @fn    RIE_BOOL RadioRxPacketAvailable(void)  
-    @brief Checks if a packet has been received.  
+/**
+    @fn    RIE_BOOL RadioRxPacketAvailable(void)
+    @brief Checks if a packet has been received.
     @pre   RadioInit() must be called before this function is called.
     @pre   RadioRxPacketFixedLen() or equivalent should be called first.
-     @code    
+     @code
            if (RIE_Response == RIE_Success)
               RIE_Response = RadioRxPacketFixedLen(12);
            if (RIE_Response == RIE_Success)
@@ -1095,7 +1095,7 @@ RIE_BOOL RadioRxPacketAvailable(void)
 
 }
 
-/** 
+/**
    @fn     RIE_Responses RadioRxPacketRead(RIE_U8 BufferLen,RIE_U8 *pPktLen,RIE_U8 *pData,RIE_S8 *pRSSIdBm)
    @brief  Read the packet that was received by the radio.
    @param  BufferLen :{1-240} Size of passed in buffer
@@ -1104,7 +1104,7 @@ RIE_BOOL RadioRxPacketAvailable(void)
    @param  pRSSIdBm :{}  RSSI of received packet in dBm.
    @pre    RadioInit() must be called before this function is called.
    @pre    RadioRxPacketFixedLen() or equivalent should be called first.
-   @code    
+   @code
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioRxPacketFixedLen(12);
       if (RIE_Response == RIE_Success)
@@ -1170,13 +1170,13 @@ RIE_Responses RadioRxPacketRead(RIE_U8 BufferLen,RIE_U8 *pPktLen,RIE_U8 *pData,R
    return Response;
 }
 
-/** 
+/**
    @fn      RIE_Responses RadioRxBERTestMode(void)
    @brief   Enter receiver Bit Error Rate (BER) test mode where the
              clock and data appear on GPIO pins.
              Clock on P0.6 and Data on P2.6
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       Response = RadioRxBERTestMode();
    @endcode
    @note   Terminate this mode by calling RadioTerminateRadioOp();
@@ -1187,7 +1187,7 @@ RIE_Responses RadioRxBERTestMode(void)
    RIE_Responses Response = RIE_Success;
    RIE_U8        Data;
    // Enables internal radio signals on external pins
-   // but overrides some of the standard GPIO muxed 
+   // but overrides some of the standard GPIO muxed
    // functionality (UART?)
    pADI_MISC->RFTST = 0x7E1;
 
@@ -1211,7 +1211,7 @@ RIE_Responses RadioRxBERTestMode(void)
    return Response;
 }
 
-/** 
+/**
     @internal Hide from Doxegen
     @fn       RIE_Responses RadioCommitRadioConfig(void)
     @brief    Configures the radio if any changes were made
@@ -1247,7 +1247,7 @@ static RIE_Responses RadioCommitRadioConfig(void)
       }
    return Response;
 }
-/** 
+/**
     @fn      RIE_Responses RadioReadState(RadioState *pState)
     @brief   Read the current state
     @param   pState      Pointer to return storage of state
@@ -1271,7 +1271,7 @@ static RIE_Responses RadioReadState(RadioState *pState)
    return Response;
 }
 
-/** 
+/**
     @fn      RIE_Responses RadioWaitOnState(RadioState FinalState)
     @brief   Wait for Final State to be reached
     @param   FinalState    State to wait on
@@ -1289,10 +1289,9 @@ static RIE_Responses  RadioWaitOnState(RadioState FinalState)
    return Response;
 }
 
-/** 
+/**
     @fn      RIE_Responses  RadioWaitOnCmdLdr(void)
     @brief   Wait for Final State to be reached
-    @param   FinalState    State to wait on
     @return  RIE_Responses  Error code
 **/
 static RIE_Responses  RadioWaitOnCmdLdr(void)
@@ -1307,7 +1306,7 @@ static RIE_Responses  RadioWaitOnCmdLdr(void)
          Response = RadioSPIXferByte(SPI_NOP,NULL);
       if (Response == RIE_Success)
          Response = RadioSPIXferByte(SPI_NOP,&StatusByte);
-      RADIO_CSN_DEASSERT; 
+      RADIO_CSN_DEASSERT;
       NVIC_EnableIRQ      (UHFTRX_IRQn);
       if ((Response == RIE_Success))
          if(StatusByte & STATUS_BYTE_CMD_READY)
@@ -1317,13 +1316,13 @@ static RIE_Responses  RadioWaitOnCmdLdr(void)
    return Response;
 }
 
-/** 
+/**
     @internal Hide from Doxegen
     @fn      RIE_Responses RadioToOnMode(void)
     @brief   Transition to On Mode
 
-             Handle all possible states that the radio could be in  
-             and brings it back to PHY_ON state                     
+             Handle all possible states that the radio could be in
+             and brings it back to PHY_ON state
     @param   None
     @return  RIE_Responses  Error code
 **/
@@ -1365,12 +1364,12 @@ static RIE_Responses RadioToOnMode(void)
        }
    return Response;
 }
-/** 
+/**
     @internal Hide from Doxegen
     @fn      RIE_Responses RadioToOffMode(void)
     @brief   Transition to Off Mode
 
-             Handle all possible states that the radio could be in 
+             Handle all possible states that the radio could be in
              and bring it back to PHY_OFF state.
 
     @param   None
@@ -1414,7 +1413,7 @@ static RIE_Responses RadioToOffMode(void)
        }
    return Response;
 }
-/** 
+/**
     @internal Hide from Doxegen
     @fn      RIE_Responses  RadioSyncComms       (void)
     @brief   Sync comms with the radio
@@ -1430,7 +1429,7 @@ static RIE_Responses  RadioSyncComms       (void)
       Response = RadioWaitOnCmdLdr();
    return Response;
 }
-/** 
+/**
     @fn      RIE_Responses  RadioWaitForPowerUp(void)
     @brief   Wake Up the Part
 
@@ -1444,7 +1443,7 @@ static RIE_Responses  RadioWaitForPowerUp(void)
    RIE_Responses  Response = RIE_Success;
    int            i        = 0x0;
    RADIO_CSN_ASSERT;
-   while (!RADIO_MISO_IN && (i < 1000)) 
+   while (!RADIO_MISO_IN && (i < 1000))
       i++;
    if (1000 == i)// Timed out waiting for MISO high?
       Response = RIE_RadioSPICommsFail;
@@ -1452,7 +1451,7 @@ static RIE_Responses  RadioWaitForPowerUp(void)
    return Response;
 }
 
-/** 
+/**
     \internal Hide from Doxegen
     \fn      void Ext_Int8_Handler(void)
     \brief   Radio Interrupt Handler
@@ -1482,7 +1481,7 @@ void Ext_Int8_Handler (void)
     // Clear the interrupt
     pADI_INTERRUPT->EICLR = EICLR_IRQ8;
 }
-/** 
+/**
     \internal Hide from Doxegen
     \fn      void RadioSPIXferByte(RIE_U8 ucByte,RIE_U8 *pData)
     \brief   Transfer a byte via SPI to the radio and optionally return
@@ -1504,13 +1503,13 @@ static RIE_Responses RadioSPIXferByte(RIE_U8 ucByte,RIE_U8 *pData)
       (void)READ_SPI;
    return Response;
 }
-/** 
+/**
     \internal Hide from Doxegen
     \fn      RIE_Responses RadioSendCommandBytes(RIE_U8 *pCmdBytes,RIE_U8 NumBytes)
     \brief   Send a complete command to the radio.
 
              It is neccessary to disable the radio interrupt when doing this
-             as a command in progress must finish before a radio interrupt 
+             as a command in progress must finish before a radio interrupt
              can be handled.
 
     \param   pCmdBytes Pointer to a number of bytes to be transferred.
@@ -1531,7 +1530,7 @@ static RIE_Responses RadioSendCommandBytes(RIE_U8 *pCmdBytes,RIE_U8 NumBytes)
 
    return Response;
 }
-/** 
+/**
     \internal Hide from Doxegen
     \fn      RIE_Responses RadioSendCommandNoWait        (Radio_CmdCodes CmdCode )
     \brief   Send a single byte command to the radio.
@@ -1543,7 +1542,7 @@ static RIE_Responses RadioSendCommandNoWait (Radio_CmdCodes CmdCode )
    RIE_U8 Command = (RIE_U8)CmdCode;
    return RadioSendCommandBytes(&Command,0x1);
 }
-/** 
+/**
     \internal Hide from Doxegen
     \fn      RIE_Responses RadioSendCommandWait        (Radio_CmdCodes CmdCode )
     \brief   Send a single byte command to the radio.
@@ -1561,7 +1560,7 @@ static RIE_Responses RadioSendCommandWait (Radio_CmdCodes CmdCode )
       Response = RadioSendCommandBytes(&Command,0x1);
    return Response;
 }
-/** 
+/**
     \fn      RIE_Responses RadioMMapRead(RIE_U32 ulAdr, RIE_U32 ulLen, RIE_U8 *pData)
     \brief   Read bytes from specified memory map address
     \param   ulAdr  Address to read at.
@@ -1575,7 +1574,7 @@ static RIE_Responses RadioMMapRead(RIE_U32 ulAdr, RIE_U32 ulLen, RIE_U8 *pData)
 
    NVIC_DisableIRQ(UHFTRX_IRQn);
    RADIO_CSN_ASSERT;
-   
+
    if(Response == RIE_Success) // Send first byte (SPI_MEMR_RD + Bytes)
       Response = RadioSPIXferByte(SPI_MEM_RD | ((ulAdr & 0x700) >> 8),NULL);
    if(Response == RIE_Success)// Send Second byte remainder of address
@@ -1589,7 +1588,7 @@ static RIE_Responses RadioMMapRead(RIE_U32 ulAdr, RIE_U32 ulLen, RIE_U8 *pData)
 
    return Response;
 }
-/** 
+/**
     \fn      RIE_Responses RadioMMapWrite(RIE_U32 ulAdr, RIE_U32 ulLen, RIE_U8 *pData)
     \brief   Read bytes from specified memory map address
     \param   ulAdr  Address to read at.
@@ -1615,7 +1614,7 @@ static RIE_Responses RadioMMapWrite(RIE_U32 ulAdr,RIE_U32   ulLen,RIE_U8 *  pDat
    return Response;
 }
 
-/** 
+/**
     \internal Hide from Doxegen
     \fn      void SetRadioConfiguration(void)
     \brief   Create a default radio configuration that all base configurations
@@ -1654,7 +1653,7 @@ static RIE_Responses SetRadioConfiguration(RIE_BaseConfigs BaseConfig)
       }
    return Response;
 }
-/** 
+/**
     @internal Hide from Doxegen
     @fn      RIE_Responses RadioConfigure       (void)
     @brief   Configure the Radio as per the current configuration
@@ -1666,8 +1665,8 @@ RIE_Responses RadioConfigure (void)
    if(Response == RIE_Success)
       Response = RadioToOffMode();
    if(Response == RIE_Success) // Write the configuration to the radio memory
-      Response = RadioMMapWrite(BBRAM_START, 
-                                sizeof(TyRadioConfiguration), 
+      Response = RadioMMapWrite(BBRAM_START,
+                                sizeof(TyRadioConfiguration),
                                 (RIE_U8 *)&RadioConfiguration);
    if(Response == RIE_Success) // Apply that configuration to the radio
       Response = RadioSendCommandWait(CMD_CONFIG_DEV);
@@ -1677,12 +1676,12 @@ RIE_Responses RadioConfigure (void)
 }
 
 
-/** 
+/**
    @fn     RIE_Responses RadioRadioGetRSSI (RIE_S8 *pRSSIdBm)
    @brief  Return a Received Signal Strength Indicator value
    @param  pRSSIdBm :{}  detected RSSI in dBm.
    @pre     RadioInit() must be called before this function is called.
-   @code    
+   @code
       RIE_S8 RSSIdBm;
       if (RIE_Response == RIE_Success)
          RIE_Response = RadioRadioGetRSSI(&RSSIdBm);
@@ -1700,7 +1699,7 @@ RIE_Responses RadioRadioGetRSSI (RIE_S8 *pRSSIdBm)
    if (Response == RIE_Success)
       Response = RadioSendCommandWait(CMD_GET_RSSI);
    if (Response == RIE_Success)
-      Response = RadioSyncComms(); // 
+      Response = RadioSyncComms(); //
    if (pRSSIdBm)
       {
       if (Response == RIE_Success)
@@ -1710,15 +1709,15 @@ RIE_Responses RadioRadioGetRSSI (RIE_S8 *pRSSIdBm)
    return Response;
 }
 
-/** 
-   @fn     RIE_Responses RadioTxSetPower(RIE_PAPowerLevel Power)    
-   @brief  Set the Transmit Power Level for Radio Transmission. 
+/**
+   @fn     RIE_Responses RadioTxSetPower(RIE_PAPowerLevel Power)
+   @brief  Set the Transmit Power Level for Radio Transmission.
    @param  Power :{PowerLevel0 ,PowerLevel1 ,PowerLevel2 ,PowerLevel3,
            PowerLevel4 ,PowerLevel5 ,PowerLevel6 ,PowerLevel7,
            PowerLevel8 ,PowerLevel9 ,PowerLevel10,PowerLevel11,
-           PowerLevel12,PowerLevel13,PowerLevel14,PowerLevel15} 
+           PowerLevel12,PowerLevel13,PowerLevel14,PowerLevel15}
    @pre    RadioInit() must be called before this function is called.
-   @code    
+   @code
       Response = RadioTxSetPower(PowerLevel8);
    @endcode
    @note   Max TX Power is used by default.
@@ -1783,7 +1782,7 @@ RIE_Responses RadioTxSetPower (RIE_PAPowerLevel Power)
          // Write directly to the MCR in this case and avoid a reconfigure
          if (Response == RIE_Success)
             Response = RadioMMapWrite(MCR_pa_level_mcr_Adr, 0x1, (RIE_U8 *)&ucNewRegVal);
-         RadioConfiguration.radio_cfg_8_r  = ucNewRegVal; 
+         RadioConfiguration.radio_cfg_8_r  = ucNewRegVal;
          }
       }
    return Response;

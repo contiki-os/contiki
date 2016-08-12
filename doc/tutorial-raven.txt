@@ -11,18 +11,18 @@ support on Atmel RAVEN hardware.
 
 
 \section toc Table of contents
-\ref introduction<br>
-\ref hardware<br>
-\ref software<br>
-\ref overview<br>
-\ref installation<br>
-\ref running<br>
-\ref advanced<br>
-\ref issues<br>
-\ref annex<br>
+\ref tutorial-raven-introduction <br>
+\ref hardware <br>
+\ref software <br>
+\ref overview <br>
+\ref installation <br>
+\ref running <br>
+\ref advanced <br>
+\ref issues <br>
+\ref annex <br>
 
 <HR>
-\section introduction Introduction
+\section tutorial-raven-introduction Introduction
 This tutorial explains how to run Contiki with IPv6 and 6lowpan
 support on Atmel RAVEN evaluation kit (ATAVRRZRAVEN) hardware. We
 present basic example system architecture and application scenarios,
@@ -419,7 +419,7 @@ is the one to the file you just modified and click on "Program".
 The third is to modify the default value in the code:
 
 \li Edit the file contiki-raven-main.c in the directory
-platform\avr-raven. You will see the MAC address set in a line like:
+platform\\avr-raven. You will see the MAC address set in a line like:
 
 \code
 /* Put default MAC address in EEPROM */
@@ -454,24 +454,24 @@ See the \ref usbstick documentation for more details about using Wireshark.
 
 One can use avrdude to load the binaries in Linux.
 
-\subsection advanced_hc01 Using HC01 Header Compression Scheme
-IETF Internet Draft draft-hui-6lowpan-hc-01 defines a stateful
-header compression mechanism (called HC01) which will soon
+\subsection advanced_hc06 Using HC06 Header Compression Scheme
+IETF Internet Draft draft-hui-6lowpan-hc-06 defines a stateful
+header compression mechanism (called HC06) which will soon
 deprecate the stateless header compression mechanism (called
-HC1) defined in RFC4944. HC01 is much more powerfull and flexible,
+HC1) defined in RFC4944. HC06 is much more powerfull and flexible,
 in particular it allows compression of some multicast addresses
 and of all global unicast addresses.
 
-Contiki is compiled by default with HC1 support. To use HC01
+Contiki is compiled by default with HC1 support. To use HC06
 instead, edit platform/xxx/contiki-conf.h (replace xxx with avr-raven,
 then avr-ravenusb.)
 and replace the line<BR>
 \code
-#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_CONF_COMPRESSION_HC1
+#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC1
 \endcode
 with
 \code
-#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_CONF_COMPRESSION_HC01
+#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 \endcode
 
 Recompile and load Contiki for both the RAVEN ATmega1284P and RZ USB 

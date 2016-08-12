@@ -46,7 +46,6 @@ import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.SimEventCentral.MoteCountListener;
-import org.contikios.cooja.dialogs.MessageList.MessageContainer;
 import org.contikios.cooja.interfaces.IPAddress;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.interfaces.RimeAddress;
@@ -128,8 +127,11 @@ public class AddressVisualizerSkin implements VisualizerSkin {
 
   private static String getMoteString(Mote mote) {
     IPAddress ipAddr = mote.getInterfaces().getIPAddress();
-    if (ipAddr != null && ipAddr.getIPString() != null) {
-      return ipAddr.getIPString();
+    if ((ipAddr != null) && (ipAddr.hasIP())) {
+      if (ipAddr.getLocalIP() == null) {
+        return "";
+      }
+      return ipAddr.getLocalIP().toString();
     }
 
     RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();

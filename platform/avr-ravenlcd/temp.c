@@ -58,7 +58,7 @@ static uint16_t temp_table_celcius[];
 static uint16_t temp_table_fahrenheit[];
 #else  /* !DOXYGEN */
 /** Celcius temperatures (ADC-value) from -15 to 60 degrees */
-static uint16_t temp_table_celcius[] PROGMEM = {
+static const uint16_t temp_table_celcius[] PROGMEM = {
     923,917,911,904,898,891,883,876,868,860,851,843,834,825,815,
     806,796,786,775,765,754,743,732,720,709,697,685,673,661,649,
     636,624,611,599,586,574,562,549,537,524,512,500,488,476,464,
@@ -68,7 +68,7 @@ static uint16_t temp_table_celcius[] PROGMEM = {
 };
 
 /** Fahrenheit temperatures (ADC-value) from 0 to 140 degrees */
-static uint16_t temp_table_fahrenheit[] PROGMEM = {
+static const uint16_t temp_table_fahrenheit[] PROGMEM = {
     938, 935, 932, 929, 926, 923, 920, 916, 913, 909, 906, 902, 898,
     894, 891, 887, 882, 878, 874, 870, 865, 861, 856, 851, 847, 842,
     837, 832, 827, 822, 816, 811, 806, 800, 795, 789, 783, 778, 772,
@@ -99,7 +99,7 @@ bool temp_initialized = false;
  *
  * \return                              EOF on error
  */
-static int find_temp(int16_t value, uint16_t* array, int count);
+static int find_temp(int16_t value, const uint16_t* array, int count);
 
 /*---------------------------------------------------------------------------*/
 
@@ -232,7 +232,7 @@ temp_get(temp_unit_t unit)
  *   \return         EOF on error
 */
 static int
-find_temp(int16_t value, uint16_t* array, int count)
+find_temp(int16_t value, const uint16_t* array, int count)
 {
     int i = 0;
     int table_val = 0;

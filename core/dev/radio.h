@@ -1,17 +1,3 @@
-/**
- * \addtogroup dev
- * @{
- */
-
-/**
- * \defgroup radio Radio API
- *
- * The radio API module defines a set of functions that a radio device
- * driver must implement.
- *
- * @{
- */
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -52,6 +38,20 @@
  *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup dev
+ * @{
+ */
+
+/**
+ * \defgroup radio Radio API
+ *
+ * The radio API module defines a set of functions that a radio device
+ * driver must implement.
+ *
+ * @{
  */
 
 #ifndef RADIO_H_
@@ -150,6 +150,12 @@ enum {
   /* Received signal strength indicator in dBm. */
   RADIO_PARAM_RSSI,
 
+  /* RSSI of the last received packet */
+  RADIO_PARAM_LAST_RSSI,
+
+  /* Link quality of the last received packet */
+  RADIO_PARAM_LAST_LINK_QUALITY,
+
   /*
    * Long (64 bits) address for the radio, which is used by the address filter.
    * The address is specified in network byte order.
@@ -158,6 +164,11 @@ enum {
    * it needs to be used with radio.get_object()/set_object().
    */
   RADIO_PARAM_64BIT_ADDR,
+
+  /* Last packet timestamp, of type rtimer_clock_t.
+   * Because this parameter value mat be larger than what fits in radio_value_t,
+   * it needs to be used with radio.get_object()/set_object(). */
+  RADIO_PARAM_LAST_PACKET_TIMESTAMP,
 
   /* Constants (read only) */
 
@@ -192,6 +203,7 @@ enum {
  */
 #define RADIO_RX_MODE_ADDRESS_FILTER   (1 << 0)
 #define RADIO_RX_MODE_AUTOACK          (1 << 1)
+#define RADIO_RX_MODE_POLL_MODE        (1 << 2)
 
 /**
  * The radio transmission mode controls whether transmissions should

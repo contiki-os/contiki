@@ -1,4 +1,5 @@
 http_http "http://"
+http_https "https://"
 http_200 "200 "
 http_301 "301 "
 http_302 "302 "
@@ -32,4 +33,4 @@ http_gif ".gif"
 http_jpg ".jpg"
 http_text ".text"
 http_txt ".txt"
-
+http_redirect "<body>Redirect to "

@@ -92,12 +92,13 @@ fixups	= * - fixup
 
 ;---------------------------------------------------------------------
 
-rxtxreg		:= $FF00	; High byte patched at runtime
-txcmd		:= $FF04	; High byte patched at runtime
-txlen		:= $FF06	; High byte patched at runtime
-isq		:= $FF08	; High byte patched at runtime
-packetpp	:= $FF0A	; High byte patched at runtime
-ppdata		:= $FF0C	; High byte patched at runtime
+; 3 most significant nibbles are fixed up at runtime
+rxtxreg		:= $FFF0
+txcmd		:= $FFF4
+txlen		:= $FFF6
+isq		:= $FFF8
+packetpp	:= $FFFA
+ppdata		:= $FFFC
 
 	.data
 
@@ -117,8 +118,9 @@ init:
 	ldy #$00
 
 	; Fixup address at location
-:	lda reg
-	eor (ptr),y		; Use XOR to support C64 RR-Net
+:	lda (ptr),y
+	and #$0F
+	eor reg			; Use XOR to support C64 RR-Net
 	sta (ptr),y
 	iny
 	lda reg+1

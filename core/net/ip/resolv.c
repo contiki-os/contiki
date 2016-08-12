@@ -1,34 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \defgroup uipdns uIP hostname resolver functions
- * @{
- *
- * The uIP DNS resolver functions are used to lookup a hostname and
- * map it to a numerical IP address. It maintains a list of resolved
- * hostnames that can be queried with the resolv_lookup()
- * function. New hostnames can be resolved using the resolv_query()
- * function.
- *
- * The event resolv_event_found is posted when a hostname has been
- * resolved. It is up to the receiving process to determine if the
- * correct hostname has been found by calling the resolv_lookup()
- * function with the hostname.
- */
-
-/**
- * \file
- *         DNS host name to IP address resolver.
- * \author Adam Dunkels <adam@dunkels.com>
- * \author Robert Quattlebaum <darco@deepdarc.com>
- *
- *         This file implements a DNS host name to IP address resolver,
- *         as well as an MDNS responder and resolver.
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved.
@@ -62,9 +31,41 @@
  *
  */
 
+/**
+ * \file
+ *         DNS host name to IP address resolver.
+ * \author Adam Dunkels <adam@dunkels.com>
+ * \author Robert Quattlebaum <darco@deepdarc.com>
+ *
+ *         This file implements a DNS host name to IP address resolver,
+ *         as well as an MDNS responder and resolver.
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \defgroup uipdns uIP hostname resolver functions
+ * @{
+ *
+ * The uIP DNS resolver functions are used to lookup a hostname and
+ * map it to a numerical IP address. It maintains a list of resolved
+ * hostnames that can be queried with the resolv_lookup()
+ * function. New hostnames can be resolved using the resolv_query()
+ * function.
+ *
+ * The event resolv_event_found is posted when a hostname has been
+ * resolved. It is up to the receiving process to determine if the
+ * correct hostname has been found by calling the resolv_lookup()
+ * function with the hostname.
+ */
+
 #include "net/ip/tcpip.h"
 #include "net/ip/resolv.h"
 #include "net/ip/uip-udp-packet.h"
+#include "net/ip/uip-nameserver.h"
 #include "lib/random.h"
 
 #ifndef DEBUG
@@ -110,6 +111,9 @@ strcasecmp(const char *s1, const char *s2)
   /* TODO: Add case support! */
   return strcmp(s1, s2);
 }
+#else
+int strcasecmp(const char *s1, const char *s2);
+int strncasecmp(const char *s1, const char *s2, size_t n);
 #endif /* __SDCC */
 
 #define UIP_UDP_BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -185,7 +189,7 @@ strcasecmp(const char *s1, const char *s2)
 #define DNS_TYPE_ANY  255
 #define DNS_TYPE_NSEC  47
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NATIVE_DNS_TYPE DNS_TYPE_AAAA /* IPv6 */
 #else
 #define NATIVE_DNS_TYPE DNS_TYPE_A    /* IPv4 */
@@ -227,20 +231,6 @@ struct dns_hdr {
   uint16_t numextrarr;
 };
 
-#define RESOLV_ENCODE_INDEX(i) (uip_htons(i+1))
-#define RESOLV_DECODE_INDEX(i) (unsigned char)(uip_ntohs(i-1))
-
-/** These default values for the DNS server are Google's public DNS:
- *  <https://developers.google.com/speed/public-dns/docs/using>
- */
-static uip_ipaddr_t resolv_default_dns_server =
-#if UIP_CONF_IPV6
-  { { 0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88 } };
-#else /* UIP_CONF_IPV6 */
-  { { 8, 8, 8, 8 } };
-#endif /* UIP_CONF_IPV6 */
-
 /** \internal The DNS answer message structure. */
 struct dns_answer {
   /* DNS answer record starts with either a domain name or a pointer
@@ -249,7 +239,7 @@ struct dns_answer {
   uint16_t class;
   uint16_t ttl[2];
   uint16_t len;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint8_t ipaddr[16];
 #else
   uint8_t ipaddr[4];
@@ -264,6 +254,7 @@ struct namemap {
 #define STATE_DONE   4
   uint8_t state;
   uint8_t tmr;
+  uint16_t id;
   uint8_t retries;
   uint8_t seqno;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
@@ -271,6 +262,7 @@ struct namemap {
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
   uip_ipaddr_t ipaddr;
   uint8_t err;
+  uint8_t server;
 #if RESOLV_CONF_SUPPORTS_MDNS
   int is_mdns:1, is_probe:1;
 #endif
@@ -315,13 +307,13 @@ enum {
 static uint8_t mdns_state;
 
 static const uip_ipaddr_t resolv_mdns_addr =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfb } };
 #include "net/ipv6/uip-ds6.h"
-#else  /* UIP_CONF_IPV6 */
+#else  /* NETSTACK_CONF_WITH_IPV6 */
   { { 224, 0, 0, 251 } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 static int mdns_needs_host_announce;
 
 PROCESS(mdns_probe_process, "mDNS probe");
@@ -405,7 +397,7 @@ dns_name_isequal(const unsigned char *queryptr, const char *name,
         return 0;
       }
 
-      if(tolower(*name++) != tolower(*queryptr++)) {
+      if(tolower((unsigned int)*name++) != tolower((unsigned int)*queryptr++)) {
         return 0;
       }
     }
@@ -506,15 +498,13 @@ start_name_collision_check(clock_time_t after)
 static unsigned char *
 mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
 {
-  struct dns_answer *ans;
-
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint8_t i;
 
   for(i = 0; i < UIP_DS6_ADDR_NB; ++i) {
     if(uip_ds6_if.addr_list[i].isused
 #if !RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS
-       && uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)
+       && uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)
 #endif
       ) {
       if(!*count) {
@@ -524,7 +514,6 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
         *queryptr++ = 0xc0;
         *queryptr++ = sizeof(struct dns_hdr);
       }
-      ans = (struct dns_answer *)queryptr;
 
       *queryptr++ = (uint8_t) ((NATIVE_DNS_TYPE) >> 8);
       *queryptr++ = (uint8_t) ((NATIVE_DNS_TYPE));
@@ -545,7 +534,9 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
       ++(*count);
     }
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
+  struct dns_answer *ans;
+
   queryptr = encode_name(queryptr, resolv_hostname);
   ans = (struct dns_answer *)queryptr;
   ans->type = UIP_HTONS(NATIVE_DNS_TYPE);
@@ -556,7 +547,7 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
   uip_gethostaddr((uip_ipaddr_t *) ans->ipaddr);
   queryptr = (unsigned char *)ans + sizeof(*ans);
   ++(*count);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   return queryptr;
 }
 /*---------------------------------------------------------------------------*/
@@ -585,25 +576,23 @@ mdns_prep_host_announce_packet(void)
       0x00,
       0x04,
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
       0x00,
       0x00,
       0x00,
       0x08,
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
       0x40,
       0x00,
       0x00,
       0x00,
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     }
   };
 
   unsigned char *queryptr;
 
   uint8_t total_answers = 0;
-
-  struct dns_answer *ans;
 
   /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
    * writing directly to the uint16_t members of this struct is an error. */
@@ -642,6 +631,21 @@ mdns_prep_host_announce_packet(void)
 }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 /*---------------------------------------------------------------------------*/
+static char
+try_next_server(struct namemap *namemapptr)
+{
+#if VERBOSE_DEBUG
+  printf("server %d\n", namemapptr->server);
+#endif
+  namemapptr->server++;
+  if(uip_nameserver_get(namemapptr->server) != NULL) {
+    namemapptr->retries = 0;
+    return 1;
+  }
+  namemapptr->server = 0;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Runs through the list of names to see if there are any that have
  * not yet been queried and, if so, sends out a query.
@@ -671,16 +675,20 @@ check_entries(void)
           if(++namemapptr->retries == RESOLV_CONF_MAX_RETRIES)
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
           {
-            /* STATE_ERROR basically means "not found". */
-            namemapptr->state = STATE_ERROR;
+            /* Try the next server (if possible) before failing. Otherwise
+               simply mark the entry as failed. */
+            if(try_next_server(namemapptr) == 0) {
+              /* STATE_ERROR basically means "not found". */
+              namemapptr->state = STATE_ERROR;
 
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
-            /* Keep the "not found" error valid for 30 seconds */
-            namemapptr->expiration = clock_seconds() + 30;
+              /* Keep the "not found" error valid for 30 seconds */
+              namemapptr->expiration = clock_seconds() + 30;
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
 
-            resolv_found(namemapptr->name, NULL);
-            continue;
+              resolv_found(namemapptr->name, NULL);
+              continue;
+            }
           }
           namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
 
@@ -703,7 +711,8 @@ check_entries(void)
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
-      hdr->id = RESOLV_ENCODE_INDEX(i);
+      hdr->id = random_rand();
+      namemapptr->id = hdr->id;
 #if RESOLV_CONF_SUPPORTS_MDNS
       if(!namemapptr->is_mdns || namemapptr->is_probe) {
         hdr->flags1 = DNS_FLAG1_RD;
@@ -751,7 +760,9 @@ check_entries(void)
       } else {
         uip_udp_packet_sendto(resolv_conn, uip_appdata,
                               (query - (uint8_t *) uip_appdata),
-                              &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
+                              (const uip_ipaddr_t *)
+                                uip_nameserver_get(namemapptr->server), 
+                              UIP_HTONS(DNS_PORT));
 
         PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
                namemapptr->name);
@@ -759,7 +770,8 @@ check_entries(void)
 #else /* RESOLV_CONF_SUPPORTS_MDNS */
       uip_udp_packet_sendto(resolv_conn, uip_appdata,
                             (query - (uint8_t *) uip_appdata),
-                            &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
+                            uip_nameserver_get(namemapptr->server), 
+                            UIP_HTONS(DNS_PORT));
       PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
              namemapptr->name);
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
@@ -774,11 +786,11 @@ check_entries(void)
 static void
 newdata(void)
 {
-  static uint8_t nquestions, nanswers;
+  uint8_t nquestions, nanswers;
 
-  static int8_t i;
+  int8_t i;
 
-  register struct namemap *namemapptr;
+  register struct namemap *namemapptr = NULL;
 
   struct dns_answer *ans;
 
@@ -863,7 +875,7 @@ newdata(void)
         }
         return;
       } else {
-        static uint8_t nauthrr;
+        uint8_t nauthrr;
         PRINTF("resolver: But we are still probing. Waiting...\n");
         /* We are still probing. We need to do the mDNS
          * probe race condition check here and make sure
@@ -903,10 +915,13 @@ newdata(void)
   } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
   {
-    /* The ID in the DNS header should be our entry into the name table. */
-    i = RESOLV_DECODE_INDEX(hdr->id);
-
-    namemapptr = &names[i];
+    for(i = 0; i < RESOLV_ENTRIES; ++i) {
+      namemapptr = &names[i];
+      if(namemapptr->state == STATE_ASKING &&
+         namemapptr->id == hdr->id) {
+        break;
+      }
+    }
 
     if(i >= RESOLV_ENTRIES || i < 0 || namemapptr->state != STATE_ASKING) {
       PRINTF("resolver: DNS response has bad ID (%04X) \n", uip_ntohs(hdr->id));
@@ -948,7 +963,7 @@ newdata(void)
 #endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
 #if VERBOSE_DEBUG
-    static char debug_name[40];
+    char debug_name[40];
     decode_name(queryptr, debug_name, uip_appdata);
     DEBUG_PRINTF("resolver: Answer %d: \"%s\", type %d, class %d, ttl %d, length %d\n",
                  ++i, debug_name, uip_ntohs(ans->type),
@@ -1042,11 +1057,28 @@ newdata(void)
     uip_ipaddr_copy(&namemapptr->ipaddr, (uip_ipaddr_t *) ans->ipaddr);
 
     resolv_found(namemapptr->name, &namemapptr->ipaddr);
+    break;
 
   skip_to_next_answer:
     queryptr = (unsigned char *)skip_name(queryptr) + 10 + uip_htons(ans->len);
     --nanswers;
   }
+
+  /* Got to this point there's no answer, try next nameserver if available
+     since this one doesn't know the answer */
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT) 
+      && hdr->id != 0)
+#else
+  if(nanswers == 0) 
+#endif
+  {
+    if(try_next_server(namemapptr)) {
+      namemapptr->state = STATE_ASKING;
+      process_post(&resolv_process, PROCESS_EVENT_TIMER, NULL);
+    }
+  }
+
 }
 /*---------------------------------------------------------------------------*/
 #if RESOLV_CONF_SUPPORTS_MDNS
@@ -1141,7 +1173,7 @@ PROCESS_THREAD(resolv_process, ev, data)
   PRINTF("resolver: Supports MDNS.\n");
   uip_udp_bind(resolv_conn, UIP_HTONS(MDNS_PORT));
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uip_ds6_maddr_add(&resolv_mdns_addr);
 #else
   /* TODO: Is there anything we need to do here for IPv4 multicast? */
@@ -1200,6 +1232,16 @@ PROCESS_THREAD(resolv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+  static uint8_t initialized = 0;
+  if(!initialized) {
+    process_start(&resolv_process, NULL);
+    initialized = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
 static const char *
 remove_trailing_dots(const char *name) {
@@ -1227,12 +1269,14 @@ remove_trailing_dots(const char *name) {
 void
 resolv_query(const char *name)
 {
-  static uint8_t i;
+  uint8_t i;
 
-  static uint8_t lseq, lseqi;
+  uint8_t lseq, lseqi;
 
   register struct namemap *nameptr = 0;
 
+  init();
+  
   lseq = lseqi = 0;
 
   /* Remove trailing dots, if present. */
@@ -1274,7 +1318,7 @@ resolv_query(const char *name)
   {
     size_t name_len = strlen(name);
 
-    static const char local_suffix[] = "local";
+    const char local_suffix[] = "local";
 
     if((name_len > (sizeof(local_suffix) - 1)) &&
        (0 == strcasecmp(name + name_len - (sizeof(local_suffix) - 1), local_suffix))) {
@@ -1306,7 +1350,7 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 {
   resolv_status_t ret = RESOLV_STATUS_UNCACHED;
 
-  static uint8_t i;
+  uint8_t i;
 
   struct namemap *nameptr;
 
@@ -1316,12 +1360,12 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 #if UIP_CONF_LOOPBACK_INTERFACE
   if(strcmp(name, "localhost")) {
     static uip_ipaddr_t loopback =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     { { 127, 0, 0, 1 } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(ipaddr) {
       *ipaddr = &loopback;
     }
@@ -1369,7 +1413,8 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 
 #if VERBOSE_DEBUG
   switch (ret) {
-  case RESOLV_STATUS_CACHED:{
+  case RESOLV_STATUS_CACHED:
+    if(ipaddr) {
       PRINTF("resolver: Found \"%s\" in cache.\n", name);
       const uip_ipaddr_t *addr = *ipaddr;
 
@@ -1393,31 +1438,6 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
-/**
- * Obtain the currently configured DNS server.
- *
- * \return A pointer to a 4-byte representation of the IP address of
- * the currently configured DNS server or NULL if no DNS server has
- * been configured.
- */
-uip_ipaddr_t *
-resolv_getserver(void)
-{
-  return &resolv_default_dns_server;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Configure a DNS server.
- *
- * \param dnsserver A pointer to a 4-byte representation of the IP
- * address of the DNS server to be configured.
- */
-void
-resolv_conf(const uip_ipaddr_t * dnsserver)
-{
-  uip_ipaddr_copy(&resolv_default_dns_server, dnsserver);
-}
-/*---------------------------------------------------------------------------*/
 /** \internal
  * Callback function which is called when a hostname is found.
  *
@@ -1428,7 +1448,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
 #if RESOLV_CONF_SUPPORTS_MDNS
   if(strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
      ipaddr
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
      && !uip_ds6_is_my_addr(ipaddr)
 #else
      && uip_ipaddr_cmp(&uip_hostaddr, ipaddr) != 0
@@ -1455,7 +1475,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
         val >>= 4;
         append_str[1] = (((val & 0xF) > 9) ? 'a' : '0') + (val & 0xF);
         strncat(resolv_hostname, append_str,
-                sizeof(resolv_hostname) - strlen(resolv_hostname));
+                sizeof(resolv_hostname) - strlen(resolv_hostname) - 1); /* -1 in order to fit the terminating null byte. */
       }
 
       /* Re-add the .local suffix */

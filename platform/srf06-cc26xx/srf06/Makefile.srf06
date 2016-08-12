@@ -1,0 +1,9 @@
+CFLAGS += -DBOARD_SMARTRF06EB=1
+
+CONTIKI_TARGET_DIRS += srf06
+
+BOARD_SOURCEFILES += leds-arch.c srf06-sensors.c button-sensor.c board.c
+BOARD_SOURCEFILES += als-sensor.c
+
+### Signal that we can be programmed with cc2538-bsl
+BOARD_SUPPORTS_BSL=1

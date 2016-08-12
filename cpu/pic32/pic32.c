@@ -35,7 +35,7 @@
  */
 
 /**
- * \addtogroup pic32-contiki-port PIC32 Contiki Port
+ * \addtogroup pic32 PIC32 Contiki Port
  *
  * @{
  */

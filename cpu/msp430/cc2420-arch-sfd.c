@@ -45,6 +45,8 @@ ISR(TIMERB1, cc2420_timerb1_interrupt)
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* always read TBIV to clear IFG */
   tbiv = TBIV;
+  /* read and discard tbiv to avoid "variable set but not used" warning */
+  (void)tbiv;
   if(CC2420_SFD_IS_1) {
     cc2420_sfd_counter++;
     cc2420_sfd_start_time = TBCCR1;

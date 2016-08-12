@@ -1,5 +1,5 @@
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538dk
  * @{
  *
  * \file
@@ -34,11 +34,17 @@ typedef uint32_t uip_stats_t;
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_DIFF(a,b)     ((int32_t)((a)-(b)))
 /** @} */
+/*---------------------------------------------------------------------------*/
+/* 352us from calling transmit() until the SFD byte has been sent */
+#define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(352))
+/* 192us as in datasheet but ACKs are not always received, so adjusted to 250us */
+#define RADIO_DELAY_BEFORE_RX     ((unsigned)US_TO_RTIMERTICKS(250))
+#define RADIO_DELAY_BEFORE_DETECT 0
 /*---------------------------------------------------------------------------*/
 /**
  * \name Serial Boot Loader Backdoor configuration
@@ -57,19 +63,14 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
 /*---------------------------------------------------------------------------*/
 /**
- * \name Flash Memory configuration
+ * \name CC2538 System Control configuration
  *
  * @{
  */
-#ifndef FLASH_CONF_ORIGIN
-#define FLASH_CONF_ORIGIN  0x00200000
-#endif
-
-#ifndef FLASH_CONF_SIZE
-#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1 /**< Use the on-board 32.768-kHz crystal */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -288,11 +289,11 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef NETSTACK_CONF_NETWORK
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
@@ -308,7 +309,6 @@ typedef uint32_t rtimer_clock_t;
 #define NULLRDC_802154_AUTOACK_HW               1
 
 /* Configure ContikiMAC for when it's selected */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define WITH_FAST_SLEEP                         1
 
@@ -317,8 +317,12 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_FRAMER  framer_802154
-#endif
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
 /** @} */
@@ -387,7 +391,7 @@ typedef uint32_t rtimer_clock_t;
  */
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#define IEEE802154_CONF_PANID           0xABCD
 #endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
@@ -414,11 +418,11 @@ typedef uint32_t rtimer_clock_t;
  */
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6                        0
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6                        0
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
@@ -442,14 +446,10 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ROUTER                      1
 #endif
 
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL                    1
-#endif
-
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -488,8 +488,8 @@ typedef uint32_t rtimer_clock_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
+  addr_contexts[0].prefix[0] = UIP_DS6_DEFAULT_PREFIX_0; \
+  addr_contexts[0].prefix[1] = UIP_DS6_DEFAULT_PREFIX_1; \
 }
 #endif
 
@@ -499,7 +499,7 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 /*---------------------------------------------------------------------------*/
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 
@@ -513,7 +513,25 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Security
+ *
+ * @{
+ */
+#ifndef CRYPTO_CONF_INIT
+#define CRYPTO_CONF_INIT        1 /**< Whether to init cryptoprocessor */
+#endif
+
+#ifndef AES_128_CONF
+#define AES_128_CONF            cc2538_aes_128_driver /**< AES-128 driver */
+#endif
+
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 

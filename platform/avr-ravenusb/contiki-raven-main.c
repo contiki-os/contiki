@@ -132,7 +132,7 @@ init(void)
 {
 }
 void mac_LowpanToEthernet(void);
-static void
+static int
 output(void)
 {
 //  if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
@@ -142,6 +142,7 @@ output(void)
     PRINTD("SUT: %u\n", uip_len);
     mac_LowpanToEthernet();  //bounceback trap is done in lowpanToEthernet
 //  }
+    return 0;
 }
 const struct uip_fallback_interface rpl_interface = {
   init, output
@@ -500,7 +501,7 @@ uint16_t p=(uint16_t)&__bss_end;
   //Fix MAC address
   init_net();
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &tmp_addr.u8, 8);
 #endif
 
@@ -552,7 +553,9 @@ uint16_t p=(uint16_t)&__bss_end;
 #else  /* RF230BB */
 /* The order of starting these is important! */
   process_start(&mac_process, NULL);
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 #endif /* RF230BB */
 
   /* Start ethernet network and storage process */

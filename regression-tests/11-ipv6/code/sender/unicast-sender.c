@@ -40,12 +40,12 @@ PROCESS_THREAD(udp_process, ev, data)
 
   PROCESS_BEGIN();
 
-  uip_ip6addr(&addr, 0xaaaa, 0, 0, 0, 0, 0, 0, 3);
+  uip_ip6addr(&addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 3);
   uip_ds6_addr_add(&addr, 0, ADDR_AUTOCONF);
 
   rpl_set_root(RPL_DEFAULT_INSTANCE, &addr);
   /*  dag = rpl_get_any_dag();
-  uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&prefix, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   rpl_set_prefix(dag, &prefix, 64);*/
 
 
@@ -63,7 +63,7 @@ PROCESS_THREAD(udp_process, ev, data)
     etimer_reset(&periodic_timer);
 
     printf("Sending unicast\n");
-    uip_ip6addr(&addr, 0xaaaa, 0, 0, 0, 0, 0, 0, 2);
+    uip_ip6addr(&addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 2);
     simple_udp_sendto(&broadcast_connection, buf, sizeof(buf), &addr);
   }
 

@@ -3,7 +3,7 @@ ifndef TARGET
 TARGET=sky
 endif
 
-all: blink sky-collect #rt-leds test-button test-cfs tcprudolph0
+all: blink sky-collect #rt-leds test-button tcprudolph0
 
 %.tgz: %.ihex
 	mkdir $(basename $<) ; \
@@ -11,10 +11,6 @@ all: blink sky-collect #rt-leds test-button test-cfs tcprudolph0
 	echo $(basename $<)/$(basename $<).ihex 600 > $(basename $<)/runfile ; \
 	tar czf $@ $(basename $<)
 
-%.class: %.java
-	javac $(basename $<).java
-
-viewrssi: ViewRSSI.class
-	make login | java ViewRSSI
-
+CONTIKI_WITH_IPV4 = 1
+CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include

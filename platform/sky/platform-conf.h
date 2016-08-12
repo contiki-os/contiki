@@ -46,6 +46,15 @@
 /* Platform TMOTE_SKY */
 #define TMOTE_SKY 1
 
+/* Delay between GO signal and SFD: radio fixed delay + 4Bytes preample + 1B SFD -- 1Byte time is 32us
+ * ~327us + 129preample = 456 us */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(456))
+/* Delay between GO signal and start listening
+ * ~50us delay + 129preample + ?? = 183 us */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
+/* Delay between the SFD finishes arriving and it is detected in software */
+#define RADIO_DELAY_BEFORE_DETECT 0
+
 #define PLATFORM_HAS_LEDS    1
 #define PLATFORM_HAS_BUTTON  1
 #define PLATFORM_HAS_LIGHT   1
@@ -71,7 +80,7 @@
 /* Types for clocks and uip_stats */
 typedef unsigned short uip_stats_t;
 typedef unsigned long clock_time_t;
-typedef unsigned long off_t;
+typedef long off_t;
 
 /* the low-level radio driver */
 #define NETSTACK_CONF_RADIO   cc2420_driver

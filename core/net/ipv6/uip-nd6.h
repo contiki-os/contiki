@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Julien Abeille <jabeille@cisco.com>
- * \author Mathilde Durvy <mdurvy@cisco.com>
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +30,18 @@
  *
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
+ * \file
+ *    Header file for IPv6 Neighbor discovery (RFC 4861)
+ * \author Julien Abeille <jabeille@cisco.com>
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ */
+
 #ifndef UIP_ND6_H_
 #define UIP_ND6_H_
 
@@ -59,9 +59,12 @@
 
 /** \name RFC 4861 Host constant */
 /** @{ */
+/** \brief Maximum router solicitation delay */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
+/** \brief Router solicitation interval */
 #define UIP_ND6_RTR_SOLICITATION_INTERVAL  4
-#define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
+/** \brief Maximum router solicitations */
+#define UIP_ND6_MAX_RTR_SOLICITATIONS      3
 /** @} */
 
 /** \name RFC 4861 Router constants */
@@ -76,15 +79,27 @@
 #else
 #define UIP_ND6_SEND_NA UIP_CONF_ND6_SEND_NA
 #endif
+#ifndef UIP_CONF_ND6_MAX_RA_INTERVAL
 #define UIP_ND6_MAX_RA_INTERVAL             600
+#else
+#define UIP_ND6_MAX_RA_INTERVAL             UIP_CONF_ND6_MAX_RA_INTERVAL
+#endif
+#ifndef UIP_CONF_ND6_MIN_RA_INTERVAL
 #define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
+#else
+#define UIP_ND6_MIN_RA_INTERVAL             UIP_CONF_ND6_MIN_RA_INTERVAL
+#endif
 #define UIP_ND6_M_FLAG                      0
-#define UIP_ND6_O_FLAG                      0
+#define UIP_ND6_O_FLAG                      (UIP_ND6_RA_RDNSS || UIP_ND6_RA_DNSSL)
 #define UIP_ND6_ROUTER_LIFETIME             3 * UIP_ND6_MAX_RA_INTERVAL
 
 #define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
 #define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
+#ifndef UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
 #define UIP_ND6_MIN_DELAY_BETWEEN_RAS       3   /*seconds*/
+#else
+#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       UIP_CONF_ND6_MIN_DELAY_BETWEEN_RAS
+#endif
 //#define UIP_ND6_MAX_RA_DELAY_TIME           0.5 /*seconds*/
 #define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
 /** @} */
@@ -116,14 +131,31 @@
 #endif
 
 #ifdef UIP_CONF_ND6_RETRANS_TIMER
-#define UIP_ND6_RETRANS_TIMER	       UIP_CONF_ND6_RETRANS_TIMER
+#define UIP_ND6_RETRANS_TIMER          UIP_CONF_ND6_RETRANS_TIMER
 #else
-#define UIP_ND6_RETRANS_TIMER	       1000
+#define UIP_ND6_RETRANS_TIMER          1000
 #endif
 
 #define UIP_ND6_DELAY_FIRST_PROBE_TIME 5
 #define UIP_ND6_MIN_RANDOM_FACTOR(x)   (x / 2)
 #define UIP_ND6_MAX_RANDOM_FACTOR(x)   ((x) + (x) / 2)
+/** @} */
+
+
+/** \name RFC 6106 RA DNS Options Constants  */
+/** @{ */
+#ifndef UIP_CONF_ND6_RA_RDNSS
+#define UIP_ND6_RA_RDNSS                0
+#else
+#define UIP_ND6_RA_RDNSS                UIP_CONF_ND6_RA_RDNSS
+#endif
+
+#ifndef UIP_CONF_ND6_RA_DNSSL
+#define UIP_ND6_RA_DNSSL                0
+#else
+#error Not implemented
+#define UIP_ND6_RA_DNSSL                UIP_CONF_ND6_RA_DNSSL
+#endif
 /** @} */
 
 
@@ -134,6 +166,8 @@
 #define UIP_ND6_OPT_PREFIX_INFO         3
 #define UIP_ND6_OPT_REDIRECTED_HDR      4
 #define UIP_ND6_OPT_MTU                 5
+#define UIP_ND6_OPT_RDNSS               25
+#define UIP_ND6_OPT_DNSSL               31
 /** @} */
 
 /** \name ND6 option types */
@@ -156,6 +190,8 @@
 #define UIP_ND6_OPT_HDR_LEN            2
 #define UIP_ND6_OPT_PREFIX_INFO_LEN    32
 #define UIP_ND6_OPT_MTU_LEN            8
+#define UIP_ND6_OPT_RDNSS_LEN          1
+#define UIP_ND6_OPT_DNSSL_LEN          1
 
 
 /* Length of TLLAO and SLLAO options, it is L2 dependant */
@@ -277,6 +313,15 @@ typedef struct uip_nd6_opt_mtu {
   uint16_t reserved;
   uint32_t mtu;
 } uip_nd6_opt_mtu;
+
+/** \brief ND option RDNSS */
+typedef struct uip_nd6_opt_dns {
+  uint8_t type;
+  uint8_t len;
+  uint16_t reserved;
+  uint32_t lifetime;
+  uip_ipaddr_t ip;
+} uip_nd6_opt_dns;
 
 /** \struct Redirected header option */
 typedef struct uip_nd6_opt_redirected_hdr {

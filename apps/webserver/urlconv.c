@@ -80,7 +80,7 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
   *dest = ISO_slash;
   strncpy(dest + 1, wwwroot, wwwrootlen);
   len = 0;
-  from = source; to = dest + wwwrootlen;
+  from = (unsigned char *)source; to = (unsigned char *)dest + wwwrootlen;
   maxlen -= 2 + wwwrootlen;
   do {
     c = *(from++);
@@ -139,7 +139,7 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
     }
   } while(c);
   if(*to == ISO_slash && (len + sizeof(http_index_htm) - 3) < maxlen) {
-    strcpy(to, http_index_htm);  // add index.htm
+    strcpy((char *)to, http_index_htm);  // add index.htm
   } else {
     ++to;
     *to = 0;

@@ -1,13 +1,13 @@
 /*
  * Remote Power Switch Example for the Seed-Eye Board
  * Copyright (c) 2013, Giovanni Pellerano
- * 
+ *
  * Ownership: Scuola Superiore Sant'Anna (http://www.sssup.it) and
  * Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  * (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,7 +33,7 @@
  * SUCH DAMAGE.
  *
  */
- 
+
 /**
  * \addtogroup Remote Power Switch Example for the Seed-Eye Board
  *
@@ -55,20 +55,21 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "erbium.h"
+#include "rest-engine.h"
 
 #include "dev/leds.h"
 
 #include <p32xxxx.h>
 
-RESOURCE(toggle, METHOD_GET | METHOD_PUT | METHOD_POST, "actuators/powerswitch", "title=\"Red LED\";rt=\"Control\"");
 void
 toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   leds_toggle(LEDS_RED);
-  
+
   PORTEbits.RE0 = !PORTEbits.RE0;
 }
+RESOURCE(resource_toggle, "title=\"Red LED\";rt=\"Control\"", toggle_handler, toggle_handler, toggle_handler, NULL);
+
 
 PROCESS(remote_power_switch, "Remote Power Switch");
 
@@ -79,11 +80,11 @@ PROCESS_THREAD(remote_power_switch, ev, data)
   PROCESS_BEGIN();
 
   rest_init_engine();
-  
+
   TRISEbits.TRISE0 = 0;
   PORTEbits.RE0 = 0;
 
-  rest_activate_resource(&resource_toggle);
+  rest_activate_resource(&resource_toggle, "actuators/powerswitch");
 
   while(1) {
     PROCESS_WAIT_EVENT();

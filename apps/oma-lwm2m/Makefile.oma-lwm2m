@@ -1,0 +1,13 @@
+oma-lwm2m_src = \
+  lwm2m-object.c \
+  lwm2m-engine.c \
+  lwm2m-device.c \
+  lwm2m-server.c \
+  lwm2m-security.c \
+  oma-tlv.c \
+  oma-tlv-reader.c \
+  oma-tlv-writer.c \
+  lwm2m-plain-text.c \
+  lwm2m-json.c \
+  #
+CFLAGS += -DHAVE_OMA_LWM2M=1

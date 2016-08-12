@@ -39,7 +39,7 @@ uart0_init()
 #else
   PERCFG &= ~PERCFG_U0CFG; /* alternative port 1 = P0.5-2 */
 #ifdef UART0_RTSCTS
-  P0SEL |= 0x20 | 0x10;    /* peripheral select for TX and RX */
+  P0SEL |= 0x3C;    /* peripheral select for RTS and CTS, TX, RX */
 #else
   P0SEL |= 0x0C;    /* peripheral select for TX and RX */
   P0 &= ~0x20;    /* RTS down */

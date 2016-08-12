@@ -30,9 +30,11 @@
  */
 
 /**
- * \file
- *   This header file contains configuration directives for uIPv6
- *   multicast support.
+ * \addtogroup uip6
+ * @{
+ */
+/**
+ * \defgroup uip6-multicast IPv6 Multicast Forwarding
  *
  *   We currently support 2 engines:
  *   - 'Stateless Multicast RPL Forwarding' (SMRF)
@@ -41,6 +43,14 @@
  *   - 'Multicast Forwarding with Trickle' according to the algorithm described
  *     in the internet draft:
  *     http://tools.ietf.org/html/draft-ietf-roll-trickle-mcast
+ *
+ * @{
+ */
+
+/**
+ * \file
+ *   This header file contains configuration directives for uIPv6
+ *   multicast support.
  *
  * \author
  *   George Oikonomou - <oikonomou@users.sourceforge.net>
@@ -53,6 +63,7 @@
 #include "net/ipv6/multicast/uip-mcast6-engines.h"
 #include "net/ipv6/multicast/uip-mcast6-route.h"
 #include "net/ipv6/multicast/smrf.h"
+#include "net/ipv6/multicast/esmrf.h"
 #include "net/ipv6/multicast/roll-tm.h"
 
 #include <string.h>
@@ -83,7 +94,11 @@
  * Multicast API. Similar to NETSTACK, each engine must define a driver and
  * populate the fields with suitable function pointers
  */
+/**
+ * \brief The data structure used to represent a multicast engine
+ */
 struct uip_mcast6_driver {
+  /** The driver's name */
   char *name;
 
   /** Initialize the multicast engine */
@@ -110,6 +125,7 @@ struct uip_mcast6_driver {
    *
    * \return 0: Drop, 1: Deliver
    *
+   *
    *        When a datagram with a multicast destination address is received,
    *        the forwarding logic in core is bypassed. Instead, we let the
    *        multicast engine handle forwarding internally if and as necessary.
@@ -132,17 +148,23 @@ struct uip_mcast6_driver {
 #if UIP_MCAST6_ENGINE
 
 /* Enable Multicast hooks in the uip6 core */
-#define UIP_CONF_IPV6_MULTICAST 1
+#define UIP_IPV6_MULTICAST 1
 
 #if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_ROLL_TM
-#define RPL_CONF_MULTICAST     0        /* Not used by trickle */
+#define RPL_WITH_MULTICAST     0        /* Not used by trickle */
 #define UIP_CONF_IPV6_ROLL_TM  1        /* ROLL Trickle ICMP type support */
 
 #define UIP_MCAST6             roll_tm_driver
+
 #elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_SMRF
-#define RPL_CONF_MULTICAST     1
+#define RPL_WITH_MULTICAST     1
 
 #define UIP_MCAST6             smrf_driver
+
+#elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_ESMRF
+#define RPL_CONF_MULTICAST     1
+#define UIP_MCAST6             esmrf_driver
+
 #else
 #error "Multicast Enabled with an Unknown Engine."
 #error "Check the value of UIP_MCAST6_CONF_ENGINE in conf files."
@@ -153,10 +175,12 @@ extern const struct uip_mcast6_driver UIP_MCAST6;
 /*---------------------------------------------------------------------------*/
 /* Configuration Checks */
 /*---------------------------------------------------------------------------*/
-#if RPL_CONF_MULTICAST && (!UIP_CONF_IPV6_RPL)
+#if RPL_WITH_MULTICAST && (!UIP_CONF_IPV6_RPL)
 #error "The selected Multicast mode requires UIP_CONF_IPV6_RPL != 0"
 #error "Check the value of UIP_CONF_IPV6_RPL in conf files."
 #endif
 /*---------------------------------------------------------------------------*/
-
 #endif /* UIP_MCAST6_H_ */
+/*---------------------------------------------------------------------------*/
+/** @} */
+/** @} */

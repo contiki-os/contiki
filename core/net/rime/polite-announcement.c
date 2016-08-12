@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeexamples
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,8 +37,13 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "contiki.h"
+/**
+ * \addtogroup rimepoliteannouncement
+ * @{
+ */
 
+#include "contiki.h"
+#include "sys/cc.h"
 #include "lib/list.h"
 #include "net/rime/rime.h"
 #include "net/rime/announcement.h"
@@ -89,8 +89,6 @@ static struct polite_announcement_state {
 #else
 #define PRINTF(...)
 #endif
-
-#define MIN(a, b) ((a)<(b)?(a):(b))
 
 /*---------------------------------------------------------------------------*/
 static void

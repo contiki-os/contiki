@@ -6,7 +6,7 @@ all:
 
 compile: 6502 msp430 native avr arm
 
-6502:	c64.platform c128.platform apple2enh.platform atari.platform
+6502:	c64.platform c128.platform apple2enh.platform atarixl.platform
 msp430: sky.platform esb.platform z1.platform
 native: native.platform minimal-net.platform
 avr:    avr-raven.platform

@@ -1,6 +1,6 @@
 package org.contikios.cooja.plugins.analyzers;
 
-import org.contikios.cooja.util.StringUtils;
+import org.contikios.cooja.util.IPUtils;
 
 public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
@@ -115,10 +115,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             .append(", NH = ").append(nhc ? "compressed" : "inline")
             .append(", HLIM = ").append(hlim == 0 ? "inline" : hlim)
             .append(", CID = ").append(cid)
-            .append(", SAC = ").append(sac == 1 ? "stateless" : "stateful")
+            .append(", SAC = ").append(sac == 0 ? "stateless" : "stateful")
             .append(", SAM = ").append(sam)
             .append(", MCast = ").append(m)
-            .append(", DAC = ").append(dac == 1 ? "stateless" : "stateful")
+            .append(", DAC = ").append(dac == 0 ? "stateless" : "stateful")
             .append(", DAM = ").append(dam);
     if (cid == 1) {
       verbose.append("<br>Contexts: sci=").append(packet.get(2) >> 4).
@@ -466,9 +466,9 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             .append(", FL = ").append(flowLabel)
             .append("<br>");
     verbose.append("From ");
-    printAddress(verbose, srcAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, srcAddress);
     verbose.append("  to ");
-    printAddress(verbose, destAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, destAddress);
     if (error != null) {
       verbose.append(" ").append(error);
     }
@@ -496,13 +496,4 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     }
   }
 
-  public static void printAddress(StringBuilder out, byte[] address) {
-    for (int i = 0; i < 16; i += 2) {
-      out.append(StringUtils.toHex((byte) (address[i] & 0xff))
-              + StringUtils.toHex((byte) (address[i + 1] & 0xff)));
-      if (i < 14) {
-        out.append(":");
-      }
-    }
-  }
 }

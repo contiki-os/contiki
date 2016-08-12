@@ -41,7 +41,10 @@
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl.h"
-
+#include "net/rpl/rpl-private.h"
+#if RPL_WITH_NON_STORING
+#include "net/rpl/rpl-ns.h"
+#endif /* RPL_WITH_NON_STORING */
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include "dev/slip.h"
@@ -99,7 +102,7 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
     httpd_appcall(data);
   }
-  
+
   PROCESS_END();
 }
 AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
@@ -143,8 +146,10 @@ ipaddr_add(const uip_ipaddr_t *addr)
 static
 PT_THREAD(generate_routes(struct httpd_state *s))
 {
-  static int i;
   static uip_ds6_route_t *r;
+#if RPL_WITH_NON_STORING
+  static rpl_ns_node_t *link;
+#endif /* RPL_WITH_NON_STORING */
   static uip_ds6_nbr_t *nbr;
 #if BUF_USES_STACK
   char buf[256];
@@ -176,7 +181,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       switch (nbr->state) {
       case NBR_INCOMPLETE: ADD(" INCOMPLETE");break;
       case NBR_REACHABLE: ADD(" REACHABLE");break;
-      case NBR_STALE: ADD(" STALE");break;      
+      case NBR_STALE: ADD(" STALE");break;
       case NBR_DELAY: ADD(" DELAY");break;
       case NBR_PROBE: ADD(" NBR_PROBE");break;
       }
@@ -188,7 +193,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       switch (nbr->state) {
       case NBR_INCOMPLETE: ADD(" INCOMPLETE");break;
       case NBR_REACHABLE: ADD(" REACHABLE");break;
-      case NBR_STALE: ADD(" STALE");break;      
+      case NBR_STALE: ADD(" STALE");break;
       case NBR_DELAY: ADD(" DELAY");break;
       case NBR_PROBE: ADD(" NBR_PROBE");break;
       }
@@ -211,7 +216,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       }
 #endif
   }
-  ADD("</pre>Routes<pre>");
+  ADD("</pre>Routes<pre>\n");
   SEND_STRING(&s->sout, buf);
 #if BUF_USES_STACK
   bufptr = buf; bufend = bufptr + sizeof(buf);
@@ -247,7 +252,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
     ADD("/%u (via ", r->length);
     ipaddr_add(uip_ds6_route_nexthop(r));
     if(1 || (r->state.lifetime < 600)) {
-      ADD(") %lus\n", r->state.lifetime);
+      ADD(") %lus\n", (unsigned long)r->state.lifetime);
     } else {
       ADD(")\n");
     }
@@ -259,6 +264,65 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 #endif
   }
   ADD("</pre>");
+
+#if RPL_WITH_NON_STORING
+  ADD("Links<pre>\n");
+  SEND_STRING(&s->sout, buf);
+#if BUF_USES_STACK
+  bufptr = buf; bufend = bufptr + sizeof(buf);
+#else
+  blen = 0;
+#endif
+  for(link = rpl_ns_node_head(); link != NULL; link = rpl_ns_node_next(link)) {
+    if(link->parent != NULL) {
+      uip_ipaddr_t child_ipaddr;
+      uip_ipaddr_t parent_ipaddr;
+
+      rpl_ns_get_node_global_addr(&child_ipaddr, link);
+      rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
+
+#if BUF_USES_STACK
+#if WEBSERVER_CONF_ROUTE_LINKS
+      ADD("<a href=http://[");
+      ipaddr_add(&child_ipaddr);
+      ADD("]/status.shtml>");
+      ipaddr_add(&child_ipaddr);
+      ADD("</a>");
+#else
+      ipaddr_add(&child_ipaddr);
+#endif
+#else
+#if WEBSERVER_CONF_ROUTE_LINKS
+      ADD("<a href=http://[");
+      ipaddr_add(&child_ipaddr);
+      ADD("]/status.shtml>");
+      SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
+      blen = 0;
+      ipaddr_add(&child_ipaddr);
+      ADD("</a>");
+#else
+      ipaddr_add(&child_ipaddr);
+#endif
+#endif
+
+      ADD(" (parent: ");
+      ipaddr_add(&parent_ipaddr);
+      if(1 || (link->lifetime < 600)) {
+        ADD(") %us\n", (unsigned int)link->lifetime); // iotlab printf does not have %lu
+        //ADD(") %lus\n", (unsigned long)r->state.lifetime);
+      } else {
+        ADD(")\n");
+      }
+      SEND_STRING(&s->sout, buf);
+#if BUF_USES_STACK
+      bufptr = buf; bufend = bufptr + sizeof(buf);
+#else
+      blen = 0;
+#endif
+    }
+  }
+  ADD("</pre>");
+#endif /* RPL_WITH_NON_STORING */
 
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
@@ -312,7 +376,7 @@ request_prefix(void)
   uip_buf[1] = 'P';
   uip_len = 2;
   slip_send();
-  uip_len = 0;
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -340,7 +404,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   PROCESS_BEGIN();
 
 /* While waiting for the prefix to be sent through the SLIP connection, the future
- * border router can join an existing DAG as a parent or child, or acquire a default 
+ * border router can join an existing DAG as a parent or child, or acquire a default
  * router that will later take precedence over the SLIP fallback interface.
  * Prevent that by turning the radio off until we are initialized as a DAG root.
  */
@@ -359,7 +423,7 @@ PROCESS_THREAD(border_router_process, ev, data)
      cpu will interfere with establishing the SLIP connection */
   NETSTACK_MAC.off(1);
 #endif
- 
+
   /* Request prefix until it has been received */
   while(!prefix_set) {
     etimer_set(&et, CLOCK_SECOND);
@@ -371,7 +435,7 @@ PROCESS_THREAD(border_router_process, ev, data)
    * Since we are the DAG root, reception delays would constrain mesh throughbut.
    */
   NETSTACK_MAC.off(1);
-  
+
 #if DEBUG || 1
   print_local_addresses();
 #endif

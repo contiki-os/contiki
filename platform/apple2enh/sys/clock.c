@@ -63,7 +63,7 @@ clock_update(void)
   static unsigned int count;
 
   count += tick;
-  if(count > 2000) {
+  if(count > 1000) {
     count = 0;
     ++time;
   }

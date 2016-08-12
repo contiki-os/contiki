@@ -1,8 +1,3 @@
-/**
- * \addtogroup ctimer
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Callback timer implementation
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup ctimer
+ * @{
  */
 
 #include "sys/ctimer.h"
@@ -99,8 +99,15 @@ void
 ctimer_set(struct ctimer *c, clock_time_t t,
 	   void (*f)(void *), void *ptr)
 {
+  ctimer_set_with_process(c, t, f, ptr, PROCESS_CURRENT());
+}
+/*---------------------------------------------------------------------------*/
+void
+ctimer_set_with_process(struct ctimer *c, clock_time_t t,
+	   void (*f)(void *), void *ptr, struct process *p)
+{
   PRINTF("ctimer_set %p %u\n", c, (unsigned)t);
-  c->p = PROCESS_CURRENT();
+  c->p = p;
   c->f = f;
   c->ptr = ptr;
   if(initialized) {
@@ -111,7 +118,6 @@ ctimer_set(struct ctimer *c, clock_time_t t,
     c->etimer.timer.interval = t;
   }
 
-  list_remove(ctimer_list, c);
   list_add(ctimer_list, c);
 }
 /*---------------------------------------------------------------------------*/
@@ -124,7 +130,6 @@ ctimer_reset(struct ctimer *c)
     PROCESS_CONTEXT_END(&ctimer_process);
   }
 
-  list_remove(ctimer_list, c);
   list_add(ctimer_list, c);
 }
 /*---------------------------------------------------------------------------*/
@@ -137,7 +142,6 @@ ctimer_restart(struct ctimer *c)
     PROCESS_CONTEXT_END(&ctimer_process);
   }
 
-  list_remove(ctimer_list, c);
   list_add(ctimer_list, c);
 }
 /*---------------------------------------------------------------------------*/

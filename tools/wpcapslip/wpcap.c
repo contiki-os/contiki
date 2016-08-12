@@ -58,7 +58,6 @@
 
 #include <unistd.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -69,7 +68,7 @@
 #define PROGRESS(x)
 
 
-static void raw_send(void *buf, int len);
+void raw_send(void *buf, int len);
 
 struct pcap;
 
@@ -150,7 +149,7 @@ struct arp_entry {
   struct uip_eth_addr ethaddr;
   uint8_t time;
 };
-static struct uip_eth_addr uip_lladdr = {{0,0,0,0,0,0}};
+struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
 static const uip_ipaddr_t all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 static const struct uip_eth_addr broadcast_ethaddr =
   {{0xff,0xff,0xff,0xff,0xff,0xff}};
@@ -164,18 +163,20 @@ static int arptime;
 
 static int logging;
 
+uip_lladdr_t uip_lladdr;
+
 static void
 log_message(char *msg1, char *msg2)
 {
   if(logging) {
-    printf("Log: %s %s\n", msg1, msg2);
+    fprintf(stderr, "Log: %s %s\n", msg1, msg2);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
 error_exit(char *msg1)
 {
-  printf("error_exit: %s", msg1);
+  fprintf(stderr, "error_exit: %s", msg1);
   exit(EXIT_FAILURE);
 }
 /*---------------------------------------------------------------------------*/
@@ -198,11 +199,11 @@ init_pcap(struct in_addr addr)
 	  paddr != NULL;
 	  paddr = paddr->next) {
 	if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET) {
-	  
+
 	  struct in_addr interface_addr;
 	  interface_addr = ((struct sockaddr_in *)paddr->addr)->sin_addr;
 	  log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
-	  
+
 	  if(interface_addr.s_addr == addr.s_addr) {
 	    pcap = pcap_open_live(interfaces->name, BUFSIZE, 0, -1, error);
 	    if(pcap == NULL) {
@@ -263,7 +264,7 @@ set_ethaddr(struct in_addr addr)
       log_message("set_ethaddr:  with address: ", inet_ntoa(adapter_addr));
 
       if(adapter_addr.s_addr == addr.s_addr) {
-	printf("Using local network interface with address %s\n",
+	fprintf(stderr, "Using local network interface with address %s\n",
 	       inet_ntoa(adapter_addr));
 	if(adapters->PhysicalAddressLength != 6) {
 	  error_exit("ip addr specified on cmdline does not belong to an ethernet card\n");
@@ -292,12 +293,12 @@ print_packet(unsigned char *buf, int len)
   int i;
 
   for(i = 0; i < len; ++i) {
-    printf("0x%02x, ", buf[i]);
+    fprintf(stderr, "0x%02x, ", buf[i]);
     if(i % 8 == 7) {
-      printf("\n");
+      fprintf(stderr, "\n");
     }
   }
-  printf("\n\n");
+  fprintf(stderr, "\n\n");
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -305,7 +306,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
 {
   struct arp_entry *tabptr;
   int i, tmpage, c;
-  
+
   /* Walk through the ARP mapping table and try to find an entry to
      update. If none is found, the IP -> MAC address mapping is
      inserted in the ARP table. */
@@ -318,7 +319,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
       /* Check if the source IP address of the incoming packet matches
          the IP address in this ARP table entry. */
       if(uip_ipaddr_cmp(ipaddr, &tabptr->ipaddr)) {
-	 
+
 	/* An old entry found, update this and return. */
 	memcpy(tabptr->ethaddr.addr, ethaddr->addr, 6);
 	tabptr->time = arptime;
@@ -399,7 +400,7 @@ arp_out(struct ethip_hdr *iphdr, int len)
   int i;
 #endif
 
-#if 1
+#if 0
   /* Find the destination IP address in the ARP table and construct
      the Ethernet header. If the destination IP addres isn't on the
      local network, we use the default router's IP address instead.
@@ -425,7 +426,7 @@ arp_out(struct ethip_hdr *iphdr, int len)
       /* Else, we use the destination IP address. */
       uip_ipaddr_copy(&ipaddr, &iphdr->destipaddr);
     }
-      
+
     for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
       tabptr = &arp_table[i];
       if(uip_ipaddr_cmp(&ipaddr, &tabptr->ipaddr)) {
@@ -439,9 +440,9 @@ arp_out(struct ethip_hdr *iphdr, int len)
 
       memset(arphdr->ethhdr.dest.addr, 0xff, 6);
       memset(arphdr->dhwaddr.addr, 0x00, 6);
-      memcpy(arphdr->ethhdr.src.addr, uip_lladdr.addr, 6);
-      memcpy(arphdr->shwaddr.addr, uip_lladdr.addr, 6);
-    
+      memcpy(arphdr->ethhdr.src.addr, uip_ethaddr.addr, 6);
+      memcpy(arphdr->shwaddr.addr, uip_ethaddr.addr, 6);
+
       uip_ipaddr_copy(&arphdr->dipaddr, &ipaddr);
       uip_ipaddr_copy(&arphdr->sipaddr, &netaddr);
       arphdr->opcode = UIP_HTONS(ARP_REQUEST); /* ARP request. */
@@ -476,27 +477,27 @@ do_arp(void *buf, int len)
   if(hdr->ethhdr.type == UIP_HTONS(UIP_ETHTYPE_ARP)) {
     if(hdr->opcode == UIP_HTONS(ARP_REQUEST)) {
       /* Check if the ARP is for our network */
-      /*      printf("ARP for %d.%d.%d.%d we are %d.%d.%d.%d/%d.%d.%d.%d\n",
+      /*      fprintf(stderr, "ARP for %d.%d.%d.%d we are %d.%d.%d.%d/%d.%d.%d.%d\n",
 	     uip_ipaddr_to_quad(&hdr->dipaddr),
 	     uip_ipaddr_to_quad(&netaddr),
 	     uip_ipaddr_to_quad(&netmask));*/
       if(uip_ipaddr_maskcmp(&hdr->dipaddr, &netaddr, &netmask)) {
 	uip_ipaddr_t tmpaddr;
-	
-	/*	printf("ARP for us.\n");*/
+
+	/*	fprintf(stderr, "ARP for us.\n");*/
 	uip_arp_update(&hdr->sipaddr, &hdr->shwaddr);
-	
+
 	hdr->opcode = UIP_HTONS(ARP_REPLY);
-	
+
 	memcpy(&hdr->dhwaddr.addr, &hdr->shwaddr.addr, 6);
 	memcpy(&hdr->shwaddr.addr, &uip_lladdr.addr, 6);
 	memcpy(&hdr->ethhdr.src.addr, &uip_lladdr.addr, 6);
 	memcpy(&hdr->ethhdr.dest.addr, &hdr->dhwaddr.addr, 6);
-	
+
 	uip_ipaddr_copy(&tmpaddr, &hdr->dipaddr);
 	uip_ipaddr_copy(&hdr->dipaddr, &hdr->sipaddr);
 	uip_ipaddr_copy(&hdr->sipaddr, &tmpaddr);
-	
+
 	hdr->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
 	raw_send(hdr, sizeof(struct arp_hdr));
 	return NULL;
@@ -521,8 +522,8 @@ cleanup(void)
   char buf[1024];
 
   snprintf(buf, sizeof(buf), "route delete %d.%d.%d.%d",
-	                     uip_ipaddr_to_quad(&ifaddr));
-  printf("%s\n", buf);
+                       uip_ipaddr_to_quad(&netaddr));
+  fprintf(stderr, "%s\n", buf);
   system(buf);
 }
 
@@ -540,9 +541,9 @@ wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
   struct in_addr addr;
   char buf[4000];
   uint32_t tmpaddr;
-  
+
   logging = log;
-  
+
   addr.s_addr = inet_addr(ethcardaddr);
   tmpaddr = inet_addr(ethcardaddr);
   memcpy(&ifaddr.u16[0], &tmpaddr, sizeof(tmpaddr));
@@ -551,21 +552,21 @@ wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
   tmpaddr = inet_addr(slipnetmask);
   memcpy(&netmask.u16[0], &tmpaddr, sizeof(tmpaddr));
 
-  printf("Network address %d.%d.%d.%d/%d.%d.%d.%d\n",
+  fprintf(stderr, "Network address %d.%d.%d.%d/%d.%d.%d.%d\n",
 	 uip_ipaddr_to_quad(&netaddr),
 	 uip_ipaddr_to_quad(&netmask));
-  
+
   snprintf(buf, sizeof(buf), "route add %d.%d.%d.%d mask %d.%d.%d.%d %d.%d.%d.%d",
 	   uip_ipaddr_to_quad(&netaddr),
 	   uip_ipaddr_to_quad(&netmask),
 	   uip_ipaddr_to_quad(&ifaddr));
-  printf("%s\n", buf);
+  fprintf(stderr, "%s\n", buf);
   system(buf);
   signal(SIGTERM, remove_route);
 
   log_message("wpcap_init: cmdline address: ", inet_ntoa(addr));
 
-  
+
   wpcap = LoadLibrary("wpcap.dll");
   pcap_findalldevs = (int (*)(struct pcap_if **, char *))
 		     GetProcAddress(wpcap, "pcap_findalldevs");
@@ -588,12 +589,12 @@ wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
 #if 0
   while(1) {
     int ret;
-    
+
     ret = wpcap_poll(buf);
     if(ret > 0) {
       /*      print_packet(buf, ret);*/
       if(do_arp(buf, ret)) {
-	printf("IP packet\n");
+	fprintf(stderr, "IP packet\n");
       }
     }
     sleep(1);
@@ -602,17 +603,16 @@ wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-wpcap_poll(char **buf)
+wpcap_poll(char **buf, int eth)
 {
   struct pcap_pkthdr *packet_header;
   unsigned char *packet;
   int len;
+  int ret;
   char *buf2;
 
-  switch(pcap_next_ex(pcap, &packet_header, &packet)) {
-  case -1:
-    error_exit("error on poll\n");
-  case 0:
+  ret = pcap_next_ex(pcap, &packet_header, &packet);
+  if (ret != 1) {
     return 0;
   }
 
@@ -622,13 +622,20 @@ wpcap_poll(char **buf)
 
   CopyMemory(*buf, packet, packet_header->caplen);
   len = packet_header->caplen;
-  /*  printf("len %d\n", len);*/
+
+  if(eth) {
+    /* poll requested us to return the raw ethernet packet */
+    return len;
+  }
+
+
   buf2 = do_arp(*buf, len);
   if(buf2 == NULL) {
     return 0;
   } else {
     len = len - (buf2 - *buf);
     *buf = buf2;
+    /*fprintf(stderr, "wpcap_poll() %d\n", len);*/
     return len;
   }
 }
@@ -644,7 +651,7 @@ wpcap_send(void *buf, int len)
   raw_send(buf2, len);
 }
 /*---------------------------------------------------------------------------*/
-static void
+void
 raw_send(void *buf, int len)
 {
   /*  printf("sending len %d\n", len);*/

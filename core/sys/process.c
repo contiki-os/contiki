@@ -245,10 +245,10 @@ do_poll(void)
 static void
 do_event(void)
 {
-  static process_event_t ev;
-  static process_data_t data;
-  static struct process *receiver;
-  static struct process *p;
+  process_event_t ev;
+  process_data_t data;
+  struct process *receiver;
+  struct process *p;
   
   /*
    * If there are any events in the queue, take the first one and walk
@@ -267,7 +267,7 @@ do_event(void)
     receiver = events[fevent].p;
 
     /* Since we have seen the new event, we move pointer upwards
-       and decrese the number of events. */
+       and decrease the number of events. */
     fevent = (fevent + 1) % PROCESS_CONF_NUMEVENTS;
     --nevents;
 
@@ -321,7 +321,7 @@ process_nevents(void)
 int
 process_post(struct process *p, process_event_t ev, process_data_t data)
 {
-  static process_num_events_t snum;
+  process_num_events_t snum;
 
   if(PROCESS_CURRENT() == NULL) {
     PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
@@ -337,7 +337,7 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
     if(p == PROCESS_BROADCAST) {
       printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, PROCESS_NAME_STRING(process_current));
     } else {
-      printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
+      printf("soft panic: event queue is full when event %d was posted to %s from %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
     }
 #endif /* DEBUG */
     return PROCESS_ERR_FULL;

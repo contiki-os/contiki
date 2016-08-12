@@ -50,6 +50,26 @@
 #define SYS_CTRL_OSCS   SYS_CTRL_CLOCK_CTRL_OSC32K
 #endif
 /*---------------------------------------------------------------------------*/
+int
+sys_ctrl_get_reset_cause(void)
+{
+  return (REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_RST) >>
+         SYS_CTRL_CLOCK_STA_RST_S;
+}
+/*---------------------------------------------------------------------------*/
+const char *
+sys_ctrl_get_reset_cause_str(void)
+{
+  static const char *reset_cause[] = {
+    "POR",
+    "External reset",
+    "WDT",
+    "CLD or software reset"
+  };
+
+  return reset_cause[sys_ctrl_get_reset_cause()];
+}
+/*---------------------------------------------------------------------------*/
 void
 sys_ctrl_init()
 {
@@ -70,17 +90,18 @@ sys_ctrl_init()
    * 32KHz source: RC or crystal, according to SYS_CTRL_OSC32K_USE_XTAL
    * System Clock: 32 MHz
    * Power Down Unused
-   * I/O Div: 16MHz
-   * Sys Div: 16MHz
+   * I/O Div: according to SYS_CTRL_IO_DIV
+   * Sys Div: according to SYS_CTRL_SYS_DIV
    * Rest: Don't care
    */
 
   val = SYS_CTRL_OSCS | SYS_CTRL_CLOCK_CTRL_OSC_PD
-      | SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ | SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ;
+    | SYS_CTRL_IO_DIV | SYS_CTRL_SYS_DIV;
   REG(SYS_CTRL_CLOCK_CTRL) = val;
 
-  while((REG(SYS_CTRL_CLOCK_STA) & (SYS_CTRL_CLOCK_STA_OSC32K |
-        SYS_CTRL_CLOCK_STA_OSC)) != SYS_CTRL_OSCS);
+  while((REG(SYS_CTRL_CLOCK_STA) 
+        & (SYS_CTRL_CLOCK_STA_OSC32K | SYS_CTRL_CLOCK_STA_OSC)) 
+        != SYS_CTRL_OSCS);
 
 #if SYS_CTRL_OSC32K_USE_XTAL
   /* Wait for the 32-kHz crystal oscillator to stabilize */
@@ -94,7 +115,20 @@ sys_ctrl_reset()
 {
   REG(SYS_CTRL_PWRDBG) = SYS_CTRL_PWRDBG_FORCE_WARM_RESET;
 }
-
+/*---------------------------------------------------------------------------*/
+uint32_t
+sys_ctrl_get_sys_clock(void)
+{
+  return SYS_CTRL_32MHZ >> (REG(SYS_CTRL_CLOCK_STA) &
+                            SYS_CTRL_CLOCK_STA_SYS_DIV);
+}
+/*---------------------------------------------------------------------------*/
+uint32_t
+sys_ctrl_get_io_clock(void)
+{
+  return SYS_CTRL_32MHZ >> ((REG(SYS_CTRL_CLOCK_STA) &
+                             SYS_CTRL_CLOCK_STA_IO_DIV) >> 8);
+}
 /**
  * @}
  * @}

@@ -109,6 +109,18 @@ public @interface PluginType {
    * @see #COOJA_PLUGIN
    */
   public static final int COOJA_STANDARD_PLUGIN = 5;
+  
+  /**
+   * Simulation Control Plugin
+   * 
+   * A Simulation Control Plugin indicates control over the simulation. If COOJA
+   * is loaded in nogui mode, it will terminate if no controll plugin is present.
+   * 
+   * COOJA plugins are available via the plugins menubar.
+   * 
+   * When constructed, a COOJA plugin is given the current GUI.  
+   */
+  public static final int SIM_CONTROL_PLUGIN = 6;
 
   int value();
 }

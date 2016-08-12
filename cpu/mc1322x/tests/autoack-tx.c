@@ -139,7 +139,7 @@ void main(void) {
 			if(p) {
 				printf("RX: ");
 				print_packet(p);
-				free_packet(p);
+				maca_free_packet(p);
 			}
 		}
 

@@ -29,103 +29,212 @@
 ; This file is part of the Contiki operating system.
 ; 
 ; Author: Kajtar Zsolt <soci@c64.rulez.org>
+; Author: Greg King <gregdk@users.sf.net>
 ;
 ;---------------------------------------------------------------------
-	.define F_IDE64 0	; support IDE64, not on C128
+.define	F_IDE64		0	; C128 doesn't have IDE64
 
-	.constructor init_pfs
-        .destructor  done_pfs
-	.importzp    ptr1, ptr2, ptr3, sp
-	.import	     curunit, __filetype, popax, addysp, subysp
-	.export	     pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
-	.if	F_IDE64
-	.export      ide64_rwprepare, ide64_rwfinish
-	.endif	
-	.export	     _pfs_open, _pfs_read, _pfs_close
-;---------------------------------------------------------------------
-F_EOF		= $80
-F_NBLK		= $40
-F_OPEN		= $20
-F_MAXLEN	= 80	;max filename length
-ST		= $90	;status
-FN		= $BB	;filename
-FNL		= $B7	;filenamelength
-LF		= $B8	;logical file number
-SA		= $B9	;secondary address
-OPEN		= $FFC0
-CLOSE		= $FFC3
-CHKIN		= $FFC6
-CHKOUT		= $FFC9
-CLRCHN		= $FFCC
-CHRIN		= $FFCF
-CHROUT		= $FFD2
-SETLFS		= $FFBA
-SETNAM		= $FFBD
-CLALL		= $FFE7
-WRITE		= $DEF1
-READ		= $DEF4
-;---------------------------------------------------------------------
-	.bss
+	.constructor	init_pfs
+	.destructor	done_pfs
+	.importzp	sp, ptr1, ptr2, ptr3
+	.import		curunit, __filetype, popax, addysp, subysp
+	.export		pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
+.if	F_IDE64
+	.export		ide64_rwprepare, ide64_rwfinish
+.endif
+	.export		cmdc, flags
+	.export		pfs_makename, pfs_scratch
 
-cmdc:	.res	1
-flags:	.res	10
+	.export		_pfs_open, _pfs_read, _pfs_close
+;---------------------------------------------------------------------
+MAXLEN	=	80		;maximum filename length
+
+; Flag bits
+F_EOF	=	%10000000	;end of file
+F_NBLK	=	%01000000	;block read/write not available
+F_OPEN	=	%00100000
+
+; Kernal variables
+ST	:=	$90		;status
+FN	:=	$BB		;filename
+FNL	:=	$B7		;filename length
+LF	:=	$B8		;logical file number
+
+OPNVec	:=	$031A		;address vector to OPEN function's code
+
+; IDEDOS function
+READ	:=	$DEF4
+
+; Kernal functions
+SETLFS	:=	$FFBA
+SETNAM	:=	$FFBD
+OPEN	:=	$FFC0
+CLOSE	:=	$FFC3
+CHKIN	:=	$FFC6
+CHKOUT	:=	$FFC9
+CLRCHN	:=	$FFCC
+CHRIN	:=	$FFCF
+CHROUT	:=	$FFD2
 ;---------------------------------------------------------------------
 	.data
 
-illchr:	.byte	$3A, $2A, $3F, $3D	;illegal chars
-pw:	.byte	$2C
-filet:	.byte	$50, $2C, $57	;,p,w
+; illchr and sw must stay together because the comma, also, is illegal in names.
+illchr:	.byte	"*?:="		;illegal chars
+sw:	.byte	",s,w"
+cmdc:	.byte	0
+flags:	.res	10		;(Kernal allows only ten open files)
 ;---------------------------------------------------------------------
-	.segment	"INIT"
+	.segment	"ONCE"
 
 init_pfs:
-	ldy	#F_MAXLEN+8
-	jsr	subysp	;allocate
-	lda	#0
-	sta	FNL	;no name
-	ldy	#15-1
-	jsr	open2	;open command channel
+	ldy	#MAXLEN + 8
+	jsr	subysp		;allocate because open2 will free it
+	lda	#0		;no name, file number 1
+	sta	FNL
+	ldy	#15 - 1		;secondary address 15
+	jsr	open2		;open command channel
 	sta	cmdc
 	rts
 ;---------------------------------------------------------------------
 	.code
 
-error3: jmp error
-
 _pfs_open:
-	sta	ptr2
-	; Pop and store name
+	sta	ptr2		;save open-mode flags
+
+	; Get and store name
 	jsr	popax
+	jsr	pfs_makename
+	lda	FNL
+	beq	error		;must have a filename
+
+	lda	#2 - 1		;file number
+	tay			;secondary address
+open2:	sta	ptr2
+	sty	ptr2 + 1
+
+next:	inc	ptr2		;next file number
+	ldx	ptr2		;file number
+	cpx	#.sizeof(flags) + 1
+	bcs	error		;no more files
+	lda	flags - 1,x
+	bne	next		;already used
+	lda	ptr2 + 1
+	bne	nextsa
+	inx
+	stx	ptr2 + 1
+nextsa:	inc	ptr2 + 1	;next channel
+retr:	lda	ptr2		;file number
+	ldx	curunit
+	ldy	ptr2 + 1	;secondary address (channel number)
+	jsr	SETLFS
+	jsr	OPEN		;open a pair of files (in computer and drive)
+	bcs	oerr		;branch if could not open computer file
+	ldx	cmdc
+	beq	opok		;branch if error channel just was openned
+	jsr	CHKIN
+	bcs	error
+	jsr	CHRIN
+	pha			;first digit of error code
+	jsr	CHRIN
+	sta	ptr1		;second digit
+@L4:	jsr	CHRIN		;flush status message
+	lda	ST
+	beq	@L4
+	jsr	CLRCHN
+	pla
+	cmp	#'2'
+	bcc	opok		;no serious error
+	pha
+	lda	ptr2
+	jsr	CLOSE		;close computer file
+	pla
+	ldx	ptr1
+	cmp	#'7'		;no channel?
+	bne	nnoc
+	cpx	#'0'
+	bne	error		;not "no channel"
+	lda	ptr2 + 1
+	cmp	#14
+	bcc	nextsa		;try next channel
+	bcs	error		;give up
+
+opok:	ldx	ptr2
+	lda	#F_OPEN
+	sta	flags - 1,x
+	txa			;OK, return file number
+ret0:	ldx	#>$0000
+ret:	ldy	#MAXLEN + 8	;free filename space
+	jmp	addysp
+
+oerr:	dec	ptr2 + 1
+	cmp	#2		;already open,
+	beq	next		;retry with next
+
+error:	lda	#<-1
+	tax			;failed
+	bne	ret
+
+nnoc:	inc	ptr3
+	bne	error		;no retry
+	cmp	#'6'
+	bne	error		;not "file exists"
+	cpx	#'3'
+	bne	error
+	jsr	pfs_scratch
+	bcc	retr
+	bcs	error		;branch always
+
+pfs_scratch:
+	ldx	cmdc
+	jsr	CHKOUT
+	bcs	@L5
+	ldy	#1
+	lda	#'s'		;scratch
+@L4:	jsr	CHROUT
+	lda	(FN),y
+	iny
+	cmp	#','
+	bne	@L4
+	lda	#$0D		;carriage return
+	jsr	CHROUT
+	jsr	CLRCHN
+	clc			;carry = 0: OK
+@L5:	rts			;carry = 1: error
+
+pfs_makename:
 	sta	FN
-	stx	FN+1	;filename (kernal)
-	ldy	#F_MAXLEN+8
-	jsr	subysp	;allocate name
-	ldy	#255
+	stx	FN+1		;Kernal filename pointer
+	ldy	#MAXLEN + 8
+	jsr	subysp		;allocate name space
+
+	; Validate the name; and, find its length
+	ldy	#<-1
 	sty	ptr3
 	sty	ptr1
 @L10:	iny
-	cpy	#F_MAXLEN
-	bcs	error3	;too long...
-	ldx	#4	;4+1 (comma)
+	cpy	#MAXLEN
+	bcs	badchr		;too long
+	lda	(FN),y
+	ldx	#.sizeof(illchr); 4 + 1 (includes comma)
 @L12:	cmp	illchr,x
-	beq	error3	;illegal char?
+	beq	badchr		;illegal char
 	dex
 	bpl	@L12
-	cmp	#$2F
+	cmp	#'/'
 	bne 	@L11
-	sty	ptr1	;last slash
-@L11:	lda	(FN),y
+	sty	ptr1		;last slash
+@L11:	tax			;test for '\0'
 	bne	@L10
-	sty	FNL
+	cpy	#0
+	beq	badchr		;no name
 
-	tay
-	tax
-	lda	#$30	;this partition
+	tay			;zero index reg.
+	lda	#'0'		;drive 0 or current partition
 	sta	(sp),y
 	iny
 	inc	ptr1
 	beq	nopath
-	lda	#$2F
+	lda	#'/'
 @L13:	sta	(sp),y
 	iny
 	lda	(FN,x)
@@ -134,158 +243,67 @@ _pfs_open:
 	inc	FN+1
 @L14:	cpy	ptr1
 	bcc	@L13
-	lda	#$2F
+	;lda	#'/'		; (.A already has a slash)
 	sta	(sp),y
 	iny
-nopath: lda	#$3A
+nopath: lda	#':'
 @L16:	sta	(sp),y
 	iny
 	lda	(FN,x)
 	inc	FN
 	bne	@L15
 	inc	FN+1
-@L15:	ora	#0
+@L15:	ora	#$00		;test for '\0'
 	bne	@L16
 	lsr	ptr2
-	bcs	ro	;read only
+	bcs	ro		;read-only (read-write not supported)
 	lda	__filetype
-	sta	filet	;set filetype
-	ldx	#252
-@L20:	lda	pw-252,x
-	sta	(sp),y	;write
+	sta	sw + 1		;set filetype
+	lsr	ptr2
+	lda	#'w'		;write-only
+	lsr	ptr2
+	bcc	write
+	lda	#'a'		;append
+write:	sta	sw + 3		;set mode
+	ldx	#$0100 - .sizeof(sw)
+@L20:	lda	sw - ($0100 - .sizeof(sw)),x
+	sta	(sp),y
 	iny
 	inx
 	bne	@L20
-ro:	tya		;name length (kernal)
+ro:	tya			;pathname length
 	ldx	sp
 	ldy	sp+1
-	jsr	SETNAM
+namset:	jmp	SETNAM
 
-	lda	#0	;file number
-	tay		;secondary address
-open2:	sta	ptr2
-	sty	ptr2+1
-
-next:	inc	ptr2	;next file number
-	ldx	ptr2	;file number
-	cpx	#11
-	bcs	error	;no more files
-	lda	flags-1,x
-	bne	next	;already used
-	lda	ptr2+1
-	bne	nextsa
-	inx
-	stx	ptr2+1
-nextsa:	inc	ptr2+1	;next channel
-retr:	lda	ptr2	;file number
-	ldx	curunit
-	ldy	ptr2+1	;secondary address
-	jsr	SETLFS
-	jsr	OPEN	;open
-	bcs	oerr
-	ldx	cmdc
-	beq	opok	;error channel open
-	jsr	CHKIN
-	bcs	error
-	jsr	CHRIN
-	pha
-	jsr	CHRIN
-	sta	ptr1
-@L4:	jsr	CHRIN
-	lda	ST
-	beq	@L4
-	jsr	CLRCHN
-	pla
-	tax
-	lsr
-	cmp	#$18	;no serious error
-	beq	opok
-	txa
-	pha
-	lda	ptr2
-	jsr	CLOSE	;close
-	pla
-	ldx	ptr1
-	cmp	#$37	;no channel?
-	bne	nnoc
-	cpx	#$30
-	bne	error	;not no channel
-	lda	ptr2+1
-	cmp	#14
-	bcc	nextsa	;try next channel
-	bcs	error	;give up
-
-opok:	ldx	ptr2
-	lda	#F_OPEN
-	sta	flags-1,x
-	txa		;ok, return file number
-	ldx	#0
-ret:	ldy	#F_MAXLEN+8	; free filename
-	jmp	addysp
-
-oerr:	dec	ptr2+1
-	cmp	#2	;already open,
-	beq	next	;retry with next
-
-error:	lda	#$FF
-	tax		;failed
-	bne	ret
-
-nnoc:	inc	ptr3
-	bne	error	;no retry
-	cmp	#$36
-	bne	error	;no exists
-	cpx	#$33
-	bne	error
-	ldx	cmdc
-	jsr	CHKOUT
-	bcs	error
-	lda	FNL
-	sec
-	sbc	#5
-	tax
-	lda	#$53	;scratch
-	jsr	CHROUT
-	ldy	#1
-@L4:	lda	(FN),y
-	iny
-	jsr	CHROUT
-	dex
-	bne	@L4
-	lda	#$3D
-	jsr	CHROUT
-	iny
-	lda	(FN),y
-	jsr	CHROUT
-	lda	#$0d
-	jsr	CHROUT
-	jsr	CLRCHN
-	jmp	retr
+badchr:	lda	#0
+	beq	namset
 
 .proc   _pfs_read
         jsr     pfs_rwcommon    ; pop params, check handle
 	beq	error2		; not open
 
 	bmi	eof
-	.if	F_IDE64
-	asl
+
+.if	F_IDE64
+	asl	a
         bmi     nblk		; no block operation
 
         jsr     CHKIN
         bcs     error2
-        
+
         ; check support
         jsr     ide64_rwprepare
         bcs     norm
-        
-        ; read
+
+        ; do a block read
         jsr     READ
         bcs     nosup
         jmp     ide64_rwfinish
 
 nosup:  lda     #F_NBLK
 	jsr	pfs_rwsetflags
-	.endif
+.endif
 
         ; Valid lfn. Make it the input file
 nblk:   jsr     CHKIN
@@ -296,15 +314,15 @@ norm:	ldy	#0
 @L3:    inc     ptr1
         bne     @L0
         inc     ptr1+1
-        beq     done            ; branch always
+        beq     done
 
         ; Read the next byte
 @L0:    jsr     CHRIN
         tax                     ; save the input byte
 
-        lda	ST              ; read the IEEE status
-        cmp     #1              ; save it
-        and     #%10111111      ; check anything but the EOI bit
+        lda	ST              ; read the file status
+        cmp     #$01            ; save it
+        and     #%10111111      ; check anything but the EOF bit
         bne     error5          ; assume device not present
 
         ; Store the byte just read
@@ -314,45 +332,60 @@ norm:	ldy	#0
         bne     @L1
         inc     ptr2+1          ; *buf++ = A;
 
-        ; Get the status again and check the EOI bit
-@L1:    bcc     @L3             ; loop if no end of file
+        ; Get the status again; and, check the EOF bit
+@L1:    bcc     @L3             ; loop if not end of file
 
-        ; Set the EOI flag and bail out
+        ; Set the EOF flag; and, bail out
         lda     #F_EOF
         jsr     pfs_rwsetflags
 
-        ; Read done, close the input channel
-done:   jsr     CLRCHN		; clrchn
+        ; Read done; cancel the input channel
+done:   jsr     CLRCHN
 
         ; Return the number of chars read
-eof:    jmp     pfs_rwcommonend
+eof:
+;       jmp     pfs_rwcommonend ; (fall through)
 .endproc
 
-        ; Error entry, file is not open
+.proc   pfs_rwcommonend
+        lda     ptr2
+        sec
+        sbc     ptr3
+        pha
+        lda     ptr2+1
+        sbc     ptr3+1
+        tax
+        pla
+        rts
+.endproc
+
 done_pfs:
-	ldx	#10
-@L2:	ldy	flags-1,x	; file open?
+	ldx	#.sizeof(flags)
+@L2:	ldy	flags - 1,x	; file open?
 	beq	@L1
 	txa
-	jsr     _pfs_close
+	jsr     close1
 @L1:	dex
-	bne @L2
+	bne	@L2
 	rts
 
-error5: jsr     CLRCHN		; clrchn
+error5: jsr     CLRCHN
 
-error2:	ldx	#255
+        ; Error entry, file is not open
+error2:	ldx	#>-1
 	txa
 	rts
 
 _pfs_close:
-	pha
-	jsr	CLOSE	;close
+	cmp	#.sizeof(flags) + 1
+	bcs	close0		; don't close if not valid file number
+close1:	pha
+	jsr	CLOSE
 	pla
 	tax
-	lda	#0
-	sta	flags-1,x
-	rts
+	lda	#$00
+	sta	flags - 1,x
+close0:	rts			; .X = file number
 
 .proc   pfs_rwcommon
         eor     #$FF
@@ -370,70 +403,56 @@ _pfs_close:
 
         jsr     popax           ; get the handle
         sta	LF
-        lda	#0
-        beq	pfs_rwsetflags
+        lda	#$00
+;       beq	pfs_rwsetflags  ; (fall through)
 .endproc
-
-	.if	F_IDE64
-.proc   ide64_rwprepare
-        sec
-        lda     ptr1+1
-        eor     #255
-        beq 	small		; too small, not worth it
-        tay
-        lda     ptr1            ; setup registers
-        eor     #255
-        tax
-        lda     $031B
-        eor     #$DE
-        bne     noide           ; open vector set?
-        lda     $DE60
-        eor     #$49
-        bne     noide           ; check identification
-        lda     $DE61
-        eor     #$44
-        bne     noide
-        lda     $DE62
-        eor     #$45
-        bne     noide
-        clc
-        lda     #ptr2
-small:  rts
-        
-noide:  lda     #F_NBLK
-	bne	pfs_rwsetflags
-.endproc
-	.endif
 
 .proc	pfs_rwsetflags
 	ldx 	LF
-	ora 	flags-1,x
-	sta 	flags-1,x
+	ora 	flags - 1,x
+	sta 	flags - 1,x
 	rts
 .endproc
 
-	.if	F_IDE64
+.if	F_IDE64
+.proc   ide64_rwprepare
+        sec                     ; assume it won't use IDEDOS
+        lda     ptr1+1
+        eor     #$FF		; convert -count-1 back to count
+        beq 	small		; too small, not worth it
+        tay
+        lda     ptr1            ; set up registers
+        eor     #$FF
+        tax
+        lda     OPNVec+1
+        eor     #>$DE00
+        bne     noide           ; is OPEN vector set to IDEDOS?
+        lda     $DE60
+        eor     #'i'
+        bne     noide           ; check identification
+        lda     $DE61
+        eor     #'d'
+        bne     noide
+        lda     $DE62
+        eor     #'e'
+        bne     noide
+        clc                     ; it will use IDEDOS
+        lda     #ptr2
+small:  rts
+
+noide:  lda     #F_NBLK
+	bne	pfs_rwsetflags
+.endproc
+
 .proc   ide64_rwfinish
-        txa
+        txa                     ; push .YX
         pha
         tya
         pha
         jsr     CLRCHN
-        pla
+        pla                     ; pull .XA
         tax
         pla
         rts
 .endproc
-	.endif
-
-.proc   pfs_rwcommonend
-        lda     ptr2
-        sec
-        sbc     ptr3
-        pha
-        lda     ptr2+1
-        sbc     ptr3+1
-        tax
-        pla
-        rts
-.endproc
+.endif

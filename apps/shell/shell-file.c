@@ -51,7 +51,7 @@
 PROCESS(shell_ls_process, "ls");
 SHELL_COMMAND(ls_command,
 	      "ls",
-	      "ls: list files",
+	      "ls <dirname>: list files",
 	      &shell_ls_process);
 PROCESS(shell_append_process, "append");
 SHELL_COMMAND(append_command,
@@ -82,19 +82,21 @@ PROCESS_THREAD(shell_ls_process, ev, data)
   char buf[32];
   PROCESS_BEGIN();
   
-  if(cfs_opendir(&dir, "/") != 0) {
-    shell_output_str(&ls_command, "Cannot open directory", "");
-  } else {
-    totsize = 0;
-    while(cfs_readdir(&dir, &dirent) == 0) {
-      totsize += dirent.size;
-      sprintf(buf, "%lu ", (unsigned long)dirent.size);
-      /*      printf("'%s'\n", dirent.name);*/
-      shell_output_str(&ls_command, buf, dirent.name);
+  if(data != NULL) {
+    if(cfs_opendir(&dir, data) != 0) {
+      shell_output_str(&ls_command, "Cannot open directory", "");
+    } else {
+      totsize = 0;
+      while(cfs_readdir(&dir, &dirent) == 0) {
+        totsize += dirent.size;
+        sprintf(buf, "%lu ", (unsigned long)dirent.size);
+        /*      printf("'%s'\n", dirent.name);*/
+        shell_output_str(&ls_command, buf, dirent.name);
+      }
+      cfs_closedir(&dir);
+      sprintf(buf, "%lu", (unsigned long)totsize);
+      shell_output_str(&ls_command, "Total size: ", buf);
     }
-    cfs_closedir(&dir);
-    sprintf(buf, "%lu", (unsigned long)totsize);
-    shell_output_str(&ls_command, "Total size: ", buf);
   }
   PROCESS_END();
 }

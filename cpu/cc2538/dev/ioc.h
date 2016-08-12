@@ -34,7 +34,7 @@
  *
  * \defgroup cc2538-ioc cc2538 I/O Control
  *
- * cc2538 I/O Control Module
+ * Driver for the cc2538 I/O Control Module
  * @{
  *
  * \file

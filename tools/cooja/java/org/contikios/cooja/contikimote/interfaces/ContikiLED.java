@@ -40,6 +40,7 @@ import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.LED;
 import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * LEDs mote interface.
@@ -64,7 +65,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
   private static Logger logger = Logger.getLogger(ContikiLED.class);
 
   private Mote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
   private byte currentLedValue = 0;
 
   private static final byte LEDS_GREEN = 1;
@@ -91,7 +92,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
    */
   public ContikiLED(Mote mote) {
     this.mote = mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {

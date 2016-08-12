@@ -42,8 +42,8 @@ static void
 activate(void)
 {
   /* This assumes that some other sensor system already did setup the ADC
-  /* (in the case of the sky platform it is sensors_light_init that does it)
-
+   * (in the case of the sky platform it is sensors_light_init that does it) */
+  #if 0
   P6SEL |= 0x70;
   P6DIR = 0x00;
   P6OUT = 0x00;
@@ -52,37 +52,40 @@ activate(void)
   P2OUT |= 0x48;
 
 
-  /* stop converting immediately
+  /* stop converting immediately */
   ADC12CTL0 &= ~ENC;
   ADC12CTL1 &= ~CONSEQ_3;
 
   /* Configure ADC12_2 to sample channel 11 (voltage) and use
-  /* the Vref+ as reference (SREF_1) since it is a stable reference
+   * the Vref+ as reference (SREF_1) since it is a stable reference */
   ADC12MCTL2 = (INCH_4 + SREF_1);
   ADC12MCTL3 = (INCH_5 + SREF_1);
   ADC12MCTL4 = (INCH_6 + SREF_1);
-  /* internal temperature can be read as value(3)
+  /* internal temperature can be read as value(3) */
   ADC12MCTL5 = (INCH_10 + SREF_1);
 
   ADC12CTL1 |= CONSEQ_3;
   ADC12CTL0 |= ENC | ADC12SC;
 
-  /*  Irq_adc12_activate(&acc_sensor, 6, (INCH_11 + SREF_1)); */
+  Irq_adc12_activate(&acc_sensor, 6, (INCH_11 + SREF_1));
+  #endif /* 0 */
   active = 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
 deactivate(void)
 {
-  /*  irq_adc12_deactivate(&acc_sensor, 6);
-      acc_value = 0;*/
+  #if 0
+  irq_adc12_deactivate(&acc_sensor, 6);
+  acc_value = 0;
+  #endif /* 0 */
   active = 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-/*
+  #if 0
   switch(type) {
   case 0:
     return ADC12MEM2;
@@ -92,7 +95,8 @@ value(int type)
     return ADC12MEM4;
   case 3:
     return ADC12MEM5;
-  }*/
+  }
+  #endif /* 0 */
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -122,5 +126,4 @@ status(int type)
   }
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(acc_sensor, ACC_SENSOR,
-	       value, configure, status);
+SENSORS_SENSOR(acc_sensor, ACC_SENSOR, value, configure, status);

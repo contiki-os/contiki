@@ -1,0 +1,2 @@
+MOTELIST_ZOLERTIA = firefly
+BOARD_SOURCEFILES += board.c

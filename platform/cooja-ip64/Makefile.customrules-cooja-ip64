@@ -1,0 +1,50 @@
+### Define custom targets
+
+REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
+
+# NB: Assumes ARCHIVE was not overridden and is in $(OBJECTDIR)
+$(ARCHIVE): $(CONTIKI_OBJECTFILES) | $(OBJECTDIR)
+	${subst obj_cooja/,$(OBJECTDIR)/,$(AR_COMMAND_1)} $^ $(AR_COMMAND_2)
+
+# NB: Assumes JNILIB was not overridden and is in $(OBJECTDIR)
+$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE) | $(OBJECTDIR)
+ifdef SYMBOLS
+	@echo Generating symbols
+	# Recreate symbols file and relink with final memory layout (twice)
+	${CONTIKI}/tools/make-symbols-nm $(JNILIB)
+	$(CC) $(CFLAGS) -c symbols.c -o $(OBJECTDIR)/symbols.o
+	$(LINK_COMMAND_1) $^ $(LINK_COMMAND_2)
+	${CONTIKI}/tools/make-symbols-nm $(JNILIB)
+	$(CC) $(CFLAGS) -c symbols.c -o $(OBJECTDIR)/symbols.o
+endif ## SYMBOLS
+ifdef REDEF_PRINTF
+	@echo Redefining printf
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym printf=log_printf $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym puts=log_puts $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym putchar=log_putchar $(OBJ); )
+endif ## REDEF_PRINTF
+	${subst .cooja,.$(TARGET),${subst obj_cooja/,$(OBJECTDIR)/,$(LINK_COMMAND_1)}} $^ $(LINK_COMMAND_2)
+
+.PHONY: $(CONTIKI_APP).$(TARGET)
+$(CONTIKI_APP).$(TARGET): $(JNILIB)
+	cp $(JNILIB) $@
+	rm $(CONTIKI_APP_OBJ)
+	
+	mkdir -p obj_cooja
+	@-cp obj_cooja-ip64/$(LIBNAME).map obj_cooja/$(LIBNAME).map && echo Placed a copy of the map file at obj_cooja/$(LIBNAME).map
+	
+	cp obj_cooja-ip64/$(LIBNAME).cooja-ip64 obj_cooja/$(LIBNAME).cooja
+	@echo Placed a copy of the shared library at obj_cooja/$(LIBNAME).cooja
+	
+	cp $@ $(CONTIKI_APP).cooja
+	@echo Placed a copy of the shared library at $(CONTIKI_APP).cooja
+
+# Trickiness: GNU make matches this against the file base name.
+# Assume that the directory part is the standard location.
+mtype%.o: contiki-cooja-ip64-main.o | $(OBJECTDIR)
+	mv contiki-cooja-ip64-main.o $@
+
+symbols.c:
+	# Create initial symbol files if not existing
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h

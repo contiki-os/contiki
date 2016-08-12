@@ -53,9 +53,9 @@
 #include "lcd.h"
 #include "duty-cycle-scroller.h"
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 
 #define DEBUG 1
@@ -77,7 +77,7 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, node_mac, sizeof(addr.u8));
 #else
   if(node_id == 0) {
@@ -122,9 +122,9 @@ main(int argc, char **argv)
   leds_on(LEDS_RED);
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
   slip_arch_init(BAUD2UBR(115200));
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
   leds_on(LEDS_GREEN);
   /* xmem_init(); */
@@ -203,7 +203,7 @@ main(int argc, char **argv)
     PRINTF("Node id not set.\n");
   }
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 
@@ -236,7 +236,7 @@ main(int argc, char **argv)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf("Tentative global IPv6 address ");
@@ -248,7 +248,7 @@ main(int argc, char **argv)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
@@ -259,9 +259,9 @@ main(int argc, char **argv)
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
                          NETSTACK_RDC.channel_check_interval()),
          CC2420_CONF_CHANNEL);
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#if !WITH_UIP6
+#if !NETSTACK_CONF_WITH_IPV6
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
@@ -307,8 +307,7 @@ main(int argc, char **argv)
       static unsigned long irq_energest = 0;
 
       /* Re-enable interrupts and go to sleep atomically. */
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
       /* We only want to measure the processing done in IRQs when we
          are asleep, so we discard the processing time done when we
          were awake. */
@@ -327,8 +326,7 @@ main(int argc, char **argv)
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
       watchdog_start();
-      ENERGEST_OFF(ENERGEST_TYPE_LPM);
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
+      ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
     }
   }
 }

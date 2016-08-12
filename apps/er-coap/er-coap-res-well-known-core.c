@@ -124,7 +124,7 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
           continue;
         }
         end = attrib + strlen(attrib);
-      } else {
+      } else if(resource->attributes != NULL) {
         attrib = strstr(resource->attributes, filter);
         if(attrib == NULL
            || (attrib[strlen(filter)] != '='
@@ -159,8 +159,8 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
     }
 #endif
 
-    PRINTF("res: /%s (%p)\npos: s%d, o%ld, b%d\n", resource->url, resource,
-           strpos, *offset, bufpos);
+    PRINTF("res: /%s (%p)\npos: s%zu, o%ld, b%zu\n", resource->url, resource,
+           strpos, (long)*offset, bufpos);
 
     if(strpos > 0) {
       ADD_CHAR_IF_POSSIBLE(',');
@@ -170,7 +170,7 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
     ADD_STRING_IF_POSSIBLE(resource->url, >=);
     ADD_CHAR_IF_POSSIBLE('>');
 
-    if(resource->attributes[0]) {
+    if(resource->attributes != NULL && resource->attributes[0]) {
       ADD_CHAR_IF_POSSIBLE(';');
       ADD_STRING_IF_POSSIBLE(resource->attributes, >);
     }
@@ -183,7 +183,7 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
   }
 
   if(bufpos > 0) {
-    PRINTF("BUF %d: %.*s\n", bufpos, bufpos, (char *)buffer);
+    PRINTF("BUF %zu: %.*s\n", bufpos, (int)bufpos, (char *)buffer);
 
     coap_set_payload(response, buffer, bufpos);
     coap_set_header_content_format(response, APPLICATION_LINK_FORMAT);

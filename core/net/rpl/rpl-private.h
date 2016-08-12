@@ -44,6 +44,8 @@
 #include "sys/clock.h"
 #include "sys/ctimer.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-ds6-route.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
 /*---------------------------------------------------------------------------*/
@@ -90,10 +92,21 @@
 
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID present */
+
+#define RPL_DAO_ACK_UNCONDITIONAL_ACCEPT 0
+#define RPL_DAO_ACK_ACCEPT               1   /* 1 - 127 is OK but not good */
+#define RPL_DAO_ACK_UNABLE_TO_ACCEPT     128 /* >127 is fail */
+#define RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT 255 /* root can not accept */
+
+#define RPL_DAO_ACK_TIMEOUT              -1
+
 /*---------------------------------------------------------------------------*/
 /* RPL IPv6 extension header option. */
 #define RPL_HDR_OPT_LEN			4
 #define RPL_HOP_BY_HOP_LEN		(RPL_HDR_OPT_LEN + 2 + 2)
+#define RPL_RH_LEN     4
+#define RPL_SRH_LEN    4
+#define RPL_RH_TYPE_SRH   3
 #define RPL_HDR_OPT_DOWN		0x80
 #define RPL_HDR_OPT_DOWN_SHIFT  	7
 #define RPL_HDR_OPT_RANK_ERR		0x40
@@ -103,12 +116,31 @@
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
-/* The default value for the DAO timer. */
-#ifdef RPL_CONF_DAO_LATENCY
-#define RPL_DAO_LATENCY                 RPL_CONF_DAO_LATENCY
-#else /* RPL_CONF_DAO_LATENCY */
-#define RPL_DAO_LATENCY                 (CLOCK_SECOND * 4)
-#endif /* RPL_DAO_LATENCY */
+/* DAO transmissions are always delayed by RPL_DAO_DELAY +/- RPL_DAO_DELAY/2 */
+#ifdef RPL_CONF_DAO_DELAY
+#define RPL_DAO_DELAY                 RPL_CONF_DAO_DELAY
+#else /* RPL_CONF_DAO_DELAY */
+#define RPL_DAO_DELAY                 (CLOCK_SECOND * 4)
+#endif /* RPL_CONF_DAO_DELAY */
+
+/* Delay between reception of a no-path DAO and actual route removal */
+#ifdef RPL_CONF_NOPATH_REMOVAL_DELAY
+#define RPL_NOPATH_REMOVAL_DELAY          RPL_CONF_NOPATH_REMOVAL_DELAY
+#else /* RPL_CONF_NOPATH_REMOVAL_DELAY */
+#define RPL_NOPATH_REMOVAL_DELAY          60
+#endif /* RPL_CONF_NOPATH_REMOVAL_DELAY */
+
+#ifdef RPL_CONF_DAO_MAX_RETRANSMISSIONS
+#define RPL_DAO_MAX_RETRANSMISSIONS RPL_CONF_DAO_MAX_RETRANSMISSIONS
+#else
+#define RPL_DAO_MAX_RETRANSMISSIONS     5
+#endif /* RPL_CONF_DAO_MAX_RETRANSMISSIONS */
+
+#ifdef RPL_CONF_DAO_RETRANSMISSION_TIMEOUT
+#define RPL_DAO_RETRANSMISSION_TIMEOUT RPL_CONF_DAO_RETRANSMISSION_TIMEOUT
+#else
+#define RPL_DAO_RETRANSMISSION_TIMEOUT  (5 * CLOCK_SECOND)
+#endif /* RPL_CONF_DAO_RETRANSMISSION_TIMEOUT */
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
@@ -117,11 +149,28 @@
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
+/* RFC6550 defines the default MIN_HOPRANKINC as 256.
+ * However, we use MRHOF as a default Objective Function (RFC6719),
+ * which recommends setting MIN_HOPRANKINC with care, in particular
+ * when used with ETX as a metric. ETX is computed as a fixed point
+ * real with a divisor of 128 (RFC6719, RFC6551). We choose to also
+ * use 128 for RPL_MIN_HOPRANKINC, resulting in a rank equal to the
+ * ETX path cost. Larger values may also be desirable, as discussed
+ * in section 6.1 of RFC6719. */
+#if RPL_OF_OCP == RPL_OCP_MRHOF
+#define RPL_MIN_HOPRANKINC          128
+#else /* RPL_OF_OCP == RPL_OCP_MRHOF */
 #define RPL_MIN_HOPRANKINC          256
-#else
+#endif /* RPL_OF_OCP == RPL_OCP_MRHOF */
+#else /* RPL_CONF_MIN_HOPRANKINC */
 #define RPL_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
-#endif
+#endif /* RPL_CONF_MIN_HOPRANKINC */
+
+#ifndef RPL_CONF_MAX_RANKINC
 #define RPL_MAX_RANKINC             (7 * RPL_MIN_HOPRANKINC)
+#else /* RPL_CONF_MAX_RANKINC */
+#define RPL_MAX_RANKINC             RPL_CONF_MAX_RANKINC
+#endif /* RPL_CONF_MAX_RANKINC */
 
 #define DAG_RANK(fixpt_rank, instance) \
   ((fixpt_rank) / (instance)->min_hoprankinc)
@@ -134,9 +183,6 @@
 
 #define INFINITE_RANK                   0xffff
 
-
-/* Expire DAOs from neighbors that do not respond in this time. (seconds) */
-#define DAO_EXPIRATION_TIMEOUT          60
 /*---------------------------------------------------------------------------*/
 #define RPL_INSTANCE_LOCAL_FLAG         0x80
 #define RPL_INSTANCE_D_FLAG             0x40
@@ -153,18 +199,56 @@
 #define RPL_MOP_STORING_NO_MULTICAST    2
 #define RPL_MOP_STORING_MULTICAST       3
 
+/* RPL Mode of operation */
 #ifdef  RPL_CONF_MOP
 #define RPL_MOP_DEFAULT                 RPL_CONF_MOP
 #else /* RPL_CONF_MOP */
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_MULTICAST
 #else
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
-#endif /* UIP_IPV6_MULTICAST_RPL */
+#endif /* RPL_WITH_MULTICAST */
 #endif /* RPL_CONF_MOP */
 
+/*
+ * Embed support for storing mode
+ */
+#ifdef RPL_CONF_WITH_STORING
+#define RPL_WITH_STORING RPL_CONF_WITH_STORING
+#else /* RPL_CONF_WITH_STORING */
+/* By default: embed support for non-storing if and only if the configured MOP is not non-storing */
+#define RPL_WITH_STORING (RPL_MOP_DEFAULT != RPL_MOP_NON_STORING)
+#endif /* RPL_CONF_WITH_STORING */
+
+/*
+ * Embed support for non-storing mode
+ */
+#ifdef RPL_CONF_WITH_NON_STORING
+#define RPL_WITH_NON_STORING RPL_CONF_WITH_NON_STORING
+#else /* RPL_CONF_WITH_NON_STORING */
+/* By default: embed support for non-storing if and only if the configured MOP is non-storing */
+#define RPL_WITH_NON_STORING (RPL_MOP_DEFAULT == RPL_MOP_NON_STORING)
+#endif /* RPL_CONF_WITH_NON_STORING */
+
+#if RPL_WITH_STORING && (UIP_DS6_ROUTE_NB == 0)
+#error "RPL with storing mode included but #routes == 0. Set UIP_CONF_MAX_ROUTES accordingly."
+#if !RPL_WITH_NON_STORING && (RPL_NS_LINK_NUM > 0)
+#error "You might also want to set RPL_NS_CONF_LINK_NUM to 0."
+#endif
+#endif
+
+#if RPL_WITH_NON_STORING && (RPL_NS_LINK_NUM == 0)
+#error "RPL with non-storing mode included but #links == 0. Set RPL_NS_CONF_LINK_NUM accordingly."
+#if !RPL_WITH_STORING && (UIP_DS6_ROUTE_NB > 0)
+#error "You might also want to set UIP_CONF_MAX_ROUTES to 0."
+#endif
+#endif
+
+#define RPL_IS_STORING(instance) (RPL_WITH_STORING && ((instance) != NULL) && ((instance)->mop > RPL_MOP_NON_STORING))
+#define RPL_IS_NON_STORING(instance) (RPL_WITH_NON_STORING && ((instance) != NULL) && ((instance)->mop == RPL_MOP_NON_STORING))
+
 /* Emit a pre-processor error if the user configured multicast with bad MOP */
-#if RPL_CONF_MULTICAST && (RPL_MOP_DEFAULT != RPL_MOP_STORING_MULTICAST)
+#if RPL_WITH_MULTICAST && (RPL_MOP_DEFAULT != RPL_MOP_STORING_MULTICAST)
 #error "RPL Multicast requires RPL_MOP_DEFAULT==3. Check contiki-conf.h"
 #endif
 
@@ -175,21 +259,9 @@
 #define RPL_MCAST_LIFETIME 3
 #endif
 
-/*
- * The ETX in the metric container is expressed as a fixed-point value 
- * whose integer part can be obtained by dividing the value by 
- * RPL_DAG_MC_ETX_DIVISOR.
- */
-#define RPL_DAG_MC_ETX_DIVISOR		256
-
 /* DIS related */
 #define RPL_DIS_SEND                    1
-#ifdef  RPL_DIS_INTERVAL_CONF
-#define RPL_DIS_INTERVAL                RPL_DIS_INTERVAL_CONF
-#else
-#define RPL_DIS_INTERVAL                60
-#endif
-#define RPL_DIS_START_DELAY             5
+
 /*---------------------------------------------------------------------------*/
 /* Lollipop counters */
 
@@ -242,11 +314,17 @@ struct rpl_stats {
   uint16_t malformed_msgs;
   uint16_t resets;
   uint16_t parent_switch;
+  uint16_t forward_errors;
+  uint16_t loop_errors;
+  uint16_t loop_warnings;
+  uint16_t root_repairs;
 };
 typedef struct rpl_stats rpl_stats_t;
 
 extern rpl_stats_t rpl_stats;
 #endif
+
+
 /*---------------------------------------------------------------------------*/
 /* RPL macros. */
 
@@ -265,8 +343,10 @@ void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
-void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
+void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
 void rpl_icmp6_register_handlers(void);
+uip_ds6_nbr_t *rpl_icmp6_update_nbr_table(uip_ipaddr_t *from,
+                                          nbr_table_reason_t r, void *data);
 
 /* RPL logic functions. */
 void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);
@@ -280,6 +360,7 @@ rpl_dag_t *rpl_alloc_dag(uint8_t, uip_ipaddr_t *);
 rpl_instance_t *rpl_alloc_instance(uint8_t);
 void rpl_free_dag(rpl_dag_t *);
 void rpl_free_instance(rpl_instance_t *);
+void rpl_purge_dags(void);
 
 /* DAG parent management function. */
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
@@ -299,21 +380,23 @@ uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
 
-/* Lock a parent in the neighbor cache. */
-void rpl_lock_parent(rpl_parent_t *p);
-
 /* Objective function. */
 rpl_of_t *rpl_find_of(rpl_ocp_t);
 
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
 void rpl_schedule_dao_immediately(rpl_instance_t *);
+void rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance);
 void rpl_cancel_dao(rpl_instance_t *instance);
+void rpl_schedule_probing(rpl_instance_t *instance);
 
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */
 void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);
+
+
+rpl_instance_t *rpl_get_default_instance(void);
 
 #endif /* RPL_PRIVATE_H */

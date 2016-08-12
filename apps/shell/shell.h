@@ -1,23 +1,3 @@
-/** \addtogroup apps
- * @{ */
-
-/**
- * \defgroup shell The Contiki shell
- * @{
- *
- * The Contiki shell provides both interactive and batch processing
- * for Contiki.
- *
- * The shell consists of two parts: the shell application and a shell
- * back-end. The shell application contains all the logic of the
- * shell, whereas the shell back-end provides I/O for the
- * shell. Examples of shell back-ends are a serial I/O shell back-end,
- * that allows the shell to operate over a serial connection, and a
- * telnet server back-end, that allows the shell to operate over a
- * TCP/IP telnet connection.
- *
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -55,6 +35,26 @@
  *         Main header file for the Contiki shell
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup apps
+ * @{ */
+
+/**
+ * \defgroup shell The Contiki shell
+ * @{
+ *
+ * The Contiki shell provides both interactive and batch processing
+ * for Contiki.
+ *
+ * The shell consists of two parts: the shell application and a shell
+ * back-end. The shell application contains all the logic of the
+ * shell, whereas the shell back-end provides I/O for the
+ * shell. Examples of shell back-ends are a serial I/O shell back-end,
+ * that allows the shell to operate over a serial connection, and a
+ * telnet server back-end, that allows the shell to operate over a
+ * TCP/IP telnet connection.
+ *
  */
 
 #ifndef SHELL_H_
@@ -382,7 +382,6 @@ struct shell_input {
 #include "shell-httpd.h"
 #include "shell-irc.h"
 #include "shell-memdebug.h"
-#include "shell-netfile.h"
 #include "shell-netperf.h"
 #include "shell-netstat.h"
 #include "shell-ping.h"

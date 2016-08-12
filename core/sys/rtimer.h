@@ -1,23 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup rt Real-time task scheduling
- *
- * The real-time module handles the scheduling and execution of
- * real-time tasks (with predictable execution times).
- *
- * @{
- */
-
-/**
- * \file
- *         Header file for the real-time timer module.
- * \author
- *         Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
@@ -49,15 +29,38 @@
  * This file is part of the Contiki operating system.
  *
  */
+
+/**
+ * \file
+ *         Header file for the real-time timer module.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup rt Real-time task scheduling
+ *
+ * The real-time module handles the scheduling and execution of
+ * real-time tasks (with predictable execution times).
+ *
+ * @{
+ */
+
 #ifndef RTIMER_H_
 #define RTIMER_H_
 
 #include "contiki-conf.h"
 
-#ifndef RTIMER_CLOCK_LT
+#ifndef RTIMER_CLOCK_DIFF
 typedef unsigned short rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
-#endif /* RTIMER_CLOCK_LT */
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed short)((a)-(b)))
+#endif /* RTIMER_CLOCK_DIFF */
+
+#define RTIMER_CLOCK_LT(a, b)      (RTIMER_CLOCK_DIFF((a),(b)) < 0)
 
 #include "rtimer-arch.h"
 
@@ -149,6 +152,16 @@ void rtimer_arch_schedule(rtimer_clock_t t);
 /*rtimer_clock_t rtimer_arch_now(void);*/
 
 #define RTIMER_SECOND RTIMER_ARCH_SECOND
+
+/* RTIMER_GUARD_TIME is the minimum amount of rtimer ticks between
+   the current time and the future time when a rtimer is scheduled.
+   Necessary to avoid accidentally scheduling a rtimer in the past
+   on platforms with fast rtimer ticks. Should be >= 2. */
+#ifdef RTIMER_CONF_GUARD_TIME
+#define RTIMER_GUARD_TIME RTIMER_CONF_GUARD_TIME
+#else /* RTIMER_CONF_GUARD_TIME */
+#define RTIMER_GUARD_TIME (RTIMER_ARCH_SECOND >> 14)
+#endif /* RTIMER_CONF_GUARD_TIME */
 
 #endif /* RTIMER_H_ */
 

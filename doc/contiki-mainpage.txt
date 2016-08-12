@@ -93,8 +93,6 @@ Contiki is designed to run on many different \ref platform "platforms". It is al
 possible to compile and build both the Contiki system and Contiki
 applications on many different development platforms. 
 
-See \ref esb-getting-started "Getting started with Contiki for the ESB platform
-
 \section contiki-mainpage-building Building the Contiki system and its applications
 
  The Contiki build system is designed to make it easy to compile

@@ -93,8 +93,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     edges.add(e);
     requestEdgeAnalysis();
 
-    ((AbstractRadioMedium.RadioMediumObservable)
-        this.getRadioMediumObservable()).setRadioMediumChangedAndNotify();
+    radioTransmissionObservable.setChangedAndNotify();
   }
 
   public void removeEdge(Edge edge) {
@@ -105,16 +104,15 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     edges.remove(edge);
     requestEdgeAnalysis();
 
-    ((AbstractRadioMedium.RadioMediumObservable)
-        this.getRadioMediumObservable()).setRadioMediumChangedAndNotify();
+
+    radioTransmissionObservable.setChangedAndNotify();
   }
 
   public void clearEdges() {
     edges.clear();
     requestEdgeAnalysis();
 
-    ((AbstractRadioMedium.RadioMediumObservable)
-        this.getRadioMediumObservable()).setRadioMediumChangedAndNotify();
+    radioTransmissionObservable.setChangedAndNotify();
   }
 
   public Edge[] getEdges() {
@@ -166,6 +164,19 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
       DGRMDestinationRadio dstRadios[] =  getPotentialDestinations(conn.getSource());
       if (dstRadios == null) continue; 
       for (DGRMDestinationRadio dstRadio : dstRadios) {
+
+        int activeSourceChannel = conn.getSource().getChannel();
+        int edgeChannel = dstRadio.channel;
+        int activeDstChannel = dstRadio.radio.getChannel();
+        if (activeSourceChannel != -1) {
+          if (edgeChannel != -1 && activeSourceChannel != edgeChannel) {
+            continue;
+          }
+          if (activeDstChannel != -1 && activeSourceChannel != activeDstChannel) {
+            continue;
+          }
+        }
+
         if (dstRadio.radio.getCurrentSignalStrength() < dstRadio.signal) {
           dstRadio.radio.setCurrentSignalStrength(dstRadio.signal);
         }
@@ -211,6 +222,9 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
     this.edgesTable = arrTable;
     edgesDirty = false;
+    
+    /* Radio Medium changed here so notify Observers */
+    radioMediumObservable.setChangedAndNotify();
   }
 
   /**
@@ -247,13 +261,27 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
     /*logger.info(source + ": " + destinations.length + " potential destinations");*/
     for (DGRMDestinationRadio dest: destinations) {
-      
+    
       if (dest.radio == source) {
         /* Fail: cannot receive our own transmission */
         /*logger.info(source + ": Fail, receiver is sender");*/
         continue;
       }
 
+      int srcc = source.getChannel();
+      int dstc = dest.radio.getChannel();
+      int edgeChannel = dest.getChannel();
+
+      if (edgeChannel >= 0 && dstc >= 0 && edgeChannel != dstc) {
+      	/* Fail: the edge is configured for a different radio channel */
+        continue;
+      }
+
+      if (srcc >= 0 && dstc >= 0 && srcc != dstc) {
+        /* Fail: radios are on different (but configured) channels */
+        newConn.addInterfered(dest.radio);
+        continue;
+      }
 
       if (!dest.radio.isRadioOn()) {
         /* Fail: radio is off */
@@ -268,14 +296,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         newConn.addInterfered(dest.radio);
         continue;
       }
-
-      int srcc = source.getChannel();
-      int dstc = dest.radio.getChannel(); 
-      if ( srcc >= 0 && dstc >= 0 && srcc != dstc) {
-    	/* Fail: radios are on different (but configured) channels */
-        continue;
-      }
-      
+     
       if (dest.radio.isReceiving()) {
          /* Fail: radio is already actively receiving */
          /*logger.info(source + ": Fail, receiving");*/

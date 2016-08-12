@@ -1,20 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup routediscovery Rime route discovery protocol
- * @{
- *
- * The route-discovery module does route discovery for Rime.
- *
- * \section channels Channels
- *
- * The ibc module uses 2 channels; one for the flooded route request
- * packets and one for the unicast route replies.
- *
- */
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +37,23 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup routediscovery Rime route discovery protocol
+ * @{
+ *
+ * The route-discovery module does route discovery for Rime.
+ *
+ * \section route-discovery-channels Channels
+ *
+ * The ibc module uses 2 channels; one for the flooded route request
+ * packets and one for the unicast route replies.
+ *
+ */
 #ifndef ROUTE_DISCOVERY_H_
 #define ROUTE_DISCOVERY_H_
 
@@ -83,6 +83,10 @@ struct route_discovery_conn {
 void route_discovery_open(struct route_discovery_conn *c, clock_time_t time,
 			  uint16_t channels,
 			  const struct route_discovery_callbacks *callbacks);
+void route_discovery_explicit_open(struct route_discovery_conn *c, clock_time_t time,
+				   uint16_t netflood_channel,
+				   uint16_t unicast_channel,
+				   const struct route_discovery_callbacks *callbacks);
 int route_discovery_discover(struct route_discovery_conn *c, const linkaddr_t *dest,
 			     clock_time_t timeout);
 

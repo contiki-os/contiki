@@ -75,6 +75,18 @@ typedef struct nbr_table {
 /** \brief Declaration of non-static neighbor tables */
 #define NBR_TABLE_DECLARE(name) extern nbr_table_t *name
 
+typedef enum {
+	NBR_TABLE_REASON_UNDEFINED,
+	NBR_TABLE_REASON_RPL_DIO,
+	NBR_TABLE_REASON_RPL_DAO,
+	NBR_TABLE_REASON_RPL_DIS,
+	NBR_TABLE_REASON_ROUTE,
+	NBR_TABLE_REASON_IPV6_ND,
+	NBR_TABLE_REASON_MAC,
+	NBR_TABLE_REASON_LLSEC,
+	NBR_TABLE_REASON_LINK_STATS,
+} nbr_table_reason_t;
+
 /** \name Neighbor tables: register and loop through table elements */
 /** @{ */
 int nbr_table_register(nbr_table_t *table, nbr_table_callback *callback);
@@ -84,7 +96,7 @@ nbr_table_item_t *nbr_table_next(nbr_table_t *table, nbr_table_item_t *item);
 
 /** \name Neighbor tables: add and get data */
 /** @{ */
-nbr_table_item_t *nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr);
+nbr_table_item_t *nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr, nbr_table_reason_t reason, void *data);
 nbr_table_item_t *nbr_table_get_from_lladdr(nbr_table_t *table, const linkaddr_t *lladdr);
 /** @} */
 
@@ -98,6 +110,7 @@ int nbr_table_unlock(nbr_table_t *table, nbr_table_item_t *item);
 /** \name Neighbor tables: address manipulation */
 /** @{ */
 linkaddr_t *nbr_table_get_lladdr(nbr_table_t *table, const nbr_table_item_t *item);
+int nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr, int remove_if_duplicate);
 /** @} */
 
 #endif /* NBR_TABLE_H_ */

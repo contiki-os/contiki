@@ -1,13 +1,13 @@
 package org.contikios.cooja.plugins.analyzers;
 
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.File;
+import org.apache.log4j.Logger;
 
 public class PcapExporter {
+  private static final Logger logger = Logger.getLogger(PcapExporter.class);
 
   DataOutputStream out;
 
@@ -33,7 +33,7 @@ public class PcapExporter {
     out.writeInt(195); /* 195 for LINKTYPE_IEEE802_15_4 */
 
     out.flush();
-    System.out.println("Opened pcap file " + pcapFile);
+    logger.info("Opened pcap file " + pcapFile);
   }
 
   public void closePcap() throws IOException {
@@ -56,7 +56,7 @@ public class PcapExporter {
       out.write(data);
       out.flush();
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error(e);
     }
   }
 

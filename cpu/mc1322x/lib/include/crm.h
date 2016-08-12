@@ -325,6 +325,17 @@ static const int XTAL32_EN =   0;
 #define pack_XTAL_CNTL(ctune4pf, ctune, ftune, ibias) \
 	(*CRM_XTAL_CNTL = ((ctune4pf << 25) | (ctune << 21) | ( ftune << 16) | (ibias << 8) | 0x52))
 
+#define soft_reset() \
+    __asm__ __volatile__ ( \
+        "ldr r0, [%[sw]] \n\t" \
+        "str r0, [%[sw]] \n\t" \
+    : /* out */ \
+    : /* in */ \
+        [sw] "l" (CRM_SW_RST) \
+    : /* clobber list */ \
+        "r0", "memory" \
+    );
+
 #endif /* REG_NO_COMPAT */
 
 #endif

@@ -1,14 +1,3 @@
-/**
- * \addtogroup slip
- * @{
- */
-
-/**
- * \file
- * SLIP header file.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * All rights reserved. 
@@ -40,6 +29,17 @@
  * This file is part of the uIP TCP/IP stack.
  *
  *
+ */
+
+/**
+ * \file
+ * SLIP header file.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup slip
+ * @{
  */
 
 #ifndef SLIPDEV_H_

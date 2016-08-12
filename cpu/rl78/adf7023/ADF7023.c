@@ -45,6 +45,7 @@
 #include "sfrs-ext.h"
 
 #include "contiki.h"        /* for clock_wait() and CLOCK_SECOND. */
+#include "sys/cc.h"
 
 /******************************************************************************/
 /*************************** Macros Definitions *******************************/
@@ -90,9 +91,6 @@
     int counter = 0; \
     while(condition) { body; break_loop(); } \
 } while(0)
-
-#undef MIN
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /******************************************************************************/
 /************************ Variables Definitions *******************************/

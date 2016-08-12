@@ -45,6 +45,7 @@ import org.jdom.Element;
 import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Contiki EEPROM interface
@@ -73,7 +74,7 @@ public class ContikiEEPROM extends MoteInterface implements ContikiMoteInterface
 
   public int EEPROM_SIZE = 1024; /* Configure EEPROM size here and in eeprom.c. Should really be multiple of 16 */
   private Mote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
 
   private int lastRead = 0;
   private int lastWritten = 0;
@@ -87,7 +88,7 @@ public class ContikiEEPROM extends MoteInterface implements ContikiMoteInterface
    */
   public ContikiEEPROM(Mote mote) {
     this.mote = mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {

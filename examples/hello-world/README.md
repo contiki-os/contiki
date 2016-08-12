@@ -34,7 +34,7 @@ For example, using a loopback interface with the minimal-net platform:
     make UIP_CONF_IPV6=1 TARGET=minimal-net
     ./hello-world.minimal-net
     Hello, world
-    IPV6 Address: [aaaa::206:98ff:fe00:232]
+    IPV6 Address: [fd00::206:98ff:fe00:232]
     IPV6 Address: [fe80::206:98ff:fe00:232]
     ^C
 

@@ -46,7 +46,7 @@ public class CC2420RadioPacketConverter {
   public static final boolean WITH_XMAC = false; /* XXX No longer supported. Cross-level requires NULLMAC */
   public static final boolean WITH_CHECKSUM = false; /* Contiki checksum. Not CC2420's built-in. */
   public static final boolean WITH_TIMESTAMP = false; /* Contiki timestamp */
-  public static final boolean WITH_FOOTER = true; /* CC2420's checksum */
+  public static final boolean WITH_FOOTER = false; /* CC2420's checksum */
 
   public static byte[] fromCoojaToCC2420(RadioPacket packet) {
     byte cc2420Data[] = new byte[6+127];
@@ -165,7 +165,7 @@ public class CC2420RadioPacketConverter {
     }
 
     /* 1 byte length */
-    len = data[pos];
+    len = data[pos] & 0xFF;
     originalLen = len;
     pos += 1;
 
@@ -198,7 +198,7 @@ public class CC2420RadioPacketConverter {
     System.arraycopy(data, 6 /* skipping preamble+synch+len */, originalData, 0, originalLen);
     if (len < 0) {
       /*logger.warn("No cross-level conversion available: negative packet length");*/
-      return new ConvertedRadioPacket(new byte[0], originalData);
+      return null;
     }
     byte convertedData[] = new byte[len];
     System.arraycopy(data, pos, convertedData, 0, len);

@@ -67,7 +67,7 @@ typedef struct coap_transaction {
                                                  * Use snprintf(buf, len+1, "", ...) to completely fill payload */
 } coap_transaction_t;
 
-void coap_register_as_transaction_handler();
+void coap_register_as_transaction_handler(void);
 
 coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr,
                                          uint16_t port);
@@ -75,6 +75,6 @@ void coap_send_transaction(coap_transaction_t *t);
 void coap_clear_transaction(coap_transaction_t *t);
 coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
 
-void coap_check_transactions();
+void coap_check_transactions(void);
 
 #endif /* COAP_TRANSACTIONS_H_ */

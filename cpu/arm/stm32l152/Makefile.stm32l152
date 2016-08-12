@@ -1,0 +1,136 @@
+# Makefile for the STM32L152 Cortex M3 medium-density microcontroller
+
+.SUFFIXES:
+
+# CPU folder
+CONTIKI_CPU=$(CONTIKI)/cpu/arm/stm32l152
+
+# Source folders for contiki cpu files
+CONTIKI_CPU_DIRS =  . 
+
+# source files: proprietary sources for startup. Refer to CMSIS docs.
+PROP_SYS_ARCH_C = system_stm32l1xx.c
+
+
+ifdef IAR
+include $(CONTIKI_CPU)/Makefile.stm32l152.iar
+else
+include $(CONTIKI_CPU)/Makefile.stm32l152.gnu
+endif
+
+
+# source files: Contiki arch source files
+CONTIKI_CPU_ARCH=   watchdog.c                                \
+                    rtimer-arch.c                             \
+                    clock.c				      
+
+ifdef GCC 
+CONTIKI_CPU_PORT=   syscalls.c                                  \
+		    console.c				      \
+                    crt.c				      \
+                    uart.c                                    
+else
+CONTIKI_CPU_PORT=
+endif
+
+
+
+UIPDRIVERS=
+
+# to be implemented
+ELFLOADER=
+
+
+# add CPU folder to search path for .s (assembler) files
+ifdef GCC
+vpath %.s $(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/startup_files/gcc
+else
+vpath %.s $(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/startup_files/iar
+endif
+
+# include all files above
+ssubst = ${patsubst %.s,%.o,${patsubst %.s79,%.o,$(1)}}
+CONTIKI_TARGET_SOURCEFILES += $(PROP_SYS_ARCH_C) $(PROP_USB_ARCH) $(CONTIKI_CPU_ARCH) $(CONTIKI_CPU_PORT) $(ELFLOADER) $(UIPDRIVERS)
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,${call ssubst, $(PROP_SYS_ARCH_S)}}
+#CONTIKI_OBJECTFILES += ${addprefix $(OBJECTDIR)/,${call ssubst, $(PROP_SYS_ARCH_S)}}
+
+#------------------------------------------------ defines common for IAR and GCC
+# set CPU speed in Hz, NB this might have unexpected side-effects if not at 32
+# Mhz as it is not immediately clear how specialized the startup code etc is.
+# That being said, setting to 24MHz seems to work fine, looking at Contiki clocks
+# at least.
+F_CPU = 32000000
+
+CFLAGS+=\
+	-DHSE_VALUE=$(F_CPU)ul \
+	-DUSE_STDPERIPH_DRIVER \
+	-DSTM32L1XX_MD \
+	-DIAR_ARM_CM3 \
+	-DVECT_TAB_FLASH \
+	-DWITH_UIP6
+
+# ------------------------------------------------------------------ Build rules
+CUSTOM_RULE_C_TO_CE=yes
+CUSTOM_RULE_C_TO_CO=yes
+CUSTOM_RULE_C_TO_O=yes
+CUSTOM_RULE_S_TO_OBJECTDIR_O=yes
+CUSTOM_RULE_LINK=yes
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+%.o: %.s
+	$(AS) $(ASFLAGS) $< -o $@
+
+define FINALIZE_CYGWIN_DEPENDENCY
+sed -e 's/ \([A-Z]\):\\/ \/cygdrive\/\L\1\//' -e 's/\\\([^ ]\)/\/\1/g' \
+	    <$(@:.o=.P) >$(@:.o=.d); \
+rm -f $(@:.o=.P)
+endef
+
+$(OBJECTDIR)/%.o: %.s
+	$(AS) $(ASFLAGS) $< -o $@
+
+%.ce: %.o
+	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@ $(LDLIBS)
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
+	$(STRIP) --strip $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+ifdef IAR
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUPFOLDER) # $(OBJECTDIR)/empty-symbols.o
+	$(LD) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
+else
+#CONTIKI_CPU_OBJS=$(CONTIKI_CPU_PORT:%.c=obj_stm32nucleo-spirit1/%.o)
+CONTIKI_CPU_OBJS=$(CONTIKI_CPU_PORT:%.c=$(OBJECTDIR)/%.o)
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) $(CONTIKI_CPU_OBJS) -o $@
+	@echo >> contiki-$(TARGET).map
+	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
+endif
+
+%.hex: %.ihex
+	#	@rm $*.hex
+	@mv -f $*.ihex $*.hex
+
+.PHONY: symbols.c
+
+symbols.c:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+
+# Don't use core/loader/elfloader.c, use elfloader-otf.c instead
+$(OBJECTDIR)/elfloader.o:
+	echo -n >$@
+

@@ -51,9 +51,9 @@ Build and run the SLIP tunnel on the host machine.
 Here it is assumed that the Secondary UART USB port (J3) is attached to /dev/ttyUSB1:
 
 	make -C contiki/tools tunslip6
-	sudo contiki/tools/tunslip6 -B 38400 -s /dev/ttyUSB1 -v3 aaaa::1/64
+	sudo contiki/tools/tunslip6 -B 38400 -s /dev/ttyUSB1 -v3 fd00::1/64
 
-Open the border router home page at http://[aaaa::302:304:506:708]/
+Open the border router home page at http://[fd00::302:304:506:708]/
 
 Build and run the IPv6 web server example on another eval board.
 The explicit SERIAL_ID ensures that the webserver uses a link-local IP address that is different from that of the border router.
@@ -61,7 +61,7 @@ The explicit SERIAL_ID ensures that the webserver uses a link-local IP address t
 	make -C contiki/examples/webserver-ipv6 TARGET=eval-adf7xxxmb4z SERIAL_ID='"\x01\x02\x03\x04\x05\x06\x07\x09"' webserver6.eval-adf7xxxmb4z.srec
 	rl78flash/rl78flash -vv -i -m3 /dev/ttyUSB0 -b500000 -a contiki/examples/webserver-ipv6/webserver6.eval-adf7xxxmb4z.srec
 
-Open the web server's home page at http://[aaaa::7a30:3178:3032:7830]
+Open the web server's home page at http://[fd00::7a30:3178:3032:7830]
 
 
 On Windows:

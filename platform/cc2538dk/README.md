@@ -29,6 +29,10 @@ In terms of hardware support, the following drivers have been implemented:
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
     * ADC
+    * PWM
+    * Cryptoprocessor (AES-ECB/CBC/CTR/CBC-MAC/GCM/CCM-128/192/256, SHA-256)
+    * Public Key Accelerator (ECDH, ECDSA)
+    * Flash-based port of Coffee
   * SmartRF06 EB and BB peripherals
     * LEDs
     * Buttons
@@ -62,22 +66,15 @@ The platform has been developed and tested under Windows XP, Mac OS X 10.9.1 and
 
 Install a Toolchain
 -------------------
-The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you will have a version pre-installed in your system. To find out if this is the case, try this:
+The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you may have a version pre-installed in your system.
 
-    $ arm-none-eabi-gcc -v
-    Using built-in specs.
-    Target: arm-none-eabi
-    Configured with: /scratch/julian/lite-respin/eabi/src/gcc-4.3/configure
-    ...
-    (skip)
-    ...
-    Thread model: single
-    gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66)
+The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors" (<https://launchpad.net/gcc-arm-embedded>). The current recommended version and the one being used by Contiki's regression tests on Travis is shown below.
 
-The platform is currently being used/tested with the following toolchains:
-
-* GNU Tools for ARM Embedded Processors. This is the recommended version. Works nicely on OS X. <https://launchpad.net/gcc-arm-embedded>
-* Alternatively, you can use this older version for Linux. At the time of writing, this is the version used by Contiki's regression tests. <https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2>
+    $ arm-none-eabi-gcc --version
+    arm-none-eabi-gcc (GNU Tools for ARM Embedded Processors) 5.2.1 20151202 (release) [ARM/embedded-5-branch revision 231848]
+    Copyright (C) 2015 Free Software Foundation, Inc.
+    This is free software; see the source for copying conditions.  There is NO
+    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Drivers
 -------
@@ -147,10 +144,14 @@ The CC2538 EM's USB Vendor and Product IDs are the following:
 
 The implementation in Contiki is pure CDC-ACM: The Linux and OS X kernels know exactly what to do and drivers are not required.
 
-On windows, you will need to provide a driver:
+On windows, you will need to provide a driver. You have two options:
 
-  * Download this LUFA CDC-ACM driver:
-<http://code.google.com/p/lufa-lib/source/browse/trunk/Demos/Device/LowLevel/VirtualSerial/LUFA+VirtualSerial.inf>
+  * Use the signed or unsigned driver provided by TI in [CC2538 Foundation Firmware](http://www.ti.com/tool/cc2538-sw). You will find them both under the `drivers` directory.
+  * Download a generic Virtual Serial Port driver and modify it so it works for the CC2538.
+
+For the latter option:
+
+  * Download this [LUFA CDC-ACM driver](https://raw.githubusercontent.com/abcminiuser/lufa/master/Demos/Device/LowLevel/VirtualSerial/LUFA%20VirtualSerial.inf).
   * Adjust the VID and PID near the end with the values at the start of this section.
   * Next time you get prompted for the driver, include the directory containing the .inf file in the search path and the driver will be installed.
 
@@ -307,14 +308,14 @@ Start by building a border router from `examples/ipv6/rpl-border-router`
   * Connect device to Linux or OS X over its XDS port.
   * `cd $(CONTIKI)/tools`
   * `make tunslip6`
-  * `sudo $(CONTIKI)/tools/tunslip6 -s /dev/<device> aaaa::1/64`
+  * `sudo $(CONTIKI)/tools/tunslip6 -s /dev/<device> fd00::1/64`
   * The router will print its own IPv6 address. Use it below.
 
         Got configuration message of type P
-        Setting prefix aaaa::
+        Setting prefix fd00::
         created a new RPL dag
         Server IPv6 addresses:
-         aaaa::212:4b00:89ab:cdef
+         fd00::212:4b00:89ab:cdef
          fe80::212:4b00:89ab:cdef
 
   * `ping6 <address>`

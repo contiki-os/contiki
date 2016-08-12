@@ -212,7 +212,7 @@ static unsigned long total_time_for_transmission, total_transmission_len;
 static int num_transmissions;
 #endif
 
-#if defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 volatile uint8_t rf230_wakewait, rf230_txendwait, rf230_ccawait;
 #endif
 
@@ -236,6 +236,8 @@ typedef enum{
 /*---------------------------------------------------------------------------*/
 PROCESS(rf230_process, "RF230 driver");
 /*---------------------------------------------------------------------------*/
+
+int rf230_interrupt(void);
 
 static int rf230_on(void);
 static int rf230_off(void);
@@ -431,7 +433,21 @@ rf230_waitidle(void)
   }
 }
 
-/*----------------------------------------------------------------------------*/
+/* Set reduced power consumption for AtMegaXXXRFR2 MCU's. See AT02594 */
+
+static uint8_t rpc = 0xFF; /* Default max power save */
+void 
+rf230_set_rpc(uint8_t data)
+{
+  rpc = data;
+}
+
+uint8_t
+rf230_get_rpc(void)
+{
+  return rpc;
+}
+
 /** \brief  This function will change the current state of the radio
  *          transceiver's internal state machine.
  *
@@ -505,6 +521,10 @@ radio_set_trx_state(uint8_t new_state)
         /* When the PLL is active most states can be reached in 1us. However, from */
         /* TRX_OFF the PLL needs time to activate. */
         if (current_state == TRX_OFF){
+
+#if defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)  
+	  hal_subregister_write(SR_TRX_RPC, rpc);    /* Enable RPC features */
+#endif
             delay_us(TIME_TRX_OFF_TO_PLL_ACTIVE);
         } else {
             delay_us(TIME_STATE_TRANSITION_PLL_ACTIVE);
@@ -533,7 +553,7 @@ rf230_set_promiscuous_mode(bool isPromiscuous) {
 #if RF230_CONF_AUTOACK
     is_promiscuous = isPromiscuous;
 /* TODO: Figure out when to pass promisc state to 802.15.4 */
-//    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
+    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #endif
 }
 
@@ -552,7 +572,19 @@ rf230_is_ready_to_send() {
 static void
 flushrx(void)
 {
+  /* Clear the length field to allow buffering of the next packet */
   rxframe[rxframe_head].length=0;
+  rxframe_head++;
+  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
+    rxframe_head=0;
+  }
+  /* If another packet has been buffered, schedule another receive poll */
+  if (rxframe[rxframe_head].length) {
+    rf230_interrupt();
+  }
+  else {
+    rf230_pending = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -571,7 +603,7 @@ radio_on(void)
 #if RF230BB_CONF_LEDONPORTE1
     PORTE|=(1<<PE1); //ledon
 #endif
-#if defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
     /* Use the poweron interrupt for delay */
     rf230_wakewait=1;
     {
@@ -923,7 +955,7 @@ rf230_transmit(unsigned short payload_len)
   /* If radio is sleeping we have to turn it on first */
   /* This automatically does the PLL calibrations */
   if (hal_get_slptr()) {
-#if defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
 #if RF230BB_CONF_LEDONPORTE1
     PORTE|=(1<<PE1); //ledon
@@ -1073,8 +1105,10 @@ rf230_transmit(unsigned short payload_len)
 
   if (tx_result==RADIO_TX_OK) {
     RIMESTATS_ADD(lltx);
+#if NETSTACK_CONF_WITH_RIME
     if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE))
       RIMESTATS_ADD(ackrx);		//ack was requested and received
+#endif
 #if RF230_INSERTACK
   /* Not PAN broadcast to FFFF, and ACK was requested and received */
   if (!((buffer[5]==0xff) && (buffer[6]==0xff)) && (buffer[0]&(1<<6)))
@@ -1367,6 +1401,25 @@ PROCESS_THREAD(rf230_process, ev, data)
     /* Restore interrupts. */
     HAL_LEAVE_CRITICAL_REGION();
     PRINTF("rf230_read: %u bytes lqi %u\n",len,rf230_last_correlation);
+
+    if(is_promiscuous) {
+      uint8_t i;
+      unsigned const char * rxdata = packetbuf_dataptr();
+      /* Print magic */
+      putchar(0xC1);
+      putchar(0x1F);
+      putchar(0xFE);
+      putchar(0x72);
+      /* Print version */
+      putchar(0x01);
+      /* Print CMD == frame */
+      putchar(0x00);
+      putchar(len+3);
+
+      for (i=0;i<len;i++)  putchar(rxdata[i]);
+      printf("\n");
+    }
+
 #if DEBUG>1
      {
         uint8_t i;
@@ -1432,6 +1485,7 @@ rf230_read(void *buf, unsigned short bufsize)
 #if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
 #endif
+    flushrx();
     return 0;
   }
 
@@ -1474,19 +1528,8 @@ rf230_read(void *buf, unsigned short bufsize)
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   rf230_last_correlation = rxframe[rxframe_head].lqi;
 
-  /* Clear the length field to allow buffering of the next packet */
-  rxframe[rxframe_head].length=0;
-  rxframe_head++;
-  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
-    rxframe_head=0;
-  }
-  /* If another packet has been buffered, schedule another receive poll */
-  if (rxframe[rxframe_head].length) {
-    rf230_interrupt();
-  }
-  else {
-    rf230_pending = 0;
-  }
+ /* Prepare to receive another packet */
+  flushrx();
   
  /* Point to the checksum */
   framep+=len-AUX_LEN; 
@@ -1652,7 +1695,7 @@ rf230_cca(void)
 
   /* Start the CCA, wait till done, return result */
   /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
-#if defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 #if 1  //interrupt method
     /* Disable rx transitions to busy (RX_PDT_BIT) */
     /* Note: for speed this resets rx threshold to the compiled default */
@@ -1679,7 +1722,7 @@ rf230_cca(void)
 
     /* Use ED register to determine result. 77dBm is poweron csma default.*/
 #ifdef RF230_CONF_CCA_THRES
-    if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES) cca=0xff;
+    if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES)) cca=0xff;
 #else
     if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
 #endif
@@ -1701,9 +1744,9 @@ rf230_cca(void)
   /* If already in receive mode can read the current ED register without delay */
   /* CCA energy threshold = -91dB + 2*SR_CCA_ED_THRESH. Reset defaults to -77dB */
 #ifdef RF230_CONF_CCA_THRES
-    if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES) cca=0xff;
+    if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES)) cca=0xff;
 #else
-	if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
+    if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
 #endif
 #endif
 

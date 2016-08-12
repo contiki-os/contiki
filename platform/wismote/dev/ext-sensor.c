@@ -43,8 +43,10 @@ static uint8_t active;
 static int
 value(int type)
 {
-  /* ADC0 corresponds to the port under the logo, ADC1 to the port over the logo,
-     ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port)
+  #if 0
+  /* ADC0 corresponds to the port under the logo,
+   * ADC1 to the port over the logo,
+   * ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port) */
   switch(type) {
     case ADC0:
       return ADC12MEM6;
@@ -54,7 +56,8 @@ value(int type)
       return ADC12MEM8;
     case ADC3:
       return ADC12MEM9;
-  }*/
+  }
+  #endif /* 0 */
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -77,16 +80,17 @@ configure(int type, int c)
     case SENSORS_ACTIVE:
       if(c) {
         if(!status(SENSORS_ACTIVE)) {
-          /* SREF_1 is Vref+
-          /* MemReg6 == P6.0/A0 == port "under" logo
+          #if 0
+          /* SREF_1 is Vref+ */
+          /* MemReg6 == P6.0/A0 == port "under" logo */
           ADC12MCTL6 = (INCH_0 + SREF_0);
-          /* MemReg7 == P6.1/A1 == port "over" logo
+          /* MemReg7 == P6.1/A1 == port "over" logo */
           ADC12MCTL7 = (INCH_1 + SREF_0);
-          /* MemReg8 == P6.2/A2, bottom expansion port
+          /* MemReg8 == P6.2/A2, bottom expansion port */
           ADC12MCTL8 = (INCH_2 + SREF_0);
-          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence
+          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence */
           ADC12MCTL9 = (INCH_3 + SREF_0);
-	*/
+          #endif /* 0 */
           sky_sensors_activate(0x0F);
           active = 1;
         }
@@ -100,5 +104,4 @@ configure(int type, int c)
   }
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(ext_sensor, "Ext",
-         value, configure, status);
+SENSORS_SENSOR(ext_sensor, "Ext", value, configure, status);

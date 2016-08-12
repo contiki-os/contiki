@@ -1,30 +1,20 @@
-CONTIKI_TARGET_DIRS = . apps net loader
-CONTIKI_CORE=contiki-avr-zigbit
+CONTIKIDIRS += ${addprefix $(CONTIKI)/core/, net/mac net/mac/sicslowmac . }
+
+CONTIKI_TARGET_DIRS = . apps  /core/net/mac/ /core/net/mac/sicslowmac/
+CONTIKI_CORE = contiki-avr-zigbit
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
-CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c \
-				mmem.c contiki-avr-zigbit-main.c
+CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c mmem.c \
+				contiki-avr-zigbit-main.c \
+				sicslowmac.c linkaddr.c queuebuf.c nullmac.c packetbuf.c \
+				frame802154.c framer-802154.c framer.c nullsec.c nbr-table.c
 
-CONTIKIAVR=$(CONTIKI)/cpu/avr
-CONTIKIBOARD=.
+CONTIKIAVR = $(CONTIKI)/cpu/avr
+CONTIKIBOARD = .
 
 CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
 
-MCU=atmega1281
-AVRDUDE_PROGRAMMER=jtag2
-
-# For usb devices, you may either use PORT=usb, or (e.g. if you have more than one
-# programmer connected) you can use the following trick to find out the serial number:
-#
-# The example is for an JTAGICE mkII used to program an ATmega128:
-# avrdude -v -P usb:xxxx -c jtag2 -p atmega128
-AVRDUDE_PORT=usb:00B000000D79
-
-
-# Additional avrdude options
-# Verify off
-AVRDUDE_OPTIONS=-V
-
+MCU = atmega1281
 
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio

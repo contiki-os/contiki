@@ -29,8 +29,9 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
- * \addtogroup esb
+ * \addtogroup native_platform
  * @{
  */
 

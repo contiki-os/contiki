@@ -93,7 +93,7 @@ public class Simulation extends Observable implements Runnable {
 
   private long maxMoteStartupDelay = 1000*MILLISECOND;
 
-  private Random randomGenerator = new Random();
+  private SafeRandom randomGenerator;
 
   private boolean hasMillisecondObservers = false;
   private MillisecondObservable millisecondObservable = new MillisecondObservable();
@@ -322,6 +322,7 @@ public class Simulation extends Observable implements Runnable {
    */
   public Simulation(Cooja cooja) {
     this.cooja = cooja;
+    randomGenerator = new SafeRandom(this);
   }
 
   /**
@@ -846,6 +847,9 @@ public class Simulation extends Observable implements Runnable {
       }
     };
 
+    //Add to list of uninitialized motes
+    motesUninit.add(mote);
+
     if (!isRunning()) {
       /* Simulation is stopped, add mote immediately */
       addMote.run();
@@ -853,8 +857,6 @@ public class Simulation extends Observable implements Runnable {
       /* Add mote from simulation thread */
       invokeSimulationThread(addMote);
     }
-    //Add to list of uninitialized motes
-    motesUninit.add(mote);
     
   }
 

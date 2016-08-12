@@ -48,18 +48,14 @@
 /** \name NVIC Constants and Configuration
  * @{
  */
-#define NVIC_VTABLE_IN_SRAM 0x20000000
-#define NVIC_VTABLE_IN_CODE 0x00000000
-
 #define NVIC_INTERRUPT_ENABLED  0x00000001
 #define NVIC_INTERRUPT_DISABLED 0x00000000
 
-#ifndef NVIC_CONF_VTABLE_BASE
-#define NVIC_CONF_VTABLE_BASE NVIC_VTABLE_IN_CODE
-#endif
-
-#ifndef NVIC_CONF_VTABLE_OFFSET
-#define NVIC_CONF_VTABLE_OFFSET 0x200000
+#ifdef NVIC_CONF_VTABLE_ADDRESS
+#define NVIC_VTABLE_ADDRESS     NVIC_CONF_VTABLE_ADDRESS
+#else
+extern void(*const vectors[])(void);
+#define NVIC_VTABLE_ADDRESS     ((uint32_t)&vectors)
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/

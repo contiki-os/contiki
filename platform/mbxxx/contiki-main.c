@@ -72,24 +72,14 @@
 #include "net/rime/rime.h"
 #include "net/ip/uip.h"
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",lladdr.u8[0], lladdr.u8[1], lladdr.u8[2], lladdr.u8[3],lladdr.u8[4], lladdr.u8[5], lladdr.u8[6], lladdr.u8[7])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
+#define DEBUG DEBUG_PRINT
+#include "net/ip/uip-debug.h"
 
-
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 PROCINIT(&tcpip_process, &sensors_process);
 #else
 PROCINIT(&sensors_process);
@@ -121,11 +111,11 @@ set_rime_addr(void)
     }
   }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &eui64, sizeof(uip_lladdr.addr));
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   linkaddr_set_node_addr((linkaddr_t *)&eui64);
 #else
   linkaddr_set_node_addr((linkaddr_t *)&eui64.u8[8 - LINKADDR_SIZE]);
@@ -183,13 +173,13 @@ main(void)
 
   set_rime_addr();
 
-  printf("%s %s, channel check rate %lu Hz\n",
+  printf("%s %s, channel check rate %d Hz\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                                   NETSTACK_RDC.channel_check_interval()));
   printf("802.15.4 PAN ID 0x%x, EUI-%d:",
       IEEE802154_CONF_PANID, UIP_CONF_LL_802154?64:16);
-  uip_debug_lladdr_print(&linkaddr_node_addr);
+  net_debug_lladdr_print((const uip_lladdr_t *)&linkaddr_node_addr);
   printf(", radio channel %u\n", RF_CHANNEL);
 
   procinit_init();
@@ -207,7 +197,7 @@ main(void)
   ST_RadioSetEdCcaThreshold(DEFAULT_RADIO_CCA_THRESHOLD);
   
   autostart_start(autostart_processes);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   printf("Tentative link-local IPv6 address ");
   {
     uip_ds6_addr_t *lladdr;
@@ -224,7 +214,7 @@ main(void)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf("Tentative global IPv6 address ");
@@ -235,7 +225,7 @@ main(void)
     printf("%02x%02x\n",
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   
   watchdog_start();
   
@@ -251,15 +241,13 @@ main(void)
     
     
     
-    ENERGEST_OFF(ENERGEST_TYPE_CPU);
-    /* watchdog_stop(); */
-    ENERGEST_ON(ENERGEST_TYPE_LPM);
+    /* watchdog_stop(); */    
+    ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
     /* Go to idle mode. */
     halSleepWithOptions(SLEEPMODE_IDLE,0);
     /* We are awake. */
     /* watchdog_start(); */
-    ENERGEST_OFF(ENERGEST_TYPE_LPM);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);  
+    ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
     
   }
   

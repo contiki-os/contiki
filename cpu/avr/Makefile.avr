@@ -99,6 +99,7 @@ CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
             -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
             $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
+ASFLAGS  += -mmcu=$(MCU)
 ifndef BOOTLOADER_START
   BOOTLOADER_START = 0x1F800
 endif
@@ -138,10 +139,10 @@ ifndef NOAVRSIZE
 	avr-size -C --mcu=$(MCU) $@
 endif
 
-%.hex: %.out
+%.hex: %.$(TARGET)
 	$(OBJCOPY) $^ -j .text -j .data -O ihex $@
 
-%.ihex: %.out
+%.ihex: %.$(TARGET)
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
@@ -159,7 +160,7 @@ endif
 #%.hex: %.elf
 #	$(OBJCOPY) -R .eeprom -R .fuse -R .signature $^ -O ihex $@
 
-%.eep: %.out
+%.eep: %.$(TARGET)
 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
 	--change-section-lma .eeprom=0 -O ihex $^ $@
 

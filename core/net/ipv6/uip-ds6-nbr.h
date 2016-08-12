@@ -1,8 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
 /*
  * Copyright (c) 2013, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -35,8 +30,13 @@
  */
 
 /**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
  * \file
- *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+ *    IPv6 Neighbor cache (link-layer/IPv6 address mapping)
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Simon Duquennoy <simonduq@sics.se>
@@ -50,8 +50,6 @@
 #include "net/nbr-table.h"
 #include "sys/stimer.h"
 #include "net/ipv6/uip-ds6.h"
-#include "net/nbr-table.h"
-
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
@@ -69,11 +67,13 @@ NBR_TABLE_DECLARE(ds6_neighbors);
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {
   uip_ipaddr_t ipaddr;
+  uint8_t isrouter;
+  uint8_t state;
+#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA
   struct stimer reachable;
   struct stimer sendns;
   uint8_t nscount;
-  uint8_t isrouter;
-  uint8_t state;
+#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
 #if UIP_CONF_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
@@ -83,9 +83,11 @@ typedef struct uip_ds6_nbr {
 void uip_ds6_neighbors_init(void);
 
 /** \brief Neighbor Cache basic routines */
-uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                               uint8_t isrouter, uint8_t state);
-void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr,
+                               const uip_lladdr_t *lladdr,
+                               uint8_t isrouter, uint8_t state,
+                               nbr_table_reason_t reason, void *data);
+int uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
 const uip_lladdr_t *uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr);
 const uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr);
 uip_ds6_nbr_t *uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr);
@@ -98,12 +100,12 @@ int uip_ds6_nbr_num(void);
 
 /**
  * \brief
- *     This searches inside the neighbor table for the neighbor that is about to
- *     expire the next.
+ *    This searches inside the neighbor table for the neighbor that is about to
+ *    expire the next.
  *
  * \return
- *     A reference to the neighbor about to expire the next or NULL if
- *     table is empty.
+ *    A reference to the neighbor about to expire the next or NULL if
+ *    table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 

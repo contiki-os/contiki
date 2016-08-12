@@ -1,0 +1,11 @@
+--- newlib/libc/include/sys/config.h	2015-01-14 07:25:15.000000000 -0200
++++ newlib/libc/include/sys/config.h	2015-03-13 14:21:33.247980336 -0300
+@@ -94,9 +94,6 @@
+ #define HAVE_GETDATE
+ #define _HAVE_SYSTYPES
+ #define _READ_WRITE_RETURN_TYPE _ssize_t
+-#define __LARGE64_FILES 1
+-/* we use some glibc header files so turn on glibc large file feature */
+-#define _LARGEFILE64_SOURCE 1
+ #endif
+ #endif

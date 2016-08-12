@@ -215,7 +215,6 @@ sht11_init(void)
      This assumes the SDA/SCL pins passed in the -arch.h file are 
      actually the same used for I2C operation, else comment out the following
   */
-  #warning SHT11: DISABLING I2C BUS
   SHT11_PxSEL &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   #if defined(__MSP430_HAS_MSP430X_CPU__) || defined(__MSP430_HAS_MSP430XV2_CPU__)
     SHT11_PxREN &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));

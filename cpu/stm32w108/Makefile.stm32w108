@@ -102,12 +102,10 @@ ifeq ($(STM32W_CPUREV), CC)
   LD-EXT=-stm32w108CC
   RAM_SIZE = 2*8192
   FLASH_SIZE = 2*128*1024
- ${warning "using stm32w108CC specific ld file"}
 else ifeq ($(STM32W_CPUREV), xB)
   LD-EXT=-stm32w108xB
   RAM_SIZE = 8192
   FLASH_SIZE = 128*1024
- ${warning "using stm32w108xB specific ld file"}
 else
  ${error "Bad STM32W_CPUREV value or no STM32W_CPUREV value specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
 endif

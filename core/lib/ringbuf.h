@@ -1,16 +1,3 @@
-/** \addtogroup lib
- * @{ */
-
-/**
- * \defgroup ringbuf Ring buffer library
- * @{
- *
- * The ring buffer library implements ring (circular) buffer where
- * bytes can be read and written independently. A ring buffer is
- * particularly useful in device drivers where data can come in
- * through interrupts.
- *
- */
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -48,6 +35,20 @@
  *         Header file for the ring buffer library
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup lib
+ * @{ */
+
+/**
+ * \defgroup ringbuf Ring buffer library
+ * @{
+ *
+ * The ring buffer library implements ring (circular) buffer where
+ * bytes can be read and written independently. A ring buffer is
+ * particularly useful in device drivers where data can come in
+ * through interrupts.
+ *
  */
 
 #ifndef RINGBUF_H_

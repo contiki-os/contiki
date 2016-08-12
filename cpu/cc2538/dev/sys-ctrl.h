@@ -32,7 +32,7 @@
  * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-sys-ctrl cc2538 System Control
+ * \defgroup cc2538-sys-ctrl cc2538 System Control (SysCtrl)
  *
  * Driver for the cc2538 System Control Module
  * @{
@@ -42,6 +42,8 @@
  */
 #ifndef SYS_CTRL_H_
 #define SYS_CTRL_H_
+
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /** \name SysCtrl Constants, used by the SYS_DIV and IO_DIV bits of the
  * SYS_CTRL_CLOCK_CTRL register
@@ -113,6 +115,11 @@
 #define SYS_CTRL_CLOCK_STA_OSC32K_CALDIS    0x02000000
 #define SYS_CTRL_CLOCK_STA_OSC32K           0x01000000
 #define SYS_CTRL_CLOCK_STA_RST              0x00C00000
+#define SYS_CTRL_CLOCK_STA_RST_S            22
+#define SYS_CTRL_CLOCK_STA_RST_POR          0
+#define SYS_CTRL_CLOCK_STA_RST_EXT          1
+#define SYS_CTRL_CLOCK_STA_RST_WDT          2
+#define SYS_CTRL_CLOCK_STA_RST_CLD_SW       3
 #define SYS_CTRL_CLOCK_STA_SOURCE_CHANGE    0x00100000
 #define SYS_CTRL_CLOCK_STA_XOSC_STB         0x00080000
 #define SYS_CTRL_CLOCK_STA_HSOSC_STB        0x00040000
@@ -157,6 +164,34 @@
 #define SYS_CTRL_SRGPT_GPT2     0x00000004  /**< GPT2 is reset */
 #define SYS_CTRL_SRGPT_GPT1     0x00000002  /**< GPT1 is reset */
 #define SYS_CTRL_SRGPT_GPT0     0x00000001  /**< GPT0 is reset */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_RCGCSEC register bit masks
+ * @{
+ */
+#define SYS_CTRL_RCGCSEC_AES    0x00000002  /**< AES clock enable, CPU running */
+#define SYS_CTRL_RCGCSEC_PKA    0x00000001  /**< PKA clock enable, CPU running */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_SCGCSEC register bit masks
+ * @{
+ */
+#define SYS_CTRL_SCGCSEC_AES    0x00000002  /**< AES clock enable, CPU IDLE */
+#define SYS_CTRL_SCGCSEC_PKA    0x00000001  /**< PKA clock enable, CPU IDLE */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_DCGCSEC register bit masks
+ * @{
+ */
+#define SYS_CTRL_DCGCSEC_AES    0x00000002  /**< AES clock enable, PM0 */
+#define SYS_CTRL_DCGCSEC_PKA    0x00000001  /**< PKA clock enable, PM0 */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_SRSEC register bits
+ * @{
+ */
+#define SYS_CTRL_SRSEC_AES      0x00000002  /**< AES is reset */
+#define SYS_CTRL_SRSEC_PKA      0x00000001  /**< PKA is reset */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SYS_CTRL_PWRDBG register bits
@@ -242,9 +277,47 @@
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name System clock divisor selection
+ * @{
+ */
+#ifdef SYS_CTRL_CONF_SYS_DIV
+#if SYS_CTRL_CONF_SYS_DIV & ~SYS_CTRL_CLOCK_CTRL_SYS_DIV
+#error Invalid system clock divisor
+#endif
+#define SYS_CTRL_SYS_DIV        SYS_CTRL_CONF_SYS_DIV
+#else
+#define SYS_CTRL_SYS_DIV        SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ
+#endif
+
+#ifdef SYS_CTRL_CONF_IO_DIV
+#if SYS_CTRL_CONF_IO_DIV & ~SYS_CTRL_CLOCK_CTRL_IO_DIV
+#error Invalid I/O clock divisor
+#endif
+#define SYS_CTRL_IO_DIV         SYS_CTRL_CONF_IO_DIV
+#else
+#define SYS_CTRL_IO_DIV         SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ
+#endif
+
+/* Returns actual system clock in Hz */
+#define SYS_CTRL_SYS_CLOCK      (SYS_CTRL_32MHZ >> SYS_CTRL_SYS_DIV)
+/* Returns actual I/O clock in Hz */
+#define SYS_CTRL_IO_CLOCK       (SYS_CTRL_32MHZ >> (SYS_CTRL_IO_DIV >> 8))
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name SysCtrl functions
  * @{
  */
+
+/** \brief Gets the cause of the last reset
+ * \return A \c SYS_CTRL_CLOCK_STA_RST_x reset cause
+ */
+int sys_ctrl_get_reset_cause(void);
+
+/** \brief Gets a string describing the cause of the last reset
+ * \return Last reset cause as a string
+ */
+const char *sys_ctrl_get_reset_cause_str(void);
+
 /** \brief Initialises the System Control Driver. The main purpose of this
  * function is to power up and select clocks and oscillators
  * \note This function depends on ioc_init() having been called beforehand. */
@@ -252,6 +325,12 @@ void sys_ctrl_init();
 
 /** \brief Generates a warm reset through the SYS_CTRL_PWRDBG register */
 void sys_ctrl_reset();
+
+/** \brief Returns the actual system clock in Hz */
+uint32_t sys_ctrl_get_sys_clock();
+
+/** \brief Returns the actual io clock in Hz */
+uint32_t sys_ctrl_get_io_clock();
 
 /** @} */
 

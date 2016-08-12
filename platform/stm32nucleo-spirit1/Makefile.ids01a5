@@ -1,0 +1,2 @@
+#Simply set the correct flag
+CFLAGS += -DX_NUCLEO_IDS01A5

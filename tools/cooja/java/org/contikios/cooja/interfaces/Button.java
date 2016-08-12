@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig.
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -30,7 +31,15 @@
 
 package org.contikios.cooja.interfaces;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Collection;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import org.contikios.cooja.*;
+import org.jdom.Element;
 
 /**
  * A Button represents a mote button. An implementation should notify all
@@ -42,24 +51,151 @@ import org.contikios.cooja.*;
 @ClassDescription("Button")
 public abstract class Button extends MoteInterface {
 
+  private final Simulation sim;
+
+  private final MoteTimeEvent pressButtonEvent;
+  private final MoteTimeEvent releaseButtonEvent;
+
+  public Button(Mote mote) {
+    sim = mote.getSimulation();
+
+    pressButtonEvent = new MoteTimeEvent(mote, 0) {
+      @Override
+      public void execute(long t) {
+        doPressButton();
+      }
+    };
+    releaseButtonEvent = new MoteTimeEvent(mote, 0) {
+      @Override
+      public void execute(long t) {
+        doReleaseButton();
+      }
+    };
+  }
+
   /**
    * Clicks button. Button will be pressed for some time and then automatically
    * released.
    */
-  public abstract void clickButton();
+  public void clickButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      @Override
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
+      }      
+    });
+  }
 
   /**
-   * Releases button (if pressed).
+   * Presses button.
    */
-  public abstract void releaseButton();
+  public void pressButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      @Override
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+      }      
+    });
+  }
 
   /**
-   * Presses button (if not already pressed).
+   * Node-type dependent implementation of pressing a button.
    */
-  public abstract void pressButton();
+  protected abstract void doPressButton();
+
+  /**
+   * Releases button.
+   */
+  public void releaseButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      @Override
+      public void run() {
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
+      }
+    });
+  }
+
+  /**
+   * Node-type dependent implementation of releasing a button.
+   */
+  protected abstract void doReleaseButton();
 
   /**
    * @return True if button is pressed
    */
   public abstract boolean isPressed();
+
+  @Override
+  public JPanel getInterfaceVisualizer() {
+    JPanel panel = new JPanel();
+    final JButton clickButton = new JButton("Click button");
+
+    panel.add(clickButton);
+    
+    clickButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doPressButton();
+          }
+        });
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doReleaseButton();
+          }
+        });
+      }
+    });
+
+    clickButton.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doPressButton();
+          }
+        });
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doReleaseButton();
+          }
+        });
+      }
+    });
+
+    return panel;
+  }
+
+  @Override
+  public void releaseInterfaceVisualizer(JPanel panel) {
+  }
+
+  @Override
+  public Collection<Element> getConfigXML() {
+    // The button state will not be saved!
+    return null;
+  }
+
+  @Override
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    // The button state will not be saved!
+  }
 }

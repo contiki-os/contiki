@@ -32,8 +32,12 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 
+/* dco_required set to 1 will cause the CPU not to go into
+ *    sleep modes where the DCO clock stopped */
+int msp430_dco_required;
+
 #if defined(__MSP430__) && defined(__GNUC__)
-#define asmv(arg) __asm__ __volatile__(arg)
+#define asmv(arg) __asm__ __volatile__ (arg)
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -42,8 +46,8 @@ void *
 w_memcpy(void *out, const void *in, size_t n)
 {
   uint8_t *src, *dest;
-  src = (uint8_t *) in;
-  dest = (uint8_t *) out;
+  src = (uint8_t *)in;
+  dest = (uint8_t *)out;
   while(n-- > 0) {
     *dest++ = *src++;
   }
@@ -56,7 +60,7 @@ void *
 w_memset(void *out, int value, size_t n)
 {
   uint8_t *dest;
-  dest = (uint8_t *) out;
+  dest = (uint8_t *)out;
   while(n-- > 0) {
     *dest++ = value & 0xff;
   }
@@ -152,10 +156,30 @@ init_ports(void)
 /*---------------------------------------------------------------------------*/
 /* msp430-ld may align _end incorrectly. Workaround in cpu_init. */
 #if defined(__MSP430__) && defined(__GNUC__)
-extern int _end;		/* Not in sys/unistd.h */
+extern int _end;    /* Not in sys/unistd.h */
 static char *cur_break = (char *)&_end;
 #endif
 
+/*---------------------------------------------------------------------------*/
+/* add/remove_lpm_req - for requiring a specific LPM mode. currently Contiki */
+/* jumps to LPM3 to save power, but DMA will not work if DCO is not clocked  */
+/* so some modules might need to enter their LPM requirements                */
+/* NOTE: currently only works with LPM1 (e.g. DCO) requirements.             */
+/*---------------------------------------------------------------------------*/
+void
+msp430_add_lpm_req(int req)
+{
+  if(req <= MSP430_REQUIRE_LPM1) {
+    msp430_dco_required++;
+  }
+}
+void
+msp430_remove_lpm_req(int req)
+{
+  if(req <= MSP430_REQUIRE_LPM1) {
+    msp430_dco_required--;
+  }
+}
 void
 msp430_cpu_init(void)
 {
@@ -164,7 +188,7 @@ msp430_cpu_init(void)
   init_ports();
   /* set DCO to a reasonable default value (8MHz) */
   msp430_init_dco();
-  /* calibrate the DCO step-by-step */ 
+  /* calibrate the DCO step-by-step */
   msp430_sync_dco();
   eint();
 #if defined(__MSP430__) && defined(__GNUC__)
@@ -172,6 +196,7 @@ msp430_cpu_init(void)
     cur_break++;
   }
 #endif
+  msp430_dco_required = 0;
 }
 /*---------------------------------------------------------------------------*/
 
@@ -191,7 +216,7 @@ splhigh_(void)
   asmv("mov r2, %0" : "=r" (sr));
   asmv("bic %0, r2" : : "i" (GIE));
 #endif
-  return sr & GIE;		/* Ignore other sr bits. */
+  return sr & GIE;    /* Ignore other sr bits. */
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -209,7 +234,8 @@ splhigh_(void)
 /* } */
 /*---------------------------------------------------------------------------*/
 #ifdef __IAR_SYSTEMS_ICC__
-int __low_level_init(void)
+int
+__low_level_init(void)
 {
   /* turn off watchdog so that C-init will run */
   WDTCTL = WDTPW + WDTHOLD;
@@ -224,7 +250,8 @@ int __low_level_init(void)
 #endif
 /*---------------------------------------------------------------------------*/
 void
-msp430_sync_dco(void) {
+msp430_sync_dco(void)
+{
   uint16_t oldcapture;
   int16_t diff;
   /* DELTA_2 assumes an ACLK of 32768 Hz */
@@ -260,7 +287,7 @@ msp430_sync_dco(void) {
       if(DCOCTL == 0x00) {              /* Did DCO roll over? */
         BCSCTL1++;
       }
-                                        /* -> Select next higher RSEL  */
+      /* -> Select next higher RSEL  */
     }
   }
 

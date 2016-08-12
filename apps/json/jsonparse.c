@@ -43,6 +43,14 @@ push(struct jsonparse_state *state, char c)
   return state->depth < JSONPARSE_MAX_DEPTH;
 }
 /*--------------------------------------------------------------------*/
+static void
+modify(struct jsonparse_state *state, char c)
+{
+  if(state->depth > 0) {
+    state->stack[state->depth - 1] = c;
+  }
+}
+/*--------------------------------------------------------------------*/
 static char
 pop(struct jsonparse_state *state)
 {
@@ -50,24 +58,30 @@ pop(struct jsonparse_state *state)
     return JSON_TYPE_ERROR;
   }
   state->depth--;
+  state->vtype = state->stack[state->depth];
   return state->stack[state->depth];
 }
 /*--------------------------------------------------------------------*/
 /* will pass by the value and store the start and length of the value for
    atomic types */
 /*--------------------------------------------------------------------*/
-static void
+static char
 atomic(struct jsonparse_state *state, char type)
 {
   char c;
+  const char *str;
+  int len;
 
   state->vstart = state->pos;
-  state->vtype = type;
   if(type == JSON_TYPE_STRING || type == JSON_TYPE_PAIR_NAME) {
     while((c = state->json[state->pos++]) && c != '"') {
       if(c == '\\') {
         state->pos++;           /* skip current char */
       }
+    }
+    if (c != '"') {
+      state->error = JSON_ERROR_SYNTAX;
+      return JSON_TYPE_ERROR;
     }
     state->vlen = state->pos - state->vstart - 1;
   } else if(type == JSON_TYPE_NUMBER) {
@@ -82,8 +96,31 @@ atomic(struct jsonparse_state *state, char type)
     /* need to back one step since first char is already gone */
     state->vstart--;
     state->vlen = state->pos - state->vstart;
+  } else if(type == JSON_TYPE_NULL || type == JSON_TYPE_TRUE || type == JSON_TYPE_FALSE) {
+    state->vstart--;
+    switch (type) {
+    case JSON_TYPE_NULL:  str = "null";  break;
+    case JSON_TYPE_TRUE:  str = "true";  break;
+    case JSON_TYPE_FALSE: str = "false"; break;
+    default:              str = "";      break;
+    }
+
+    while ((c = state->json[state->pos]) && c != ' ' && c != ',' && c != ']' && c != '}') {
+      state->pos++;
+    }
+
+    state->vlen = state->pos - state->vstart;
+    len = strlen(str);
+    len = state->vlen > len ? state->vlen : len;
+
+    if (strncmp(str, &state->json[state->vstart], len) != 0) {
+      state->error = JSON_ERROR_SYNTAX;
+      return JSON_TYPE_ERROR;
+    }
   }
-  /* no other types for now... */
+
+  state->vtype = type;
+  return state->vtype;
 }
 /*--------------------------------------------------------------------*/
 static void
@@ -97,6 +134,17 @@ skip_ws(struct jsonparse_state *state)
   }
 }
 /*--------------------------------------------------------------------*/
+static int
+is_atomic(struct jsonparse_state *state)
+{
+  char v = state->vtype;
+  if(v == 'N' || v == '"' || v == '0' || v == 'n' || v == 't' || v == 'f') {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+/*--------------------------------------------------------------------*/
 void
 jsonparse_setup(struct jsonparse_state *state, const char *json, int len)
 {
@@ -105,6 +153,7 @@ jsonparse_setup(struct jsonparse_state *state, const char *json, int len)
   state->pos = 0;
   state->depth = 0;
   state->error = 0;
+  state->vtype = 0;
   state->stack[0] = 0;
 }
 /*--------------------------------------------------------------------*/
@@ -113,31 +162,33 @@ jsonparse_next(struct jsonparse_state *state)
 {
   char c;
   char s;
+  char v;
 
   skip_ws(state);
   c = state->json[state->pos];
   s = jsonparse_get_type(state);
+  v = state->vtype;
   state->pos++;
 
   switch(c) {
   case '{':
-    push(state, c);
+    if((s == 0 && v == 0) || s == '[' || s == ':') {
+      push(state, c);
+    } else {
+      state->error = JSON_ERROR_UNEXPECTED_OBJECT;
+      return JSON_TYPE_ERROR;
+    }
     return c;
   case '}':
-    if(s == ':' && state->vtype != 0) {
-/*       printf("Popping vtype: '%c'\n", state->vtype); */
-      pop(state);
-      s = jsonparse_get_type(state);
-    }
-    if(s == '{') {
+    if((s == ':' && v != ',' && v != 0 ) || (s == '{' && v == 0)) {
       pop(state);
     } else {
-      state->error = JSON_ERROR_SYNTAX;
+      state->error = JSON_ERROR_UNEXPECTED_END_OF_OBJECT;
       return JSON_TYPE_ERROR;
     }
     return c;
   case ']':
-    if(s == '[') {
+    if(s == '[' && v != ',') {
       pop(state);
     } else {
       state->error = JSON_ERROR_UNEXPECTED_END_OF_ARRAY;
@@ -145,41 +196,67 @@ jsonparse_next(struct jsonparse_state *state)
     }
     return c;
   case ':':
-    push(state, c);
-    return c;
+    if(s == '{' && v == 'N') {
+      modify(state, ':');
+      state->vtype = 0;
+    } else {
+      state->error = JSON_ERROR_SYNTAX;
+      return JSON_TYPE_ERROR;
+    }
+    return jsonparse_next(state);
   case ',':
-    /* if x:y ... , */
-    if(s == ':' && state->vtype != 0) {
-      pop(state);
+    if(s == ':' && v != 0) {
+      modify(state, '{');
+      state->vtype = c;
     } else if(s == '[') {
-      /* ok! */
+      state->vtype = c;
     } else {
       state->error = JSON_ERROR_SYNTAX;
       return JSON_TYPE_ERROR;
     }
     return c;
   case '"':
-    if(s == '{' || s == '[' || s == ':') {
-      atomic(state, c = (s == '{' ? JSON_TYPE_PAIR_NAME : c));
+    if((s == 0 && v == 0) || s == '{' || s == '[' || s == ':') {
+      return atomic(state, c = (s == '{' ? JSON_TYPE_PAIR_NAME : c));
     } else {
       state->error = JSON_ERROR_UNEXPECTED_STRING;
       return JSON_TYPE_ERROR;
     }
     return c;
   case '[':
-    if(s == '{' || s == '[' || s == ':') {
+    if((s == 0 && v == 0) || s == '[' || s == ':') {
       push(state, c);
     } else {
       state->error = JSON_ERROR_UNEXPECTED_ARRAY;
       return JSON_TYPE_ERROR;
     }
     return c;
+  case 0:
+    if(v == 0 || state->depth > 0) {
+      state->error = JSON_ERROR_SYNTAX;
+    }
+    return JSON_TYPE_ERROR;
   default:
-    if(s == ':' || s == '[') {
-      if(c <= '9' && c >= '0') {
-        atomic(state, JSON_TYPE_NUMBER);
-        return JSON_TYPE_NUMBER;
+    if(s == 0 || s == ':' || s == '[') {
+      if (v != 0 && v != ',') {
+        state->error = JSON_ERROR_SYNTAX;
+        return JSON_TYPE_ERROR;
       }
+      if(c == '-' || (c <= '9' && c >= '0')) {
+        return atomic(state, JSON_TYPE_NUMBER);
+      } else if(c == 'n') {
+        return atomic(state, JSON_TYPE_NULL);
+      } else if(c == 't') {
+        return atomic(state, JSON_TYPE_TRUE);
+      } else if(c == 'f') {
+        return atomic(state, JSON_TYPE_FALSE);
+      } else {
+        state->error = JSON_ERROR_SYNTAX;
+        return JSON_TYPE_ERROR;
+      }
+    } else if(s == '{') {
+      state->error = JSON_ERROR_SYNTAX;
+      return JSON_TYPE_ERROR;
     }
   }
   return 0;
@@ -192,16 +269,31 @@ jsonparse_next(struct jsonparse_state *state)
 int
 jsonparse_copy_value(struct jsonparse_state *state, char *str, int size)
 {
-  int i;
+  int i, o;
+  char c;
 
-  if(state->vtype == 0) {
+  if(!is_atomic(state)) {
     return 0;
   }
-  size = size <= state->vlen ? (size - 1) : state->vlen;
-  for(i = 0; i < size; i++) {
-    str[i] = state->json[state->vstart + i];
+  for(i = 0, o = 0; i < state->vlen && o < size - 1; i++) {
+    c = state->json[state->vstart + i];
+    if(c == '\\') {
+      i++;
+      switch(state->json[state->vstart + i]) {
+      case '"':  str[o++] = '"';  break;
+      case '\\': str[o++] = '\\'; break;
+      case '/':  str[o++] = '/';  break;
+      case 'b':  str[o++] = '\b'; break;
+      case 'f':  str[o++] = '\f'; break;
+      case 'n':  str[o++] = '\n'; break;
+      case 'r':  str[o++] = '\r'; break;
+      case 't':  str[o++] = '\t'; break;
+      }
+      continue;
+    }
+    str[o++] = c;
   }
-  str[i] = 0;
+  str[o] = 0;
   return state->vtype;
 }
 /*--------------------------------------------------------------------*/
@@ -228,7 +320,7 @@ jsonparse_get_value_as_long(struct jsonparse_state *state)
 int
 jsonparse_strcmp_value(struct jsonparse_state *state, const char *str)
 {
-  if(state->vtype == 0) {
+  if(!is_atomic(state)) {
     return -1;
   }
   return strncmp(str, &state->json[state->vstart], state->vlen);

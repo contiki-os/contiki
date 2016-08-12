@@ -136,7 +136,7 @@ Contiki maintainers to look at!
 All code contributions to Contiki are submitted as [Github pull
 requests](https://help.github.com/articles/using-pull-requests). Pull
 requests will be reviewed and accepted according to the guidelines
-found in the [[Pull Request Policy]]
+found in the next section.
 
 The basic guidelines to to start a Pull-Request:
 * Create a new branch for your modifications. This branch should be based on the latest contiki master branch.
@@ -182,6 +182,21 @@ $ git rebase -i contiki-orig/master
 $ git push origin my_new_feature -f
 ```
 * NOTE: To avoid all the pain of selectively picking commits, rebasing and force-pushing - begin your development with a branch OTHER THAN your master branch, and push changes to that branch after any local commits.
+
+Pull Request Merging Policy
+---------------------------
+
+Pull requests (PRs) are reviewed by the [merge team](https://github.com/orgs/contiki-os/people).
+Generally, PRs require two "+1" before they can be merged by someone on the merge team.
+The since Contiki 3.0, the merging policy is the following:
+* The PR receives **one "-1"** from a merge team member (along with specific feedback). The PR is closed. A "-1" must be accompanied with a clear explanation why the PR will not be considered for inclusion.
+* The PR receives **two "+1"** from merge team members. The PR is merged.
+* The PR was inactive for **two months**. A team member may either:
+  * Comment "Is there any interest for this PR? Is there any work pending on it? If not I will close it in **one month**." Back to initial state in case of activity, close otherwise.
+  * Comment "I approve this PR. If nobody disapproves within **one month**, I will merge it." Back to initial state in case of activity, merge otherwise.
+
+There is an exception to the rule.
+Code that requires esoteric expertise such as some applications, platforms or tools can be merged after a single "+1" from its domain expert.
 
 Travis / Regression testing
 ---------------------------
