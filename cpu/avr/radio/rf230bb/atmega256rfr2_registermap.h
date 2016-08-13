@@ -89,7 +89,7 @@
 #define SR_CSMA_SEED_1         0x16e, 0x10, 4
 
 /* RF230 register assignments, for reference */
-#if 1
+#if 0
 //#define HAVE_REGISTER_MAP (1)
 /** Offset for register TRX_STATUS */
 //#define RG_TRX_STATUS                    (0x01)
