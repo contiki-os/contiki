@@ -189,7 +189,7 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 /*---------------------------------------------------------------------------*/
 /* Create an EB packet */
 int
-tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
+tsch_packet_create_eb(uint8_t *buf, int buf_size,
     uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
 {
   int ret = 0;
@@ -210,8 +210,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
   p.fcf.src_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;
   p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
-  p.seq = seqno;
-  p.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
+  p.fcf.sequence_number_suppression = 1;
   /* It is important not to compress PAN ID, as this would result in not including either
    * source nor destination PAN ID, leaving potential joining devices unaware of the PAN ID. */
   p.fcf.panid_compression = 0;
