@@ -91,29 +91,6 @@
 /* 192 usec off -> on interval (RX Callib -> SFD Wait). We wait a bit more */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
 /*---------------------------------------------------------------------------*/
-/* Sniffer configuration */
-#ifndef CC2538_RF_CONF_SNIFFER_USB
-#define CC2538_RF_CONF_SNIFFER_USB 0
-#endif
-
-#if CC2538_RF_CONF_SNIFFER
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
-
-#if CC2538_RF_CONF_SNIFFER_USB
-#include "usb/usb-serial.h"
-#define write_byte(b) usb_serial_writeb(b)
-#define flush()       usb_serial_flush()
-#else
-#include "dev/uart.h"
-#define write_byte(b) uart_write_byte(CC2538_RF_CONF_SNIFFER_UART, b)
-#define flush()
-#endif
-
-#else /* CC2538_RF_CONF_SNIFFER */
-#define write_byte(b)
-#define flush()
-#endif /* CC2538_RF_CONF_SNIFFER */
-/*---------------------------------------------------------------------------*/
 #ifdef CC2538_RF_CONF_AUTOACK
 #define CC2538_RF_AUTOACK CC2538_RF_CONF_AUTOACK
 #else
@@ -526,11 +503,6 @@ init(void)
   REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
 #endif
 
-  /* If we are a sniffer, turn off frame filtering */
-#if CC2538_RF_CONF_SNIFFER
-  REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
-#endif
-
   /* Disable source address matching and autopend */
   REG(RFCORE_XREG_SRCMATCH) = 0;
 
@@ -797,20 +769,6 @@ read(void *buf, unsigned short bufsize)
     CC2538_RF_CSP_ISFLUSHRX();
     return 0;
   }
-
-#if CC2538_RF_CONF_SNIFFER
-  write_byte(magic[0]);
-  write_byte(magic[1]);
-  write_byte(magic[2]);
-  write_byte(magic[3]);
-  write_byte(len + 2);
-  for(i = 0; i < len; ++i) {
-    write_byte(((unsigned char *)(buf))[i]);
-  }
-  write_byte(rssi);
-  write_byte(crc_corr);
-  flush();
-#endif
 
   if(!poll_mode) {
     /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */

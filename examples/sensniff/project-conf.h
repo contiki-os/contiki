@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, George Oikonomou - http://www.spd.gr
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -28,40 +28,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**
- * \addtogroup zoul-examples
- * @{
- *
- * \defgroup zoul-cc1200-sniffer CC1200 Sniffer
- *
- * Sniffer for the Zolertia's Zoul CC1200 on-board radio
- *
- * This example is to be used combined with the sensniff host-side tool,
- * which can be downloaded from: https://github.com/g-oikonomou/sensniff
- *
- * @{
- *
- * \file
- * Implementation of a Sniffer Process Thread
- */
-#include "contiki.h"
-
-#define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
 /*---------------------------------------------------------------------------*/
-PROCESS(sniffer_process, "Sniffer process");
-AUTOSTART_PROCESSES(&sniffer_process);
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(sniffer_process, ev, data)
-{
-  PROCESS_BEGIN();
-  PRINTF("Sniffer started\n");
-  PROCESS_EXIT();
-  PROCESS_END();
-}
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC      sensniff_rdc_driver
 /*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */
+/* Include platform-specific header */
+#include "target-conf.h"
+/*---------------------------------------------------------------------------*/
+#endif /* PROJECT_CONF_H_ */

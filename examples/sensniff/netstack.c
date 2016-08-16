@@ -26,21 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-/**
- * \file
- *         Stub file overriding core/net/netstack.c. What we want to achieve
- *         here is call netstack_init from main without initialising the RDC,
- *         MAC and Network layers. It will just turn on the radio instead.
- *
- * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
- */
+/*---------------------------------------------------------------------------*/
 #include "netstack.h"
 /*---------------------------------------------------------------------------*/
 void
 netstack_init(void)
 {
   NETSTACK_RADIO.init();
-  NETSTACK_RADIO.on();
+  NETSTACK_RDC.init();
 }
 /*---------------------------------------------------------------------------*/

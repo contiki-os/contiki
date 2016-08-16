@@ -35,6 +35,7 @@ wget/minimal-net \
 zolertia/z1/z1 \
 settings-example/avr-raven \
 ipv6/multicast/sky \
+sensniff/z1 \
 cfs-coffee/sky \
 cfs-coffee/z1 \
 cfs-coffee/wismote \
