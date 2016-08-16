@@ -57,20 +57,6 @@ static RIE_BaseConfigs base_config = ADUCRF101_RADIO_BASE_CONFIG;
 static int current_channel = 915000000;
 static int current_power = 31;
 static int radio_is_on = 0;
-
-/*---------------------------------------------------------------------------*/
-/* Sniffer configuration.  We can re-use the CC2538 sniffer application
-   if we also accept CC2538_RF_CONF_SNIFFER. */
-#ifndef ADUCRF101_RF_CONF_SNIFFER
-#if CC2538_RF_CONF_SNIFFER
-#define ADUCRF101_RF_CONF_SNIFFER 1
-#endif
-#endif
-
-#if ADUCRF101_RF_CONF_SNIFFER
-#include "dev/uart.h"
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
-#endif
 /*---------------------------------------------------------------------------*/
 /* "Channel" is really frequency, and can be within the bands:
    431000000 Hz to 464000000 Hz
@@ -245,20 +231,6 @@ read(void *buf, unsigned short buf_len)
 
   /* Re-enter receive mode immediately after receiving a packet */
   RadioRxPacketVariableLen();
-
-#if ADUCRF101_RF_CONF_SNIFFER
-  uart_put(magic[0]);
-  uart_put(magic[1]);
-  uart_put(magic[2]);
-  uart_put(magic[3]);
-  uart_put(packet_len + 2);
-  for(int i = 0; i < packet_len; i++) {
-    uart_put(((uint8_t *)buf)[i]);
-  }
-  /* FCS value is Wireshark's "TI CC24xx format" option: */
-  uart_put(rssi); /* RSSI */
-  uart_put(0x80); /* CRC is OK, LQI correlation is 0 */
-#endif
 
   return packet_len;
 }

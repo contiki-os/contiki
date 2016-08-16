@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, George Oikonomou - http://www.spd.gr
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -28,32 +28,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**
- * \addtogroup zoul-cc1200-sniffer
- * @{
- *
- * \file
- *         Project specific configuration defines for the CC1200 sniffer
- */
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
-
-#define CC1200_CONF_SNIFFER         1
-#define CC1200_RF_CONF_SNIFFER_UART 0
-#define CC1200_CONF_RF_CFG          cc1200_802154g_863_870_fsk_50kbps
-
-#undef  NETSTACK_CONF_RADIO
-#define NETSTACK_CONF_RADIO         cc1200_driver
-
-#define CC1200_CONF_USE_GPIO2       0
-#define CC1200_CONF_USE_RX_WATCHDOG 0
-#define ANTENNA_SW_SELECT_DEF_CONF  ANTENNA_SW_SELECT_SUBGHZ
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC           stub_rdc_driver
-
-#define UART0_CONF_BAUD_RATE        460800
-
-#endif /* PROJECT_CONF_H_ */
-
-/** @} */
+/*---------------------------------------------------------------------------*/
+#ifndef TARGET_CONF_H_
+#define TARGET_CONF_H_
+/*---------------------------------------------------------------------------*/
+#define CC26XX_UART_CONF_BAUD_RATE    460800
+#define RF_BLE_CONF_ENABLED                0
+#define ROM_BOOTLOADER_ENABLE              1
+/*---------------------------------------------------------------------------*/
+#define SENSNIFF_IO_DRIVER_H "pool/cc13xx-cc26xx-io.h"
+/*---------------------------------------------------------------------------*/
+#endif /* TARGET_CONF_H_ */
+/*---------------------------------------------------------------------------*/

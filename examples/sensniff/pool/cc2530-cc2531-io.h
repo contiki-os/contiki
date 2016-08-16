@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, George Oikonomou - http://www.spd.gr
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -28,23 +28,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**
- * \addtogroup cc2538-sniffer
- * @{
- *
- * \file
- *         Project specific configuration defines for the cc2538 sniffer
- */
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
-
-#define CC2538_RF_CONF_SNIFFER 1
-#define CC2538_RF_CONF_AUTOACK 0
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC      stub_rdc_driver
-
-#define UART0_CONF_BAUD_RATE   460800
-
-#endif /* PROJECT_CONF_H_ */
-
-/** @} */
+/*---------------------------------------------------------------------------*/
+#ifndef CC2530_CC2531_IO_H_
+#define CC2530_CC2531_IO_H_
+/*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
+#include "dev/io-arch.h"
+/*---------------------------------------------------------------------------*/
+#define sensniff_io_byte_out(b)  io_arch_writeb(b)
+#define sensniff_io_flush()      io_arch_flush()
+#define sensniff_io_set_input(f) io_arch_set_input(f)
+/*---------------------------------------------------------------------------*/
+#endif /* CC2530_CC2531_IO_H_ */
+/*---------------------------------------------------------------------------*/
