@@ -51,8 +51,15 @@
 
 struct seqno {
   linkaddr_t sender;
+  clock_time_t timestamp;
   uint8_t seqno;
 };
+
+#ifdef NETSTACK_CONF_MAC_SEQNO_MAX_AGE
+#define SEQNO_MAX_AGE NETSTACK_CONF_MAC_SEQNO_MAX_AGE
+#else /* NETSTACK_CONF_MAC_SEQNO_MAX_AGE */
+#define SEQNO_MAX_AGE (20 * CLOCK_SECOND)
+#endif /* NETSTACK_CONF_MAC_SEQNO_MAX_AGE */
 
 #ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
 #define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
@@ -66,6 +73,7 @@ int
 mac_sequence_is_duplicate(void)
 {
   int i;
+  clock_time_t now = clock_time();
 
   /*
    * Check for duplicate packet by comparing the sequence number of the incoming
@@ -75,8 +83,14 @@ mac_sequence_is_duplicate(void)
     if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                     &received_seqnos[i].sender)) {
       if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno) {
-        /* Duplicate packet. */
+#if SEQNO_MAX_AGE > 0
+        if(now - received_seqnos[i].timestamp <= SEQNO_MAX_AGE) {
+          /* Duplicate packet. */
+          return 1;
+        }
+#else /* SEQNO_MAX_AGE > 0 */
         return 1;
+#endif /* SEQNO_MAX_AGE > 0 */
       }
       break;
     }
@@ -103,6 +117,7 @@ mac_sequence_register_seqno(void)
     memcpy(&received_seqnos[j], &received_seqnos[j - 1], sizeof(struct seqno));
   }
   received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
+  received_seqnos[0].timestamp = clock_time();
   linkaddr_copy(&received_seqnos[0].sender,
                 packetbuf_addr(PACKETBUF_ADDR_SENDER));
 }
