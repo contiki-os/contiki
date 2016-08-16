@@ -86,14 +86,16 @@ create_frame(int type, int do_create)
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
   if(packetbuf_holds_broadcast()) {
     params.fcf.ack_required = 0;
+    /* Suppress seqno on broadcast if supported (frame v2 or more) */
+    params.fcf.sequence_number_suppression = FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012;
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
+    params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
   }
   /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
    * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
    * source nor destination address, we have dest PAN ID iff compression is *set*. */
   params.fcf.panid_compression = 0;
-  params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
   /* Insert IEEE 802.15.4 version bits. */
   params.fcf.frame_version = FRAME802154_VERSION;
