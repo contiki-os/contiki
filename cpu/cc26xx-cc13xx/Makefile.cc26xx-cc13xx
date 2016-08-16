@@ -101,6 +101,12 @@ $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 
+### Always re-build ccfg.c so changes to ccfg-conf.h will apply without having
+### to make clean first
+$(OBJECTDIR)/ccfg.o: ccfg.c FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -include "contiki-conf.h" -c $< -o $@
+
 ### Compilation rules
 CUSTOM_RULE_LINK=1
 

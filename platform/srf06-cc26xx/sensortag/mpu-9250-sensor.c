@@ -505,7 +505,7 @@ initialise(void *not_used)
 static void
 power_up(void)
 {
-  ti_lib_gpio_pin_write(BOARD_MPU_POWER, 1);
+  ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
   state = SENSOR_STATE_BOOTING;
 
   ctimer_set(&startup_timer, SENSOR_BOOT_DELAY, initialise, NULL);
@@ -608,7 +608,7 @@ configure(int type, int enable)
     ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
     ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MPU_POWER, IOC_CURRENT_4MA,
                                    IOC_STRENGTH_MAX);
-    ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
+    ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
     elements = MPU_9250_SENSOR_TYPE_NONE;
     break;
   case SENSORS_ACTIVE:
@@ -629,7 +629,7 @@ configure(int type, int enable)
         sensor_sleep();
         while(ti_lib_i2c_master_busy(I2C0_BASE));
         state = SENSOR_STATE_DISABLED;
-        ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
+        ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
       }
     }
     break;

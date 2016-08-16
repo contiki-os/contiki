@@ -55,7 +55,7 @@ gpio_interrupt_register_handler(uint8_t ioid, gpio_interrupt_handler_t f)
   uint8_t interrupts_disabled = ti_lib_int_master_disable();
 
   /* Clear interrupts on specified pins */
-  ti_lib_gpio_event_clear(1 << ioid);
+  ti_lib_gpio_clear_event_dio(ioid);
 
   handlers[ioid] = f;
 
@@ -74,7 +74,7 @@ gpio_interrupt_init()
     handlers[i] = NULL;
   }
 
-  ti_lib_int_enable(INT_EDGE_DETECT);
+  ti_lib_int_enable(INT_AON_GPIO_EDGE);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -86,13 +86,13 @@ gpio_interrupt_isr(void)
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   /* Read interrupt flags */
-  pin_mask = (HWREG(GPIO_BASE + GPIO_O_EVFLAGS31_0) & GPIO_PIN_MASK);
+  pin_mask = (HWREG(GPIO_BASE + GPIO_O_EVFLAGS31_0) & GPIO_DIO_ALL_MASK);
 
   /* Clear the interrupt flags */
   HWREG(GPIO_BASE + GPIO_O_EVFLAGS31_0) = pin_mask;
 
   /* Run custom ISRs */
-  for(i = 0; i < NUM_GPIO_PINS; i++) {
+  for(i = 0; i < NUM_IO_MAX; i++) {
     /* Call the handler if there is one registered for this event */
     if((pin_mask & (1 << i)) && handlers[i] != NULL) {
       handlers[i](i);
