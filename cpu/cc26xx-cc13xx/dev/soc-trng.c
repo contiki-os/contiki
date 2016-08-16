@@ -71,7 +71,7 @@ static void
 disable_number_ready_interrupt(void)
 {
   ti_lib_trng_int_disable(TRNG_NUMBER_READY);
-  ti_lib_rom_int_disable(INT_TRNG);
+  ti_lib_rom_int_disable(INT_TRNG_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -79,7 +79,7 @@ enable_number_ready_interrupt(void)
 {
   ti_lib_trng_int_clear(TRNG_NUMBER_READY);
   ti_lib_trng_int_enable(TRNG_NUMBER_READY);
-  ti_lib_rom_int_enable(INT_TRNG);
+  ti_lib_rom_int_enable(INT_TRNG_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 static bool

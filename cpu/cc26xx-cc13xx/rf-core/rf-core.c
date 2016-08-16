@@ -236,10 +236,10 @@ rf_core_power_up()
   uint32_t cmd_status;
   bool interrupts_disabled = ti_lib_int_master_disable();
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_disable(INT_RF_CPE0);
-  ti_lib_int_disable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_disable(INT_RFC_CPE_0);
+  ti_lib_int_disable(INT_RFC_CPE_1);
 
   /* Enable RF Core power domain */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_RFCORE);
@@ -252,8 +252,8 @@ rf_core_power_up()
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
@@ -335,8 +335,8 @@ void
 rf_core_power_down()
 {
   bool interrupts_disabled = ti_lib_int_master_disable();
-  ti_lib_int_disable(INT_RF_CPE0);
-  ti_lib_int_disable(INT_RF_CPE1);
+  ti_lib_int_disable(INT_RFC_CPE_0);
+  ti_lib_int_disable(INT_RFC_CPE_1);
 
   if(rf_core_is_accessible()) {
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
@@ -358,10 +358,10 @@ rf_core_power_down()
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
         != PRCM_DOMAIN_POWER_OFF);
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
@@ -371,26 +371,17 @@ uint8_t
 rf_core_set_modesel()
 {
   uint8_t rv = RF_CORE_CMD_ERROR;
+  ChipType_t chip_type = ti_lib_chipinfo_get_chip_type();
 
-  if(ti_lib_chipinfo_chip_family_is_cc26xx()) {
-    if(ti_lib_chipinfo_supports_ble() == true &&
-       ti_lib_chipinfo_supports_ieee_802_15_4() == true) {
-      /* CC2650 */
-      HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE5;
-      rv = RF_CORE_CMD_OK;
-    } else if(ti_lib_chipinfo_supports_ble() == false &&
-              ti_lib_chipinfo_supports_ieee_802_15_4() == true) {
-      /* CC2630 */
-      HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE2;
-      rv = RF_CORE_CMD_OK;
-    }
-  } else if(ti_lib_chipinfo_chip_family_is_cc13xx()) {
-    if(ti_lib_chipinfo_supports_ble() == false &&
-       ti_lib_chipinfo_supports_ieee_802_15_4() == false) {
-      /* CC1310 */
-      HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE3;
-      rv = RF_CORE_CMD_OK;
-    }
+  if(chip_type == CHIP_TYPE_CC2650) {
+    HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE5;
+    rv = RF_CORE_CMD_OK;
+  } else if(chip_type == CHIP_TYPE_CC2630) {
+    HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE2;
+    rv = RF_CORE_CMD_OK;
+  } else if(chip_type == CHIP_TYPE_CC1310) {
+    HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = PRCM_RFCMODESEL_CURR_MODE3;
+    rv = RF_CORE_CMD_OK;
   }
 
   return rv;
@@ -462,10 +453,10 @@ rf_core_setup_interrupts(bool poll_mode)
   /* Clear interrupt flags, active low clear(?) */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
