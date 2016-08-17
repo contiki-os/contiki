@@ -74,6 +74,18 @@
 #define SCB_SYSCTRL_SLEEPEXIT  0x00000002  /**< Sleep on ISR exit */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name SCB_INTCTRL / NVIC_INT_CTRL register bits
+ * @{
+ */
+#define SCB_INTCTRL_NMI_SET   0x80000000   /**< NMI Set Pending */
+#define SCB_INTCTRL_PEND_SV   0x10000000   /**< PendSV Set Pending */
+#define SCB_INTCTRL_UNPEND_SV 0x08000000   /**< PendSV Clear Pending */
+#define SCB_INTCTRL_PENDSTSET 0x04000000   /**< SysTick Set Pending */
+#define SCB_INTCTRL_PENDSTCLR 0x02000000   /**< SysTick Clear Pending */
+#define SCB_INTCTRL_ISR_PRE   0x00800000   /**< Debug Interrupt Handling */
+#define SCB_INTCTRL_ISR_PEND  0x00400000   /**< Interrupt Pending */
+/** @} */
+/*---------------------------------------------------------------------------*/
 
 #endif /* SCB_H_ */
 
