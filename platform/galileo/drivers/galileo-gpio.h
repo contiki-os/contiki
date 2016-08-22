@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,44 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef PLATFORM_GALILEO_DRIVERS_GALILEO_GPIO_H_
+#define PLATFORM_GALILEO_DRIVERS_GALILEO_GPIO_H_
 
-#include "contiki.h"
-#include "sys/ctimer.h"
+#include <stdint.h>
 
-#include "galileo-gpio.h"
-#include "gpio.h"
+void galileo_gpio_config(uint8_t pin, int flags);
+void galileo_gpio_read(uint8_t pin, uint8_t *value);
+void galileo_gpio_write(uint8_t pin, uint8_t value);
 
-#define PIN 2
-
-static uint32_t value;
-static struct ctimer timer;
-
-PROCESS(gpio_output_process, "GPIO Output Process");
-AUTOSTART_PROCESSES(&gpio_output_process);
-/*---------------------------------------------------------------------------*/
-static void
-timeout(void *data)
-{
-  /* toggle pin state */
-  value = !value;
-  galileo_gpio_write(PIN, value);
-
-  ctimer_reset(&timer);
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(gpio_output_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  quarkX1000_gpio_clock_enable();
-
-  ctimer_set(&timer, CLOCK_SECOND / 2, timeout, NULL);
-
-  printf("GPIO output example is running\n");
-  PROCESS_YIELD();
-
-  quarkX1000_gpio_clock_disable();
-
-  PROCESS_END();
-}
+#endif /* PLATFORM_GALILEO_DRIVERS_GALILEO_GPIO_H_ */

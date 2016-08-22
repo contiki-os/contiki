@@ -571,10 +571,9 @@ flatten_pin_num(galileo_pin_group_t grp, unsigned *pin)
 
   assert(*pin < GALILEO_NUM_PINS);
 }
-/* Map a board-level GPIO pin number to the corresponding CPU GPIO pin number.
- */
-static int
-brd_to_cpu_gpio_pin(unsigned pin, bool *sus)
+/* See galileo-gpio.c for the declaration of this function. */
+int
+galileo_brd_to_cpu_gpio_pin(unsigned pin, bool *sus)
 {
   static const int SUS = 0x100;
   unsigned pins[GALILEO_NUM_PINS] = {
@@ -603,7 +602,7 @@ galileo_pinmux_select_din(galileo_pin_group_t grp, unsigned pin)
 
   assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_B) == 0);
 
-  cpu_pin = brd_to_cpu_gpio_pin(pin, &sus);
+  cpu_pin = galileo_brd_to_cpu_gpio_pin(pin, &sus);
   /* GPIO_SUS pins are currently unsupported. */
   assert(!sus);
   quarkX1000_gpio_config(cpu_pin, QUARKX1000_GPIO_IN);
@@ -618,7 +617,7 @@ galileo_pinmux_select_dout(galileo_pin_group_t grp, unsigned pin)
 
   assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_A) == 0);
 
-  cpu_pin = brd_to_cpu_gpio_pin(pin, &sus);
+  cpu_pin = galileo_brd_to_cpu_gpio_pin(pin, &sus);
   /* GPIO_SUS pins are currently unsupported. */
   assert(!sus);
   quarkX1000_gpio_config(cpu_pin, QUARKX1000_GPIO_OUT);
