@@ -5,7 +5,7 @@ LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
 
 CONTIKI_TARGET_DIRS = . core/sys/ drivers/ net/
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
-CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c galileo-pinmux.c eth-proc.c eth-conf.c
+CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c galileo-pinmux.c eth-proc.c eth-conf.c galileo-gpio.c
 
 ifeq ($(CONTIKI_WITH_IPV6),1)
 	CONTIKI_SOURCEFILES += nbr-table.c packetbuf.c linkaddr.c link-stats.c

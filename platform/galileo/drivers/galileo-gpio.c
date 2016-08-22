@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,44 +28,45 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-
-#include "contiki.h"
-#include "sys/ctimer.h"
-
 #include "galileo-gpio.h"
+#include <assert.h>
 #include "gpio.h"
 
-#define PIN 2
+/* Must be implemented in board-specific pinmux file to map a board-level GPIO
+ * pin number to the corresponding CPU GPIO pin number.
+ *
+ * The return value should always be a positive number. An assertion within the
+ * function should check the validity of the pin number.
+ */
+int galileo_brd_to_cpu_gpio_pin(unsigned pin, bool *sus);
 
-static uint32_t value;
-static struct ctimer timer;
-
-PROCESS(gpio_output_process, "GPIO Output Process");
-AUTOSTART_PROCESSES(&gpio_output_process);
-/*---------------------------------------------------------------------------*/
-static void
-timeout(void *data)
+static int
+brd_to_cpu_pin(unsigned pin)
 {
-  /* toggle pin state */
-  value = !value;
-  galileo_gpio_write(PIN, value);
+  int cpu_pin;
+  bool sus;
 
-  ctimer_reset(&timer);
+  cpu_pin = galileo_brd_to_cpu_gpio_pin(pin, &sus);
+  assert(!sus);
+
+  return cpu_pin;
 }
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(gpio_output_process, ev, data)
+
+void galileo_gpio_config(uint8_t pin, int flags)
 {
-  PROCESS_BEGIN();
+  assert(quarkX1000_gpio_config(brd_to_cpu_pin(pin), flags) == 0);
+}
 
-  quarkX1000_gpio_clock_enable();
+/**
+ * \brief     Read from GPIO.
+ * \param pin Board-level IO pin number.
+ */
+void galileo_gpio_read(uint8_t pin, uint8_t *value)
+{
+  assert(quarkX1000_gpio_read(brd_to_cpu_pin(pin), value) == 0);
+}
 
-  ctimer_set(&timer, CLOCK_SECOND / 2, timeout, NULL);
-
-  printf("GPIO output example is running\n");
-  PROCESS_YIELD();
-
-  quarkX1000_gpio_clock_disable();
-
-  PROCESS_END();
+void galileo_gpio_write(uint8_t pin, uint8_t value)
+{
+  assert(quarkX1000_gpio_write(brd_to_cpu_pin(pin), value) == 0);
 }
