@@ -33,14 +33,51 @@
 
 #include <stdint.h>
 
-typedef enum {
-  GALILEO_PINMUX_FUNC_A,
-  GALILEO_PINMUX_FUNC_B,
-  GALILEO_PINMUX_FUNC_C,
-  GALILEO_PINMUX_FUNC_D
-} GALILEO_PINMUX_FUNC;
+typedef enum galileo_pin_group {
+  GALILEO_PIN_GRP_ANALOG,
+  GALILEO_PIN_GRP_DIGITAL
+} galileo_pin_group_t;
+
+#define GALILEO_NUM_ANALOG_PINS 6
+#define GALILEO_NUM_DIGITAL_PINS 14
+#define GALILEO_NUM_PINS (GALILEO_NUM_ANALOG_PINS + GALILEO_NUM_DIGITAL_PINS)
 
 int galileo_pinmux_initialize(void);
-int galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func);
+
+/**
+ * \brief     Set the indicated pin to be a digital input.
+ * \param grp Indicates whether the pin is in the analog or digital group.
+ * \param pin Index of pin within group.
+ */
+void galileo_pinmux_select_din(galileo_pin_group_t grp, unsigned pin);
+/**
+ * \brief Set the indicated pin to be a digital output.
+ */
+void galileo_pinmux_select_dout(galileo_pin_group_t grp, unsigned pin);
+/**
+ * \brief Set the indicated pin to be a PWM pin. Only a subset of the pins
+ *        support PWM output. This implicitly operates on the digital pin
+ *        group.
+ */
+void galileo_pinmux_select_pwm(unsigned pin);
+/**
+ * \brief Connect the indicated pin to a serial port. This implicitly operates
+ *        on the digital pin group. Galileo Gen. 2 supports UART0 on pins 0 and
+ *        1 and UART1 on pins 2 and 3.
+ */
+void galileo_pinmux_select_serial(unsigned pin);
+/**
+ * \brief Connect analog pins 4 (SDA) and 5 (SCL) to I2C.
+ */
+void galileo_pinmux_select_i2c(void);
+/**
+ * \brief Connect digital pins 11 (MOSI), 12 (MISO), and 13 (CLK) to SPI.
+ */
+void galileo_pinmux_select_spi(void);
+/**
+ * \brief Set the indicated pin to be an ADC input. This implicitly operates
+ *        on the analog pin group.
+ */
+void galileo_pinmux_select_analog(unsigned pin);
 
 #endif /* CPU_X86_DRIVERS_GALILEO_PINMUX_H_ */

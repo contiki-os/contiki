@@ -63,7 +63,6 @@ PROCESS_THREAD(gpio_interrupt_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  quarkX1000_gpio_config(PIN_OUTPUT, QUARKX1000_GPIO_OUT);
   quarkX1000_gpio_config(PIN_INTR, QUARKX1000_GPIO_INT | QUARKX1000_GPIO_ACTIVE_HIGH | QUARKX1000_GPIO_EDGE);
 
   quarkX1000_gpio_set_callback(callback);

@@ -67,9 +67,6 @@ PROCESS_THREAD(gpio_input_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  quarkX1000_gpio_config(PIN_OUTPUT, QUARKX1000_GPIO_OUT);
-  quarkX1000_gpio_config(PIN_INPUT, QUARKX1000_GPIO_IN);
-
   quarkX1000_gpio_clock_enable();
 
   ctimer_set(&timer, CLOCK_SECOND / 2, timeout, NULL);
