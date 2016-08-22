@@ -141,6 +141,9 @@ specify X86_CONF_RESTRICT_DMA=1 as a command-line argument to the make
 command that is used to build the image.  This will configure and lock
 the IMRs.
 
+Galileo Gen. 2 is targeted by default.  Specify GALILEO_GEN=1 on the build
+command line to target first generation boards.
+
 Running
 -------
 
@@ -193,7 +196,8 @@ $ cp examples/hello-world/hello-world.galileo.efi /mnt/sdcard/efi/boot/bootia32.
 
 ### Connect to the console output
 
-Connect the serial cable to your computer as shown in [2].
+Connect the serial cable to your computer as shown in [8] for first generation
+boards and [2] for second generation boards.
 
 Choose a terminal emulator such as PuTTY. Make sure you use the SCO keyboard
 mode (on PuTTY that option is at Terminal -> Keyboard, on the left menu).
@@ -277,3 +281,5 @@ References
 [6] https://docs.docker.com/docker-for-windows/#/shared-drives
 
 [7] https://docs.docker.com/engine/understanding-docker/
+
+[8] https://software.intel.com/en-us/articles/intel-galileo-gen-1-board-assembly-using-eclipse-and-intel-xdk-iot-edition
