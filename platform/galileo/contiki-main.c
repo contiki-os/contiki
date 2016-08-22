@@ -99,11 +99,15 @@ main(void)
   quarkX1000_i2c_init();
   quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
                            QUARKX1000_I2C_ADDR_MODE_7BIT);
+  /* The GPIO subsystem must be initialized prior to configuring pinmux, because
+   * the pinmux configuration automatically performs GPIO configuration for the
+   * relevant pins.
+   */
+  quarkX1000_gpio_init();
   /* use default pinmux configuration */
   if(galileo_pinmux_initialize() < 0) {
     fprintf(stderr, "Failed to initialize pinmux\n");
   }
-  quarkX1000_gpio_init();
   shared_isr_init();
 
   /* The ability to remap interrupts is not needed after this point and should
