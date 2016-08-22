@@ -145,7 +145,7 @@ PROCESS_THREAD(cc2538_pwm_test, ev, data)
   PRINTF("\nStarting the test\n");
 
   for(i = 0; i < MAX_PWM; i++) {
-    if(pwm_enable(pwm_num[i].freq, pwm_num[i].duty,
+    if(pwm_enable(pwm_num[i].freq, pwm_num[i].duty, 0,
                   pwm_num[i].timer, pwm_num[i].ab) == PWM_SUCCESS) {
       pwm_en[i] = 1;
       PRINTF("%s (%u) configuration OK\n", gpt_name(pwm_num[i].timer),
