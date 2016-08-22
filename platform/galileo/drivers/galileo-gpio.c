@@ -31,14 +31,22 @@
 #include "galileo-gpio.h"
 #include <assert.h>
 #include "gpio.h"
+#if GALILEO_GEN == 1
+#include "cy8c9540a.h"
+#endif
 
 /* Must be implemented in board-specific pinmux file to map a board-level GPIO
  * pin number to the corresponding CPU GPIO pin number.
  *
- * The return value should always be a positive number. An assertion within the
+ * For gen. 1 boards, the value -1 may be returned to indicate that the
+ * specified GPIO pin is not connected to any CPU pin. For gen. 2 boards, the
+ * return value should always be a positive number. An assertion within the
  * function should check the validity of the pin number.
  */
 int galileo_brd_to_cpu_gpio_pin(unsigned pin, bool *sus);
+#if GALILEO_GEN == 1
+cy8c9540a_bit_addr_t galileo_brd_to_cy8c9540a_gpio_pin(unsigned pin);
+#endif
 
 static int
 brd_to_cpu_pin(unsigned pin)
@@ -63,10 +71,32 @@ void galileo_gpio_config(uint8_t pin, int flags)
  */
 void galileo_gpio_read(uint8_t pin, uint8_t *value)
 {
-  assert(quarkX1000_gpio_read(brd_to_cpu_pin(pin), value) == 0);
+#if GALILEO_GEN == 1
+  cy8c9540a_bit_addr_t bit_addr;
+#endif
+  int cpu_pin = brd_to_cpu_pin(pin);
+#if GALILEO_GEN == 1
+  if(cpu_pin == -1) {
+    bit_addr = galileo_brd_to_cy8c9540a_gpio_pin(pin);
+    *value = cy8c9540a_read(bit_addr);
+    return;
+  }
+#endif
+  assert(quarkX1000_gpio_read(cpu_pin, value) == 0);
 }
 
 void galileo_gpio_write(uint8_t pin, uint8_t value)
 {
-  assert(quarkX1000_gpio_write(brd_to_cpu_pin(pin), value) == 0);
+#if GALILEO_GEN == 1
+  cy8c9540a_bit_addr_t bit_addr;
+#endif
+  int cpu_pin = brd_to_cpu_pin(pin);
+#if GALILEO_GEN == 1
+  if(cpu_pin == -1) {
+    bit_addr = galileo_brd_to_cy8c9540a_gpio_pin(pin);
+    cy8c9540a_write(bit_addr, value);
+    return;
+  }
+#endif
+  assert(quarkX1000_gpio_write(cpu_pin, value) == 0);
 }
