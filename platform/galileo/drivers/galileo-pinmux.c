@@ -63,26 +63,26 @@ struct pin_config {
 };
 
 static struct pin_config default_pinmux_config[PINMUX_NUM_PINS] = {
-  { 0,  GALILEO_PINMUX_FUNC_C }, /* UART0_RXD */
-  { 1,  GALILEO_PINMUX_FUNC_C }, /* UART0_TXD */
-  { 2,  GALILEO_PINMUX_FUNC_A }, /* GPIO5(out) */
-  { 3,  GALILEO_PINMUX_FUNC_B }, /* GPIO6(in) */
-  { 4,  GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS4 (in) */
-  { 5,  GALILEO_PINMUX_FUNC_B }, /* GPIO8 (in) */
-  { 6,  GALILEO_PINMUX_FUNC_B }, /* GPIO9 (in) */
-  { 7,  GALILEO_PINMUX_FUNC_B }, /* EXP1.P0_6 (in) */
-  { 8,  GALILEO_PINMUX_FUNC_B }, /* EXP1.P1_0 (in) */
-  { 9,  GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS2 (in) */
-  { 10, GALILEO_PINMUX_FUNC_A }, /* GPIO2 (out) */
-  { 11, GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS3 (in) */
-  { 12, GALILEO_PINMUX_FUNC_B }, /* GPIO7 (in) */
-  { 13, GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS5(in) */
-  { 14, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_0 (in)/ADC.IN0 */
-  { 15, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_2 (in)/ADC.IN1 */
-  { 16, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_4 (in)/ADC.IN2 */
-  { 17, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_6 (in)/ADC.IN3 */
-  { 18, GALILEO_PINMUX_FUNC_C }, /* I2C_SDA */
-  { 19, GALILEO_PINMUX_FUNC_C }, /* I2C_SCL */
+  { GALILEO_PINMUX_FUNC_C }, /* UART0_RXD */
+  { GALILEO_PINMUX_FUNC_C }, /* UART0_TXD */
+  { GALILEO_PINMUX_FUNC_A }, /* GPIO5(out) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO6(in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS4 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO8 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO9 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP1.P0_6 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP1.P1_0 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS2 (in) */
+  { GALILEO_PINMUX_FUNC_A }, /* GPIO2 (out) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS3 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO7 (in) */
+  { GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS5(in) */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_0 (in)/ADC.IN0 */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_2 (in)/ADC.IN1 */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_4 (in)/ADC.IN2 */
+  { GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_6 (in)/ADC.IN3 */
+  { GALILEO_PINMUX_FUNC_C }, /* I2C_SDA */
+  { GALILEO_PINMUX_FUNC_C }, /* I2C_SCL */
 };
 
 struct mux_pin {
@@ -535,7 +535,7 @@ galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func)
   struct mux_path *mux_path;
   uint8_t index, i;
 
-  if(pin > PINMUX_NUM_PINS) {
+  if(pin >= PINMUX_NUM_PINS) {
     return -1;
   }
 
@@ -545,38 +545,33 @@ galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func)
   mux_path = &galileo_pinmux_paths[index];
 
   for(i = 0; i < PINMUX_NUM_PATHS; i++) {
+    struct gpio_pcal9535a_data *exp = NULL;
     switch(mux_path->path[i].chip) {
     case EXP0:
-      if(gpio_pcal9535a_write(&data.exp0, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp0, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp0;
       break;
     case EXP1:
-      if(gpio_pcal9535a_write(&data.exp1, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp1, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp1;
       break;
     case EXP2:
-      if(gpio_pcal9535a_write(&data.exp2, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp2, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp2;
       break;
     case PWM0:
       if(pwm_pca9685_set_duty_cycle(&data.pwm0, mux_path->path[i].pin, mux_path->path[i].level ? 100 : 0) < 0) {
         return -1;
       }
-      break;
+      continue;
     case NONE:
-      break;
+      continue;
+    }
+
+    assert(exp != NULL);
+
+    if(gpio_pcal9535a_write(exp, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
+      return -1;
+    }
+    if(gpio_pcal9535a_config(exp, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
+      return -1;
     }
   }
 
@@ -609,7 +604,7 @@ galileo_pinmux_initialize(void)
   }
 
   for(i = 0; i < PINMUX_NUM_PINS; i++) {
-    if(galileo_pinmux_set_pin(default_pinmux_config[i].pin_num, default_pinmux_config[i].func) < 0) {
+    if(galileo_pinmux_set_pin(i, default_pinmux_config[i].func) < 0) {
       return -1;
     }
   }
