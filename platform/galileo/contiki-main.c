@@ -65,9 +65,9 @@ app_main(void)
   process_init();
   procinit_init();
   ctimer_init();
-  autostart_start(autostart_processes);
-
   eth_init();
+
+  autostart_start(autostart_processes);
 
   while(1) {
     process_run();
