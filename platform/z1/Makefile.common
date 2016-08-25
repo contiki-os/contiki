@@ -12,14 +12,12 @@ endif
 
 CLEAN += symbols.c symbols.h
 
-ARCH=msp430.c leds.c watchdog.c xmem.c \
-     spi.c cc2420.c cc2420-arch.c cc2420-arch-sfd.c\
-     node-id.c sensors.c button-sensor.c cfs-coffee.c \
-     radio-sensor.c uart0.c uart0-putchar.c uip-ipchksum.c \
-     slip.c slip_uart0.c \
-     z1-phidgets.c sht11.c sht11-sensor.c light-sensor.c \
-     battery-sensor.c sky-sensors.c tmp102.c temperature-sensor.c light-ziglet.c \
-     relay-phidget.c tlc59116.c sht25.c
+ARCH = msp430.c leds.c watchdog.c xmem.c i2cmaster.c \
+       spi.c cc2420.c cc2420-arch.c cc2420-arch-sfd.c\
+       node-id.c sensors.c button-sensor.c cfs-coffee.c \
+       radio-sensor.c uart0.c uart0-putchar.c uip-ipchksum.c \
+       slip.c slip_uart0.c z1-sensors.c adxl345.c temperature-sensor.c \
+       z1-phidgets.c light-sensor.c battery-sensor.c sky-sensors.c tmp102.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
@@ -31,7 +29,6 @@ CFLAGS += -DMACID=$(nodemac)
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
-CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
 
 MCU=msp430f2617
 

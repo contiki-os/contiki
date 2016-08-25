@@ -12,4 +12,4 @@ endif
 MODULES += core/net \
            core/net/mac core/net/mac/contikimac \
            core/net/llsec \
-           dev/cc2420 dev/sht11
+           dev/cc2420
