@@ -66,8 +66,8 @@
 #endif
 
 /*
- * Disable turning off HF oscillator when the radio is off:
- * You need to set this in order to use TSCH, disable to save more energy.
+ * If set, the systems keeps the HF crystal oscillator on even when the radio is off.
+ * You need to set this to 1 to use TSCH with its default 2.2ms or larger guard time.
  */
 #ifndef CC2650_FAST_RADIO_STARTUP
 #define CC2650_FAST_RADIO_STARTUP               0
@@ -106,7 +106,7 @@
 #define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
 #define CONTIKIMAC_CONF_SEND_SW_ACK               1
 #define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
-#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 250)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 240)
 #else
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 
@@ -171,10 +171,6 @@
 
 #ifndef RF_BLE_CONF_ENABLED
 #define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
-#endif
-
-#ifndef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -289,6 +285,19 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ROM Bootloader configuration
+ *
+ * Enable/Disable the ROM bootloader in your image, if the board supports it.
+ * Look in board.h to choose the DIO and corresponding level that will cause
+ * the chip to enter bootloader mode.
+ * @{
+ */
+#ifndef ROM_BOOTLOADER_ENABLE
+#define ROM_BOOTLOADER_ENABLE              0
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Button configurations
  *
  * Configure a button as power on/off: We use the right button for both boards.
@@ -346,9 +355,8 @@ typedef uint32_t rtimer_clock_t;
 /* Delay between GO signal and start listening.
  * This value is so small because the radio is constantly on within each timeslot. */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(15))
-/* Delay between the SFD finishes arriving and it is detected in software.
- * Not important on this platform as it uses hardware timestamps for SFD */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(0))
+/* Delay between the SFD finishes arriving and it is detected in software. */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(352))
 
 /* Timer conversion; radio is running at 4 MHz */
 #define RADIO_TIMER_SECOND   4000000u
@@ -373,12 +381,22 @@ typedef uint32_t rtimer_clock_t;
 #define TSCH_CONF_TIMESYNC_REMOVE_JITTER 0
 #endif
 
+#ifndef TSCH_CONF_BASE_DRIFT_PPM
 /* The drift compared to "true" 10ms slots.
-   Enable adaptive sync to enable compensation for this. */
+ * Enable adaptive sync to enable compensation for this. */
 #define TSCH_CONF_BASE_DRIFT_PPM -977
+#endif
 
 /* 10 times per second */
-#define TSCH_CONF_ASSOCIATION_CHANNEL_SWITCH_FREQUENCY 10
+#ifndef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CONF_CHANNEL_SCAN_DURATION (CLOCK_SECOND / 10)
+#endif
+
+/* Slightly reduce the TSCH guard time (from 2200 usec to 1800 usec) to make sure
+ * the CC26xx radio has sufficient time to start up. */
+#ifndef TSCH_CONF_RX_WAIT
+#define TSCH_CONF_RX_WAIT 1800
+#endif
 
 /** @} */
 /*---------------------------------------------------------------------------*/

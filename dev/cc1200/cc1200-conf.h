@@ -222,15 +222,5 @@
 #define CC1200_RX_LEDS                  CC1200_CONF_RX_LEDS
 #endif
 /*---------------------------------------------------------------------------*/
-/*
- * If set, enable sniff mode: turn radio on (and keep it on), disable
- * address filter and auto ack
- */
-#ifdef CC1200_CONF_SNIFFER
-#define CC1200_SNIFFER                  CC1200_CONF_SNIFFER
-#else
-#define CC1200_SNIFFER                  0
-#endif
-/*---------------------------------------------------------------------------*/
 
 #endif /* CC1200_H_ */

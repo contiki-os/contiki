@@ -6,10 +6,10 @@
 	url = https://github.com/JelmerT/cc2538-bsl.git
 [submodule "cpu/cc26xx-cc13xx/lib/cc26xxware"]
 	path = cpu/cc26xx-cc13xx/lib/cc26xxware
-	url = https://github.com/g-oikonomou/cc26xxware.git
+	url = https://github.com/contiki-os/cc26xxware.git
 [submodule "cpu/cc26xx-cc13xx/lib/cc13xxware"]
 	path = cpu/cc26xx-cc13xx/lib/cc13xxware
-	url = https://github.com/g-oikonomou/cc13xxware.git
+	url = https://github.com/contiki-os/cc13xxware.git
 [submodule "platform/stm32nucleo-spirit1/stm32cube-lib"]
 	path = platform/stm32nucleo-spirit1/stm32cube-lib
 	url = https://github.com/STclab/stm32nucleo-spirit1-lib

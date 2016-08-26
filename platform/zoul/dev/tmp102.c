@@ -58,7 +58,8 @@ tmp102_read(uint16_t *data)
   if(i2c_single_send(TMP102_ADDR, TMP102_TEMP) == I2C_MASTER_ERR_NONE) {
     /* Read two bytes only */
     if(i2c_burst_receive(TMP102_ADDR, buf, 2) == I2C_MASTER_ERR_NONE) {
-      temp = (buf[0] << 8) + buf[1];
+      /* 12-bit value, TMP102 SBOS397F Table 8-9 */
+      temp = (buf[0] << 4) + (buf[1] >> 4);
       if(temp > 2047) {
         temp -= (1 << 12);
       }

@@ -66,7 +66,7 @@
 #define ADC_WRAPPER_SUCCESS                 0x00
 #define ADC_WRAPPER_ERROR                   (-1)
 #define ADC_WRAPPER_EXTERNAL_VREF           5000
-#define ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL  3300
+#define ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL  3000
 /*---------------------------------------------------------------------------*/
 #define ANALOG_GROVE_LIGHT                  0x01
 #define ANALOG_PHIDGET_ROTATION_1109        0x02

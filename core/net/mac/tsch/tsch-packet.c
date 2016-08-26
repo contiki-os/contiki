@@ -85,12 +85,12 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   p.seq = seqno;
 #if TSCH_PACKET_EACK_WITH_DEST_ADDR
   if(dest_addr != NULL) {
-    p.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
+    p.fcf.dest_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;;
     linkaddr_copy((linkaddr_t *)&p.dest_addr, dest_addr);
   }
 #endif
 #if TSCH_PACKET_EACK_WITH_SRC_ADDR
-  p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+  p.fcf.src_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;;
   p.src_pid = IEEE802154_PANID;
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
 #endif
@@ -189,7 +189,7 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 /*---------------------------------------------------------------------------*/
 /* Create an EB packet */
 int
-tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
+tsch_packet_create_eb(uint8_t *buf, int buf_size,
     uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
 {
   int ret = 0;
@@ -208,10 +208,9 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.fcf.frame_type = FRAME802154_BEACONFRAME;
   p.fcf.ie_list_present = 1;
   p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
-  p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+  p.fcf.src_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;
   p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
-  p.seq = seqno;
-  p.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
+  p.fcf.sequence_number_suppression = 1;
   /* It is important not to compress PAN ID, as this would result in not including either
    * source nor destination PAN ID, leaving potential joining devices unaware of the PAN ID. */
   p.fcf.panid_compression = 0;

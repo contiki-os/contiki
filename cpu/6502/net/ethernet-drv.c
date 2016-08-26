@@ -34,17 +34,23 @@
 
 #include "contiki-net.h"
 #include "net/ethernet.h"
+#include "net/ip/tcpip.h"
 #include "net/ipv4/uip-neighbor.h"
 
 #include "net/ethernet-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 PROCESS(ethernet_process, "Ethernet driver");
 
 /*---------------------------------------------------------------------------*/
 uint8_t
+#if NETSTACK_CONF_WITH_IPV6
+ethernet_output(const uip_lladdr_t *)
+#else
 ethernet_output(void)
+#endif
 {
   uip_arp_out();
   ethernet_send();
@@ -61,7 +67,7 @@ pollhandler(void)
   if(uip_len > 0) {
 #if NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
-      uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+      uip_neighbor_add(&IPBUF->srcipaddr, (struct uip_neighbor_addr *)&BUF->src);
       tcpip_input();
     } else
 #endif /* NETSTACK_CONF_WITH_IPV6 */
