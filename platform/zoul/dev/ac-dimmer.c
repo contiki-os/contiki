@@ -78,7 +78,9 @@ PROCESS_THREAD(ac_dimmer_int_process, ev, data)
 static void
 dimmer_zero_cross_int_handler(uint8_t port, uint8_t pin)
 {
-  process_poll(&ac_dimmer_int_process);
+  if((port == DIMMER_SYNC_PORT) && (pin == DIMMER_SYNC_PIN)) {
+    process_poll(&ac_dimmer_int_process);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -144,7 +146,7 @@ configure(int type, int value)
 
   /* Disable interrupt and pins */
   
-  GPIO_DISABLE_INTERRUPT(DIMMER_GATE_PORT_BASE, DIMMER_GATE_PIN_MASK);
+  GPIO_DISABLE_INTERRUPT(DIMMER_SYNC_PORT_BASE, DIMMER_SYNC_PIN_MASK);
   GPIO_SET_INPUT(DIMMER_GATE_PORT_BASE, DIMMER_GATE_PIN_MASK);
   GPIO_SET_OUTPUT(DIMMER_SYNC_PORT_BASE, DIMMER_SYNC_PIN_MASK);
   process_exit(&ac_dimmer_int_process);
