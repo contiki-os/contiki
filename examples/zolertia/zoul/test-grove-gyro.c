@@ -85,7 +85,7 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
    * the 3 gyroscope axis use GROVE_GYRO_SENSOR.  Alternatively the value
    * GROVE_GYRO_ALL could also be used to power everything at once
    */
-  grove_gyro.configure(GROVE_GYRO_POWER_ON, GROVE_GYRO_SENSOR);  
+  grove_gyro.configure(GROVE_GYRO_POWER_ON, GROVE_GYRO_SENSOR);
 
   /* Read back the configured sensor I2C address to check if the sensor is
    * working OK, this is the only case in which the value() returns a value
@@ -128,9 +128,9 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
 
     /* This sensor has a different operation from others using Contiki's sensor
      * API, to make data acquisition we write the readings directly to the
-     * extern data structure, allowing to write more than 1 value at the same 
-     * operation, and also allowing upon a data interrupt event to immediatly 
-     * access the data.  The return value of the value() call is then the status 
+     * extern data structure, allowing to write more than 1 value at the same
+     * operation, and also allowing upon a data interrupt event to immediatly
+     * access the data.  The return value of the value() call is then the status
      * result of the read operation
      */
     if(grove_gyro.value(GROVE_GYRO_XYZ) == GROVE_GYRO_SUCCESS) {
