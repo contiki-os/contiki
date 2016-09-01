@@ -32,8 +32,8 @@
  * \addtogroup remote-power-management-test
  * @{
  *
- * Test the RE-Mote's power management features, shutdown mode and battery
- * management
+ * Test the RE-Mote's (revision A) power management features, shutdown mode and
+ * battery management
  *
  * @{
  *

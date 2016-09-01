@@ -1,4 +1,4 @@
-Zolertia RE-Mote platform
+Zolertia RE-Mote platform (revision A)
 ============================================
 
 ![Zolertia RE-Mote development platform][remote-front]
