@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "2.7-2016-08-08\n"
+#define VERSION  "2.8-2016-09-01\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -289,7 +289,7 @@ extern bool cc2420_without_send_cca;
 #endif
 #define PLATFORM_ID_MAX 9
 
-char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag", "inga"};
+char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "u108dev", "ti-sensortag", "inga"};
 
 /* For TX between platforms */
 
