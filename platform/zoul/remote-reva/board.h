@@ -33,7 +33,7 @@
  * \addtogroup zoul-platforms
  * @{
  *
- * \defgroup remote RE-Mote platform
+ * \defgroup remote-reva RE-Mote platform revision A
  *
  * The RE-Mote was designed jointly with universities and industry partners in
  * RERUM European project, to ease the development of private and secure
@@ -42,7 +42,7 @@
  * Shutdown mode to reduce its power consumption down to 300nA.
  *
  * This file provides connectivity information on LEDs, Buttons, UART and
- * other RE-Mote peripherals
+ * other RE-Mote revision A peripherals
  *
  * This file can be used as the basis to configure other platforms using the
  * cc2538 SoC.
@@ -50,7 +50,7 @@
  *
  * \file
  * Header file with definitions related to the I/O connections on the Zolertia's
- * RE-Mote platform, cc2538-based
+ * RE-Mote platform (revision A), cc2538-based
  *
  * \note   Do not include this file directly. It gets included by contiki-conf
  *         after all relevant directives have been set.
@@ -485,7 +485,7 @@
  * \name Device string used on startup
  * @{
  */
-#define BOARD_STRING "Zolertia RE-Mote platform"
+#define BOARD_STRING "Zolertia RE-Mote revision A platform"
 /** @} */
 
 #endif /* BOARD_H_ */

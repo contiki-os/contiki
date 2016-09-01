@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup remote
+ * \addtogroup remote-reva
  * @{
  *
  * \file
- *  Board-initialisation for the Zolertia's RE-Mote platform
+ *  Board-initialisation for the Zolertia's RE-Mote revision A platform
  *
  */
 /*---------------------------------------------------------------------------*/
