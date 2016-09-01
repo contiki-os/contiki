@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup remote-examples
+ * \addtogroup zoul-examples
+ * @{
+ *
+ * \defgroup remote-rtcc-test RE-Mote on-board RTCC test application
+ *
+ * Test the Real-Time-Clock-Calendar built in the RE-Motes revision A and B
  * @{
  *
  * \file
- * Project specific configuration defines for the basic RE-Mote examples
+ *         Project specific configuration defines for the RTCC RE-Mote example
  */
+/*---------------------------------------------------------------------------*/
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
 #endif /* PROJECT_CONF_H_ */
-
-/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

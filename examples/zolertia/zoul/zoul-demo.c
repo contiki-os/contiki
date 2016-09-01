@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
  * \addtogroup zoul
  * @{
@@ -62,6 +63,7 @@
  * \file
  *     Example demonstrating the Zoul module on the RE-Mote & Firefly platforms
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cpu.h"
 #include "sys/etimer.h"
@@ -194,3 +196,4 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
  * @}
  * @}
  */
+
