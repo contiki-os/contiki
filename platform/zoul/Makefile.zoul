@@ -28,7 +28,7 @@ PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
 
 ### Include
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
-CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c cc1200-zoul-arch.c
+CONTIKI_TARGET_SOURCEFILES += leds.c cc1200-zoul-arch.c
 CONTIKI_TARGET_SOURCEFILES += adc-zoul.c button-sensor.c zoul-sensors.c
 CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
 
