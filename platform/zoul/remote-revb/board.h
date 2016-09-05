@@ -70,7 +70,7 @@
  * LED1.R/PD4            |-01|17-|   PB2/SPIO0.SCLK/CC1200.SCLK
  * LED2.G/JTAG.TDO/PB7   |-02|16-|   PB1/SPIO0.MOSI/CC1200.MOSI
  * LED3.B/JTAG.TDI/PB6   |-03|15-|   PB3/SPIO0.MISO/CC1200.MISO
- * UART0.RX/PA0          |-04|14-|   PA7/AIN7/USD.CS
+ * UART0.RX/PA0          |-04|14-|   PA7/AIN7/USD.CS|ADC5
  * UART0.TX/PA1          |-05|13-|   DGND
  * PD0                   |-06|12-|   D+3.3
  * I2C.SDA/PC2           |-07|11-|   PA5/AIN5/ADC1
@@ -78,7 +78,7 @@
  * DGND                  |-09|09-|   DGND
  * D+3.3                 |-10|08-|   D+5.0
  * CC1200.GPIO0/PB4      |-11|07-|   PA2/AIN2/ADC3
- * CC1200.GPIO2/PB0      |-12|06-|   PA6/AIN6/USD.SEL
+ * CC1200.GPIO2/PB0      |-12|06-|   PA6/AIN6/USD.SEL|ADC4
  * UART1.RX/PC1          |-13|05-|   PC6/SPI1.MISO
  * UART1.TX/PC0          |-14|04-|   PC5/SPI1.MOSI
  * DGND                  |-15|03-|   PC4/SPI1.SCLK
@@ -90,7 +90,7 @@
  * access to the RESET/user buttons:
  *
  * - JP4 (placed below JP6 connector): |1-| DGND, |2-| VBAT
- * - JP9 (placed above JP5 connector): |1-| BUTTON.RESET, |2-| BUTTON.USER
+ * - JP9 (placed above JP5 connector): |1-| BUTTON.RESET, |2-| BUTTON.USER|ADC6
  */
 /*---------------------------------------------------------------------------*/
 /** \name RE-Mote LED configuration

@@ -26,6 +26,8 @@ The RE-Mote features a Zoul as its core module and it is bundled with the follow
 * Small form-factor of 73x40 mm.
 * Available with enclosure for indoor use
 
+The changes from Revision A to this new Revision B are summarized in the [Wiki](https://github.com/Zolertia/Resources/wiki/RE-Mote:-Enhancements-from-Rev.A-to-Rev.B)
+
 The most prominent feature of the RE-Mote is its ultra low-power implementation, allowing a flexible and time/date-aware control of the platform operation modes by using its real-time clock (RTCC) and an ultra-low power PIC governing the battery manager.
 
 The RE-Mote features an optional custom-made enclosure to fit most scenarios, allowing to easily connect sensors, actuators and rechargeable LiPo batteries.  Its on-board RP-SMA antenna eliminates the need to mechanize an external antenna, allowing to alternatively use either a sub-1GHz or 2.4GHz antenna, or a multiband one.  For dual band applications it is possible to use both sub-GHz and 2.4GHz interfaces simultaneously.
