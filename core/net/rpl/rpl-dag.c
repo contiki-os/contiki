@@ -919,8 +919,8 @@ rpl_select_parent(rpl_dag_t *dag)
       rpl_schedule_probing(dag->instance);
     }
 #else /* RPL_WITH_PROBING */
-      rpl_set_preferred_parent(dag, best);
-      dag->rank = rpl_rank_via_parent(dag->preferred_parent);
+    rpl_set_preferred_parent(dag, best);
+    dag->rank = rpl_rank_via_parent(dag->preferred_parent);
 #endif /* RPL_WITH_PROBING */
   } else {
     rpl_set_preferred_parent(dag, NULL);
