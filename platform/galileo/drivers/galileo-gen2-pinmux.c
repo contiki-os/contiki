@@ -29,10 +29,19 @@
  */
 
 #include "galileo-pinmux.h"
+#include <assert.h>
 #include "gpio.h"
 #include "gpio-pcal9535a.h"
 #include "i2c.h"
 #include "pwm-pca9685.h"
+#include <stdio.h>
+
+typedef enum {
+  GALILEO_PINMUX_FUNC_A,
+  GALILEO_PINMUX_FUNC_B,
+  GALILEO_PINMUX_FUNC_C,
+  GALILEO_PINMUX_FUNC_D
+} GALILEO_PINMUX_FUNC;
 
 #define GPIO_PCAL9535A_0_I2C_ADDR 0x25
 #define GPIO_PCAL9535A_1_I2C_ADDR 0x26
@@ -41,7 +50,6 @@
 
 #define PINMUX_NUM_FUNCS 4
 #define PINMUX_NUM_PATHS 4
-#define PINMUX_NUM_PINS 20
 
 typedef enum {
   NONE,
@@ -60,29 +68,6 @@ typedef enum {
 struct pin_config {
   uint8_t pin_num;
   GALILEO_PINMUX_FUNC func;
-};
-
-static struct pin_config default_pinmux_config[PINMUX_NUM_PINS] = {
-  { 0,  GALILEO_PINMUX_FUNC_C }, /* UART0_RXD */
-  { 1,  GALILEO_PINMUX_FUNC_C }, /* UART0_TXD */
-  { 2,  GALILEO_PINMUX_FUNC_A }, /* GPIO5(out) */
-  { 3,  GALILEO_PINMUX_FUNC_B }, /* GPIO6(in) */
-  { 4,  GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS4 (in) */
-  { 5,  GALILEO_PINMUX_FUNC_B }, /* GPIO8 (in) */
-  { 6,  GALILEO_PINMUX_FUNC_B }, /* GPIO9 (in) */
-  { 7,  GALILEO_PINMUX_FUNC_B }, /* EXP1.P0_6 (in) */
-  { 8,  GALILEO_PINMUX_FUNC_B }, /* EXP1.P1_0 (in) */
-  { 9,  GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS2 (in) */
-  { 10, GALILEO_PINMUX_FUNC_A }, /* GPIO2 (out) */
-  { 11, GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS3 (in) */
-  { 12, GALILEO_PINMUX_FUNC_B }, /* GPIO7 (in) */
-  { 13, GALILEO_PINMUX_FUNC_B }, /* GPIO_SUS5(in) */
-  { 14, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_0 (in)/ADC.IN0 */
-  { 15, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_2 (in)/ADC.IN1 */
-  { 16, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_4 (in)/ADC.IN2 */
-  { 17, GALILEO_PINMUX_FUNC_B }, /* EXP2.P0_6 (in)/ADC.IN3 */
-  { 18, GALILEO_PINMUX_FUNC_C }, /* I2C_SDA */
-  { 19, GALILEO_PINMUX_FUNC_C }, /* I2C_SCL */
 };
 
 struct mux_pin {
@@ -107,7 +92,7 @@ struct pinmux_internal_data {
 
 static struct pinmux_internal_data data;
 
-static struct mux_path galileo_pinmux_paths[PINMUX_NUM_PINS * PINMUX_NUM_FUNCS] = {
+static struct mux_path galileo_pinmux_paths[GALILEO_NUM_PINS * PINMUX_NUM_FUNCS] = {
   {0, GALILEO_PINMUX_FUNC_A, {
           { EXP1,  0,  PIN_HIGH, (QUARKX1000_GPIO_OUT) }, /* GPIO3 out */
           { EXP1,  1,   PIN_LOW, (QUARKX1000_GPIO_OUT) },
@@ -529,13 +514,13 @@ static struct mux_path galileo_pinmux_paths[PINMUX_NUM_PINS * PINMUX_NUM_FUNCS] 
            { NONE,  0,  DISABLED, (QUARKX1000_GPIO_IN ) }}},
 };
 
-int
+static int
 galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func)
 {
   struct mux_path *mux_path;
   uint8_t index, i;
 
-  if(pin > PINMUX_NUM_PINS) {
+  if(pin >= GALILEO_NUM_PINS) {
     return -1;
   }
 
@@ -545,48 +530,151 @@ galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func)
   mux_path = &galileo_pinmux_paths[index];
 
   for(i = 0; i < PINMUX_NUM_PATHS; i++) {
+    struct gpio_pcal9535a_data *exp = NULL;
     switch(mux_path->path[i].chip) {
     case EXP0:
-      if(gpio_pcal9535a_write(&data.exp0, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp0, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp0;
       break;
     case EXP1:
-      if(gpio_pcal9535a_write(&data.exp1, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp1, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp1;
       break;
     case EXP2:
-      if(gpio_pcal9535a_write(&data.exp2, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
-        return -1;
-      }
-      if(gpio_pcal9535a_config(&data.exp2, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
-        return -1;
-      }
+      exp = &data.exp2;
       break;
     case PWM0:
       if(pwm_pca9685_set_duty_cycle(&data.pwm0, mux_path->path[i].pin, mux_path->path[i].level ? 100 : 0) < 0) {
         return -1;
       }
-      break;
+      continue;
     case NONE:
-      break;
+      continue;
+    }
+
+    assert(exp != NULL);
+
+    if(gpio_pcal9535a_write(exp, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
+      return -1;
+    }
+    if(gpio_pcal9535a_config(exp, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
+      return -1;
     }
   }
 
   return 0;
 }
+static void
+flatten_pin_num(galileo_pin_group_t grp, unsigned *pin)
+{
+  if(grp == GALILEO_PIN_GRP_ANALOG) {
+    *pin += GALILEO_NUM_DIGITAL_PINS;
+  }
+
+  assert(*pin < GALILEO_NUM_PINS);
+}
+/* See galileo-gpio.c for the declaration of this function. */
+int
+galileo_brd_to_cpu_gpio_pin(unsigned pin, bool *sus)
+{
+  static const int SUS = 0x100;
+  unsigned pins[GALILEO_NUM_PINS] = {
+          3,       4,       5,       6,
+    SUS | 4,       8,       9, SUS | 0,
+    SUS | 1, SUS | 2,       2, SUS | 3,
+          7, SUS | 5
+  };
+  int cpu_pin;
+
+  /* GPIOs in the analog pin space are implemented by EXP2, not the CPU. */
+  assert(pin < GALILEO_NUM_DIGITAL_PINS);
+  cpu_pin = pins[pin];
+
+  *sus = (cpu_pin & SUS) == SUS;
+
+  return cpu_pin & ~SUS;
+}
+void
+galileo_pinmux_select_din(galileo_pin_group_t grp, unsigned pin)
+{
+  bool sus;
+  int cpu_pin;
+
+  flatten_pin_num(grp, &pin);
+
+  assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_B) == 0);
+
+  cpu_pin = galileo_brd_to_cpu_gpio_pin(pin, &sus);
+  /* GPIO_SUS pins are currently unsupported. */
+  assert(!sus);
+  quarkX1000_gpio_config(cpu_pin, QUARKX1000_GPIO_IN);
+}
+void
+galileo_pinmux_select_dout(galileo_pin_group_t grp, unsigned pin)
+{
+  bool sus;
+  int cpu_pin;
+
+  flatten_pin_num(grp, &pin);
+
+  assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_A) == 0);
+
+  cpu_pin = galileo_brd_to_cpu_gpio_pin(pin, &sus);
+  /* GPIO_SUS pins are currently unsupported. */
+  assert(!sus);
+  quarkX1000_gpio_config(cpu_pin, QUARKX1000_GPIO_OUT);
+}
+void
+galileo_pinmux_select_pwm(unsigned pin)
+{
+  GALILEO_PINMUX_FUNC func = GALILEO_PINMUX_FUNC_C;
+  switch(pin) {
+  case 3:
+    func = GALILEO_PINMUX_FUNC_D;
+    break;
+  case 5:
+  case 6:
+  case 9:
+  case 10:
+  case 11:
+    break;
+  default:
+    fprintf(stderr, "%s: invalid pin: %d.\n", __FUNCTION__, pin);
+    halt();
+  }
+
+  assert(galileo_pinmux_set_pin(pin, func) == 0);
+}
+void
+galileo_pinmux_select_serial(unsigned pin)
+{
+  assert(pin < 4);
+
+  assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_C) == 0);
+}
+void
+galileo_pinmux_select_i2c(void)
+{
+  assert(galileo_pinmux_set_pin(18, GALILEO_PINMUX_FUNC_C) == 0);
+  assert(galileo_pinmux_set_pin(19, GALILEO_PINMUX_FUNC_C) == 0);
+}
+void
+galileo_pinmux_select_spi(void)
+{
+  assert(galileo_pinmux_set_pin(11, GALILEO_PINMUX_FUNC_D) == 0);
+  assert(galileo_pinmux_set_pin(12, GALILEO_PINMUX_FUNC_C) == 0);
+  assert(galileo_pinmux_set_pin(13, GALILEO_PINMUX_FUNC_C) == 0);
+}
+void
+galileo_pinmux_select_analog(unsigned pin)
+{
+  assert(pin < GALILEO_NUM_ANALOG_PINS);
+
+  pin += GALILEO_NUM_DIGITAL_PINS;
+
+  assert(galileo_pinmux_set_pin(pin, GALILEO_PINMUX_FUNC_B) == 0);
+}
 int
 galileo_pinmux_initialize(void)
 {
-  uint8_t i;
-
   /* has to init after I2C master */
   if(!quarkX1000_i2c_is_available()) {
     return -1;
@@ -608,11 +696,29 @@ galileo_pinmux_initialize(void)
     return -1;
   }
 
-  for(i = 0; i < PINMUX_NUM_PINS; i++) {
-    if(galileo_pinmux_set_pin(default_pinmux_config[i].pin_num, default_pinmux_config[i].func) < 0) {
-      return -1;
-    }
-  }
+  /* Activate default pinmux configuration. */
+  /* Some of the following lines are commented out due to the GPIO_SUS pins
+   * being currently unsupported.
+   */
+  galileo_pinmux_select_serial(0);
+  galileo_pinmux_select_serial(1);
+  galileo_pinmux_select_dout(GALILEO_PIN_GRP_DIGITAL, 2);
+  galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 3);
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 4);*/
+  galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 5);
+  galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 6);
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 7);*/
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 8);*/
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 9);*/
+  galileo_pinmux_select_dout(GALILEO_PIN_GRP_DIGITAL, 10);
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 11);*/
+  galileo_pinmux_select_dout(GALILEO_PIN_GRP_DIGITAL, 12);
+  /*galileo_pinmux_select_din(GALILEO_PIN_GRP_DIGITAL, 13);*/
+  galileo_pinmux_select_analog(0);
+  galileo_pinmux_select_analog(1);
+  galileo_pinmux_select_analog(2);
+  galileo_pinmux_select_analog(3);
+  galileo_pinmux_select_i2c();
 
   return 0;
 }
