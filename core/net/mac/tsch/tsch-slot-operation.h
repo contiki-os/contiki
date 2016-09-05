@@ -89,7 +89,8 @@ struct input_packet {
   uint8_t payload[TSCH_PACKET_MAX_LEN]; /* Packet payload */
   struct asn_t rx_asn; /* ASN when the packet was received */
   int len; /* Packet len */
-  uint16_t rssi; /* RSSI for this packet */
+  int16_t rssi; /* RSSI for this packet */
+  uint8_t channel; /* Channel we received the packet on */
 };
 
 /***** External Variables *****/
