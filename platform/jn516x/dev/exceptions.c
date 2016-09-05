@@ -354,7 +354,7 @@ exception_handler(uint32 *pu32Stack, eExceptionType eType)
   }
 #endif
 
-  if(eType == E_EXC_SYSCALL){
+  if(eType == E_EXC_SYSCALL) {
     return;
   }
 
