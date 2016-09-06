@@ -55,6 +55,7 @@ const struct simInterface radio_interface;
 char simReceiving = 0;
 char simInDataBuffer[COOJA_RADIO_BUFSIZE];
 int simInSize = 0;
+rtimer_clock_t simLastPacketTimestamp = 0;
 char simOutDataBuffer[COOJA_RADIO_BUFSIZE];
 int simOutSize = 0;
 char simRadioHWOn = 1;
@@ -287,7 +288,13 @@ set_value(radio_param_t param, radio_value_t value)
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t *)dest = (rtimer_clock_t)simLastPacketTimestamp;
+    return RADIO_RESULT_OK;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
