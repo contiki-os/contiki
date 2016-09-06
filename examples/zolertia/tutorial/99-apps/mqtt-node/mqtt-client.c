@@ -43,6 +43,7 @@
 #include "lib/crc16.h"
 #include "mqtt-client.h"
 #include "httpd-simple.h"
+#include "dev/sys-ctrl.h"
 
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
@@ -80,7 +81,12 @@
  * Number of times to try reconnecting to the broker.
  * Can be a limited number (e.g. 3, 10 etc) or can be set to RETRY_FOREVER
  */
+#ifdef RECONNECT_ATTEMPTS_CONF
+#define RECONNECT_ATTEMPTS            RECONNECT_ATTEMPTS_CONF
+#else
 #define RECONNECT_ATTEMPTS            RETRY_FOREVER
+#endif
+
 #define CONNECTION_STABLE_TIME        (CLOCK_SECOND * 5)
 /*---------------------------------------------------------------------------*/
 /* A timeout used when waiting to connect to a network */
@@ -495,7 +501,7 @@ state_machine(void)
 
   case STATE_CONFIG_ERROR:
     /* Idle away. The only way out is a new config */
-    PRINTF("Client: Bad configuration.\n");
+    PRINTF("Client: Bad configuration(\n");
     return;
 
   case STATE_ERROR:
@@ -503,10 +509,9 @@ state_machine(void)
     leds_on(STATUS_LED);
     /*
      * This should never happen.
-     * If we enter here it's because of some error. Stop timers. The only thing
-     * that can bring us out is a new config event
      */
-    PRINTF("Client: Default case: State=0x%02x\n", state);
+    PRINTF("Client: System error, reboot... :'(\n");
+    sys_ctrl_reset();
     return;
   }
 

@@ -60,6 +60,9 @@
 #else
 #define DEFAULT_ALARM_TIME            DEFAULT_CONF_ALARM_TIME
 #endif
+
+/* Maximum number of connection attempts after a disconnection */
+#define RECONNECT_ATTEMPTS_CONF       15
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration, saved
