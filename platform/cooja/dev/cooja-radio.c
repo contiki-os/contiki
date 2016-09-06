@@ -46,9 +46,6 @@
 #define COOJA_RADIO_BUFSIZE PACKETBUF_SIZE
 #define CCA_SS_THRESHOLD -95
 
-#define WITH_TURNAROUND 1
-#define WITH_SEND_CCA 1
-
 const struct simInterface radio_interface;
 
 /* COOJA */
@@ -174,14 +171,14 @@ radio_send(const void *payload, unsigned short payload_len)
   int radiostate = simRadioHWOn;
 
   /* Simulate turnaround time of 2ms for packets, 1ms for acks*/
-#if WITH_TURNAROUND
+#if COOJA_SIMULATE_TURNAROUND
   simProcessRunValue = 1;
   cooja_mt_yield();
   if(payload_len > 3) {
     simProcessRunValue = 1;
     cooja_mt_yield();
   }
-#endif /* WITH_TURNAROUND */
+#endif /* COOJA_SIMULATE_TURNAROUND */
 
   if(!simRadioHWOn) {
     /* Turn on radio temporarily */
@@ -198,11 +195,11 @@ radio_send(const void *payload, unsigned short payload_len)
   }
 
   /* Transmit on CCA */
-#if WITH_SEND_CCA
+#if COOJA_TRANSMIT_ON_CCA
   if(!channel_clear()) {
     return RADIO_TX_COLLISION;
   }
-#endif /* WITH_SEND_CCA */
+#endif /* COOJA_TRANSMIT_ON_CCA */
 
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
