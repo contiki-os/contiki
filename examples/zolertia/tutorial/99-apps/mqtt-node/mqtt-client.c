@@ -372,7 +372,7 @@ publish(uint8_t *app_buffer, char *pub_topic, uint16_t len)
 
   if(mqtt_publish(&conn, NULL, pub_topic, app_buffer, len, MQTT_QOS_LEVEL_0,
                   MQTT_RETAIN_OFF) != MQTT_STATUS_OK) {
-    PRINTF("Client: ongoing Publication already, not queued\n");
+    PRINTF("Client: *** ongoing Publication already, not queued!\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -383,7 +383,7 @@ connect_to_broker(void)
   mqtt_connect(&conn, MQTT_DEMO_BROKER_IP_ADDR, DEFAULT_BROKER_PORT,
                conf.pub_interval_check * 3);
   state = STATE_CONNECTING;
-  PRINTF("Client: Connecting...\n");
+  PRINTF("Client: Connecting");
 }
 /*---------------------------------------------------------------------------*/
 static void
