@@ -203,6 +203,10 @@ typedef unsigned long clock_time_t;
 typedef unsigned long rtimer_clock_t;
 #define RTIMER_CLOCK_DIFF(a,b)     ((signed long)((a)-(b)))
 
+#define RADIO_DELAY_BEFORE_TX 0
+#define RADIO_DELAY_BEFORE_RX 0
+#define RADIO_DELAY_BEFORE_DETECT 0
+
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
 
