@@ -14,17 +14,14 @@ PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c
 # Platform checks
 ifeq ($(MQTT_PLATFORM), bluemix)
   PROJECT_SOURCEFILES += bluemix.c
-  CFLAGS += -DMQTT_PLATFORM="bluemix"
 endif
 
 ifeq ($(MQTT_PLATFORM), relayr)
   PROJECT_SOURCEFILES += relayr.c
-  CFLAGS += -DMQTT_PLATFORM="relayr"
 endif
 
 ifeq ($(MQTT_PLATFORM), thingsio)
   PROJECT_SOURCEFILES += thingsio.c
-  CFLAGS += -DMQTT_PLATFORM="thingsio"
 endif
 
 # Sensor checks
@@ -61,6 +58,8 @@ WITH_LLSEC ?= 0
 CFLAGS += -DWITH_LLSEC_ENABLED=$(WITH_LLSEC)
 
 WITH_IP64 = 1
+
+CFLAGS += -DMQTT_PLATFORM=$(MQTT_PLATFORM)
 
 APPS += mqtt
 

@@ -94,13 +94,13 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
   for(i=0; i < reg->num; i++) {
     if((reg->sensor[i].value < reg->sensor[i].min) ||
       (reg->sensor[i].value > reg->sensor[i].max)) {
-      PRINTF("MQTT sensors: %s value %d invalid: should be between %d and %d\n",
+      PRINTF("  > MQTT sensors: %s value %d invalid: should be between %d and %d\n",
              reg->sensor[i].sensor_name, reg->sensor[i].value,
              reg->sensor[i].min, reg->sensor[i].max);
       reg->sensor[i].value = reg->sensor[i].min;
     } else {
       if(strlen(reg->sensor[i].sensor_name)) {
-        PRINTF("MQTT sensors: %s value %d\n", reg->sensor[i].sensor_name,
+        PRINTF("  > MQTT sensors: %s value %d\n", reg->sensor[i].sensor_name,
                                               reg->sensor[i].value);
       }
     }
@@ -114,7 +114,7 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
     if(((reg->sensor[i].value < reg->sensor[i].below_threshold) ||
       (reg->sensor[i].value > reg->sensor[i].over_threshold)) &&
       (strlen(reg->sensor[i].alarm_name))) {
-      PRINTF("MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
+      PRINTF("  > MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
                                                         reg->sensor[i].over_threshold,
                                                         reg->sensor[i].below_threshold);
       process_post(PROCESS_BROADCAST, alarm, &reg->sensor[i]);

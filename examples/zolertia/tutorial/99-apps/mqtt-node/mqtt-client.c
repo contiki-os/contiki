@@ -288,13 +288,13 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
 {
   switch(event) {
   case MQTT_EVENT_CONNECTED: {
-    PRINTF("Client: Application has a MQTT connection\n");
+    PRINTF("\nClient: Application has a MQTT connection\n");
     timer_set(&connection_life, CONNECTION_STABLE_TIME);
     state = STATE_CONNECTED;
     break;
   }
   case MQTT_EVENT_DISCONNECTED: {
-    PRINTF("Client: MQTT Disconnect. Reason %u\n", *((mqtt_event_t *)data));
+    PRINTF("\nClient: MQTT Disconnect. Reason %u\n", *((mqtt_event_t *)data));
 
     state = STATE_DISCONNECTED;
     process_poll(&mqtt_demo_process);
@@ -377,6 +377,7 @@ connect_to_broker(void)
   mqtt_connect(&conn, MQTT_DEMO_BROKER_IP_ADDR, DEFAULT_BROKER_PORT,
                conf.pub_interval_check * 3);
   state = STATE_CONNECTING;
+  PRINTF("Client: Connecting...\n");
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -394,7 +395,7 @@ state_machine(void)
     connect_attempt = 1;
 
     state = STATE_REGISTERED;
-    PRINTF("Client: Init\n");
+    PRINTF("Client: MQTT session created\n");
 
     /* Notice there is no "break" here, it will continue to the
      * STATE_REGISTERED
@@ -417,7 +418,7 @@ state_machine(void)
     leds_on(STATUS_LED);
     ctimer_set(&ct, CONNECTING_LED_DURATION, publish_led_off, NULL);
     /* Not connected yet. Wait */
-    PRINTF("Client: Connecting (%u)\n", connect_attempt);
+    printf(".");
     break;
 
   case STATE_CONNECTED:
@@ -517,12 +518,17 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 {
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
+  radio_value_t aux;
 
   PROCESS_BEGIN();
 
+  /* Retrieve radio configuration */
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &aux);
+
   printf("\nZolertia MQTT client\n");
-  printf("  Broker IP:    %s\n", MQTT_DEMO_BROKER_IP_ADDR);
-  printf("  Broken port:  %u\n", DEFAULT_BROKER_PORT);
+  printf("  Broker IP:      %s\n", MQTT_DEMO_BROKER_IP_ADDR);
+  printf("  Broken port:    %u\n", DEFAULT_BROKER_PORT);
+  printf("  Radio/Encrypt:  ch%02u llsec (%u)\n", aux, WITH_LLSEC_ENABLED);
 
   /* Set the initial state */
   state = STATE_INIT;
