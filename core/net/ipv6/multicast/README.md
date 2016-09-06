@@ -7,8 +7,14 @@ What does it do
 These files, alongside some core modifications, add support for IPv6 multicast
 to contiki's uIPv6 engine.
 
-Currently, two modes are supported:
+Currently, three modes are supported:
 
+* 'Enhanced Stateless Multicast RPL Forwarding' (ESMRF)
+    ESMRF is an enhanced version of the SMRF engine with the aim 
+    of resolving the sending limitation of SMRF to allow any node 
+    within the DODAG to send multicast traffic up and down the RPL tree.
+    ESMRF is documented here:
+    http://dl.acm.org/citation.cfm?id=2753479
 * 'Stateless Multicast RPL Forwarding' (SMRF)
     RPL in MOP 3 handles group management as per the RPL docs,
     SMRF is a lightweight engine which handles datagram forwarding.
