@@ -62,7 +62,7 @@
 #endif
 
 /* Maximum number of connection attempts after a disconnection */
-#define RECONNECT_ATTEMPTS_CONF       15
+#define RECONNECT_ATTEMPTS_CONF       10
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration, saved
