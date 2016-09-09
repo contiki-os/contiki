@@ -554,13 +554,6 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     if(instance->def_route == NULL) {
       return 0;
     }
-  } else {
-    PRINTF("RPL: Removing default route\n");
-    if(instance->def_route != NULL) {
-      uip_ds6_defrt_rm(instance->def_route);
-    } else {
-      PRINTF("RPL: Not actually removing default route, since instance had no default route\n");
-    }
   }
   return 1;
 }
