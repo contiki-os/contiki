@@ -238,9 +238,9 @@ ns_input(void)
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
-#if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
+#if UIP_ND6_DEF_MAXDADNS > 0
 #if UIP_CONF_IPV6_CHECKS
       if(!uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
         PRINTF("NS received is bad\n");
@@ -258,9 +258,7 @@ ns_input(void)
         goto discard;
       }
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
-    if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
-      /* DAD CASE */
-      goto discard;
+      goto discard;  /* DAD CASE */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
 #if UIP_CONF_IPV6_CHECKS
