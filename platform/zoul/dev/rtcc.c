@@ -564,6 +564,75 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
   return AB08_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
+int8_t
+rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds)
+{
+  uint16_t aux;
+
+  if(data == NULL) {
+    PRINTF("RTC: invalid argument\n");
+    return AB08_ERROR;
+  }
+
+  if(rtcc_get_time_date(data) == AB08_ERROR) {
+    return AB08_ERROR;
+  }
+
+  /* Nothing to do here but congratulate the user */
+  if(!seconds) {
+    return AB08_SUCCESS;
+  }
+
+  aux = data->seconds + seconds;
+  data->seconds = (uint8_t)(aux % 60);
+
+  /* Add the remainder seconds to the minutes counter */
+  if(aux > 59) {
+    aux /= 60;
+    aux += data->minutes;
+    data->minutes = (uint8_t)(aux % 60);
+  }
+
+  /* Add the remainder minutes to the hours counter */
+  if(aux > 59) {
+    aux /= 60;
+    aux += data->hours;
+    data->hours = (uint8_t)(aux % 24);
+  }
+
+  if(aux > 23) {
+    aux /= 24;
+    aux += data->day;
+
+    if(data->months == 2) {
+      if(check_leap_year(data->years)) {
+        if(aux > 29) {
+          data->day = (uint8_t)(aux % 29);
+          data->months++;
+        }
+      } else if(aux > 28) {
+        data->day = (uint8_t)(aux % 28);
+        data->months++;
+      }
+    } else if((data->months == 4) || (data->months == 6) ||
+             (data->months == 9) || (data->months == 11)) {
+      if(aux > 30) {
+        data->day = (uint8_t)(aux % 30);
+        data->months++;
+      }
+    } else if(aux > 31) {
+      data->day = (uint8_t)(aux % 31);
+      data->months++;
+    }
+  }
+
+  if(data->months > 12) {
+    data->months = data->months % 12;
+    data->years++;
+  }
+  return AB08_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
 PROCESS(rtcc_int_process, "RTCC interruption process handler");
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(rtcc_int_process, ev, data)
