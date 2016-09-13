@@ -353,6 +353,16 @@ int8_t rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state,
                                 uint8_t repeat, uint8_t trigger);
 
 /**
+ * \brief Increments the current date by a number of seconds
+ * \param data structure to store the date
+ * \param seconds the numberof seconds to increment the date
+ * \return
+ * \           AB08_SUCCESS updated date values
+ * \           AB08_ERROR failed to return the values
+ */
+int8_t rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds);
+
+/**
  * \brief Manually calibrate the RTCC
  * \param mode oscillator to calibrate
  * \param adjust value (in ppm) to adjust the oscillator
