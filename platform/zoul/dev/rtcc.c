@@ -388,9 +388,16 @@ rtcc_get_time_date(simple_td_map *data)
 }
 /*---------------------------------------------------------------------------*/
 int8_t
-rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat)
+rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
+                         uint8_t trigger)
 {
   uint8_t aux[4], buf[RTCC_ALARM_MAP_SIZE];
+
+  if((trigger != RTCC_TRIGGER_INT2) && (trigger != RTCC_TRIGGER_INT1) &&
+     (trigger != RTCC_TRIGGER_BOTH)) {
+    PRINTF("RTC: invalid trigger pin\n");
+    return AB08_ERROR;
+  }
 
   if(state == RTCC_ALARM_OFF) {
     if(ab08_read_reg((INT_MASK_ADDR + CONFIG_MAP_OFFSET),
@@ -505,12 +512,25 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat)
   /* Clear the AIE alarm bit */
   aux[INT_MASK_ADDR] &= ~INTMASK_AIE;
 
-  /* Configure Interrupt parameters for Alarm Interrupt Mode in nIRQ pin,
-   * and fixed level until interrupt flag is cleared
+  /* Configure Interrupt parameters for Alarm Interrupt Mode in nIRQ
+   * or nAIRQ pins and fixed level until interrupt flag is cleared
+   * RTC_INT1 is connected to the CC2538
+   * RTC_INT2 is connected to the power management PIC in revision B
    */
+  if (trigger == RTCC_TRIGGER_INT2) { 
+    aux[CTRL_2_ADDR] |= CTRL2_OUT2S_NAIRQ_OUTB;
+  /* Only options left enable the INT1 interrupt pin */
+  } else {
+    GPIO_ENABLE_INTERRUPT(RTC_INT1_PORT_BASE, RTC_INT1_PIN_MASK);
+    ioc_set_over(RTC_INT1_PORT, RTC_INT1_PIN, IOC_OVERRIDE_PUE);
+    nvic_interrupt_enable(RTC_INT1_VECTOR);
+  }
 
-  /* Enable nIRQ if at least one interrupt is enabled */
-  aux[CTRL_2_ADDR] |= CTRL2_OUT1S_NIRQ_NAIRQ_OUT;
+  if (trigger == RTCC_TRIGGER_INT1) {
+    aux[CTRL_2_ADDR] |= CTRL2_OUT1S_NIRQ_NAIRQ_OUT;
+  } else if (trigger == RTCC_TRIGGER_BOTH) {
+    aux[CTRL_2_ADDR] |= (CTRL2_OUT1S_NIRQ_NAIRQ_OUT + CTRL2_OUT2S_NAIRQ_OUTB);
+  }
 
   if(repeat != RTCC_REPEAT_NONE) {
     aux[INT_MASK_ADDR] &= ~INTMASK_IM_LOW;
@@ -522,11 +542,6 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat)
     PRINTF("RTC: failed to clear alarm config\n");
     return AB08_ERROR;
   }
-
-  /* Enable interrupts */
-  GPIO_ENABLE_INTERRUPT(RTC_INT1_PORT_BASE, RTC_INT1_PIN_MASK);
-  ioc_set_over(RTC_INT1_PORT, RTC_INT1_PIN, IOC_OVERRIDE_PUE);
-  nvic_interrupt_enable(RTC_INT1_VECTOR);
 
   /* Write to the alarm counters */
   if(ab08_write_reg((HUNDREDTHS_ALARM_ADDR + ALARM_MAP_OFFSET), buf,
