@@ -159,8 +159,8 @@ PROCESS_THREAD(test_remote_rtcc_process, ev, data)
    * minute.  In case we would want to trigger the alarm on a specific time,
    * then we would want to set a daily repeat interval
    */
-  if(rtcc_set_alarm_time_date(simple_td, RTCC_ALARM_ON,
-                              RTCC_REPEAT_MINUTE) == AB08_ERROR) {
+  if(rtcc_set_alarm_time_date(simple_td, RTCC_ALARM_ON, RTCC_REPEAT_MINUTE,
+                              RTCC_TRIGGER_INT1) == AB08_ERROR) {
     printf("Fail: couldn't set the alarm\n");
     PROCESS_EXIT();
   }
