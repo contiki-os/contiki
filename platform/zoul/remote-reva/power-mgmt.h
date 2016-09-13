@@ -32,7 +32,7 @@
  * \addtogroup remote
  * @{
  *
- * \defgroup remote-power-mgmt RE-Mote power management driver
+ * \defgroup remote-power-mgmt-reva RE-Mote power management driver
  *
  * The power management module is composed by a nano-watt (gating) timer and an
  * ultra-low power MCU, driving the RE-Mote power supply when connected to an
