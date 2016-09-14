@@ -70,7 +70,7 @@ PROCESS_THREAD(remote_ac_dimmer_process, ev, data)
   /* Set the lamp to 10% and wait a few seconds */
   ac_dimmer.value(DIMMER_DEFAULT_MIN_DIMM_VALUE);
   etimer_set(&et, CLOCK_SECOND * 5);
-  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));  
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   /* Upon testing for duty cycles lower than 10% there was noise (probably from
    * the triac), causing the driver to skip a beat, and from time to time made
@@ -100,3 +100,4 @@ PROCESS_THREAD(remote_ac_dimmer_process, ev, data)
  * @}
  * @}
  */
+

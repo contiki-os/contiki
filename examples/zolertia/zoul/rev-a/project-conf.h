@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul-examples
+ * \addtogroup remote-examples
  * @{
  *
  * \file
  * Project specific configuration defines for the basic RE-Mote examples
  */
-/*---------------------------------------------------------------------------*/
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
 #define BROADCAST_CHANNEL     129
 #define NETSTACK_CONF_RDC     nullrdc_driver
-
-/* Pin definition for the test-motion example, for the RE-Mote it uses the
- * ADC1 pin
- */
-#define MOTION_SENSOR_PORT       GPIO_A_NUM
-#define MOTION_SENSOR_PIN        5
-#define MOTION_SENSOR_VECTOR     NVIC_INT_GPIO_PORT_A
 
 #endif /* PROJECT_CONF_H_ */
 

@@ -28,20 +28,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
+/**
  * \addtogroup zoul-examples
  * @{
+ *
  * \defgroup zoul-aac-sensor-test Test AAC sensor
  *
  * Demonstrates the operation of the current AAC analog sensor
  * @{
  *
  * \file
- *  Example demonstrating the Zoul module on the RE-Mote & AAC sensor 0-5V 50Amps AC
+ *         Example demonstrating the RE-Mote & AAC sensor 0-5V 50Amps AC
  *
  * \author
  *         Javier Sánchez <asanchez@zolertia.com>
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "sys/rtimer.h"
@@ -64,7 +66,7 @@ AUTOSTART_PROCESSES(&test_aac_sensor_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_aac_sensor_process, ev, data)
 {
-  
+
   PROCESS_BEGIN();
 
   counter = 0;
@@ -86,12 +88,12 @@ PROCESS_THREAD(test_aac_sensor_process, ev, data)
 
       printf("-----------------------------------------\n"
              "Counter = 0x%08x\n", counter);
-      
+
       printf("AC Amps = %d mA\n", adc_sensors.value(ANALOG_AAC_SENSOR));
-     
+
       etimer_set(&et, LOOP_INTERVAL);
       counter++;
-    }   
+    }
   }
   PROCESS_END();
 }
@@ -100,3 +102,4 @@ PROCESS_THREAD(test_aac_sensor_process, ev, data)
  * @}
  * @}
  */
+
