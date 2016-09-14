@@ -28,20 +28,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
+/*---------------------------------------------------------------------------*/
+/**
  * \addtogroup zoul-examples
  * @{
+ *
  * \defgroup zoul-vac-sensor-test Test VAC sensor
  *
  * Demonstrates the operation of the voltage VAC analog sensor
  * @{
  *
  * \file
- *  Example demonstrating the Zoul module on the RE-Mote & VAC sensor 0-5V 250V AC
+ *         Example demonstrating the RE-Mote & VAC sensor 0-5V 250V AC
  *
  * \author
  *         Javier Sánchez <asanchez@zolertia.com>
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "sys/rtimer.h"
@@ -65,7 +68,7 @@ AUTOSTART_PROCESSES(&test_vac_sensor_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_vac_sensor_process, ev, data)
 {
-  
+
   PROCESS_BEGIN();
 
   counter = 0;
@@ -90,10 +93,10 @@ PROCESS_THREAD(test_vac_sensor_process, ev, data)
 
       /*AC voltage value, with applied corresponding sensor algorithm*/
       printf("AC voltage = %d V\n", adc_sensors.value(ANALOG_VAC_SENSOR));
-     
+
       etimer_set(&et, LOOP_INTERVAL);
       counter++;
-    }   
+    }
   }
   PROCESS_END();
 }
@@ -102,3 +105,4 @@ PROCESS_THREAD(test_vac_sensor_process, ev, data)
  * @}
  * @}
  */
+

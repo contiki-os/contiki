@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -30,26 +29,33 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul-examples
+ * \addtogroup remote-revb
  * @{
  *
  * \file
- * Project specific configuration defines for the basic RE-Mote examples
+ *  Board-initialisation for the Zolertia's RE-Mote revision B platform
+ *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
-
-#define BROADCAST_CHANNEL     129
-#define NETSTACK_CONF_RDC     nullrdc_driver
-
-/* Pin definition for the test-motion example, for the RE-Mote it uses the
- * ADC1 pin
+#include "contiki-conf.h"
+#include "antenna-sw.h"
+#include <stdint.h>
+#include <string.h>
+/*---------------------------------------------------------------------------*/
+static void
+configure_unused_pins(void)
+{
+  /* FIXME */
+}
+/*---------------------------------------------------------------------------*/
+void
+board_init()
+{
+  antenna_sw_config();
+  configure_unused_pins();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
  */
-#define MOTION_SENSOR_PORT       GPIO_A_NUM
-#define MOTION_SENSOR_PIN        5
-#define MOTION_SENSOR_VECTOR     NVIC_INT_GPIO_PORT_A
 
-#endif /* PROJECT_CONF_H_ */
-
-/** @} */

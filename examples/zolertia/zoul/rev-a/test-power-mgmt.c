@@ -32,8 +32,8 @@
  * \addtogroup remote-power-management-test
  * @{
  *
- * Test the RE-Mote's power management features, shutdown mode and battery
- * management
+ * Test the RE-Mote's (revision A) power management features, shutdown mode and
+ * battery management
  *
  * @{
  *
@@ -80,18 +80,18 @@ static char *
 print_pm(uint8_t state)
 {
   switch(state) {
-    case PM_SYSOFF_ON:
-      return "Battery on";
-    case PM_SYSOFF_OFF:
-      return "Battery off";
-    case PM_TIMER_ENABLED:
-      return "Nano Timer enabled";
-    case PM_TIMER_DISABLED:
-      return "Nano Timer disabled";
-    case PM_AWAITING_RTC_EVENT:
-      return "Awaiting RTC event";
-    default:
-      return "UNKNOWN";
+  case PM_SYSOFF_ON:
+    return "Battery on";
+  case PM_SYSOFF_OFF:
+    return "Battery off";
+  case PM_TIMER_ENABLED:
+    return "Nano Timer enabled";
+  case PM_TIMER_DISABLED:
+    return "Nano Timer disabled";
+  case PM_AWAITING_RTC_EVENT:
+    return "Awaiting RTC event";
+  default:
+    return "UNKNOWN";
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -107,24 +107,24 @@ get_status(uint8_t mask, uint8_t *val)
   }
 
   if(!mask) {
-    printf("STATUS %u\n",  status);
+    printf("STATUS %u\n", status);
     *val = PM_IDLE;
     return PM_SUCCESS;
   }
 
   /* Read back ony the requested status bit */
   switch(mask) {
-    case PM_SYSOFF_ON_MASK:
-      print_msg = (status & mask) ? PM_SYSOFF_ON : PM_SYSOFF_OFF;
-      break;
-    case PM_TIMER_ENABLED_MASK:
-      print_msg = (status & mask) ? PM_TIMER_ENABLED : PM_TIMER_DISABLED;
-      break;
-    case PM_AWAITING_RTC_EVENT_MASK:
-      print_msg = (status & mask) ? PM_AWAITING_RTC_EVENT : PM_AWAITING_RTC_DIS;
-      break;
-    default:
-      return PM_ERROR;
+  case PM_SYSOFF_ON_MASK:
+    print_msg = (status & mask) ? PM_SYSOFF_ON : PM_SYSOFF_OFF;
+    break;
+  case PM_TIMER_ENABLED_MASK:
+    print_msg = (status & mask) ? PM_TIMER_ENABLED : PM_TIMER_DISABLED;
+    break;
+  case PM_AWAITING_RTC_EVENT_MASK:
+    print_msg = (status & mask) ? PM_AWAITING_RTC_EVENT : PM_AWAITING_RTC_DIS;
+    break;
+  default:
+    return PM_ERROR;
   }
 
   printf("Status -> %s\n", print_pm(print_msg));
@@ -194,7 +194,7 @@ PROCESS_THREAD(test_remote_pm, ev, data)
   broadcast_send(&bc);
 
   /* And wait a few seconds before going to sleep */
-  while(1){
+  while(1) {
     etimer_set(&et, CLOCK_SECOND);
     PROCESS_WAIT_EVENT();
 

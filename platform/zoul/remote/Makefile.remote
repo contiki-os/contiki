@@ -1,2 +1,0 @@
-MOTELIST_ZOLERTIA = remote
-BOARD_SOURCEFILES += board.c antenna-sw.c rtcc.c power-mgmt.c
