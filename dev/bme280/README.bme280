@@ -4,7 +4,7 @@ BME280 is compact and fast and includes temp, RH, and pressure.
 Chip uses I2C or SPI. This implementation and follow Contiki 
 device API and I2C.
 
-For better performance, less chip warm up and less I2C transactions
+For better performance and less chip warm up and less I2C transactions
 burst read is recommended. Here all T/RH/P is read in one single 
 I2C read and kept the measurements have the same time. 
 
