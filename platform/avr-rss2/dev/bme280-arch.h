@@ -43,5 +43,6 @@
  * 	Robert Olsson
  */
 
+#include "i2c.h"
 
 #endif

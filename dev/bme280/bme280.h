@@ -49,7 +49,11 @@
 void bme280_init(uint8_t mode);
 void bme280_read(uint8_t mode);
 
+#ifdef  I2C_BME280_ADDR
+#define BME280_ADDR I2C_BME280_ADDR
+#else
 #define  BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
+#endif
 
 /* Diffrent BOSCH chip id's */
 #define BMP085_CHIP_ID 0x55  /* And also BMP180 */
