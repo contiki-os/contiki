@@ -29,10 +29,10 @@
  *
  * -----------------------------------------------------------------
  *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Sumankumar Panchal
  * Created : 2005-11-01
- * Updated : $Date: 2010/02/03 20:30:07 $
- *           $Revision: 1.10 $
+ * Updated : $Date: 2016/09/17 11:30:00 $
+ *           $Revision: 1.11 $
  */
 
 #include "dev/battery-sensor.h"
@@ -44,11 +44,18 @@ static uint8_t active;
 static void
 activate(void)
 {
+  /* Setup ADC12, ref., sampling time */
+  ADC12CTL0 = ADC12REF2_5V + ADC12SHT0_6 + ADC12SHT1_6 + ADC12MSC + ADC12REFON;
+  /* Use sampling timer, repeat-sequence-of-channels */
+  ADC12CTL1 = ADC12SHP + ADC12CONSEQ_3 + ADC12CSTARTADD_1;
+
   /* Configure ADC12_2 to sample channel 11 (voltage) and use */
   /* the Vref+ as reference (SREF_1) since it is a stable reference */
-//  ADC12MCTL2 = (INCH_11 + SREF_1);
+  ADC12MCTL2 = (ADC12INCH_11 + ADC12SREF_1);
 
-//  sky_sensors_activate(0x80);
+  ADC12CTL0 |= ADC12ON;
+  ADC12CTL0 |= ADC12ENC;        /* enable conversion */
+  ADC12CTL0 |= ADC12SC;         /* sample & convert */
 
   active = 1;
 }
@@ -56,14 +63,13 @@ activate(void)
 static void
 deactivate(void)
 {
-//  sky_sensors_deactivate(0x80);
   active = 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  return 0;//ADC12MEM2/*battery_value*/;
+  return ADC12MEM2; /*battery_value*/
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -92,4 +98,4 @@ status(int type)
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
-	       value, configure, status);
+               value, configure, status);
