@@ -1,4 +1,4 @@
-all: udp-client udp-server
+all: udp-client udp-server  ntc-udp-server ntc-temhumi-udp-client ntc-light-udp-client ntc-bateria-udp-client
 APPS=servreg-hack
 CONTIKI=../../..
 

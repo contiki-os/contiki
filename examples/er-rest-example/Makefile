@@ -1,4 +1,4 @@
-all: er-example-server er-example-client
+all: er-example-server er-example-client nct-er-example-server
 # use this target explicitly if requried: er-plugtest-server
 
 
