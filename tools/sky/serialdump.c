@@ -281,6 +281,11 @@ main(int argc, char **argv)
         perror("could not read");
         exit(-1);
       }
+      if(n == 0) {
+        errno = EBADF;
+        perror("serial device disconnected");
+        exit(-1);
+      }
 
       for(i = 0; i < n; i++) {
         switch(mode) {
