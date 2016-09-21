@@ -102,7 +102,7 @@ public class ExecuteJAR {
     GUI.externalToolsUserSettingsFile = new File(
         System.getProperty("user.home"), 
         GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
-    Simulation s = GUI.quickStartSimulationConfig(config, false);
+    Simulation s = GUI.quickStartSimulationConfig(config, false, null);
     if (s == null) {
       throw new RuntimeException(
           "Error when creating simulation"
@@ -187,7 +187,7 @@ public class ExecuteJAR {
 
     logger.info("Starting simulation");
     GUI.setLookAndFeel();
-    GUI.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false);
+    GUI.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false, null);
   }
 
   /**

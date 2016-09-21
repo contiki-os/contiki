@@ -1,0 +1,14 @@
+prunt:
+    8f4e:	0a 12       PUSH.W R10
+    8f50:	5a 4c 04 00 MOV.B $0004(R12), R10
+    8f54:	5a f3       AND.B #1, R10
+    8f56:	45 18       ExtWord 1845:ZC:0 #:0 A/L:1 src:0 dst:5 R5
+    8f58:	4a 5a       ADD.B R10, R10
+    8f5a:	0a 12       PUSH.W R10
+    8f5c:	3c 40 e4 5e MOV.W #$5ee4, R12
+    8f60:	b0 13 3a 8d CALLA #08d3a 
+    8f64:	4c 4a       MOV.B R10, R12
+    8f66:	21 53       ADD.W #2, SP
+    8f68:	3a 41       MOV.W @SP+, R10
+    8f6a:	10 01       MOVA @R1+,R0 
+ 

@@ -633,7 +633,7 @@ public class GUI extends Observable {
   private void doLoadConfigAsync(final boolean ask, final boolean quick, final File file) {
     new Thread(new Runnable() {
       public void run() {
-        myGUI.doLoadConfig(ask, quick, file);
+        myGUI.doLoadConfig(ask, quick, file, null);
       }
     }).start();
   }
@@ -1321,7 +1321,7 @@ public class GUI extends Observable {
     return desktop;
   }
 
-  public static Simulation quickStartSimulationConfig(File config, boolean vis) {
+  public static Simulation quickStartSimulationConfig(File config, boolean vis, Long manualRandomSeed) {
     logger.info("> Starting Cooja");
     JDesktopPane desktop = createDesktopPane();
     if (vis) {
@@ -1333,11 +1333,11 @@ public class GUI extends Observable {
     }
 
     if (vis) {
-      gui.doLoadConfig(false, true, config);
+      gui.doLoadConfig(false, true, config, manualRandomSeed);
       return gui.getSimulation();
     } else {
       try {
-        Simulation newSim = gui.loadSimulationConfig(config, true);
+        Simulation newSim = gui.loadSimulationConfig(config, true, manualRandomSeed);
         if (newSim == null) {
           return null;
         }
@@ -1356,7 +1356,7 @@ public class GUI extends Observable {
    * @param source Contiki application file name
    * @return True if simulation was created
    */
-  private static boolean quickStartSimulation(String source) {
+  private static Simulation quickStartSimulation(String source) {
     logger.info("> Starting Cooja");
     JDesktopPane desktop = createDesktopPane();
     frame = new JFrame(WINDOW_TITLE);
@@ -1364,14 +1364,14 @@ public class GUI extends Observable {
     configureFrame(gui, false);
 
     logger.info("> Creating simulation");
-    Simulation simulation = new Simulation(gui);
-    simulation.setTitle("Quickstarted simulation: " + source);
-    boolean simOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), simulation);
+    Simulation sim = new Simulation(gui);
+    sim.setTitle("Quickstarted simulation: " + source);
+    boolean simOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), sim);
     if (!simOK) {
       logger.fatal("No simulation, aborting quickstart");
       System.exit(1);
     }
-    gui.setSimulation(simulation, true);
+    gui.setSimulation(sim, true);
 
     logger.info("> Creating mote type");
     ContikiMoteType moteType = new ContikiMoteType();
@@ -1379,20 +1379,20 @@ public class GUI extends Observable {
     moteType.setDescription("Cooja mote type (" + source + ")");
 
     try {
-      boolean compileOK = moteType.configureAndInit(GUI.getTopParentContainer(), simulation, true);
+      boolean compileOK = moteType.configureAndInit(GUI.getTopParentContainer(), sim, true);
       if (!compileOK) {
         logger.fatal("Mote type initialization failed, aborting quickstart");
-        return false;
+        return null;
       }
     } catch (MoteTypeCreationException e1) {
       logger.fatal("Mote type initialization failed, aborting quickstart");
-      return false;
+      return null;
     }
-    simulation.addMoteType(moteType);
+    sim.addMoteType(moteType);
 
     logger.info("> Adding motes");
     gui.doAddMotes(moteType);
-    return true;
+    return sim;
   }
 
   //// PROJECT CONFIG AND EXTENDABLE PARTS METHODS ////
@@ -2258,7 +2258,7 @@ public class GUI extends Observable {
    * @param quick Quick-load simulation
    * @param configFile Configuration file to load, if null a dialog will appear
    */
-  public void doLoadConfig(boolean askForConfirmation, final boolean quick, File configFile) {
+  public void doLoadConfig(boolean askForConfirmation, final boolean quick, File configFile, Long manualRandomSeed) {
     if (isVisualizedInApplet()) {
       return;
     }
@@ -2278,7 +2278,7 @@ public class GUI extends Observable {
       if (!configFile.exists() || !configFile.canRead()) {
         logger.fatal("No read access to file: " + configFile.getAbsolutePath());
         /* File does not exist, open dialog */
-        doLoadConfig(askForConfirmation, quick, null);
+        doLoadConfig(askForConfirmation, quick, null, manualRandomSeed);
         return;
       }
     } else {
@@ -2394,7 +2394,7 @@ public class GUI extends Observable {
         shouldRetry = false;
         myGUI.doRemoveSimulation(false);
         PROGRESS_WARNINGS.clear();
-        newSim = loadSimulationConfig(fileToLoad, quick);
+        newSim = loadSimulationConfig(fileToLoad, quick, manualRandomSeed);
         myGUI.setSimulation(newSim, false);
 
         /* Optionally show compilation warnings */
@@ -3121,6 +3121,9 @@ public class GUI extends Observable {
    */
   public static void main(String[] args) {
     String logConfigFile = null;
+    Long randomSeed = null;
+    
+    
     for (String element : args) {
       if (element.startsWith("-log4j=")) {
         String arg = element.substring("-log4j=".length());
@@ -3178,6 +3181,15 @@ public class GUI extends Observable {
           GUI.externalToolsUserSettingsFileReadOnly = true;
         }
       }
+      
+      if (element.startsWith("-random-seed=")) {
+        String arg = element.substring("-random-seed=".length());
+        try {          
+          randomSeed =  Long.valueOf(arg);
+        } catch (Exception e) {
+          logger.error("Failed to convert \"" + arg +"\" to an integer.");
+        }
+      }
     }
 
     // Check if simulator should be quick-started
@@ -3190,11 +3202,9 @@ public class GUI extends Observable {
         contikiApp = contikiApp.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      boolean ok = false;
+      Simulation sim = null;
       if (contikiApp.endsWith(".csc")) {
-
-        ok = quickStartSimulationConfig(new File(contikiApp), true) != null;
-
+        sim = quickStartSimulationConfig(new File(contikiApp), true, randomSeed);
       } else {
         if (contikiApp.endsWith(".cooja")) {
           contikiApp = contikiApp.substring(0, contikiApp.length() - ".cooja".length());
@@ -3203,19 +3213,20 @@ public class GUI extends Observable {
           contikiApp += ".c";
         }
 
-        ok = quickStartSimulation(contikiApp);
+        sim = quickStartSimulation(contikiApp);
       }
 
-      if (!ok) {
+      if (sim == null) {
         System.exit(1);
       }
+      
 
     } else if (args.length > 0 && args[0].startsWith("-nogui=")) {
 
       /* Load simulation */
       String config = args[0].substring("-nogui=".length());
       File configFile = new File(config);
-      Simulation sim = quickStartSimulationConfig(configFile, false);
+      Simulation sim = quickStartSimulationConfig(configFile, false, randomSeed);
       if (sim == null) {
         System.exit(1);
       }
@@ -3253,6 +3264,7 @@ public class GUI extends Observable {
           System.exit(1);
         }
       }
+
       sim.setSpeedLimit(null);
       sim.startSimulation();
       
@@ -3319,7 +3331,7 @@ public class GUI extends Observable {
    * @throws UnsatisfiedLinkError
    *           If associated libraries could not be loaded
    */
-  public Simulation loadSimulationConfig(File file, boolean quick)
+  public Simulation loadSimulationConfig(File file, boolean quick, Long manualRandomSeed)
   throws UnsatisfiedLinkError, SimulationCreationException {
     this.currentConfigFile = file; /* Used to generate config relative paths */
     try {
@@ -3337,7 +3349,7 @@ public class GUI extends Observable {
       Element root = doc.getRootElement();
       in.close();
 
-      return loadSimulationConfig(root, quick, null);
+      return loadSimulationConfig(root, quick, manualRandomSeed);
     } catch (JDOMException e) {
       throw (SimulationCreationException) new SimulationCreationException("Config not wellformed").initCause(e);
     } catch (IOException e) {
@@ -4434,7 +4446,7 @@ public class GUI extends Observable {
         final File file = getLastOpenedFile();
         new Thread(new Runnable() {
           public void run() {
-            myGUI.doLoadConfig(true, true, file);
+            myGUI.doLoadConfig(true, true, file, null);
           }
         }).start();
         return;

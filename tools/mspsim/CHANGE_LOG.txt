@@ -1,0 +1,161 @@
+0.97
+- fixed bug on SFR interrupt handling
+- added initial support for printing IPv6 packets (HC01) from CC2420
+- added CLI commands for adding rflisteners and analyser
+- added warning for too large packets in CC2420
+- added profiling of interrupts
+- added verification of MAGIC init bytes in ELF files
+- fixed multiplicator (submitted patch)
+- added support for flash
+- several bugfixes for emulation core (instruction emulation)
+- made call logger configurable for hide of selected calls
+- fixed some cycle timing bugs of instruction set execution
+- added stack trace for misalignment warnings if MSP430 Core is in log mode
+- added MSP430 Core as a loggable
+- added emulation of DS2411 for generating MAC addresses
+- added warning when UART is transmitting while in LPM3
+- added profiling of events and added event system
+
+0.96
+- added warning on unaligned write/read
+- fixed bug in timer system causing severe delays when several CCR/Compare
+  interrupts was trigger simultaneously
+- added profiling of interrupts
+
+0.95
+- initial GDB stubs implementation (only for memory access)
+- CLI command for setting up gdbstubs server (gdbstubs PORT)
+- fixed USART timing to be more correct
+- added Ant build script
+- cleanup of CLI and platforms
+- fixed statistics to be more correct
+- added SimEvent for notications of start/stop of emulator
+- CORE: bugfix in read/write SR - made it impossible to turn of interrupts
+- improved CC2420 support including correct overflow handling and better
+  handling of VREG_OFF
+- added logging on/off from CLI and support for loggin CC2420
+- added CLI commands tee and trig.
+
+0.94
+Changes:
+- fixed so that IOPorts output 1 on pins that are configured as input
+  (with DIR)
+- fixed notification of operating modes on the CC2420 for duty cycle calculation, etc.
+- fixed status register update bug (byte/word problem)
+- improved CC2420 implementation correctness (including RSSI_VALID flag, SFD timing, etc)
+- fixed SPI bug in CC2420
+- added SHT11 implementation for Tmote Sky
+- added I/O ports -> timer capture functionality
+- added SFD capture interrupt support for CC2420
+- improved correctness of timer when reconfiguring CPU clock speed (MCLK)
+- improved interrupt handling in MSP430 core
+- added CLI command printcalls that prints all function calls
+- fixed buffering of serial input in GUI to avoid freezing AWT.
+
+0.93
+Changes:
+- removed tick based component support from MSP430 core
+- re-implemented USART to be event based instead of tick based
+- fixed bug in ADC12 subsystem that caused lots of events to be
+  scheduled back in time (causing other subsystems to get
+  delays on their events...)
+- fixed RadioWrapper for backward compatibility with PacketListener
+  (for the CC2420).
+- fixed ADC12 to turn off event scheduling when ADC12 is not on anymore
+- fixed xmem read/write for cli and added Memory API for flash memory.
+
+0.92
+Changes:
+- fixed bug with a write register which did not handle word/byte
+- fixed bug which caused array out of bounds on IO-units.
+- fixed bug in timer causing interrupts when timer was stopped
+- fixed bug in timer to handle start/stop better
+- fixed bug in MSP430 core that caused MOV instruction to change status flags
+- added getDoubleValue in DataSource and made "duty" command print
+  duty cycle information as double instead of int
+- fixed windows to accept double input and not only int input
+- corrected cycle count on some instructions
+- improved CC2420 emulation (thanks to Matt Thompson)
+- added Telos platform including AT45DB flash memory chip (Matt Thompson)
+
+
+0.91
+Changes:
+- added window system and support for it in the CLI
+- added two chart types for the windows subsystem
+- added redirect to windows in the CLI
+- added memory dump for both std out and Windows
+- improved CC2420 emulation
+- added CLI commands
+- reimplemented reset of the CPU
+- improved support for Digital IO Ports
+- added working ADC12 subsystem
+- added watchdog WDT subsystem
+- added support for file based scripts to the CLI
+- added configuration system
+- added connectivity between multiple running mspsim's
+- bugfix in instruction emulation thanks to Matt Thompson
+  (addressing mode - autoincrement byte wrong on PC).
+
+
+0.90
+Changes:
+- fixed multiplier to handle the different modes better.
+- refactored so that IOUnit is no longer a Chip
+- added statistics commands and an exec command to the CLI
+- implemented better support for statistics (operating mode)
+- fixed interrupt handling bugs in IOUnit
+- added API for accessing frequency/channel and output power in CC2420
+- added RSSI support for CC2420
+- refactored radio emulation code of ESB platform into a separate TR1001 class
+- added watch on register, grep, and other commands in CLI
+- added redirect to files in CLI
+- added speed control API and CLI command (speed)
+- added event system for cycle based events
+- fixed timer (A/B) to be event driven instead of tick driven
+- fixed bugs in interrupt handling of timer system
+- added argument management and -nogui parameter
+
+0.84
+Changes:
+- fixed bug in source file handling in ELF symbol loader
+- fixed RSSI-ready flag to be set in CC2420
+- refactored code from Sky/ESB into GenericNode
+- fixed workaround for AWT/IO read line hang bug. (works but not nice in
+  cygwin). Workaround is off by default by can be configured in CLI.
+- added several new commands (start, stop, step, print, printreg, etc).
+- fixed bug in USART - TX Interrupt implemented
+- changed API for interruptServiced to include which vector that was serviced
+- changed when interruptServiced is called - now before servicing the interrupt
+  instead of after (RETI).
+
+0.83
+Changes:
+- added support for external flash on Sky node (M25P80)
+- added symbolic name in disassembler
+- fixed timer interrupt bug causing problem with TinyOS firmwares
+- implemented virtual time and event system based on that time.
+- improved emulation of CC2420
+- implemented writer monitors (CPUMonitor - monitor of writes on any address)
+- added commands and command (line) handler
+- added plug-in system
+
+0.82 - JFreechart, operation mode statistics (2008-02-03)
+Changes:
+- added jfreechart diagrams for stack and operation mode statistics
+- added profiling of operation modes (e.g. chip modes such as on/off/lpm)
+- fixed bug in Timer causing division by zero when main clock is slower than ACLK.
+- added possibility to print a stack trace when CPU is stopped
+- more symbol information available after loading ELF files
+
+0.81 - ELF Stabs, source debugging (2007-12-07)
+Changes:
+- support for ELF debug information (stab section)
+- possible to convert address into linenumber and file
+- simple source-level viewer that shows current execution position
+  (and updates during single stepping) - with highlighting for C.
+- support for LPM/CPUOFF which stops instruction emulation when in
+  LPM modes
+- refactored profiling into separate classes
+
+0.8  - Initial release (2007-11-26)

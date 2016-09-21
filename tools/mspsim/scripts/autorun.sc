@@ -12,4 +12,6 @@ service -f controlgui start
 service -f nodegui start
 service -f serialgui start
 #service -f stackchart start
-start
+#rflistener output CC2420 >> rfdata.txt
+stop
+#start

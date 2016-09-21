@@ -76,7 +76,7 @@ import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELF;
 import se.sics.mspsim.util.MapEntry;
 import se.sics.mspsim.util.MapTable;
-import se.sics.mspsim.util.SimpleProfiler;
+import se.sics.mspsim.profiler.SimpleProfiler;
 
 /**
  * @author Fredrik Osterlind

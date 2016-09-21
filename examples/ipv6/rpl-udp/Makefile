@@ -1,4 +1,4 @@
-all: udp-client udp-server  ntc-udp-server ntc-temhumi-udp-client ntc-light-udp-client ntc-bateria-udp-client
+all: udp-client udp-server ntc-udp-server ntc-temhumi-udp-client ntc-light-udp-client ntc-bateria-udp-client
 APPS=servreg-hack
 CONTIKI=../../..
 
@@ -20,3 +20,16 @@ CFLAGS+=-DPERIOD=$(PERIOD)
 endif
 
 include $(CONTIKI)/Makefile.include
+
+ifeq ($(PREFIX),)
+ PREFIX = aaaa::1/64
+endif
+
+$(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
+	(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
+
+connect-router:	$(CONTIKI)/tools/tunslip6
+	sudo $(CONTIKI)/tools/tunslip6 $(PREFIX)
+
+connect-router-cooja:	$(CONTIKI)/tools/tunslip6
+	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 $(PREFIX)

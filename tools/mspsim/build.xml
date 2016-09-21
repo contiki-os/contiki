@@ -1,0 +1,111 @@
+<project name="MSPSim" default="jar" basedir=".">
+  <description>
+     Builds MSPSim
+  </description>
+
+  <property name="src" location="."/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="jarfile" location="mspsim.jar"/>
+  <property name="javac.debug" value="true"/>
+
+  <path id="classpath">
+    <fileset dir="${lib}" includes="**/*.jar"/>
+  </path>
+
+  <manifestclasspath property="jar.classpath" jarfile="${jarfile}">
+    <classpath refid="classpath" />
+  </manifestclasspath>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init" description="compile the source">
+    <javac srcdir="${src}" destdir="${build}" classpathref="classpath" debug="${javac.debug}"
+      includeantruntime="false"/>
+  </target>
+
+  <target name="jar" depends="compile" description="generate MSPSim jar file" >
+    <jar jarfile="${jarfile}" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="se.sics.mspsim.Main"/>
+      	<attribute name="Sealed" value="true"/>
+      	<attribute name="Class-Path" value="${jar.classpath}" />
+      </manifest>
+      <fileset dir="." includes="images/*.jpg,images/*.png"/>
+    </jar>
+  </target>
+
+  <target name="runesb" depends="jar" description="run MSPSim with platform ESB">
+    <property name="FIRMWAREFILE" value="firmware/esb/sensor-demo.esb"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.esb.ESBNode">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runsky" depends="jar" description="run MSPSim with platform Sky">
+    <property name="FIRMWAREFILE" value="firmware/sky/blink.sky"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.sky.SkyNode">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runskyprof" depends="jar" description="run MSPSim with platform Sky for profiling">
+    <property name="FIRMWAREFILE" value="firmware/sky/blink.sky"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.sky.SkyNode">
+      <jvmarg value="-agentlib:yjpagent" />
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runtelos" depends="jar" description="run MSPSim with platform Telos">
+    <property name="FIRMWAREFILE" value="firmware/sky/blink.sky"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.sky.TelosNode">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runjcreate" depends="jar" description="run MSPSim with platform Sentilla JCreate">
+    <property name="FIRMWAREFILE" value="firmware/sky/blink.sky"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.jcreate.JCreateNode">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runsentillausb" depends="jar" description="run MSPSim with platform Sentilla Gateway USB">
+    <property name="FIRMWAREFILE" value="firmware/sky/blink.sky"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.sentillausb.SentillaUSBNode">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="runz1" depends="jar" description="run MSPSim with platform Zolertia Z1">
+    <property name="FIRMWAREFILE" value="firmware/z1/blink.z1"/>
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.platform.z1.Z1Node">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="run" depends="runsky"/>
+
+  <target name="cputest" depends="jar" description="run MSPSim CPU test">
+    <property name="FIRMWAREFILE" value="tests/cputest.sky"/>
+
+    <available file="${FIRMWAREFILE}" type="file" property="cputest.firmware"/>
+    <fail message="Please compile the cputest firmware first." unless="cputest.firmware"/>
+
+    <java fork="true" classpath="${jarfile}" classname="se.sics.mspsim.util.Test">
+      <arg value="${FIRMWAREFILE}"/>
+    </java>
+  </target>
+
+  <target name="test" depends="jar"/>
+
+  <target name="clean" description="clean up" >
+    <delete dir="${build}"/>
+    <delete file="${jarfile}" />
+  </target>
+
+</project>

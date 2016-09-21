@@ -35,7 +35,7 @@ ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
 endif
 
-all: cs8900a.eth lan91c96.eth
+all: cs8900a.eth lan91c96.eth w5100.eth
 
 CONTIKI_TARGET_DIRS = . lib sys
 CONTIKI_CPU_DIRS    = . lib sys ctk net
