@@ -25,4 +25,8 @@ For more information, see the Contiki website:
   - File > Import > C/C++ > Existing Code as Makefile Project
   - Right click project > Properties > C/C++ General > Path and Symbols > Include tag > GNU C > add include directories "<path>/contiki/core"
 
+# Note
+
+Push commit `$ git push origin nct-contiki`
+
 # Auth: Tuyenng and NCT team
