@@ -1,4 +1,4 @@
-CONTIKI_PROJECT=border-router ntc-border-router
+CONTIKI_PROJECT=border-router nct-border-router-gremlin
 all: $(CONTIKI_PROJECT) 
 
 CONTIKI=../../..
