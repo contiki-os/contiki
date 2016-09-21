@@ -17,3 +17,12 @@ and so on.
 For more information, see the Contiki website:
 
 [http://contiki-os.org](http://contiki-os.org)
+
+# Eclipse IDE
+
+ * Import project to eclipse 
+ 
+  - File > Import > C/C++ > Existing Code as Makefile Project
+  - Right click project > Properties > C/C++ General > Path and Symbols > Include tag > GNU C > add include directories "<path>/contiki/core"
+
+# Auth: Tuyenng and NCT team
