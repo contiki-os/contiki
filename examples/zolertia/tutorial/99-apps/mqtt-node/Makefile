@@ -2,7 +2,7 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
 all: mqtt-client
 
-# Platform options: relayr, thingsio, bluemix
+# Platform options: relayr, thingsio, bluemix, ubidots
 MQTT_PLATFORM ?= bluemix
 
 # Sensor options: fridge, agriculture, remote, irrigation
@@ -22,6 +22,10 @@ endif
 
 ifeq ($(MQTT_PLATFORM), thingsio)
   PROJECT_SOURCEFILES += thingsio.c
+endif
+
+ifeq ($(MQTT_PLATFORM), ubidots)
+  PROJECT_SOURCEFILES += ubidots.c
 endif
 
 # Sensor checks
