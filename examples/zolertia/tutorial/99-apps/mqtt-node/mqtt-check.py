@@ -4,16 +4,19 @@
 
 import paho.mqtt.client as mqtt
 
-MQTT_URL         = "mqtt.relayr.io"
+MQTT_URL         = ""
 MQTT_USERID      = ""
 MQTT_PASSWD      = ""
 
-MQTT_TOPIC_EVENT = "/v1/" + MQTT_USERID
+MQTT_TOPIC_EVENT = ''
+MQTT_TOPIC_PUB   = ''
+MQTT_PUB_STRING  = ''
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe(MQTT_TOPIC_EVENT)
     print("Subscribed to " + MQTT_TOPIC_EVENT)
+    client.publish(MQTT_TOPIC_PUB, MQTT_PUB_STRING, 0)
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
