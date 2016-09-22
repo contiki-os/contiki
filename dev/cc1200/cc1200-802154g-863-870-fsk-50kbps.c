@@ -57,6 +57,8 @@
 #define RF_CFG_MAX_TXPOWER              CC1200_CONST_TX_POWER_MAX
 /* The carrier sense level used for CCA in dBm */
 #define RF_CFG_CCA_THRESHOLD            (-91)
+/* The RSSI offset in dBm */
+#define RF_CFG_RSSI_OFFSET              (-81)
 /*---------------------------------------------------------------------------*/
 static const char rf_cfg_descriptor[] = "802.15.4g 863-870MHz MR-FSK mode #1";
 /*---------------------------------------------------------------------------*/
@@ -162,5 +164,6 @@ const cc1200_rf_cfg_t cc1200_802154g_863_870_fsk_50kbps = {
   .max_channel = RF_CFG_MAX_CHANNEL,
   .max_txpower = RF_CFG_MAX_TXPOWER,
   .cca_threshold = RF_CFG_CCA_THRESHOLD,
+  .rssi_offset = RF_CFG_RSSI_OFFSET,
 };
 /*---------------------------------------------------------------------------*/
