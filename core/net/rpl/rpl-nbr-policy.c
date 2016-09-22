@@ -203,13 +203,13 @@ find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dio->rank + instance->min_hoprankinc < worst_rank - instance->min_hoprankinc / 2) {
     /* Found *great* neighbor - add! */
     PRINTF("Found better neighbor %d < %d - add to cache...\n",
-           rank, worst_rank);
+           dio->rank, worst_rank);
 
     return worst_rank_nbr;
   }
 
   PRINTF("Found worse neighbor with new %d and old %d - NOT add to cache.\n",
-         rank, worst_rank);
+         dio->rank, worst_rank);
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
