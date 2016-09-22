@@ -47,8 +47,8 @@
 
 /* Base frequency in kHz */
 #define RF_CFG_CHAN_CENTER_F0           863125
-/* Channel spacing in kHz */
-#define RF_CFG_CHAN_SPACING             200
+/* Channel spacing in Hz */
+#define RF_CFG_CHAN_SPACING             200000
 /* The minimum channel */
 #define RF_CFG_MIN_CHANNEL              0
 /* The maximum channel */
