@@ -2013,7 +2013,7 @@ calculate_freq(uint8_t channel)
 
   uint32_t freq;
 
-  freq = CC1200_RF_CFG.chan_center_freq0 + channel * CC1200_RF_CFG.chan_spacing;
+  freq = CC1200_RF_CFG.chan_center_freq0 + (channel * CC1200_RF_CFG.chan_spacing) / 1000 /* /1000 because chan_spacing is in Hz */;
   freq *= FREQ_MULTIPLIER;
   freq /= FREQ_DIVIDER;
 

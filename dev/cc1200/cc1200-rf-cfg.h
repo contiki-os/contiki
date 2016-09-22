@@ -69,8 +69,8 @@ typedef struct cc1200_rf_cfg {
   rtimer_clock_t tx_pkt_lifetime;
   /* Base frequency in kHz */
   uint32_t chan_center_freq0;
-  /* Channel spacing in kHz */
-  uint16_t chan_spacing;
+  /* Channel spacing in Hz */
+  uint32_t chan_spacing;
   /* The minimum channel */
   uint8_t min_channel;
   /* The maximum channel */
