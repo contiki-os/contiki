@@ -395,7 +395,11 @@ state_machine(void)
                   MAX_TCP_SEGMENT_SIZE);
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
+#if DEFAULT_AUTH_USER_ONLY_REQUIRED
+    mqtt_set_username_password(&conn, conf.auth_user, NULL);
+#else
     mqtt_set_username_password(&conn, conf.auth_user, conf.auth_token);
+#endif
 #endif
     conn.auto_reconnect = 0;
     connect_attempt = 1;
@@ -584,6 +588,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
                                  sizeof(mqtt_client_config_t)) == -1) {
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
+#if !DEFAULT_AUTH_USER_ONLY_REQUIRED
     if((strlen(DEFAULT_AUTH_USER)) && (strlen(DEFAULT_AUTH_TOKEN))) {
       printf("Hardcoded Auth User is %s\n", conf.auth_user);
       printf("Hardcoded Auth Token is %s\n\n", conf.auth_token);
@@ -605,8 +610,9 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
         printf("*** New configuration over httpd\n");
       }
     }
+#endif /* DEFAULT_AUTH_USER_ONLY_REQUIRED */
 #endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
-#if DEFAULT_AUTH_USER_IS_REQUIRED
+#if DEFAULT_AUTH_USER_ONLY_REQUIRED
     if(!(strlen(DEFAULT_AUTH_USER))) {
       printf("\nNo hardcoded User ID found\n");
 

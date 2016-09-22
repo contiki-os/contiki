@@ -50,7 +50,7 @@
 #define DEFAULT_AUTH_IS_REQUIRED      DEFAULT_CONF_AUTH_IS_REQUIRED
 
 /* Required only for thethingsio and relayr */
-#define DEFAULT_AUTH_USER_IS_REQUIRED DEFAULT_CONF_AUTH_USER_IS_REQUIRED
+#define DEFAULT_AUTH_USER_ONLY_REQUIRED DEFAULT_CONF_AUTH_USER_IS_REQUIRED
 
 /* Number of seconds we keep the alarm flag high so we don't send too many
  * alarms in a short period
