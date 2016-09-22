@@ -1459,7 +1459,7 @@ configure(void)
 #endif
 
   /* RSSI offset */
-  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RSSI_OFFSET);
+  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RF_CFG.rssi_offset);
 
   /***************************************************************************
    * RF test modes needed during hardware development

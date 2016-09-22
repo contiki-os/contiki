@@ -122,18 +122,6 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /*
- * The RSSI offset in dBm (int8_t)
- *
- * Might be hardware dependent, so we make it a configuration parameter.
- * This parameter is written to AGC_GAIN_ADJUST.GAIN_ADJUSTMENT
- */
-#ifdef CC1200_CONF_RSSI_OFFSET
-#define CC1200_RSSI_OFFSET              CC1200_CONF_RSSI_OFFSET
-#else
-#define CC1200_RSSI_OFFSET              (-81)
-#endif
-/*---------------------------------------------------------------------------*/
-/*
  * The frequency offset
  *
  * Might be hardware dependent (e.g. depending on crystal load capacitances),
