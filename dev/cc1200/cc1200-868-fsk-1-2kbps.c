@@ -125,6 +125,7 @@ const cc1200_rf_cfg_t cc1200_868_fsk_1_2kbps = {
   .register_settings = preferredSettings,
   .size_of_register_settings = sizeof(preferredSettings),
   .tx_pkt_lifetime = (2 * RTIMER_SECOND),
+  .tx_rx_turnaround = (RTIMER_SECOND / 2),
   .chan_center_freq0 = RF_CFG_CHAN_CENTER_F0,
   .chan_spacing = RF_CFG_CHAN_SPACING,
   .min_channel = RF_CFG_MIN_CHANNEL,
