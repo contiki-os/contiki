@@ -29,7 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup remote-power-mgmt
+ * \addtogroup remote-power-mgmt-reva
  * @{
  *
  * RE-Mote power management and shutdown mode
