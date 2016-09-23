@@ -67,6 +67,8 @@ typedef struct cc1200_rf_cfg {
    * synch word + phy header, payload + CRC.
    */
   rtimer_clock_t tx_pkt_lifetime;
+  /* The maximum time it takes to switch from Tx to Rx */
+  rtimer_clock_t tx_rx_turnaround;
   /* Base frequency in kHz */
   uint32_t chan_center_freq0;
   /* Channel spacing in Hz */

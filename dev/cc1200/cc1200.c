@@ -802,7 +802,7 @@ transmit(unsigned short transmit_len)
      */
 
     BUSYWAIT_UNTIL_STATE(STATE_RX,
-                         RTIMER_SECOND / 100);
+        CC1200_RF_CFG.tx_rx_turnaround);
 
     ENABLE_GPIO_INTERRUPTS();
 
