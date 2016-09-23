@@ -275,6 +275,13 @@ enum {
   RTCC_AUTOCAL_17_MIN,
   RTCC_AUTOCAL_9_MIN,
 };
+/* -------------------------------------------------------------------------- */
+enum {
+  RTCC_TRIGGER_INT1 = 0,
+  RTCC_TRIGGER_INT2,
+  RTCC_TRIGGER_BOTH,
+};
+
 /** @} */
 /* -------------------------------------------------------------------------- */
 /** \name Readable Date and time memory map implementation
@@ -337,12 +344,23 @@ int8_t rtcc_print(uint8_t value);
  * \param data date and time values (in decimal) to match against
  * \param state set on/off the alarm interruption
  * \param repeat set the frequency of the alarm (minute, hourly, daily, etc.)
+ * \param trigger interrupt trigger (INT1, INT2 or both)
  * \return
  * \           AB08_SUCCESS date/time set
  * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
  */
 int8_t rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state,
-                                uint8_t repeat);
+                                uint8_t repeat, uint8_t trigger);
+
+/**
+ * \brief Increments the current date by a number of seconds
+ * \param data structure to store the date
+ * \param seconds the numberof seconds to increment the date
+ * \return
+ * \           AB08_SUCCESS updated date values
+ * \           AB08_ERROR failed to return the values
+ */
+int8_t rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds);
 
 /**
  * \brief Manually calibrate the RTCC

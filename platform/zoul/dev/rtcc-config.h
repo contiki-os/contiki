@@ -100,4 +100,3 @@ static const ab080x_register_config_t ab080x_default_setting[] =
  * @}
  * @}
  */
-
