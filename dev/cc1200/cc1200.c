@@ -40,6 +40,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
+#include "dev/watchdog.h"
 
 #include "dev/leds.h"
 
@@ -289,7 +290,9 @@ extern const cc1200_rf_cfg_t CC1200_RF_CFG;
   do { \
     rtimer_clock_t t0; \
     t0 = RTIMER_NOW(); \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {} \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) { \
+      watchdog_periodic(); \
+    } \
   } while(0)
 /*---------------------------------------------------------------------------*/
 #if CC1200_USE_GPIO2
