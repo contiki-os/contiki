@@ -40,6 +40,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
+#include "dev/watchdog.h"
 
 #include "dev/leds.h"
 
@@ -289,7 +290,9 @@ extern const cc1200_rf_cfg_t CC1200_RF_CFG;
   do { \
     rtimer_clock_t t0; \
     t0 = RTIMER_NOW(); \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {} \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) { \
+      watchdog_periodic(); \
+    } \
   } while(0)
 /*---------------------------------------------------------------------------*/
 #if CC1200_USE_GPIO2
@@ -799,7 +802,7 @@ transmit(unsigned short transmit_len)
      */
 
     BUSYWAIT_UNTIL_STATE(STATE_RX,
-                         RTIMER_SECOND / 100);
+        CC1200_RF_CFG.tx_rx_turnaround);
 
     ENABLE_GPIO_INTERRUPTS();
 
@@ -1459,7 +1462,7 @@ configure(void)
 #endif
 
   /* RSSI offset */
-  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RSSI_OFFSET);
+  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RF_CFG.rssi_offset);
 
   /***************************************************************************
    * RF test modes needed during hardware development
@@ -2013,7 +2016,7 @@ calculate_freq(uint8_t channel)
 
   uint32_t freq;
 
-  freq = CC1200_RF_CFG.chan_center_freq0 + channel * CC1200_RF_CFG.chan_spacing;
+  freq = CC1200_RF_CFG.chan_center_freq0 + (channel * CC1200_RF_CFG.chan_spacing) / 1000 /* /1000 because chan_spacing is in Hz */;
   freq *= FREQ_MULTIPLIER;
   freq /= FREQ_DIVIDER;
 
