@@ -44,9 +44,8 @@ const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
 #define HOST_IP         SUBNET_IP, 2
 #define GATEWAY_IP      SUBNET_IP, 1
 #define NAMESERVER_IP   GATEWAY_IP
-#endif
-
 PROCESS(dhcp_process, "DHCP");
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -74,11 +73,14 @@ eth_init(void)
 #endif
 
   process_start(&eth_process, NULL);
+#if !NETSTACK_CONF_WITH_IPV6
   /* Comment out the following line to disable DHCP and simply use the static
    * IP configuration setup above.
    */
   process_start(&dhcp_process, NULL);
+#endif
 }
+#if !NETSTACK_CONF_WITH_IPV6
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(dhcp_process, ev, data)
 {
@@ -123,3 +125,4 @@ dhcpc_unconfigured(const struct dhcpc_state *s)
   printf("DHCP unconfigured.\n");
 }
 /*---------------------------------------------------------------------------*/
+#endif
