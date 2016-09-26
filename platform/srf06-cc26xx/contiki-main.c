@@ -182,6 +182,7 @@ main(void)
   /* Character I/O Initialisation */
 #if CC26XX_UART_CONF_ENABLE
   cc26xx_uart_init();
+  cc26xx_uart_set_input(serial_line_input_byte);
 #endif
 
   serial_line_init();
