@@ -194,6 +194,7 @@ main(void)
   ctimer_init();
 
   board_init();
+  set_rf_params();
 
 #if CRYPTO_CONF_INIT
   crypto_init();
@@ -203,7 +204,6 @@ main(void)
 
   queuebuf_init();
   netstack_init();
-  set_rf_params();
 
   PRINTF("Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
