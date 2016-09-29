@@ -309,23 +309,23 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
     return;
   }
 
-  /* This is a command event, it uses "true" and "false" strings
-   * We expect commands to have the following syntax:
-   * {"name":"enable_sensor","value":false}
-   * That is why we use an index of "9" to search for the command string
+  /* This is a command event, it uses "1" and "0" strings for true or false
+   * As default we use the "/lv" request upon subscribing, we expect an numeric
+   * string as chunk
    */
   if(strncmp(topic, cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
 
+    /* Add an extra byte for the level separator */
+    aux = strlen(DEFAULT_TOPIC_LONG) + strlen(conf.client_id) + 1;
+
     /* Toggle a given LED */
-    if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_LEDS,
+    if(strncmp((const char *)&topic[aux], DEFAULT_SUBSCRIBE_CMD_LEDS,
                strlen(DEFAULT_SUBSCRIBE_CMD_LEDS)) == 0) {
       PRINTF("Ubidots: Command received --> toggle LED\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
-        "true", 4) == 0) {
+      if(strncmp((const char *)chunk, "1", 1) == 0) {
         leds_on(CMD_LED);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
-        "false", 5) == 0) {
+      } else if(strncmp((const char *)chunk, "0", 1) == 0) {
         leds_off(CMD_LED);
       } else {
         PRINTF("Ubidots: invalid command argument (expected boolean)!\n");
@@ -334,13 +334,12 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       return;
 
     /* Restart the device */
-    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_REBOOT,
+    } else if(strncmp((const char *)&topic[aux], DEFAULT_SUBSCRIBE_CMD_REBOOT,
                strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT)) == 0) {
       PRINTF("Ubidots: Command received --> reboot\n");
 
       /* This is fixed to check only "true" arguments */
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 19],
-        "true", 4) == 0) {
+      if(strncmp((const char *)chunk, "1", 1) == 0) {
         sys_ctrl_reset();
       } else {
         PRINTF("Ubidots: invalid command argument (expected only 'true')!\n");
@@ -349,15 +348,13 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       return;
 
     /* Enable or disable external sensors */
-    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_SENSOR,
+    } else if(strncmp((const char *)&topic[aux], DEFAULT_SUBSCRIBE_CMD_SENSOR,
                strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR)) == 0) {
       PRINTF("Ubidots: Command received --> enable/disable sensor\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
-        "true", 4) == 0) {
+      if(strncmp((const char *)chunk, "1", 1) == 0) {
         activate_sensors(0x01);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
-        "false", 5) == 0) {
+      } else if(strncmp((const char *)chunk, "0", 1) == 0) {
         activate_sensors(0x00);
       } else {
         PRINTF("Ubidots: invalid command argument (expected boolean)!\n");
@@ -373,11 +370,11 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
      */
 
     /* Change the update period */
-   } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_EVENT,
+    } else if(strncmp((const char *)&topic[aux], DEFAULT_SUBSCRIBE_CMD_EVENT,
                strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
 
       /* Take integers as configuration value */
-      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 19]);
+      aux = atoi((const char*) chunk);
 
       /* Check for allowed values */
       if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
@@ -396,11 +393,11 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
       if((strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config))) &&
-        (strncmp((const char *)&chunk[9], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
+        (strncmp((const char *)&topic[aux], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
                       strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
 
         /* Take integers as configuration value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 19]);
+        aux = atoi((const char*) chunk);
 
         if((aux < SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min)) || 
           (aux > SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max))) {
@@ -419,12 +416,12 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
          * sure it matches an expected string.
          */
 
-        if(strstr((const char *)&chunk[9], "_thresh") != NULL) {
+        if(strstr((const char *)topic, "_thresh") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold) = aux;
           PRINTF("Ubidots: New %s over threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold));
-        } else if(strstr((const char *)&chunk[9], "_thresl") != NULL) {
+        } else if(strstr((const char *)topic, "_thresl") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold) = aux;
           PRINTF("Ubidots: New %s below threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
@@ -444,12 +441,12 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 #if DEFAULT_COMMANDS_NUM
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
 
-      if((strncmp((const char *)&chunk[9],
+      if(strncmp((const char *)&topic[aux], 
           SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
           strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
 
         /* Take integers as argument value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_commands.command[i].command_name)) + 19]);
+        aux = atoi((const char*) chunk);
 
         /* Invoke the command handler */
         SENSORS_NAME(MQTT_SENSORS,_commands.command[i].cmd(aux));
@@ -486,10 +483,10 @@ init_platform(void)
            linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
 
   /* Create topics */
-  snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
-           DEFAULT_PUB_STRING);
-  snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
-           DEFAULT_CMD_STRING);
+  snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s/%s", DEFAULT_TOPIC_LONG,
+           conf.client_id);
+  snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s/%s%s", DEFAULT_TOPIC_LONG,
+           conf.client_id, DEFAULT_CMD_STRING);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ubidots_process, ev, data)

@@ -57,20 +57,38 @@
  * 2607:f0d0:2101:39::2
  */
 #define MQTT_DEMO_CONF_BROKER_IP_ADDR "::ffff:3217:7c44"
-
-/* This is pretty harcoded by the v1 API version */
-#define DEFAULT_PUB_STRING            "/data"
-#define DEFAULT_CMD_STRING            "/cmd"
-#define DEFAULT_CFG_STRING            "/config" /* Currently not used as Contiki
-                                                 * allows only 1 subscription
-                                                 * maximum */
 #define CMD_LED                       LEDS_RED
-/*---------------------------------------------------------------------------*/
-/* Specific SUB command topics */
-#define DEFAULT_SUBSCRIBE_CMD_LEDS    "leds_toggle"
-#define DEFAULT_SUBSCRIBE_CMD_REBOOT  "reboot"
-#define DEFAULT_SUBSCRIBE_CMD_SENSOR  "enable_sensor"
-#define DEFAULT_SUBSCRIBE_CMD_EVENT   "update_period"
+
+/* We are using the device Client ID to publish to a topic as:
+ * /v1.6/devices/{CLIENT_ID}
+ * That it why the DEFAULT_PUB_STRING is not used and removed
+ *
+ * Subscription topic is:
+ * /v1.6/devices/{CLIENT_ID}/#
+ * Thus why the DEFAULT_CMD_STRING was removed...
+ *
+ * The expected Ubidots subscription topic is:
+ * /v1.6/devices/{LABEL_DATA_SOURCE}/{LABEL_VARIABLE}
+ * As currently Ubidots doesn't support multilevel "#" wildcards, it is not
+ * possible to subscribe to a topic, as currently done in other platforms, so we
+ * need to choose a variable.  As default we are mapping the leds_toggle, change
+ * to other value as required.  The topic would be then:
+ * /v1.6/devices/{CLIENT_ID}/leds_toggle/lv
+ *
+ * We use "/lv" to retrieve the value only, if you need the full JSON response
+ * it would be something like:
+ * {"timestamp": 1475154149778, "context": {}, "value": 1.0,
+ *  "id": "57ed10e576254270bd7fc455"}
+ * You will need to change the ubidots_pub_handler() to parse accordingly 
+ * The following default commands are available only if using the
+ * DEFAULT_CMD_STRING as shown above
+ */
+#define DEFAULT_SUBSCRIBE_CMD_LEDS    "/leds_toggle/lv"
+#define DEFAULT_SUBSCRIBE_CMD_REBOOT  "/reboot/lv"
+#define DEFAULT_SUBSCRIBE_CMD_SENSOR  "/enable_sensor/lv"
+#define DEFAULT_SUBSCRIBE_CMD_EVENT   "/update_period/lv"
+
+#define DEFAULT_CMD_STRING            DEFAULT_SUBSCRIBE_CMD_EVENT
 
 /* Specific PUB event topics */
 #define DEFAULT_PUBLISH_EVENT_ID      "ID"
@@ -78,12 +96,11 @@
 #define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
 #define DEFAULT_PUBLISH_EVENT_PARENT  "parent"
 
-/* Define the maximum lenght of the topics and tokens6
+/* Define the maximum lenght of the topics and tokens
  * The user ID string is normally 30 bytes long, the "/v1.6/" adds 6 bytes more
  */
-#define CONFIG_TOPIC_LEN              42
-#define CONFIG_PUB_TOPIC_LEN          42
-#define CONFIG_SUB_CMD_TOPIC_LEN      42
+#define CONFIG_PUB_TOPIC_LEN          50
+#define CONFIG_SUB_CMD_TOPIC_LEN      50
 #define DEFAULT_CONF_IP_ADDR_STR_LEN  64
 #define DEFAULT_CONF_AUTH_USER_LEN    37
 #define DEFAULT_CONF_AUTH_TOKEN_LEN   13
