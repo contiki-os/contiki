@@ -9,7 +9,7 @@ MQTT_PLATFORM ?= bluemix
 MQTT_SENSORS  ?= remote
 
 # Don't touch anything below if you don't know what you are doing
-PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c
+PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
 
 # Platform checks
 ifeq ($(MQTT_PLATFORM), bluemix)

@@ -47,6 +47,9 @@
  */
 #define DEFAULT_CONF_AUTH_TOKEN       ""  /* Not used */
 #define DEFAULT_CONF_AUTH_USER        ""
+
+#define DEFAULT_ORG_CONF_ID           "zolertia"
+
 #define DEFAULT_TOPIC_STR             "/v1.6/devices"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR
 
@@ -95,6 +98,12 @@
 #define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
 #define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
 #define DEFAULT_PUBLISH_EVENT_PARENT  "parent"
+
+/* This is hardcoded to avoid using the full client ID as Source Data label,
+ * and save some bytes: we use the last 12 bytes of the Client ID, that is, we
+ * use the MAC-based string
+ */
+#define UBIDOTS_LABEL_LEN             12
 
 /* Define the maximum lenght of the topics and tokens
  * The user ID string is normally 30 bytes long, the "/v1.6/" adds 6 bytes more

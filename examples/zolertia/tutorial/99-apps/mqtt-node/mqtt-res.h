@@ -28,56 +28,35 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BLUEMIX_H_
-#define BLUEMIX_H_
+#ifndef MQTT_RES_H_
+#define MQTT_RES_H_
 /*---------------------------------------------------------------------------*/
 #include "mqtt-client.h"
 /*---------------------------------------------------------------------------*/
-/* Default configuration values */
-/*
- * Bluemix follows the next scheme:
- *
- * iot-2/evt/{topic}/fmt/json to publish data to quickstart
- *
- * And the content in the following format:
- * {"d":{"var_name":var_value}}
- */
-#define DEFAULT_CONF_AUTH_TOKEN       ""
-#define DEFAULT_CONF_AUTH_USER        ""
-#define DEFAULT_PUB_STRING            "data"
+#ifdef MQTT_RES_CONF_PING_INTERVAL
+#define MQTT_RES_PING_INTERVAL   MQTT_RES_CONF_PING_INTERVAL
+#else
+#define MQTT_RES_PING_INTERVAL   0
+#endif
 
-/* Using "quickstart" as DEFAULT_ORG_ID will enable to use IBM Bluemix
- * quickstart service, not requiring to register, but only to use the six bytes
- * of the device in the `client_id` to visualize the data.  Upon registering the
- * device to IBM Bluemix, change this accordingly
- */
-#define DEFAULT_ORG_CONF_ID           "quickstart"
+/* Function to retrieve the Client ID (uses the IBM Bluemix format */
+void mqtt_res_client_id(char *buf, uint8_t len);
 
-/* If not using the quickstart service, change below to 1 to enable */
-#define DEFAULT_CONF_AUTH_IS_REQUIRED       0
-#define DEFAULT_CONF_AUTH_USER_IS_REQUIRED  0
+/* Function to enable/disable subscribed sensors */
+void activate_sensors(uint8_t state);
+
+/* Return the latest RSSI parent value (from the latest ping) */
+void mqtt_res_parent_rssi(char *buf, uint8_t len);
+
+/* Return the uptime in number of seconds */
+void mqtt_res_uptime(char *buf, uint8_t len);
+
+/* Return the parent's 64-bit address */
+void mqtt_res_parent_addr(char *buf, uint8_t len);
+
+/* In case of a numeric chunk, checks the atoi() conversion */
+int mqtt_check_int_chunk_len(uint16_t chunk, uint8_t chunk_len);
 /*---------------------------------------------------------------------------*/
-/* Host "quickstart.messaging.internetofthings.ibmcloud.com" with
- * IP 184.172.124.189
- */
-#define MQTT_DEMO_CONF_BROKER_IP_ADDR  "::ffff:b8ac:7cbd"
-
-#define CMD_LED                       LEDS_RED
-/*---------------------------------------------------------------------------*/
-/* Specific PUB event topics */
-#define DEFAULT_PUBLISH_EVENT_ID      "ID"
-#define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
-#define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
-#define DEFAULT_PUBLISH_EVENT_PARENT  "parent"
-
-/* Define the maximum lenght of the topics and tokens
- * The user ID string is normally 43 bytes long, the "/v2/things" adds 10 bytes more
- */
-#define CONFIG_PUB_TOPIC_LEN          33
-#define DEFAULT_CONF_IP_ADDR_STR_LEN  64
-#define DEFAULT_CONF_AUTH_USER_LEN    1
-#define DEFAULT_CONF_AUTH_TOKEN_LEN   1
-/*---------------------------------------------------------------------------*/
-#endif /* BLUEMIX_H_ */
+#endif /* MQTT_RES_H_ */
 /** @} */
 

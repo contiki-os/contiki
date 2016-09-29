@@ -313,7 +313,7 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
     if(msg_ptr->first_chunk) {
       msg_ptr->first_chunk = 0;
       PRINTF("Client: Application received a publish on topic '%s'. Payload "
-          "size is %i bytes. Content:\n\n",
+          "size is %i bytes\n\n",
           msg_ptr->topic, msg_ptr->payload_length);
     }
 
@@ -322,19 +322,19 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
     break;
   }
   case MQTT_EVENT_SUBACK: {
-    PRINTF("Client: Application is subscribed to topic successfully\n");
+    PRINTF("\nClient: Application is subscribed to topic successfully\n");
     break;
   }
   case MQTT_EVENT_UNSUBACK: {
-    PRINTF("Client: Application is unsubscribed to topic successfully\n");
+    PRINTF("\nClient: Application is unsubscribed to topic successfully\n");
     break;
   }
   case MQTT_EVENT_PUBACK: {
-    PRINTF("Client: Publishing complete.\n");
+    PRINTF("\nClient: Publishing complete.\n");
     break;
   }
   default:
-    PRINTF("Client: Application got a unhandled MQTT event: %i\n", event);
+    PRINTF("\nClient: Application got a MQTT error event: %i\n", event);
     break;
   }
 }

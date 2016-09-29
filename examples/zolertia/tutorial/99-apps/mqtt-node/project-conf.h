@@ -41,7 +41,10 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* User configuration */
-#define DEVICE_ID                     "Zolertia RE-Mote"
+#ifndef DEVICE_ID
+#define DEVICE_ID                     "mqtt"
+#endif
+
 #define STATUS_LED                    LEDS_GREEN
 
 /* This is the base-time unit, if using a DEFAULT_SAMPLING_INTERVAL of 1 second

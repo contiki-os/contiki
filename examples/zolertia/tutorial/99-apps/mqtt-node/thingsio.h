@@ -47,6 +47,8 @@
 #define DEFAULT_TOPIC_STR             "v2/things/"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_AUTH_USER
 
+#define DEFAULT_ORG_CONF_ID           "zolertia"
+
 #define DEFAULT_CONF_AUTH_IS_REQUIRED       0
 #define DEFAULT_CONF_AUTH_USER_IS_REQUIRED  1
 /*---------------------------------------------------------------------------*/
