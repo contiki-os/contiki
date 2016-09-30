@@ -39,11 +39,7 @@
  */
 
 #include "contiki.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <math.h>
 #include "bme280.h"
 #include "dev/bme280-arch.h"
 
@@ -159,7 +155,7 @@ bme280_h_overscale1024(int32_t uh)
   v1 = (v1 > 419430400 ? 419430400 : v1);
   return (uint32_t)(v1 >> 12);
 }
-void
+uint8_t
 bme280_init(uint8_t mode)
 {
   uint8_t buf[26];
@@ -167,7 +163,7 @@ bme280_init(uint8_t mode)
   /* Do not mess with other chips */
   i2c_read_mem(BME280_ADDR, 0xD0, buf, 1);
   if(buf[0] != BME280_CHIP_ID) {
-    return;
+    return 0;
   }
 
   i2c_write_mem(BME280_ADDR, BME280_CNTL_RESET, 0xB6);
@@ -201,6 +197,7 @@ bme280_init(uint8_t mode)
   bm.dig_h6 = (unsigned char)buf[7];
 
   bm.mode = mode;
+  return 1;
 }
 void
 bme280_read(uint8_t mode)
