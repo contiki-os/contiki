@@ -33,7 +33,6 @@
  * Created : 2016-09-14
  */
 
-#include <stdlib.h>
 #include "contiki.h"
 #include "lib/sensors.h"
 #include "dev/bme280/bme280.h"
@@ -55,28 +54,26 @@ value(int type)
     return bme280_mea.t_overscale100 / 100;
 
   case BME280_SENSOR_HUMIDITY:
-    return bme280_mea.h_overscale1024>>10;
+    return bme280_mea.h_overscale1024 >> 10;
 
   case BME280_SENSOR_PRESSURE:
     /* Scale down w. 10 not to overslow the signed int */
 #ifdef BME280_64BIT
-    return bme280_mea.p_overscale256/(256*10);
+    return bme280_mea.p_overscale256 / (256 * 10);
 #else
-    return bme280_mea.p/10;
+    return bme280_mea.p / 10;
 #endif
   }
   return 0;
 }
-
 static int
 status(int type)
 {
   return 0;
 }
-
 static int
 configure(int type, int c)
 {
-  bme280_init(BME280_MODE_WEATHER);
+  return bme280_init(BME280_MODE_WEATHER);
 }
 SENSORS_SENSOR(bme280_sensor, "bme280", value, configure, status);
