@@ -139,7 +139,6 @@ create_frame(int type, int do_create)
 #if LLSEC802154_USES_EXPLICIT_KEYS
   params.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
   params.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
-  params.aux_hdr.key_source.u16[0] = packetbuf_attr(PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1);
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 #endif /* LLSEC802154_USES_AUX_HEADER */
 
@@ -260,7 +259,6 @@ parse(void)
 #if LLSEC802154_USES_EXPLICIT_KEYS
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, frame.aux_hdr.security_control.key_id_mode);
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, frame.aux_hdr.key_index);
-      packetbuf_set_attr(PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1, frame.aux_hdr.key_source.u16[0]);
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
     }
 #endif /* LLSEC802154_USES_AUX_HEADER */
