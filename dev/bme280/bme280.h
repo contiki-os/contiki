@@ -30,7 +30,7 @@
  *
  *
  * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
- * 
+ *
  * Created : 2016-09-14
  */
 
@@ -46,7 +46,7 @@
 #define BME280_64BIT
 #endif
 
-void bme280_init(uint8_t mode);
+uint8_t bme280_init(uint8_t mode);
 void bme280_read(uint8_t mode);
 
 #ifdef  I2C_BME280_ADDR
