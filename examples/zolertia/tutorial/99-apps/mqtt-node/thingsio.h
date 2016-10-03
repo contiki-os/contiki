@@ -49,6 +49,22 @@
 
 #define DEFAULT_ORG_CONF_ID           "zolertia"
 
+/* For this application we use two Thing-Token, one to publish data and the
+ * other to create the control variables to send commands and change the
+ * configuration of the application.  This can be omitted if you prefer to
+ * use a sub-level in the data topic, and push commands on your own using a
+ * script or a different application, if this is the case just enable the
+ * following MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD, then the command topic will be:
+ *
+ * v2/things/{Thing-Token}/cmd
+ *
+ * Note this won't let you create widgets in TheThings.io as variables inside
+ * are not shown in the widget creator
+ */
+#ifndef MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD
+#define MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD  0
+#endif
+
 #define DEFAULT_CONF_AUTH_IS_REQUIRED       0
 #define DEFAULT_CONF_AUTH_USER_IS_REQUIRED  1
 /*---------------------------------------------------------------------------*/
@@ -63,8 +79,14 @@
  * will be received by the broker as expected
  */
 #define DEFAULT_PUB_STRING            ""
-#define DEFAULT_CMD_STRING            "/cmd"
 #define CMD_LED                       LEDS_RED
+
+#if MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD
+#define DEFAULT_CMD_STRING            "/cmd"
+#else
+/* The Auth-Token will be used as Thing-Token for the command topic */
+#define DEFAULT_CMD_STRING            ""
+#endif
 /*---------------------------------------------------------------------------*/
 /* Specific SUB command topics */
 #define DEFAULT_SUBSCRIBE_CMD_LEDS    "leds_toggle"
@@ -85,8 +107,12 @@
 #define CONFIG_PUB_TOPIC_LEN          54
 #define CONFIG_SUB_CMD_TOPIC_LEN      58
 #define DEFAULT_CONF_IP_ADDR_STR_LEN  64
-#define DEFAULT_CONF_AUTH_USER_LEN    43
+#define DEFAULT_CONF_AUTH_USER_LEN    44
+#if MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD
 #define DEFAULT_CONF_AUTH_TOKEN_LEN   1
+#else
+#define DEFAULT_CONF_AUTH_TOKEN_LEN   44
+#endif
 /*---------------------------------------------------------------------------*/
 #endif /* THINGSIO_H_ */
 /** @} */

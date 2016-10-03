@@ -57,6 +57,9 @@
 #define SENSORS_NAME_EXPAND(x, y) x##y
 #define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
 /*---------------------------------------------------------------------------*/
+/* Lenght of the `{"key":"` substring in the publication handler */
+#define MQTT_THINGSIO_KEYVAR_LEN      9
+/*---------------------------------------------------------------------------*/
 #define APP_BUFFER_SIZE 512
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
@@ -152,7 +155,7 @@ publish_alarm(sensor_val_t *sensor)
 static void
 publish_event(sensor_values_t *msg)
 {
-  char aux[64];
+  char aux[DEFAULT_CONF_IP_ADDR_STR_LEN];
   int len = 0;
   uint8_t i;
   uint16_t aux_int, aux_res;
@@ -216,6 +219,7 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
             uint16_t chunk_len)
 {
   uint8_t i;
+  uint8_t *j;
   uint16_t aux;
 
   PRINTF("Things.io: Pub Handler, topic='%s' (len=%u), chunk='%s', chunk_len=%u\n",
@@ -227,24 +231,43 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
     return;
   }
 
-  /* This is a command event, it uses "true" and "false" strings
+  /* This is a command event, it uses "1" and "0" as boolean
    * We expect commands to have the following syntax:
-   * {"key":"enable_sensor","value":false}
-   * That is why we use an index of "8" to search for the command string
+   * [{"key":"enable_sensor","value":"1"}]
    */
   if(strncmp(topic, cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
 
+    /* Search for the string "value" and retrieve index */
+    j = (uint8_t *)strstr((const char *)chunk, (const char *)"value");
+
+    if(j == NULL) {
+      return;
+    }
+
+    /* We use 8 as magic number to save processing, this is the lenght of the
+     * `value":"` string, as shown before this is expected in the topic
+     * publication
+     */
+    aux = atoi((const char*) &chunk[(j - chunk) + 8]);
+
+    /* Yet another magic number to save processing, as above we take into
+     * account the `value":` string plus the ending `"}]` character
+     */
+    if(mqtt_check_int_chunk_len(aux, chunk_len - (j - chunk) - 11)) {
+      PRINTF("Things.io: chunk lenght doesn't match integer %u\n", aux);
+      return;
+    }
+
     /* Toggle a given LED */
-    if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_LEDS,
+    if(strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+               DEFAULT_SUBSCRIBE_CMD_LEDS,
                strlen(DEFAULT_SUBSCRIBE_CMD_LEDS)) == 0) {
       PRINTF("Things.io: Command received --> toggle LED\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
-        "true", 4) == 0) {
-        leds_on(CMD_LED);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
-        "false", 5) == 0) {
+      if(!aux) {
         leds_off(CMD_LED);
+      } else if(aux == 1) {
+        leds_on(CMD_LED);
       } else {
         PRINTF("Things.io: invalid command argument (expected boolean)!\n");
       }
@@ -252,13 +275,13 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
       return;
 
     /* Restart the device */
-    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_REBOOT,
+    } else if(strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+               DEFAULT_SUBSCRIBE_CMD_REBOOT,
                strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT)) == 0) {
       PRINTF("Things.io: Command received --> reboot\n");
 
       /* This is fixed to check only "true" arguments */
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 18],
-        "true", 4) == 0) {
+      if(aux) {
         sys_ctrl_reset();
       } else {
         PRINTF("Things.io: invalid command argument (expected only 'true')!\n");
@@ -267,16 +290,15 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
       return;
 
     /* Enable or disable external sensors */
-    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_SENSOR,
+    } else if(strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+               DEFAULT_SUBSCRIBE_CMD_SENSOR,
                strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR)) == 0) {
       PRINTF("Things.io: Command received --> enable/disable sensor\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
-        "true", 4) == 0) {
-        activate_sensors(0x01);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
-        "false", 5) == 0) {
+      if(!aux) {
         activate_sensors(0x00);
+      } else if(aux == 1) {
+        activate_sensors(0x01);
       } else {
         PRINTF("Things.io: invalid command argument (expected boolean)!\n");
       }
@@ -287,15 +309,13 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
      * As currently Contiki's MQTT driver does not support more than one SUBSCRIBE
      * we are handling both commands and configurations in the same "cmd" topic
      * We expect the configuration payload to follow the next syntax:
-     * {"name":"update_period","value":61}
+     * [{"key":"update_period","value":"61"}]
      */
 
     /* Change the update period */
-   } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_EVENT,
-               strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
-
-      /* Take integers as configuration value */
-      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 18]);
+   } else if(strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+             DEFAULT_SUBSCRIBE_CMD_EVENT,
+             strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
 
       /* Check for allowed values */
       if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
@@ -315,8 +335,9 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
       if((strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config))) &&
-        (strncmp((const char *)&chunk[8], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
-                      strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
+        (strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+                  SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
+                  strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
 
         /* Take integers as configuration value */
         aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 18]);
@@ -338,12 +359,14 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
          * sure it matches an expected string.
          */
 
-        if(strstr((const char *)&chunk[8], "_thresh") != NULL) {
+        if(strstr((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+                  "_thresh") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold) = aux;
           PRINTF("Things.io: New %s over threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold));
-        } else if(strstr((const char *)&chunk[8], "_thresl") != NULL) {
+        } else if(strstr((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
+                  "_thresl") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold) = aux;
           PRINTF("Things.io: New %s below threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
@@ -366,7 +389,7 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
 #if DEFAULT_COMMANDS_NUM
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
 
-      if((strncmp((const char *)&chunk[8],
+      if((strncmp((const char *)&chunk[MQTT_THINGSIO_KEYVAR_LEN],
           SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
           strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
 
@@ -401,15 +424,30 @@ init_platform(void)
   if(strlen(DEFAULT_CONF_AUTH_USER)) {
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
              DEFAULT_PUB_STRING);
-    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
-             DEFAULT_CMD_STRING);
   } else {
     /* If we are here it means the mqtt_client has already check credentials */
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
              conf.auth_user, DEFAULT_PUB_STRING);
+  }
+
+#if MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD
+  if(strlen(DEFAULT_CONF_AUTH_USER)) {
+    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
+             DEFAULT_CMD_STRING);
+  } else {
     snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
              conf.auth_user, DEFAULT_CMD_STRING);
   }
+#else
+  if(strlen(DEFAULT_CONF_AUTH_TOKEN)) {
+    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_STR,
+             DEFAULT_CONF_AUTH_TOKEN);
+  } else {
+    /* We assume it has been written before the Auth User information */
+    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_STR,
+             conf.auth_token);
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(thingsio_process, ev, data)

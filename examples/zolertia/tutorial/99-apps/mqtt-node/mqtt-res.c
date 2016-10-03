@@ -151,6 +151,7 @@ mqtt_check_int_chunk_len(uint16_t chunk, uint8_t chunk_len)
     return 0;
   }
 
+  PRINTF("MQTT Res: payload mismatch: %u vs %u\n", chunk_len, int_len);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

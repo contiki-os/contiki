@@ -21,7 +21,7 @@ def on_connect(client, userdata, flags, rc):
 
     if MQTT_PUB_STRING:
       client.publish(MQTT_TOPIC_PUB, MQTT_PUB_STRING, 0)
-      printf("Published " + MQTT_PUB_STRING + " to " + MQTT_TOPIC_EVENT)
+      print("Published " + MQTT_PUB_STRING + " to " + MQTT_TOPIC_PUB)
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
