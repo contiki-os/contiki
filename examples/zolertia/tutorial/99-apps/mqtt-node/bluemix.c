@@ -255,12 +255,12 @@ PROCESS_THREAD(bluemix_process, ev, data)
       /* No subscription implemented at the moment, continue */
 
       /* Enable the sensor */
-      activate_sensors(0x01);
+      process_start(&SENSORS_NAME(MQTT_SENSORS, _sensors_process), NULL);
     }
 
     if(ev == mqtt_client_event_disconnected) {
       /* We are not connected, disable the sensors */
-      activate_sensors(0x00);
+      process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
 
     /* Check for periodic publish events */

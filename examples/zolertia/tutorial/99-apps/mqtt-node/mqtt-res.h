@@ -38,7 +38,11 @@
 #else
 #define MQTT_RES_PING_INTERVAL   0
 #endif
-
+/*---------------------------------------------------------------------------*/
+/* Sensor process events */
+extern process_event_t sensors_restart_event;
+extern process_event_t sensors_stop_event;
+/*---------------------------------------------------------------------------*/
 /* Function to retrieve the Client ID (uses the IBM Bluemix format */
 void mqtt_res_client_id(char *buf, uint8_t len);
 

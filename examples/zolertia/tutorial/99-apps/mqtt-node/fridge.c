@@ -34,6 +34,7 @@
 #include "sys/etimer.h"
 #include "dev/sht25.h"
 #include "fridge.h"
+#include "mqtt-res.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -111,6 +112,12 @@ PROCESS_THREAD(fridge_sensors_process, ev, data)
 
     if(ev == PROCESS_EVENT_TIMER && data == &et) {
       poll_sensors();
+      etimer_reset(&et);
+    } else if(ev == sensors_stop_event) {
+      PRINTF("Fridge sensors: sensor readings paused\n");
+      etimer_stop(&et);
+    } else if(ev == sensors_restart_event) {
+      PRINTF("Fridge sensors: sensor readings enabled\n");
       etimer_reset(&et);
     }
   }

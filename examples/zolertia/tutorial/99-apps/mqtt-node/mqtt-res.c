@@ -68,6 +68,9 @@ PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
+process_event_t sensors_stop_event;
+process_event_t sensors_restart_event;
+/*---------------------------------------------------------------------------*/
 PROCESS(mqtt_res_process, "MQTT resources process");
 /*---------------------------------------------------------------------------*/
 /* Parent RSSI functionality */
@@ -185,9 +188,11 @@ void
 activate_sensors(uint8_t state)
 {
   if(state) {
-    process_start(&SENSORS_NAME(MQTT_SENSORS, _sensors_process), NULL);
+    process_post(&SENSORS_NAME(MQTT_SENSORS, _sensors_process),
+                 sensors_restart_event, NULL);
   } else {
-    process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
+    process_post(&SENSORS_NAME(MQTT_SENSORS, _sensors_process),
+                 sensors_stop_event, NULL);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -202,6 +207,9 @@ PROCESS_THREAD(mqtt_res_process, ev, data)
   PRINTF("\nMQTT default resources process started\n");
 
   ping_parent();
+
+  sensors_stop_event = process_alloc_event();
+  sensors_restart_event = process_alloc_event();
 
   if(MQTT_RES_PING_INTERVAL) {
     PRINTF("MQTT Res: Starting periodic ping %u\n", MQTT_RES_PING_INTERVAL);

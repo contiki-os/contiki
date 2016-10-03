@@ -36,6 +36,7 @@
 #include "dev/tsl2563.h"
 #include "dev/bmpx8x.h"
 #include "agriculture.h"
+#include "mqtt-res.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -133,6 +134,13 @@ PROCESS_THREAD(agriculture_sensors_process, ev, data)
 
     if(ev == PROCESS_EVENT_TIMER && data == &et) {
       poll_sensors();
+      etimer_reset(&et);
+
+    } else if(ev == sensors_stop_event) {
+      PRINTF("Agriculture sensors: sensor readings paused\n");
+      etimer_stop(&et);
+    } else if(ev == sensors_restart_event) {
+      PRINTF("Agriculture sensors: sensor readings enabled\n");
       etimer_reset(&et);
     }
   }

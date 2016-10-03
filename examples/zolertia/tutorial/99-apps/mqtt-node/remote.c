@@ -35,6 +35,7 @@
 #include "dev/adc-zoul.h"
 #include "dev/zoul-sensors.h"
 #include "dev/button-sensor.h"
+#include "mqtt-res.h"
 #include "remote.h"
 
 #include <stdio.h>
@@ -161,6 +162,13 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
                        &remote_sensors.sensor[REMOTE_SENSOR_BUTN]);
         }
       }
+
+    } else if(ev == sensors_stop_event) {
+      PRINTF("RE-Mote: sensor readings paused\n");
+      etimer_stop(&et);
+    } else if(ev == sensors_restart_event) {
+      PRINTF("RE-Mote: sensor readings enabled\n");
+      etimer_reset(&et);
     }
   }
 
