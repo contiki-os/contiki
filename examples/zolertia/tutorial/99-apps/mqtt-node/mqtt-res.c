@@ -185,6 +185,17 @@ mqtt_res_client_id(char *buf, uint8_t len)
 }
 /*---------------------------------------------------------------------------*/
 void
+mqtt_res_u16_addr(char *buf, uint8_t len)
+{
+  radio_value_t aux;
+  NETSTACK_RADIO.get_value(RADIO_PARAM_16BIT_ADDR, &aux);
+
+  /* Return the 16-bit address of the device */
+  memset(buf, 0, len);
+  snprintf(buf, len, "%04u", aux);
+}
+/*---------------------------------------------------------------------------*/
+void
 activate_sensors(uint8_t state)
 {
   if(state) {

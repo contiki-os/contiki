@@ -173,11 +173,15 @@ publish_event(sensor_values_t *msg)
   buf_ptr = app_buffer;
 
   /* Ubidots does not support string as payload content, default values such as
-   * own address, parent address, etc are not sent
+   * parent address, etc are not sent
    */
   mqtt_res_uptime(aux, sizeof(aux));
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_UPTIME,
                       aux, PUB_TOPIC_RAW, 1, 1);
+  remain =- len;
+
+  mqtt_res_u16_addr(aux, sizeof(aux));
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, aux, 0, 1);
   remain =- len;
 
   /* Include the sensor values, if `sensor_name` lenght is zero discard */

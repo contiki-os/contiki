@@ -60,6 +60,9 @@ void mqtt_res_parent_addr(char *buf, uint8_t len);
 
 /* In case of a numeric chunk, checks the atoi() conversion */
 int mqtt_check_int_chunk_len(uint16_t chunk, uint8_t chunk_len);
+
+/* Returns the device's 16-bit address */
+void mqtt_res_u16_addr(char *buf, uint8_t len);
 /*---------------------------------------------------------------------------*/
 #endif /* MQTT_RES_H_ */
 /** @} */

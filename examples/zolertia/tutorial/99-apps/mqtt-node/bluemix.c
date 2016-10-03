@@ -167,9 +167,8 @@ publish_event(sensor_values_t *msg)
    * and the `more` argument 1 as well, as we want to add more values to our
    * list
    */
-  memset(aux, 0, sizeof(aux));
-
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, DEVICE_ID, 1, 1);
+  mqtt_res_u16_addr(aux, sizeof(aux));
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, aux, 1, 1);
   remain =- len;
 
   /* Include the sensor values, if `sensor_name` is NULL discard */
