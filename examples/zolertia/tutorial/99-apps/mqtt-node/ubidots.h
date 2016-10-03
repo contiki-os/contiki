@@ -91,7 +91,7 @@
 #define DEFAULT_SUBSCRIBE_CMD_SENSOR  "/enable_sensor/lv"
 #define DEFAULT_SUBSCRIBE_CMD_EVENT   "/update_period/lv"
 
-#define DEFAULT_CMD_STRING            DEFAULT_SUBSCRIBE_CMD_EVENT
+#define DEFAULT_CMD_STRING            DEFAULT_SUBSCRIBE_CMD_LEDS
 
 /* Specific PUB event topics */
 #define DEFAULT_PUBLISH_EVENT_ID      "ID"
