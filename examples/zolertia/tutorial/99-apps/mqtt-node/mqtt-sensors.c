@@ -38,8 +38,7 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
-#if DEBUG
+#if DEBUG_CLIENT
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)

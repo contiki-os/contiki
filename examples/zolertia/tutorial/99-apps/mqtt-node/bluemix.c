@@ -47,8 +47,7 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
-#if DEBUG
+#if DEBUG_PLATFORM
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -57,7 +56,6 @@
 #define SENSORS_NAME_EXPAND(x, y) x##y
 #define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
 /*---------------------------------------------------------------------------*/
-#define APP_BUFFER_SIZE 512
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/

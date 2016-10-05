@@ -53,8 +53,7 @@
 #define PLATFORM_NAME_EXPAND(x, y) x##y
 #define PLATFORM_NAME(x, y) PLATFORM_NAME_EXPAND(x, y)
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
-#if DEBUG
+#if DEBUG_CLIENT
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)

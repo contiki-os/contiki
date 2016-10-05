@@ -42,8 +42,7 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
-#if DEBUG
+#if DEBUG_APP
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)

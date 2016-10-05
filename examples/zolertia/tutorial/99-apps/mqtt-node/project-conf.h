@@ -73,6 +73,7 @@
 /* Alternate between ANTENNA_SW_SELECT_SUBGHZ or ANTENNA_SW_SELECT_2_4GHZ */
 #define ANTENNA_SW_SELECT_DEF_CONF    ANTENNA_SW_SELECT_2_4GHZ
 
+/* Use nullrdc_driver to disable RDC, or contikimac_driver to enable */
 #define NETSTACK_CONF_RDC             nullrdc_driver
 
 #define COFFEE_MAGIC_WORD             0xABCD
@@ -110,6 +111,27 @@
 #undef NETSTACK_CONF_LLSEC
 #define NETSTACK_CONF_LLSEC nullsec_driver
 #endif
+
+/* Size optimizations */
+/* Disabling printf saves 16 bytes */
+#define DISABLE_PRINTF                      0
+#if DISABLE_PRINTF
+#define UART_CONF_ENABLE                    0
+#define STARTUP_CONF_VERBOSE                0
+#define DEBUG_PLATFORM                      0
+#define DEBUG_APP                           0
+#define DEBUG_CLIENT                        0
+#else /* DISABLE_PRINTF */
+#define UART_CONF_ENABLE                    1
+#define STARTUP_CONF_VERBOSE                1
+#define DEBUG_PLATFORM                      0
+#define DEBUG_APP                           0
+#define DEBUG_CLIENT                        1
+#endif /* DISABLE_PRINTF */
+
+#define APP_BUFFER_SIZE                     512
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        10
+#define UIP_CONF_MAX_ROUTES                 10
 
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

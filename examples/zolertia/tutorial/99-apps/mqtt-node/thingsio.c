@@ -47,8 +47,7 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
-#if DEBUG
+#if DEBUG_PLATFORM
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -60,7 +59,6 @@
 /* Lenght of the `{"key":"` substring in the publication handler */
 #define MQTT_THINGSIO_KEYVAR_LEN      9
 /*---------------------------------------------------------------------------*/
-#define APP_BUFFER_SIZE 512
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
