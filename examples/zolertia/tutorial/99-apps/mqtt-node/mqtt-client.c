@@ -382,6 +382,7 @@ connect_to_broker(void)
   /* Connect to MQTT server */
   mqtt_connect(&conn, MQTT_DEMO_BROKER_IP_ADDR, DEFAULT_BROKER_PORT,
                conf.pub_interval_check * 3);
+  connect_attempt = 0;
   state = STATE_CONNECTING;
   PRINTF("Client: Connecting");
 }
@@ -427,12 +428,21 @@ state_machine(void)
   case STATE_CONNECTING:
     leds_on(STATUS_LED);
     ctimer_set(&ct, CONNECTING_LED_DURATION, publish_led_off, NULL);
-    /* Not connected yet. Wait */
-    printf(".");
-    break;
+    connect_attempt++;
+
+    if(connect_attempt < CONNECT_MAX_WAITING_PERIOD ||
+       RECONNECT_ATTEMPTS == RETRY_FOREVER) {
+      /* Not connected yet. Wait */
+      printf(".");
+      break;
+    } else {
+      connect_attempt = 0;
+      state = STATE_DISCONNECTED;
+    }
 
   case STATE_CONNECTED:
     /* Notice there's no "break" here, it will continue to subscribe */
+    connect_attempt = 0;
 
   case STATE_PUBLISHING:
     /* If the timer expired, the connection is stable. */

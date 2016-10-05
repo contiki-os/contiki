@@ -63,6 +63,10 @@
 
 /* Maximum number of connection attempts after a disconnection */
 #define RECONNECT_ATTEMPTS_CONF       10
+
+/* Maximum waiting period after attempting to connect to the Broken */
+#define CONNECT_MAX_WAITING_PERIOD    50
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration, saved
