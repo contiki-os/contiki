@@ -109,6 +109,16 @@ bool i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
                           uint8_t rlen);
 
 /**
+ * \brief Write one byte and read len bytes in one operation
+ * \param wdata The byte to be written
+ * \param buf Pointer to the buffer where the read data will be stored
+ * \param len Number of bytes to read
+ * \return True on success
+ */
+bool
+i2c_write_single_read_multi(uint8_t wdata, uint8_t *buf, uint8_t len);
+
+/**
  * \brief Enables the I2C peripheral with defaults
  *
  * This function is called to wakeup and initialise the I2C.

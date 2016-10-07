@@ -297,6 +297,12 @@ i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   return success;
 }
 /*---------------------------------------------------------------------------*/
+bool
+i2c_write_single_read_multi(uint8_t wdata, uint8_t *buf, uint8_t len)
+{
+  return i2c_write_read(&wdata, 1, buf, len);
+}
+/*---------------------------------------------------------------------------*/
 void
 i2c_select(uint32_t new_pin_sda,
                  uint32_t new_pin_scl,
