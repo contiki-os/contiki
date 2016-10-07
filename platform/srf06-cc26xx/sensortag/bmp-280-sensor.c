@@ -41,7 +41,7 @@
 #include "bmp-280-sensor.h"
 #include "sys/ctimer.h"
 #include "sensor-common.h"
-#include "board-i2c.h"
+#include "common/i2c.h"
 #include "ti-lib.h"
 
 #include <stdint.h>
@@ -151,7 +151,8 @@ static void
 select_on_bus(void)
 {
   /* Set up I2C */
-  board_i2c_select(BOARD_I2C_INTERFACE_0, BMP280_I2C_ADDRESS);
+  i2c_select(BOARD_IOID_SDA, BOARD_IOID_SCL, BMP280_I2C_ADDRESS,
+             I2C_SPEED_FAST, I2C_PULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
 /**

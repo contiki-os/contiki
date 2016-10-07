@@ -29,25 +29,43 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-i2c
+ * \author Andreas Urke <arurke@gmail.com>
+ *
+ * \addtogroup cc26xx-cc13xx-i2c
  * @{
  *
+ *
  * \file
- * Board-specific I2C driver for the Sensortag-CC26xx
+ * Generic I2C driver for cc26xx/13xx
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
 #include "ti-lib.h"
-#include "board-i2c.h"
+#include "i2c.h"
 #include "lpm.h"
 
 #include <string.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define NO_INTERFACE 0xFF
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
-static uint8_t slave_addr = 0x00;
-static uint8_t interface = NO_INTERFACE;
+#define I2C_PIN_NOT_SET           IOID_UNUSED
+#define I2C_SLAVE_ADDRESS_NOT_SET 0x00
+#define I2C_PIN_PULL_NOT_SET      0x00
+#define I2C_DEFAULT_SPEED         I2C_SPEED_FAST
+/*---------------------------------------------------------------------------*/
+static uint8_t selected_slave_addr = I2C_SLAVE_ADDRESS_NOT_SET;
+static uint32_t selected_pin_sda = I2C_PIN_NOT_SET;
+static uint32_t selected_pin_scl = I2C_PIN_NOT_SET;
+static bool selected_speed = I2C_DEFAULT_SPEED;
+static uint32_t selected_pin_pull = I2C_PIN_PULL_NOT_SET;
+
 /*---------------------------------------------------------------------------*/
 static bool
 accessible(void)
@@ -67,8 +85,9 @@ accessible(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-board_i2c_wakeup()
+i2c_wakeup()
 {
+  PRINTF("I2C: Waking up\n");
   /* First, make sure the SERIAL PD is on */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_SERIAL);
   while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
@@ -81,7 +100,7 @@ board_i2c_wakeup()
 
   /* Enable and initialize the I2C master module */
   ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
-                                 true);
+                                 selected_speed);
 }
 /*---------------------------------------------------------------------------*/
 static bool
@@ -98,9 +117,11 @@ i2c_status()
 }
 /*---------------------------------------------------------------------------*/
 void
-board_i2c_shutdown()
+i2c_shutdown()
 {
-  interface = NO_INTERFACE;
+  //PRINTF("I2C: Shutting down\n");
+  /* If selected, deselect first */
+  i2c_deselect();
 
   if(accessible()) {
     ti_lib_i2c_master_disable(I2C0_BASE);
@@ -109,33 +130,16 @@ board_i2c_shutdown()
   ti_lib_prcm_peripheral_run_disable(PRCM_PERIPH_I2C0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
-
-  /*
-   * Set all pins to GPIO Input and disable the output driver. Set internal
-   * pull to match external pull
-   *
-   * SDA and SCL: external PU resistor
-   * SDA HP and SCL HP: MPU PWR low
-   */
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA_HP, IOC_IOPULL_DOWN);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL_HP, IOC_IOPULL_DOWN);
-
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_IOPULL_UP);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_IOPULL_UP);
 }
 /*---------------------------------------------------------------------------*/
 bool
-board_i2c_write(uint8_t *data, uint8_t len)
+i2c_write(uint8_t *data, uint8_t len)
 {
   uint32_t i;
   bool success;
 
   /* Write slave address */
-  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, false);
+  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, selected_slave_addr, false);
 
   /* Write first byte */
   ti_lib_i2c_master_data_put(I2C0_BASE, data[0]);
@@ -172,10 +176,10 @@ board_i2c_write(uint8_t *data, uint8_t len)
 }
 /*---------------------------------------------------------------------------*/
 bool
-board_i2c_write_single(uint8_t data)
+i2c_write_single(uint8_t data)
 {
   /* Write slave address */
-  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, false);
+  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, selected_slave_addr, false);
 
   /* Write first byte */
   ti_lib_i2c_master_data_put(I2C0_BASE, data);
@@ -191,13 +195,13 @@ board_i2c_write_single(uint8_t data)
 }
 /*---------------------------------------------------------------------------*/
 bool
-board_i2c_read(uint8_t *data, uint8_t len)
+i2c_read(uint8_t *data, uint8_t len)
 {
   uint8_t i;
   bool success;
 
   /* Set slave address */
-  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, true);
+  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, selected_slave_addr, true);
 
   /* Check if another master has access */
   while(ti_lib_i2c_master_bus_busy(I2C0_BASE));
@@ -231,13 +235,13 @@ board_i2c_read(uint8_t *data, uint8_t len)
 }
 /*---------------------------------------------------------------------------*/
 bool
-board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
+i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
 {
   uint32_t i;
   bool success;
 
   /* Set slave address for write */
-  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, false);
+  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, selected_slave_addr, false);
 
   /* Write first byte */
   ti_lib_i2c_master_data_put(I2C0_BASE, wdata[0]);
@@ -264,7 +268,7 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   }
 
   /* Set slave address for read */
-  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, true);
+  ti_lib_i2c_master_slave_addr_set(I2C0_BASE, selected_slave_addr, true);
 
   /* Assert ACK */
   ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
@@ -294,36 +298,72 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
 }
 /*---------------------------------------------------------------------------*/
 void
-board_i2c_select(uint8_t new_interface, uint8_t address)
+i2c_select(uint32_t new_pin_sda,
+                 uint32_t new_pin_scl,
+                 uint8_t new_slave_address,
+                 bool new_speed,
+                 uint32_t new_pin_pull)
 {
-  slave_addr = address;
+  PRINTF("I2C: Selecting: sda: %lu, scl: %lu, addr: %x, speed: %d,pull: %lu\n",
+         new_pin_sda, new_pin_scl, new_slave_address, new_speed, new_pin_pull);
 
   if(accessible() == false) {
-    board_i2c_wakeup();
+    i2c_wakeup();
   }
 
-  if(new_interface != interface) {
-    interface = new_interface;
+  /* Configure for new values only */
+  if(new_pin_sda != selected_pin_sda ||
+      new_pin_scl != selected_pin_scl ||
+      new_speed != selected_speed) {
+
+    /* If already selected, deselect first */
+    i2c_deselect();
 
     ti_lib_i2c_master_disable(I2C0_BASE);
 
-    if(interface == BOARD_I2C_INTERFACE_0) {
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_NO_IOPULL);
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_NO_IOPULL);
-      ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA, BOARD_IOID_SCL);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA_HP);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL_HP);
-    } else if(interface == BOARD_I2C_INTERFACE_1) {
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA_HP, IOC_NO_IOPULL);
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL_HP, IOC_NO_IOPULL);
-      ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA_HP, BOARD_IOID_SCL_HP);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL);
-    }
+    ti_lib_ioc_io_port_pull_set(new_pin_sda, IOC_NO_IOPULL);
+    ti_lib_ioc_io_port_pull_set(new_pin_scl, IOC_NO_IOPULL);
+    ti_lib_ioc_pin_type_i2c(I2C0_BASE, new_pin_sda, new_pin_scl);
 
     /* Enable and initialize the I2C master module */
     ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
-                                   true);
+                                   new_speed);
+  }
+
+  selected_pin_sda = new_pin_sda;
+  selected_pin_scl = new_pin_scl;
+  selected_speed = new_speed;
+  selected_slave_addr = new_slave_address;
+  selected_pin_pull = new_pin_pull;
+}
+/*---------------------------------------------------------------------------*/
+void
+i2c_deselect()
+{
+  /* Deselect only if selected */
+  if(selected_pin_sda != I2C_PIN_NOT_SET ||
+      selected_pin_scl != I2C_PIN_NOT_SET) {
+
+    PRINTF("I2C: Deselecting sda: %lu, scl: %lu, addr: %x\n",
+           selected_pin_sda, selected_pin_scl, selected_slave_addr);
+
+    if(accessible()) {
+      ti_lib_i2c_master_disable(I2C0_BASE);
+    }
+
+    /*
+     * Set pins to GPIO Input and disable the output driver. Set pull
+     * to selected_pin_pull
+     */
+    ti_lib_ioc_io_port_pull_set(selected_pin_sda, selected_pin_pull);
+    ti_lib_ioc_io_port_pull_set(selected_pin_scl, selected_pin_pull);
+    ti_lib_ioc_pin_type_gpio_input(selected_pin_sda);
+    ti_lib_ioc_pin_type_gpio_input(selected_pin_scl);
+
+    selected_pin_sda = I2C_PIN_NOT_SET;
+    selected_pin_scl = I2C_PIN_NOT_SET;
+    selected_speed = I2C_DEFAULT_SPEED;
+    selected_slave_addr = I2C_SLAVE_ADDRESS_NOT_SET;
   }
 }
 /*---------------------------------------------------------------------------*/

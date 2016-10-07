@@ -37,7 +37,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "sensor-common.h"
-#include "board-i2c.h"
+#include "common/i2c.h"
 /*---------------------------------------------------------------------------*/
 /* Data to use when an error occurs */
 #define ERROR_DATA                         0xCC
@@ -47,7 +47,7 @@ static uint8_t buffer[32];
 bool
 sensor_common_read_reg(uint8_t addr, uint8_t *buf, uint8_t len)
 {
-  return board_i2c_write_read(&addr, 1, buf, len);
+  return i2c_write_read(&addr, 1, buf, len);
 }
 /*---------------------------------------------------------------------------*/
 bool
@@ -64,7 +64,7 @@ sensor_common_write_reg(uint8_t addr, uint8_t *buf, uint8_t len)
   len++;
 
   /* Send data */
-  return board_i2c_write(buffer, len);
+  return i2c_write(buffer, len);
 }
 /*---------------------------------------------------------------------------*/
 void

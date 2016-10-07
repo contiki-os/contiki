@@ -41,8 +41,7 @@
 #include "mpu-9250-sensor.h"
 #include "sys/rtimer.h"
 #include "sensor-common.h"
-#include "board-i2c.h"
-
+#include "common/i2c.h"
 #include "ti-lib.h"
 
 #include <stdint.h>
@@ -200,8 +199,10 @@
 #define MPU_MOVEMENT      0x40
 /*---------------------------------------------------------------------------*/
 /* Sensor selection/deselection */
-#define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_1, SENSOR_I2C_ADDRESS)
-#define SENSOR_DESELECT()   board_i2c_deselect()
+#define SENSOR_SELECT()   i2c_select(BOARD_IOID_SDA_HP, BOARD_IOID_SCL_HP, \
+                                     SENSOR_I2C_ADDRESS, \
+                                     I2C_SPEED_FAST, I2C_PULL_UP)
+#define SENSOR_DESELECT() i2c_deselect()
 /*---------------------------------------------------------------------------*/
 /* Delay */
 #define delay_ms(i) (ti_lib_cpu_delay(8000 * (i)))

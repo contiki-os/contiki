@@ -29,44 +29,50 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
+ * \author Andreas Urke <arurke@gmail.com>
  *
- * \defgroup sensortag-cc26xx-i2c SensorTag 2.0 I2C functions
+ * \defgroup cc26xx-cc13xx-i2c cc26xx/cc13xx Generic I2C functions
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx I2C Driver
+ * Header file for the generic cc26xx/cc13xx I2C Driver
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BOARD_I2C_H_
-#define BOARD_I2C_H_
+#ifndef I2C_H_
+#define I2C_H_
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define BOARD_I2C_INTERFACE_0     0
-#define BOARD_I2C_INTERFACE_1     1
+#define I2C_SPEED_NORMAL      false
+#define I2C_SPEED_FAST        true
+#define I2C_PULL_DOWN         IOC_IOPULL_DOWN
+#define I2C_PULL_UP           IOC_IOPULL_UP
+#define I2C_PULL_NO_PULL      IOC_NO_IOPULL
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Put the I2C controller in a known state
+ * \brief Deselect I2C slave
  *
- * In this state, pins SDA and SCL will be under i2c control and pins SDA HP
- * and SCL HP will be configured as gpio inputs. This is equal to selecting
- * BOARD_I2C_INTERFACE_0, but without selecting a slave device address
+ * Sets selected pins to GPIO input and internal pull to configured pull.
+ * This is also called by i2c_shutdown(). Should be called by user
+ * after done with I2C read/write operations.
  */
-#define board_i2c_deselect() board_i2c_select(BOARD_I2C_INTERFACE_0, 0)
+void i2c_deselect();
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Select an I2C slave
- * \param interface The I2C interface to be used (BOARD_I2C_INTERFACE_0 or _1)
- * \param slave_addr The slave's address
+ * \param new_pin_sda SDA pin IOID
+ * \param new_pin_scl SCL pin IOID
+ * \param new_slave_address The slave's address
+ * \param new_speed I2C speed, I2C_SPEED_NORMAL or I2C_SPEED_FAST
+ * \param new_pin_pull SCL & SDA pin internal pull to set at deselect/shutdown
+ *                     , valid values I2C_PULL_DOWN/UP/NO_PULL
  *
- * The various sensors on the sensortag are connected either on interface 0 or
- * 1. All sensors are connected to interface 0, with the exception of the MPU
- * that is connected to 1.
+ * Must be called before read/write commands
  */
-void board_i2c_select(uint8_t interface, uint8_t slave_addr);
+void i2c_select(uint32_t new_pin_sda, uint32_t new_pin_scl,
+                      uint8_t new_slave_address, bool new_speed,
+                      uint32_t new_pin_pull);
 
 /**
  * \brief Burst read from an I2C device
@@ -74,7 +80,7 @@ void board_i2c_select(uint8_t interface, uint8_t slave_addr);
  * \param len Number of bytes to read
  * \return True on success
  */
-bool board_i2c_read(uint8_t *buf, uint8_t len);
+bool i2c_read(uint8_t *buf, uint8_t len);
 
 /**
  * \brief Burst write to an I2C device
@@ -82,14 +88,14 @@ bool board_i2c_read(uint8_t *buf, uint8_t len);
  * \param len Number of bytes to write
  * \return True on success
  */
-bool board_i2c_write(uint8_t *buf, uint8_t len);
+bool i2c_write(uint8_t *buf, uint8_t len);
 
 /**
  * \brief Single write to an I2C device
  * \param data The byte to write
  * \return True on success
  */
-bool board_i2c_write_single(uint8_t data);
+bool i2c_write_single(uint8_t data);
 
 /**
  * \brief Write and read in one operation
@@ -99,7 +105,7 @@ bool board_i2c_write_single(uint8_t data);
  * \param rlen Number of bytes to read
  * \return True on success
  */
-bool board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
+bool i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
                           uint8_t rlen);
 
 /**
@@ -108,12 +114,12 @@ bool board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
  * This function is called to wakeup and initialise the I2C.
  *
  * This function can be called explicitly, but it will also be called
- * automatically by board_i2c_select() when required. One of those two
+ * automatically by i2c_select() when required. One of those two
  * functions MUST be called before any other I2C operation after a chip
- * sleep / wakeup cycle or after a call to board_i2c_shutdown(). Failing to do
+ * sleep / wakeup cycle or after a call to i2c_shutdown(). Failing to do
  * so will lead to a bus fault.
  */
-void board_i2c_wakeup(void);
+void i2c_wakeup(void);
 
 /**
  * \brief Stops the I2C peripheral and restores pins to s/w control
@@ -121,11 +127,10 @@ void board_i2c_wakeup(void);
  * This function is called automatically by the board's LPM logic, but it
  * can also be called explicitly.
  */
-void board_i2c_shutdown(void);
+void i2c_shutdown(void);
 /*---------------------------------------------------------------------------*/
-#endif /* BOARD_I2C_H_ */
+#endif /* I2C_H_ */
 /*---------------------------------------------------------------------------*/
 /**
- * @}
  * @}
  */

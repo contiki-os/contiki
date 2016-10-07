@@ -41,8 +41,7 @@
 #include "lib/sensors.h"
 #include "hdc-1000-sensor.h"
 #include "sensor-common.h"
-#include "board-i2c.h"
-
+#include "common/i2c.h"
 #include "ti-lib.h"
 
 #include <stdint.h>
@@ -76,8 +75,10 @@
 #define HDC1000_VAL_CONFIG         0x1000 /* 14 bit, acquired in sequence */
 
 /* Sensor selection/deselection */
-#define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_0, SENSOR_I2C_ADDRESS)
-#define SENSOR_DESELECT()   board_i2c_deselect()
+#define SENSOR_SELECT()   i2c_select(BOARD_IOID_SDA, BOARD_IOID_SCL, \
+                                     SENSOR_I2C_ADDRESS, \
+                                     I2C_SPEED_FAST, I2C_PULL_DOWN);
+#define SENSOR_DESELECT() i2c_deselect()
 /*---------------------------------------------------------------------------*/
 /* Byte swap of 16-bit register value */
 #define HI_UINT16(a) (((a) >> 8) & 0xFF)
@@ -144,7 +145,7 @@ start(void)
   if(success) {
     SENSOR_SELECT();
 
-    success = board_i2c_write_single(HDC1000_REG_TEMP);
+    success = i2c_write_single(HDC1000_REG_TEMP);
     SENSOR_DESELECT();
   }
 }
@@ -161,7 +162,7 @@ read_data()
   if(success) {
     SENSOR_SELECT();
 
-    success = board_i2c_read((uint8_t *)&data, sizeof(data));
+    success = i2c_read((uint8_t *)&data, sizeof(data));
     SENSOR_DESELECT();
 
     /* Store temperature */

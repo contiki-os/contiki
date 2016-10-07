@@ -42,10 +42,9 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 /*---------------------------------------------------------------------------*/
-#include "board-i2c.h"
-
 #include <stdbool.h>
 #include <stdint.h>
+#include "common/i2c.h"
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Reads a sensor's register over I2C
