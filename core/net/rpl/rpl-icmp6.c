@@ -77,6 +77,11 @@ static void dis_input(void);
 static void dio_input(void);
 static void dao_input(void);
 static void dao_ack_input(void);
+static void dis_secure_input(void);
+static void dio_secure_input(void);
+static void dao_secure_input(void);
+static void dao_ack_secure_input(void);
+static void cc_secure_input(void);
 
 static void dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 				  uint8_t lifetime, uint8_t seq_no);
