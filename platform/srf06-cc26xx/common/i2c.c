@@ -85,7 +85,7 @@ accessible(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-i2c_wakeup()
+i2c_wakeup(void)
 {
   PRINTF("I2C: Waking up\n");
   /* First, make sure the SERIAL PD is on */
@@ -104,7 +104,7 @@ i2c_wakeup()
 }
 /*---------------------------------------------------------------------------*/
 static bool
-i2c_status()
+i2c_status(void)
 {
   uint32_t status;
 
@@ -117,7 +117,7 @@ i2c_status()
 }
 /*---------------------------------------------------------------------------*/
 void
-i2c_shutdown()
+i2c_shutdown(void)
 {
   //PRINTF("I2C: Shutting down\n");
   /* If selected, deselect first */
@@ -344,7 +344,7 @@ i2c_select(uint32_t new_pin_sda,
 }
 /*---------------------------------------------------------------------------*/
 void
-i2c_deselect()
+i2c_deselect(void)
 {
   /* Deselect only if selected */
   if(selected_pin_sda != I2C_PIN_NOT_SET ||

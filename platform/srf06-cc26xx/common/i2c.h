@@ -57,7 +57,7 @@
  * This is also called by i2c_shutdown(). Should be called by user
  * after done with I2C read/write operations.
  */
-void i2c_deselect();
+void i2c_deselect(void);
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Select an I2C slave
@@ -115,8 +115,7 @@ bool i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
  * \param len Number of bytes to read
  * \return True on success
  */
-bool
-i2c_write_single_read_multi(uint8_t wdata, uint8_t *buf, uint8_t len);
+bool i2c_write_single_read_multi(uint8_t wdata, uint8_t *buf, uint8_t len);
 
 /**
  * \brief Enables the I2C peripheral with defaults
