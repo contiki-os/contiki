@@ -147,15 +147,19 @@ set_global_address(void)
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
-/* The choice of server address determines its 6LoPAN header compression.
+/* The choice of server address determines its 6LoWPAN header compression.
  * (Our address will be compressed Mode 3 since it is derived from our link-local address)
  * Obviously the choice made here must also be selected in udp-server.c.
  *
- * For correct Wireshark decoding using a sniffer, add the /64 prefix to the 6LowPAN protocol preferences,
- * e.g. set Context 0 to aaaa::.  At present Wireshark copies Context/128 and then overwrites it.
- * (Setting Context 0 to aaaa::1111:2222:3333:4444 will report a 16 bit compressed address of aaaa::1111:22ff:fe33:xxxx)
+ * For correct Wireshark decoding using a sniffer, add the /64 prefix to the
+ * 6LowPAN protocol preferences,
+ * e.g. set Context 0 to aaaa::. At present Wireshark copies Context/128 and
+ * then overwrites it.
+ * (Setting Context 0 to aaaa::1111:2222:3333:4444 will report a 16 bit
+ * compressed address of aaaa::1111:22ff:fe33:xxxx)
  *
- * Note the IPCMV6 checksum verification depends on the correct uncompressed addresses.
+ * Note the IPCMV6 checksum verification depends on the correct uncompressed
+ * addresses.
  */
  
 #if 0
