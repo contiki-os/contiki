@@ -35,6 +35,8 @@
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
 
+#define HAVE_LOGSCR
+
 #include "6502def.h"
 
 #if (WITH_PFS && !CFS_IMPL)
