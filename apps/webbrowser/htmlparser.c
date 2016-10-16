@@ -410,6 +410,7 @@ parse_tag(void)
     switch_majorstate(s.lastmajorstate);
     break;
   case TAG_BODY:
+    do_word();
     s.majorstate = s.lastmajorstate = MAJORSTATE_BODY;
     break;
   case TAG_IMG:

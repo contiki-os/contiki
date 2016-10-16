@@ -31,7 +31,8 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-CONTIKI_TARGET_SOURCEFILES += exec.c lseek.c pfs.S pfs_remove.S pfs_seek.S pfs_write.S
+CONTIKI_TARGET_SOURCEFILES += exec.c logscr.S lseek.c \
+                              pfs.S pfs-dir.c pfs-dir-asm.S pfs_remove.S pfs_seek.S pfs_write.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
