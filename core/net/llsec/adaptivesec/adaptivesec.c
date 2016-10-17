@@ -315,11 +315,6 @@ input(void)
 {
   struct akes_nbr_entry *entry;
 
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER), &linkaddr_node_addr)) {
-    PRINTF("adaptivesec: frame from ourselves\n");
-    return;
-  }
-
   switch(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE)) {
   case FRAME802154_CMDFRAME:
     cmd_broker_publish();
