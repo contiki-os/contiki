@@ -13,7 +13,8 @@ platform supports two different boards:
 The CPU code, common for both platforms, can be found under `$(CONTIKI)/cpu/cc26xx-cc13xx`.
 The port was developed and tested with CC2650s, but the intention is for it to
 work with the CC2630 as well. Thus, bug reports are welcome for both chips.
-Bear in mind that the CC2630 does not have BLE capability.
+Bear in mind that the CC2630 does not have BLE capability. Similar rules apply
+in terms of CC13xx chips.
 
 This port is only meant to work with 7x7mm chips
 
@@ -185,6 +186,15 @@ then to modify `board.h` in order to cross the RX and TX DIO mappings. (TX to
 the jumper configuration on P408 as discussed in
 [this thread](https://e2e.ti.com/support/wireless_connectivity/f/158/p/411992/1483824#1483824)
 on E2E. For this to work, you need to set `BOARD_CONF_DEBUGGER_DEVPACK` to 0.
+
+IEEE vs Sub-GHz operation
+=========================
+The platform supports both modes of operation, provided the chip also has the
+respective capability. If you specify nothing, the platform will default to
+Sub-GHz mode for CC13xx devices, IEEE mode otherwise. To force IEEE mode, you
+need to add this line to your `project-conf.h`.
+
+    #define CC13XX_CONF_PROP_MODE 0
 
 Low Power Operation
 ===================
