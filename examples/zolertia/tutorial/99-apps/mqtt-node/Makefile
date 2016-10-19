@@ -36,9 +36,16 @@ ifeq ($(MQTT_SENSORS), fridge)
   CFLAGS += -DDEFAULT_SENSORS_NUM=2
 endif
 
+ifeq ($(MQTT_SENSORS), coldchain)
+  PROJECT_SOURCEFILES += coldchain.c
+  CONTIKI_TARGET_SOURCEFILES += dht22.c tsl256x.c
+  CFLAGS += -DMQTT_SENSORS="coldchain"
+  CFLAGS += -DDEFAULT_SENSORS_NUM=3
+endif
+
 ifeq ($(MQTT_SENSORS), agriculture)
   PROJECT_SOURCEFILES += agriculture.c
-  CONTIKI_TARGET_SOURCEFILES += sht25.c tsl2563.c bmpx8x.c
+  CONTIKI_TARGET_SOURCEFILES += sht25.c tsl256x.c bmpx8x.c
   CFLAGS += -DMQTT_SENSORS="agriculture"
   CFLAGS += -DDEFAULT_SENSORS_NUM=4
 endif
