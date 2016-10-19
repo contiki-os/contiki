@@ -817,7 +817,11 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     rpl_set_preferred_parent(instance->current_dag, NULL);
     if(RPL_IS_STORING(instance) && last_parent != NULL) {
       /* Send a No-Path DAO to the removed preferred parent. */
+#if RPL_SECURE
+      dao_sec_output(last_parent, RPL_ZERO_LIFETIME);
+#else
       dao_output(last_parent, RPL_ZERO_LIFETIME);
+#endif
     }
     return NULL;
   }
@@ -829,7 +833,11 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     RPL_STAT(rpl_stats.parent_switch++);
     if(RPL_IS_STORING(instance) && last_parent != NULL) {
       /* Send a No-Path DAO to the removed preferred parent. */
+#if RPL_SECURE
+      dao_sec_output(last_parent, RPL_ZERO_LIFETIME);
+#else
       dao_output(last_parent, RPL_ZERO_LIFETIME);
+#endif
     }
     /* The DAO parent set changed - schedule a DAO transmission. */
     RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
@@ -954,7 +962,11 @@ rpl_nullify_parent(rpl_parent_t *parent)
       /* Send No-Path DAO only when nullifying preferred parent */
       if(parent == dag->preferred_parent) {
         if(RPL_IS_STORING(dag->instance)) {
+#if RPL_SECURE
+          dao_sec_output(parent, RPL_ZERO_LIFETIME);
+#else
           dao_output(parent, RPL_ZERO_LIFETIME);
+#endif
         }
         rpl_set_preferred_parent(dag, NULL);
       }

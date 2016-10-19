@@ -338,4 +338,23 @@
 #define RPL_DIS_START_DELAY             5
 #endif
 
+/*
+ * RPL Security
+ */
+#ifdef RPL_CONF_SECURITY
+#define RPL_SECURITY 					RPL_CONF_SECURITY
+#else	/* Not enabled by user, disable security */
+#define RPL_SECURITY					0
+#endif
+
+/*
+ * RPL Pre-installed key for Secure Mode
+ */
+#ifdef RPL_SECURITY_CONF_K
+#define RPL_SECURITY_K RPL_SECURITY_CONF_K
+#else
+#define RPL_SECURITY_K { 0x36, 0x54, 0x69, 0x53, 0x43, 0x48, 0x20, 0x6D, 0x69, 0x6E, 0x69, 0x6D, 0x61, 0x6C, 0x31, 0x35 }
+#endif
+
+
 #endif /* RPL_CONF_H */

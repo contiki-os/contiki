@@ -56,6 +56,12 @@
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "random.h"
 
+/* Security Libraries for CCM with CBC-MAC */
+#if RPL_SECURITY
+#include "lib/ccm-star.h"
+#include "lib/aes-128.h"
+#endif
+
 #include <limits.h>
 #include <string.h>
 
@@ -73,15 +79,17 @@
 #define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ICMP_PAYLOAD ((unsigned char *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 /*---------------------------------------------------------------------------*/
+
 static void dis_input(void);
 static void dio_input(void);
 static void dao_input(void);
 static void dao_ack_input(void);
-static void dis_secure_input(void);
-static void dio_secure_input(void);
-static void dao_secure_input(void);
-static void dao_ack_secure_input(void);
-static void cc_secure_input(void);
+static void dis_sec_input(void);
+static void dio_sec_input(void);
+static void dao_sec_input(void);
+static void dao_ack_sec_input(void);
+static void cc_input(void);
+
 
 static void dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 				  uint8_t lifetime, uint8_t seq_no);
@@ -101,11 +109,19 @@ static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
-/* Initialise RPL ICMPv6 message handlers */
+/* Initialize RPL ICMPv6 message handlers */
+#if RPL_SECURITY
+UIP_ICMP6_HANDLER(dis_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DIS, dis_sec_input);
+UIP_ICMP6_HANDLER(dio_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DIO, dio_sec_input);
+UIP_ICMP6_HANDLER(dao_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DAO, dao_sec_input);
+UIP_ICMP6_HANDLER(dao_ack_sec_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_sec_input);
+UIP_ICMP6_HANDLER(cc_handler, ICMP6_RPL, RPL_CODE_CC, cc_input)
+#else
 UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
 UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
 UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
 UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
+#endif
 /*---------------------------------------------------------------------------*/
 
 #if RPL_WITH_DAO_ACK
@@ -287,6 +303,25 @@ dis_output(uip_ipaddr_t *addr)
   PRINTF("\n");
 
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
+}
+/*---------------------------------------------------------------------------*/
+static void
+dis_sec_output(uip_ipaddr_t *addr)
+{
+
+	/*	 RPL Security Section
+	 *   0 					 1 					 2 					 3
+	 *	 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|T|   Reserved  |   Algorithm   |KIM|Resvd| LVL |    Flags      |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	| 						    Counter 					        |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	| 															    |
+	 *	. 						 Key Identifier 				        .
+	 *	. 															    .
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1370,10 +1405,18 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 void
 rpl_icmp6_register_handlers()
 {
+#ifndef RPL_SEC_MESSAGES	/* Unsecure RPL messages */
   uip_icmp6_register_input_handler(&dis_handler);
   uip_icmp6_register_input_handler(&dio_handler);
   uip_icmp6_register_input_handler(&dao_handler);
   uip_icmp6_register_input_handler(&dao_ack_handler);
+#else	/* Secure RPL messages */
+  uip_icmp6_register_input_handler(&dis_sec_handler);
+  uip_icmp6_register_input_handler(&dio_sec_handler);
+  uip_icmp6_register_input_handler(&dao_sec_handler);
+  uip_icmp6_register_input_handler(&dao_ack_sec_handler);
+  uip_icmp6_register_input_handler(&cc_handler);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 

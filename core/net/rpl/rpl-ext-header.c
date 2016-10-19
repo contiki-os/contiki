@@ -48,7 +48,6 @@
 #include "net/ip/tcpip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
-#include "net/rpl/rpl-ns.h"
 #include "net/packetbuf.h"
 
 #define DEBUG DEBUG_NONE
@@ -513,7 +512,11 @@ update_hbh_header(void)
           PRINTF("RPL generate No-Path DAO\n");
           parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
           if(parent != NULL) {
+#if RPL_SECURE
+        	dao_sec_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
+#else
             dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
+#endif
           }
           /* Drop packet */
           return 0;

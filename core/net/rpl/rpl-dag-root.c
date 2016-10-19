@@ -244,7 +244,11 @@ rpl_dag_root_init_dag(void)
   to_become_root = 1;
 
   /* Send a DIS packet to request RPL info from neighbors. */
+#if RPL_SECURE
+  dis_sec_output(NULL);
+#else
   dis_output(NULL);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 int

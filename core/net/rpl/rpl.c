@@ -93,7 +93,11 @@ rpl_set_mode(enum rpl_mode m)
     if(default_instance != NULL) {
       PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
       if(default_instance->current_dag != NULL) {
+#if RPL_SECURE
+        dao_sec_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+#else
         dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+#endif   /* RPL_SECURE */
       }
       rpl_cancel_dao(default_instance);
     } else {
@@ -149,7 +153,11 @@ rpl_purge_routes(void)
       /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
       if(dag->rank != ROOT_RANK(default_instance)) {
         PRINTF(" -> generate No-Path DAO\n");
+#if RPL_SECURE
+        dao_sec_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
+#else
         dao_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
+#endif   /* RPL_SECURE */
         /* Don't schedule more than 1 No-Path DAO, let next iteration handle that */
         return;
       }
