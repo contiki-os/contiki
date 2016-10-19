@@ -5,11 +5,17 @@ all: mqtt-client
 # Platform options: relayr, thingsio, bluemix, ubidots
 MQTT_PLATFORM ?= bluemix
 
-# Sensor options: fridge, agriculture, remote, irrigation
+# Sensor options: fridge, agriculture, remote, irrigation, coldchain
 MQTT_SENSORS  ?= remote
 
+# -----------------------------------------------------------------------------#
 # Don't touch anything below if you don't know what you are doing
+# -----------------------------------------------------------------------------#
 PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
+
+CLOUD_RESOURCES_DIR = ./cloud
+DEVICE_RESOURCES_DIR = ./device
+PROJECTDIRS += $(CLOUD_RESOURCES_DIR) $(DEVICE_RESOURCES_DIR) 
 
 # Platform checks
 ifeq ($(MQTT_PLATFORM), bluemix)

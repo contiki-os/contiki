@@ -34,8 +34,8 @@
 #define __client_include(x) #x
 #define client_include(x) __client_include(x.h)
 /*---------------------------------------------------------------------------*/
-#include client_include(MQTT_PLATFORM)
-#include client_include(MQTT_SENSORS)
+#include client_include(cloud/MQTT_PLATFORM)
+#include client_include(device/MQTT_SENSORS)
 /*---------------------------------------------------------------------------*/
 /* Connection information, this is taken from the platform header file */
 #define MQTT_DEMO_BROKER_IP_ADDR      MQTT_DEMO_CONF_BROKER_IP_ADDR
