@@ -1405,18 +1405,18 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 void
 rpl_icmp6_register_handlers()
 {
-#ifndef RPL_SEC_MESSAGES	/* Unsecure RPL messages */
-  uip_icmp6_register_input_handler(&dis_handler);
-  uip_icmp6_register_input_handler(&dio_handler);
-  uip_icmp6_register_input_handler(&dao_handler);
-  uip_icmp6_register_input_handler(&dao_ack_handler);
-#else	/* Secure RPL messages */
+#if RPL_SECURE
   uip_icmp6_register_input_handler(&dis_sec_handler);
   uip_icmp6_register_input_handler(&dio_sec_handler);
   uip_icmp6_register_input_handler(&dao_sec_handler);
   uip_icmp6_register_input_handler(&dao_ack_sec_handler);
   uip_icmp6_register_input_handler(&cc_handler);
-#endif
+#else
+  uip_icmp6_register_input_handler(&dis_handler);
+  uip_icmp6_register_input_handler(&dio_handler);
+  uip_icmp6_register_input_handler(&dao_handler);
+  uip_icmp6_register_input_handler(&dao_ack_handler);
+#endif   /* RPL_SECURE */
 }
 /*---------------------------------------------------------------------------*/
 
