@@ -64,7 +64,7 @@ extern sensor_values_t coldchain_sensors;
 #define DEFAULT_HUMD_MIN              0
 #define DEFAULT_HUMD_MAX              1000
 #define DEFAULT_LGTH_MIN              0
-#define DEFAULT_LGTH_MAX              65534
+#define DEFAULT_LGTH_MAX              32000
 
 /* Default sensor state and thresholds
  * We are only checking for values over a given threshold (over), to avoid

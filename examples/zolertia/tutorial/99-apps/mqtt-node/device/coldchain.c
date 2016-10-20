@@ -58,11 +58,15 @@ PROCESS(coldchain_sensors_process, "coldchain sensor process");
 static void
 poll_sensors(void)
 {
+  int temp, humd;
+
   /* Poll the temperature, humidity and light sensors */
   coldchain_sensors.sensor[COLDCHAIN_SENSOR_LGHT].value = tsl256x.value(TSL256X_VAL_READ);
 
-  dht22_read_all((int *)&coldchain_sensors.sensor[COLDCHAIN_SENSOR_TEMP].value,
-                 (int *)&coldchain_sensors.sensor[COLDCHAIN_SENSOR_HUMD].value);
+  dht22_read_all(&temp, &humd);
+
+  coldchain_sensors.sensor[COLDCHAIN_SENSOR_TEMP].value = (int16_t)temp;
+  coldchain_sensors.sensor[COLDCHAIN_SENSOR_HUMD].value = (int16_t)humd;
 
   /* Check the sensor values and publish alarms if required, else send the data
    * to any subscriber
@@ -97,7 +101,7 @@ PROCESS_THREAD(coldchain_sensors_process, ev, data)
                        DEFAULT_LGTH_MIN, DEFAULT_PUBLISH_EVENT_LGTH,
                        DEFAULT_PUBLISH_ALARM_LGTH, DEFAULT_SUBSCRIBE_CFG_LGTHTHR,
                        DEFAULT_LGTH_MIN, DEFAULT_LGTH_MAX,
-                       DEFAULT_LGTH_THRESH, DEFAULT_LGTH_THRESL, 0);
+                       DEFAULT_LGTH_THRESH, DEFAULT_LGTH_THRESL, 1);
 
   /* Sanity check */
   if(coldchain_sensors.num != DEFAULT_SENSORS_NUM) {
