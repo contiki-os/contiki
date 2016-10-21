@@ -54,6 +54,7 @@
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-security.h"
+#include "net/mac/tsch/sixtop/sixtop.h"
 #include "net/mac/mac-sequence.h"
 #include "lib/random.h"
 
@@ -217,7 +218,6 @@ tsch_reset(void)
   tsch_set_eb_period(TSCH_EB_PERIOD);
 #endif
 }
-
 /* TSCH keep-alive functions */
 
 /*---------------------------------------------------------------------------*/
@@ -258,6 +258,28 @@ tsch_schedule_keepalive()
       + random_rand() % (tsch_current_ka_timeout / 10);
     ctimer_set(&keepalive_timer, delay, keepalive_send, NULL);
   }
+}
+/*---------------------------------------------------------------------------*/
+int
+ie_input(struct input_packet *current_input)
+{
+  frame802154_t frame;
+  struct ieee802154_ies sixtop_ies;
+  uint8_t ie_len = 0;
+
+  /* Is it a Sixtop IE? Returns 0 if success */
+  if(!(sixtop_is_sixtop_ie(current_input->payload, current_input->len,
+                                &frame, &sixtop_ies))) {
+
+    /* PRINTF("TSCH: Sixtop IE received\n"); */
+
+    /* Sixtop IE Received, parse it. Returns length of IE */
+    ie_len = sixtop_parse_ie(frame.payload, &frame.src_addr);
+  }
+
+  /* Returns length of data, if any
+   * data_len = payload_len - (sixtop_ie_len + ie_descr(2bytes) + FCS(2 bytes)) */
+  return frame.payload_len - (ie_len + 4);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -335,7 +357,6 @@ eb_input(struct input_packet *current_input)
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Process pending input packet(s) */
 static void
@@ -351,6 +372,25 @@ tsch_rx_process_pending()
     int is_eb = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
+    int is_ie = ret
+      && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
+      && frame.fcf.frame_type == FRAME802154_DATAFRAME
+      && frame.fcf.ie_list_present == 1;
+      
+    if(is_ie) {
+      /* IE received (Data may/ maynot be present) */
+
+      /* Save sequence number of Link Request */
+      sixtop_set_seqno(frame.seq);
+
+      /* Check and parse, if it is a Sixtop IE. Returns length of data */
+      uint8_t data_len = ie_input(current_input);
+
+      if(data_len <= 0) {
+        /* Only Sixtop IE present , no data */
+        is_data = 0;
+      }
+    }
 
     if(is_data) {
       /* Skip EBs and other control messages */
@@ -371,7 +411,6 @@ tsch_rx_process_pending()
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Pass sent packets to upper layer */
 static void
@@ -410,7 +449,7 @@ tsch_start_coordinator(void)
   tsch_join_priority = 0;
 
   PRINTF("TSCH: starting as coordinator, PAN ID %x, asn-%x.%lx\n",
-      frame802154_get_pan_id(), current_asn.ms1b, current_asn.ls4b);
+         frame802154_get_pan_id(), current_asn.ms1b, current_asn.ls4b);
 
   /* Start slot operation */
   tsch_slot_operation_sync(RTIMER_NOW(), &current_asn);
@@ -451,11 +490,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
-  
+
 #if LLSEC802154_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
-      input_eb->len - hdrlen - tsch_security_mic_len(&frame),
-      &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
+                                input_eb->len - hdrlen - tsch_security_mic_len(&frame),
+                                &frame, (linkaddr_t *)&frame.src_addr, &current_asn)) {
     PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
@@ -538,9 +577,9 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
           ies.ie_tsch_slotframe_and_link.slotframe_size);
       for(i = 0; i < num_links; i++) {
         tsch_schedule_add_link(sf,
-            ies.ie_tsch_slotframe_and_link.links[i].link_options,
-            LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-            ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
+                               ies.ie_tsch_slotframe_and_link.links[i].link_options,
+                               LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+                               ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
       }
     } else {
       PRINTF("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
@@ -592,7 +631,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   PRINTF("TSCH:! did not associate.\n");
   return 0;
 }
-
 /* Processes and protothreads used by TSCH */
 
 /*---------------------------------------------------------------------------*/
@@ -748,7 +786,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         }
 #endif /* LLSEC802154_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
-            &hdr_len, &tsch_sync_ie_offset);
+                                       &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
@@ -928,9 +966,9 @@ send_packet(mac_callback_t sent, void *ptr)
     p = tsch_queue_add_packet(addr, sent, ptr);
     if(p == NULL) {
       PRINTF("TSCH:! can't send packet to %u with seqno %u, queue %u %u\n",
-          TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
-          packet_count_before,
-          tsch_queue_packet_count(addr));
+             TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+             packet_count_before,
+             tsch_queue_packet_count(addr));
       ret = MAC_TX_ERR;
     } else {
       p->header_len = hdr_len;
