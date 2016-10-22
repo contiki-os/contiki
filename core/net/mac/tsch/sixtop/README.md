@@ -50,8 +50,10 @@ To add 6top to your application, first include the Sixtop module in your Makefil
 
 MODULES += core/net/mac/tsch/sixtop
 
-Also enable the sixtop functionalities in your project-conf.h file
+Also enable the sixtop functionalities in your project-conf.h file with
+
 	#undef TSCH_CONF_WITH_SIXTOP
+	
 	#define TSCH_CONF_WITH_SIXTOP 1
 
 ## **Additional documentation**
