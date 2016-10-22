@@ -291,7 +291,7 @@ dis_output(uip_ipaddr_t *addr)
   int pos;
   int sec_len;
   uint8_t nonce[RPL_NONCE_LENGTH];
-  uint8_t mic_len = 4; 			/* 32-bit MAC length */
+  uint8_t mic_len; 			/* n-byte MAC length */
 
   pos = 0;
   buffer = UIP_ICMP_PAYLOAD;
@@ -312,10 +312,10 @@ dis_output(uip_ipaddr_t *addr)
    *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    */
 
-  buffer[pos++] = 0;     /* T = Reserved = 0 */
-  buffer[pos++] = 0;     /* Algorithm = 0    */
-  buffer[pos++] = 1;     /* KIM = 0, LVL = 1 */
-  buffer[pos++] = 0;     /* Flags */
+  buffer[pos++] = 0;              /* T = Reserved = 0 */
+  buffer[pos++] = 0;              /* Algorithm = 0    */
+  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
+  buffer[pos++] = 0;              /* Flags */
   set32(buffer,pos,my_counter);   /* TODO myCounter */
   pos+=4;
   my_counter++;
@@ -391,15 +391,37 @@ dis_output(uip_ipaddr_t *addr)
   PRINTF("\n");
 
 #if RPL_SECURITY
-  CCM_STAR.aead(nonce,
-		  buffer + sec_len, pos-sec_len,
-		  &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN+UIP_ICMPH_LEN+sec_len,
-		  buffer + pos, mic_len,
-		  1);		/* 1 = Encrypt, 0 = Decrypt */
+  if((RPL_SEC_LVL % 2) == 1){	/* RPL_SEC_LVL odd, ENC-MAC mode */
+	  if(RPL_SEC_LVL == 1){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
+	  CCM_STAR.aead(nonce,
+			  buffer + sec_len, pos-sec_len,
+			  &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN+UIP_ICMPH_LEN+sec_len,
+			  buffer + pos, mic_len,
+			  1);		/* 1 = Encrypt, 0 = Decrypt */
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  if(RPL_SEC_LVL == 0){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
 
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_SEC_DIS, 2);
+	  CCM_STAR.mic(nonce,
+	  			  buffer + sec_len, pos-sec_len,
+	  			  &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN+UIP_ICMPH_LEN+sec_len,
+	  			  buffer + pos, mic_len);
+  }
+
+  pos+=mic_len;
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_SEC_DIS, pos);
 #else
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, pos);
 #endif
 }
 /*---------------------------------------------------------------------------*/

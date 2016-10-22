@@ -356,5 +356,20 @@
 #define RPL_SECURITY_K { 0x36, 0x54, 0x69, 0x53, 0x43, 0x48, 0x20, 0x6D, 0x69, 0x6E, 0x69, 0x6D, 0x61, 0x6C, 0x31, 0x35 }
 #endif
 
+/*
+ * RPL Security Level
+ * KIM = 0 in this implementation
+ * LVL = 0 : MAC-32 mode
+ * LVL = 1 : ENC-MAC-32 mode (default)
+ * LVL = 2 : MAC-64 mode
+ * LVL = 3 : ENC-MAC-64 mode
+ */
+
+#ifdef RPL_SEC_LVL_CONF
+#define RPL_SEC_LVL   RPL_SEC_LVL_CONF
+#else
+#define RPL_SEC_LVL  1
+#endif
+
 
 #endif /* RPL_CONF_H */
