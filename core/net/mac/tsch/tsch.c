@@ -266,7 +266,7 @@ ie_input(struct input_packet *current_input)
     /* PRINTF("TSCH: Sixtop IE received\n"); */
 
     /* Sixtop IE Received, parse it. Returns length of IE */
-    ie_len = sixtop_parse_ie(frame.payload, &frame.src_addr);
+    ie_len = sixtop_parse_ie(frame.payload, (linkaddr_t *)&frame.src_addr);
   }
 
   /* Returns length of data, if any
