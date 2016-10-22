@@ -269,7 +269,7 @@ ie_input(struct input_packet *current_input)
 
   /* Is it a Sixtop IE? Returns 0 if success */
   if(!(sixtop_is_sixtop_ie(current_input->payload, current_input->len,
-                                &frame, &sixtop_ies))) {
+                           &frame, &sixtop_ies))) {
 
     /* PRINTF("TSCH: Sixtop IE received\n"); */
 
@@ -372,11 +372,13 @@ tsch_rx_process_pending()
     int is_eb = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
+
+#if TSCH_WITH_SIXTOP
     int is_ie = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_DATAFRAME
       && frame.fcf.ie_list_present == 1;
-      
+
     if(is_ie) {
       /* IE received (Data may/ maynot be present) */
 
@@ -391,6 +393,7 @@ tsch_rx_process_pending()
         is_data = 0;
       }
     }
+#endif /* TSCH_WITH_SIXTOP */
 
     if(is_data) {
       /* Skip EBs and other control messages */
