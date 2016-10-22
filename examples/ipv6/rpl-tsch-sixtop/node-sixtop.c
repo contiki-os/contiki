@@ -122,10 +122,10 @@ PROCESS_THREAD(node_process, ev, data)
       clock_delay(1000);
       if((added_num_of_links == 1) || (added_num_of_links == 3)) {
         printf("App : Add a link\n");
-        sixtop_add_links(0xffff, 1);
+        sixtop_add_links((linkaddr_t *)0xffff, 1);
       } else if(added_num_of_links == 5) {
         printf("App : Delete a link\n");
-        sixtop_remove_link(0xffff);
+        sixtop_remove_link((linkaddr_t *)0xffff);
       }
       added_num_of_links++;
     }
