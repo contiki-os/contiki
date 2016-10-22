@@ -88,6 +88,10 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS 1
 
+/* Enable Sixtop Implementation */
+#undef TSCH_CONF_WITH_SIXTOP
+#define TSCH_CONF_WITH_SIXTOP 1
+
 /*******************************************************/
 /******************* Configure TSCH ********************/
 /*******************************************************/
