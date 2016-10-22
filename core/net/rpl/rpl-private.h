@@ -340,20 +340,11 @@ extern rpl_instance_t instance_table[];
 extern rpl_instance_t *default_instance;
 
 /* ICMPv6 functions for RPL. */
-#if RPL_SECURITY
-void dis_sec_output(uip_ipaddr_t *addr);
-void dio_sec_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
-void dao_sec_output(rpl_parent_t *, uint8_t lifetime);
-void dao_sec_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
-void dao_ack_sec_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
-void cc_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
-#else
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
-#endif   /* RPL_SECURITY */
 void rpl_icmp6_register_handlers(void);
 uip_ds6_nbr_t *rpl_icmp6_update_nbr_table(uip_ipaddr_t *from,
                                           nbr_table_reason_t r, void *data);

@@ -99,11 +99,7 @@ handle_periodic_timer(void *ptr)
   next_dis++;
   if(dag == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
-#if RPL_SECURE
-    dis_sec_output(NULL);
-#else
     dis_output(NULL);
-#endif   /* RPL_SECURE */
   }
 #endif
   ctimer_reset(&periodic_timer);
@@ -181,13 +177,7 @@ handle_dio_timer(void *ptr)
     if(instance->dio_redundancy != 0 && instance->dio_counter < instance->dio_redundancy) {
 #if RPL_CONF_STATS
       instance->dio_totsend++;
-#endif /* RPL_CONF_STATS */
-#if RPL_SECURE
-      dio_sec_output(instance, NULL);
-#else
       dio_output(instance, NULL);
-#endif   /* RPL_SECURE */
-
     } else {
       PRINTF("RPL: Suppressing DIO transmission (%d >= %d)\n",
              instance->dio_counter, instance->dio_redundancy);
@@ -282,11 +272,7 @@ handle_dao_timer(void *ptr)
   if(instance->current_dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     /* Set the route lifetime to the default value. */
-#if RPL_SECURE
-    dao_sec_output(instance->current_dag->preferred_parent, instance->default_lifetime);
-#else
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
-#endif  /* RPL_SECURE */
 #if RPL_WITH_MULTICAST
     /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
     if(instance->mop == RPL_MOP_STORING_MULTICAST) {
@@ -294,13 +280,8 @@ handle_dao_timer(void *ptr)
       for(i = 0; i < UIP_DS6_MADDR_NB; i++) {
         if(uip_ds6_if.maddr_list[i].isused
             && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)) {
-#if RPL_SECURE
-          dao_sec_output_target(instance->current_dag->preferred_parent,
-              &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
-#else
           dao_output_target(instance->current_dag->preferred_parent,
                         &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
-#endif   /* RPL_SECURE */
         }
       }
 
@@ -309,13 +290,8 @@ handle_dao_timer(void *ptr)
       while(mcast_route != NULL) {
         /* Don't send if it's also our own address, done that already */
         if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
-#if RPL_SECURE
-          dao_sec_output_target(instance->current_dag->preferred_parent,
-                     &mcast_route->group, RPL_MCAST_LIFETIME);
-#else
           dao_output_target(instance->current_dag->preferred_parent,
                                &mcast_route->group, RPL_MCAST_LIFETIME);
-#endif   /* RPL_SECURE */
         }
         mcast_route = list_item_next(mcast_route);
       }
@@ -387,11 +363,7 @@ handle_unicast_dio_timer(void *ptr)
   uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(instance->unicast_dio_target);
 
   if(target_ipaddr != NULL) {
-#if RPL_SECURE
-	  dio_sec_output(instance, target_ipaddr);
-#else
 	  dio_output(instance, target_ipaddr);
-#endif   /* RPL_SECURE */
   }
 }
 /*---------------------------------------------------------------------------*/

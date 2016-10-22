@@ -74,6 +74,7 @@
 #define RPL_DIO_MOP_SHIFT                3
 #define RPL_DIO_MOP_MASK                 0x38
 #define RPL_DIO_PREFERENCE_MASK          0x07
+#define RPL_NONCE_LENGTH				 13
 
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -84,10 +85,6 @@ static void dis_input(void);
 static void dio_input(void);
 static void dao_input(void);
 static void dao_ack_input(void);
-static void dis_sec_input(void);
-static void dio_sec_input(void);
-static void dao_sec_input(void);
-static void dao_ack_sec_input(void);
 static void cc_input(void);
 
 
@@ -103,6 +100,11 @@ void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
 void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
+#if RPL_SECURITY
+static aes_key rpl_key[] = RPL_SECURITY_K;
+static uint32_t my_counter = 0;
+#endif
+
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
 #if RPL_WITH_MULTICAST
@@ -110,18 +112,11 @@ static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Initialize RPL ICMPv6 message handlers */
-#if RPL_SECURITY
-UIP_ICMP6_HANDLER(dis_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DIS, dis_sec_input);
-UIP_ICMP6_HANDLER(dio_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DIO, dio_sec_input);
-UIP_ICMP6_HANDLER(dao_sec_handler, ICMP6_RPL, RPL_CODE_SEC_DAO, dao_sec_input);
-UIP_ICMP6_HANDLER(dao_ack_sec_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_sec_input);
-UIP_ICMP6_HANDLER(cc_handler, ICMP6_RPL, RPL_CODE_CC, cc_input)
-#else
+
 UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
 UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
 UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
 UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
-#endif
 /*---------------------------------------------------------------------------*/
 
 #if RPL_WITH_DAO_ACK
@@ -174,6 +169,19 @@ get_global_addr(uip_ipaddr_t *addr)
     }
   }
   return 0;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set64(uint8_t *buffer, int pos, uint64_t value)
+{
+  buffer[pos++] = value >> 56;
+  buffer[pos++] = (value >> 48) & 0xff;
+  buffer[pos++] = (value >> 40) & 0xff;
+  buffer[pos++] = (value >> 32) & 0xff;
+  buffer[pos++] = (value >> 24) & 0xff;
+  buffer[pos++] = (value >> 16) & 0xff;
+  buffer[pos++] = (value >> 8) & 0xff;
+  buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
 static uint32_t
@@ -280,6 +288,86 @@ dis_output(uip_ipaddr_t *addr)
 {
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
+  int pos;
+  int sec_len;
+  uint8_t nonce[RPL_NONCE_LENGTH];
+  uint8_t mic_len = 4; 			/* 32-bit MAC length */
+
+  pos = 0;
+  buffer = UIP_ICMP_PAYLOAD;
+
+#if RPL_SECURITY
+  /*
+   * Security Section for RPL messages:
+   *     0                   1                   2                   3
+   *	 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *	|T|  Reserved   |   Algorithm   |KIM|Resvd| LVL |     Flags     |
+   *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *	|                            Counter                            |
+   *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *	|                                                               |
+   *	.                        Key Identifier                         .
+   *	.                                                               .
+   *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   */
+
+  buffer[pos++] = 0;     /* T = Reserved = 0 */
+  buffer[pos++] = 0;     /* Algorithm = 0    */
+  buffer[pos++] = 1;     /* KIM = 0, LVL = 1 */
+  buffer[pos++] = 0;     /* Flags */
+  set32(buffer,pos,my_counter);   /* TODO myCounter */
+  pos+=4;
+  my_counter++;
+  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
+
+  sec_len = pos;
+
+  UIP_IP_BUF->vtc = 0x60;
+  UIP_IP_BUF->tcflow = 0;
+  UIP_IP_BUF->flow = 0;
+  UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+  UIP_IP_BUF->ttl = 0;
+  UIP_IP_BUF->len[0] = 0;
+  UIP_IP_BUF->len[1] = 0;
+
+  if(addr == NULL) {
+      uip_create_linklocal_rplnodes_mcast(&tmpaddr);
+      addr = &tmpaddr;
+  }
+
+  memcpy(&UIP_IP_BUF->destipaddr, addr, sizeof(*addr));
+  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+
+  UIP_ICMP_BUF->type = ICMP6_RPL;
+  UIP_ICMP_BUF->icode = RPL_CODE_SEC_DIS;
+  UIP_ICMP_BUF->icmpchksum = 0;
+
+  CCM_STAR.set_key(rpl_key);
+
+  /* RPL CCM Nonce Construction
+   *     0                   1                   2                   3
+   *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *     |                                                               |
+   *     +                     Source Identifier                         +
+   *     |                                                               |
+   *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *     |                          Counter                              |
+   *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *     |KIM|Resvd| LVL |
+   *     +-+-+-+-+-+-+-+-+
+   *
+   */
+
+  set16(nonce, 0, (UIP_IP_BUF->srcipaddr)->u16[3]);
+  set16(nonce, 2, (UIP_IP_BUF->srcipaddr)->u16[2]);
+  set16(nonce, 4, (UIP_IP_BUF->srcipaddr)->u16[1]);
+  set16(nonce, 6, (UIP_IP_BUF->srcipaddr)->u16[0]);
+  set32(nonce, 8, my_counter);
+  nonce[12] = 1;
+
+#endif
 
   /*
    * DAG Information Solicitation  - 2 bytes reserved
@@ -290,8 +378,8 @@ dis_output(uip_ipaddr_t *addr)
    *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    */
 
-  buffer = UIP_ICMP_PAYLOAD;
-  buffer[0] = buffer[1] = 0;
+  buffer[pos++] = 0;
+  buffer[pos++] = 0;
 
   if(addr == NULL) {
     uip_create_linklocal_rplnodes_mcast(&tmpaddr);
@@ -302,26 +390,17 @@ dis_output(uip_ipaddr_t *addr)
   PRINT6ADDR(addr);
   PRINTF("\n");
 
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
-}
-/*---------------------------------------------------------------------------*/
-static void
-dis_sec_output(uip_ipaddr_t *addr)
-{
+#if RPL_SECURITY
+  CCM_STAR.aead(nonce,
+		  buffer + sec_len, pos-sec_len,
+		  &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN+UIP_ICMPH_LEN+sec_len,
+		  buffer + pos, mic_len,
+		  1);		/* 1 = Encrypt, 0 = Decrypt */
 
-	/*	 RPL Security Section
-	 *   0 					 1 					 2 					 3
-	 *	 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|T|   Reserved  |   Algorithm   |KIM|Resvd| LVL |    Flags      |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	| 						    Counter 					        |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	| 															    |
-	 *	. 						 Key Identifier 				        .
-	 *	. 															    .
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 */
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_SEC_DIS, 2);
+#else
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1405,18 +1484,10 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 void
 rpl_icmp6_register_handlers()
 {
-#if RPL_SECURE
-  uip_icmp6_register_input_handler(&dis_sec_handler);
-  uip_icmp6_register_input_handler(&dio_sec_handler);
-  uip_icmp6_register_input_handler(&dao_sec_handler);
-  uip_icmp6_register_input_handler(&dao_ack_sec_handler);
-  uip_icmp6_register_input_handler(&cc_handler);
-#else
   uip_icmp6_register_input_handler(&dis_handler);
   uip_icmp6_register_input_handler(&dio_handler);
   uip_icmp6_register_input_handler(&dao_handler);
   uip_icmp6_register_input_handler(&dao_ack_handler);
-#endif   /* RPL_SECURE */
 }
 /*---------------------------------------------------------------------------*/
 
