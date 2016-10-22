@@ -130,6 +130,13 @@
 #define TSCH_AUTOSELECT_TIME_SOURCE 0
 #endif /* TSCH_CONF_EB_AUTOSELECT */
 
+/* To include Sixtop Implementation */
+#ifdef TSCH_CONF_WITH_SIXTOP
+#define TSCH_WITH_SIXTOP TSCH_CONF_WITH_SIXTOP
+#else
+#define TSCH_WITH_SIXTOP 0
+#endif /* TSCH_CONF_EB_AUTOSELECT */
+
 /*********** Callbacks *********/
 
 /* Called by TSCH when joining a network */
