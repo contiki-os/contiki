@@ -64,7 +64,7 @@
   (var) = ((uint8_t *)(buf))[0] | ((uint8_t *)(buf))[1] << 8
 
 /* Required number of links specified in Link Request IE */
-uint8_t sixtop_request_num_links = 0;
+static uint8_t sixtop_request_num_links = 0;
 /* Sequence Number of Link Request IE */
 static int sixtop_request_seqno = 0;
 /* Sequence Number of Link Response IE */
@@ -92,35 +92,35 @@ sixtop_update_ie(uint8_t *buf, struct ieee802154_ies *ies)
     code = ies->ie_sixtop.version_code >> 4;
 
     switch(code) {
-		  case CMD_ADD:
-		  case CMD_DELETE:
-		    buf[5] = ies->ie_sixtop.num_links;
-		    buf[6] = ies->ie_sixtop.frame_id;
+    case CMD_ADD:
+    case CMD_DELETE:
+      buf[5] = ies->ie_sixtop.num_links;
+      buf[6] = ies->ie_sixtop.frame_id;
 
-		    if(code == CMD_ADD) {
-		      max = SIXTOP_IE_MAX_LINKS;
-		    } else {   /* CMD_DELETE */
-		      max = sixtop_request_num_links;
-		    }
-		    for(i = 0; i < max; i++) {
-		      WRITE16(buf + 7 + i * 4, ies->ie_sixtop.linkList[i].timeslot);
-		      WRITE16(buf + 7 + i * 4 + 2, ies->ie_sixtop.linkList[i].channel_offset);
-		    }
+      if(code == CMD_ADD) {
+        max = SIXTOP_IE_MAX_LINKS;
+      } else {     /* CMD_DELETE */
+        max = sixtop_request_num_links;
+      }
+      for(i = 0; i < max; i++) {
+        WRITE16(buf + 7 + i * 4, ies->ie_sixtop.linkList[i].timeslot);
+        WRITE16(buf + 7 + i * 4 + 2, ies->ie_sixtop.linkList[i].channel_offset);
+      }
 
-		    ie_len = 5 + 4 * max;
-		    break;
+      ie_len = 5 + 4 * max;
+      break;
 
-		  case RC_SUCCESS:   /* Response Code Success */
-		    for(i = 0; i < sixtop_request_num_links; i++) {
-		      WRITE16(buf + 5 + i * 4, ies->ie_sixtop.linkList[i].timeslot);
-		      WRITE16(buf + 5 + i * 4 + 2, ies->ie_sixtop.linkList[i].channel_offset);
-		    }
+    case RC_SUCCESS:     /* Response Code Success */
+      for(i = 0; i < sixtop_request_num_links; i++) {
+        WRITE16(buf + 5 + i * 4, ies->ie_sixtop.linkList[i].timeslot);
+        WRITE16(buf + 5 + i * 4 + 2, ies->ie_sixtop.linkList[i].channel_offset);
+      }
 
-		    ie_len = 3 + 4 * sixtop_request_num_links;
-		    break;
+      ie_len = 3 + 4 * sixtop_request_num_links;
+      break;
 
-		  default:
-		    return -1;
+    default:
+      return -1;
     }
     return ie_len + 2; /* IE_len + IE_descriptor_len */
   } else {
@@ -156,18 +156,18 @@ sixtop_create_ie(uint8_t *buf, linkaddr_t dest_addr, uint8_t code,
 
   /* MAC Header : Sequence Number Field */
   switch(code) {
-		case CMD_ADD:
-		case CMD_DELETE:
-		  p.seq = sixtop_request_seqno;
-		  sixtop_request_seqno++;
-		  break;
+  case CMD_ADD:
+  case CMD_DELETE:
+    p.seq = sixtop_request_seqno;
+    sixtop_request_seqno++;
+    break;
 
-		case RC_SUCCESS:   /* Response Code Success */
-		  p.seq = sixtop_response_seqno;
-		  break;
+  case RC_SUCCESS:     /* Response Code Success */
+    p.seq = sixtop_response_seqno;
+    break;
 
-		default:
-		  break;
+  default:
+    break;
   }
 
   /* MAC Header : PAN ID and Address Fields */
@@ -212,34 +212,34 @@ sixtop_create_ie(uint8_t *buf, linkaddr_t dest_addr, uint8_t code,
   ies.ie_sixtop.schedule_fn_id = schedule_fn_id;
 
   switch(code) {
-		case CMD_ADD:
-		case CMD_DELETE:
-		  if(code == CMD_ADD) {
-		    max = SIXTOP_IE_MAX_LINKS;
-		  } else {
-		    max = 1;
-		  }
+  case CMD_ADD:
+  case CMD_DELETE:
+    if(code == CMD_ADD) {
+      max = SIXTOP_IE_MAX_LINKS;
+    } else {
+      max = 1;
+    }
 
-		  ies.ie_sixtop.frame_id = sf_id;
-		  ies.ie_sixtop.num_links = sixtop_request_num_links;
+    ies.ie_sixtop.frame_id = sf_id;
+    ies.ie_sixtop.num_links = sixtop_request_num_links;
 
-		  for(i = 0; i < max; i++) {
-		    if(sl[i].link_option != LINK_OPTION_OFF) {
-		      ies.ie_sixtop.linkList[i].timeslot = sl[i].timeslot;
-		      ies.ie_sixtop.linkList[i].channel_offset = sl[i].channel_offset;
-		    }
-		  }
-		  break;
+    for(i = 0; i < max; i++) {
+      if(sl[i].link_option != LINK_OPTION_OFF) {
+        ies.ie_sixtop.linkList[i].timeslot = sl[i].timeslot;
+        ies.ie_sixtop.linkList[i].channel_offset = sl[i].channel_offset;
+      }
+    }
+    break;
 
-		case RC_SUCCESS:         /* Response Code Success */
-		  for(i = 0; i < sixtop_request_num_links; i++) {
-		    ies.ie_sixtop.linkList[i].timeslot = sl[i].timeslot;
-		    ies.ie_sixtop.linkList[i].channel_offset = sl[i].channel_offset;
-		  }
-		  break;
+  case RC_SUCCESS:           /* Response Code Success */
+    for(i = 0; i < sixtop_request_num_links; i++) {
+      ies.ie_sixtop.linkList[i].timeslot = sl[i].timeslot;
+      ies.ie_sixtop.linkList[i].channel_offset = sl[i].channel_offset;
+    }
+    break;
 
-		default:
-		  break;
+  default:
+    break;
   }
 
   /* Save a copy of Sixtop IE */
@@ -354,25 +354,25 @@ sixtop_add_links_to_schedule(uint8_t sf_id, struct sixtop_link *sl,
   for(i = 0; i < SIXTOP_IE_MAX_LINKS; i++) {
     if(sl[i].timeslot != 0xFFFF) {
       switch(state) {
-		    case SIXTOP_ADD_RESPONSE_WAIT_SENDDONE:
-		      PRINTF("TSCH-sixtop: Schedule link %d as RX with node %u\n", sl[i].timeslot, previous_hop->u8[7]);
-		      /* Add a TX link to neighbor */
-		      tsch_schedule_add_link(tsch_schedule_get_slotframe_by_handle(sf_id),
-		                             LINK_OPTION_RX, LINK_TYPE_NORMAL, previous_hop,
-		                             sl[i].timeslot, sl[i].channel_offset);
-		      break;
+      case SIXTOP_ADD_RESPONSE_WAIT_SENDDONE:
+        PRINTF("TSCH-sixtop: Schedule link %d as RX with node %u\n", sl[i].timeslot, previous_hop->u8[7]);
+        /* Add a TX link to neighbor */
+        tsch_schedule_add_link(tsch_schedule_get_slotframe_by_handle(sf_id),
+                               LINK_OPTION_RX, LINK_TYPE_NORMAL, previous_hop,
+                               sl[i].timeslot, sl[i].channel_offset);
+        break;
 
-		    case SIXTOP_ADD_RESPONSE_RECEIVED:
-		      PRINTF("TSCH-sixtop: Schedule link %d as TX with node %u\n", sl[i].timeslot, previous_hop->u8[7]);
-		      /* Add a RX link to neighbor */
-		      tsch_schedule_add_link(tsch_schedule_get_slotframe_by_handle(sf_id),
-		                             LINK_OPTION_TX, LINK_TYPE_NORMAL, previous_hop,
-		                             sl[i].timeslot, sl[i].channel_offset);
-		      break;
+      case SIXTOP_ADD_RESPONSE_RECEIVED:
+        PRINTF("TSCH-sixtop: Schedule link %d as TX with node %u\n", sl[i].timeslot, previous_hop->u8[7]);
+        /* Add a RX link to neighbor */
+        tsch_schedule_add_link(tsch_schedule_get_slotframe_by_handle(sf_id),
+                               LINK_OPTION_TX, LINK_TYPE_NORMAL, previous_hop,
+                               sl[i].timeslot, sl[i].channel_offset);
+        break;
 
-		    default:
-		      PRINTF("TSCH-sixtop:! Sixtop_state error\n");
-		      break;
+      default:
+        PRINTF("TSCH-sixtop:! Sixtop_state error\n");
+        break;
       }
 
       num_added_links++;
@@ -406,37 +406,37 @@ sixtop_ie_process_callback(struct ieee802154_ies *ies, linkaddr_t *dest_addr)
   struct sixtop_link sl[SIXTOP_IE_MAX_LINKS];
 
   switch(sixtop_state) {
-		case SIXTOP_ADD_REQUEST_WAIT_SENDDONE:
-		  sixtop_state = SIXTOP_ADD_RESPONSE_WAIT;
-		  break;
+  case SIXTOP_ADD_REQUEST_WAIT_SENDDONE:
+    sixtop_state = SIXTOP_ADD_RESPONSE_WAIT;
+    break;
 
-		case SIXTOP_DELETE_REQUEST_WAIT_SENDDONE:
-		  sixtop_state = SIXTOP_DELETE_RESPONSE_WAIT;
-		  break;
+  case SIXTOP_DELETE_REQUEST_WAIT_SENDDONE:
+    sixtop_state = SIXTOP_DELETE_RESPONSE_WAIT;
+    break;
 
-		case SIXTOP_ADD_RESPONSE_WAIT_SENDDONE:
-		case SIXTOP_DELETE_RESPONSE_WAIT_SENDDONE:
-		  frame_id = ies->ie_sixtop.frame_id;
+  case SIXTOP_ADD_RESPONSE_WAIT_SENDDONE:
+  case SIXTOP_DELETE_RESPONSE_WAIT_SENDDONE:
+    frame_id = ies->ie_sixtop.frame_id;
 
-		  if(sixtop_request_num_links > 0) {
-		    for(i = 0; i < sixtop_request_num_links; i++) {
-		      sl[i].timeslot = ies->ie_sixtop.linkList[i].timeslot;
-		      sl[i].channel_offset = ies->ie_sixtop.linkList[i].channel_offset;
-		    }
-		    if(sixtop_state == SIXTOP_ADD_RESPONSE_WAIT_SENDDONE) {
-		      /* Add links to TSCH schedule */
-		      sixtop_add_links_to_schedule(frame_id, sl, dest_addr, sixtop_state);
-		    } else { /* SIXTOP_DELETE_RESPONSE_WAIT_SENDDONE */
-		      /* Remove links from TSCH schedule */
-		      sixtop_remove_links_from_schedule(frame_id, sl, dest_addr);
-		    }
-		  }
+    if(sixtop_request_num_links > 0) {
+      for(i = 0; i < sixtop_request_num_links; i++) {
+        sl[i].timeslot = ies->ie_sixtop.linkList[i].timeslot;
+        sl[i].channel_offset = ies->ie_sixtop.linkList[i].channel_offset;
+      }
+      if(sixtop_state == SIXTOP_ADD_RESPONSE_WAIT_SENDDONE) {
+        /* Add links to TSCH schedule */
+        sixtop_add_links_to_schedule(frame_id, sl, dest_addr, sixtop_state);
+      } else {   /* SIXTOP_DELETE_RESPONSE_WAIT_SENDDONE */
+        /* Remove links from TSCH schedule */
+        sixtop_remove_links_from_schedule(frame_id, sl, dest_addr);
+      }
+    }
 
-		  break;
+    break;
 
-		default:
-		  /* log error */
-		  break;
+  default:
+    /* log error */
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -651,37 +651,37 @@ sixtop_process_by_code(uint8_t code, struct ieee802154_ies *ies, linkaddr_t *des
   struct sixtop_link sl[SIXTOP_IE_MAX_LINKS];
 
   switch(code) {
-		case CMD_ADD:
-		case CMD_DELETE:
-		  frame_id = ies->ie_sixtop.frame_id;
+  case CMD_ADD:
+  case CMD_DELETE:
+    frame_id = ies->ie_sixtop.frame_id;
 
-		  /* Are the links feasible for addition/deletion. Returns 0 if feasible */
-		  if(!(sixtop_are_links_feasible(code, frame_id, ies->ie_sixtop.linkList))) {
+    /* Are the links feasible for addition/deletion. Returns 0 if feasible */
+    if(!(sixtop_are_links_feasible(code, frame_id, ies->ie_sixtop.linkList))) {
 
-		    PRINTF("TSCH-sixtop: Send Link Response to node %d\n", dest_addr->u8[7]);
-		    /* Links are feasible. Create Link Response packet */
-		    sixtop_create_link_response(code, dest_addr, ies);
-		  }
-		  break;
+      PRINTF("TSCH-sixtop: Send Link Response to node %d\n", dest_addr->u8[7]);
+      /* Links are feasible. Create Link Response packet */
+      sixtop_create_link_response(code, dest_addr, ies);
+    }
+    break;
 
-		case RC_SUCCESS:   /* Response Code Success */
-		  frame_id = req_sf->handle;
+  case RC_SUCCESS:     /* Response Code Success */
+    frame_id = req_sf->handle;
 
-		  for(i = 0; i < sixtop_request_num_links; i++) {
-		    sl[i].timeslot = ies->ie_sixtop.linkList[i].timeslot;
-		    sl[i].channel_offset = ies->ie_sixtop.linkList[i].channel_offset;
-		  }
+    for(i = 0; i < sixtop_request_num_links; i++) {
+      sl[i].timeslot = ies->ie_sixtop.linkList[i].timeslot;
+      sl[i].channel_offset = ies->ie_sixtop.linkList[i].channel_offset;
+    }
 
-		  /* Add/delete links to/from Schedule */
-		  if(sixtop_state == SIXTOP_ADD_RESPONSE_RECEIVED) {
-		    sixtop_add_links_to_schedule(frame_id, sl, dest_addr, sixtop_state);
-		  } else if(sixtop_state == SIXTOP_DELETE_RESPONSE_RECEIVED) {
-		    sixtop_remove_links_from_schedule(frame_id, sl, dest_addr);
-		  }
-		  break;
+    /* Add/delete links to/from Schedule */
+    if(sixtop_state == SIXTOP_ADD_RESPONSE_RECEIVED) {
+      sixtop_add_links_to_schedule(frame_id, sl, dest_addr, sixtop_state);
+    } else if(sixtop_state == SIXTOP_DELETE_RESPONSE_RECEIVED) {
+      sixtop_remove_links_from_schedule(frame_id, sl, dest_addr);
+    }
+    break;
 
-		default:
-		  break;
+  default:
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -707,72 +707,72 @@ sixtop_parse_ie(const uint8_t *buf, linkaddr_t *dest_addr)
     ies.ie_sixtop.schedule_fn_id = buf[6];
 
     switch(code) {
-		  case CMD_ADD:
-		  case CMD_DELETE:
-		    ies.ie_sixtop.num_links = buf[7];
-		    ies.ie_sixtop.frame_id = buf[8];
+    case CMD_ADD:
+    case CMD_DELETE:
+      ies.ie_sixtop.num_links = buf[7];
+      ies.ie_sixtop.frame_id = buf[8];
 
-		    /* Save the number of links specified in Link Request IE */
-		    sixtop_request_num_links = ies.ie_sixtop.num_links;
+      /* Save the number of links specified in Link Request IE */
+      sixtop_request_num_links = ies.ie_sixtop.num_links;
 
-		    if(sixtop_request_num_links == 0) {
-		      PRINTF("TSCH-sixtop:! Requested number of links is zero\n");
-		      return -1;
-		    }
+      if(sixtop_request_num_links == 0) {
+        PRINTF("TSCH-sixtop:! Requested number of links is zero\n");
+        return -1;
+      }
 
-		    if(code == CMD_ADD) {
-		      max = SIXTOP_IE_MAX_LINKS;
-		      PRINTF("TSCH-sixtop: Received a 6P Add Request for %d links from node %d with LinkList : ",
-		             sixtop_request_num_links, dest_addr->u8[7]);
-		    } else {       /* CMD_DELETE */
-		      max = ies.ie_sixtop.num_links;       /* delete atmost one */
-		      PRINTF("TSCH-sixtop: Received a 6P Delete Request for %d links from node %d with LinkList : ",
-		             sixtop_request_num_links, dest_addr->u8[7]);
-		    }
+      if(code == CMD_ADD) {
+        max = SIXTOP_IE_MAX_LINKS;
+        PRINTF("TSCH-sixtop: Received a 6P Add Request for %d links from node %d with LinkList : ",
+               sixtop_request_num_links, dest_addr->u8[7]);
+      } else {         /* CMD_DELETE */
+        max = ies.ie_sixtop.num_links;         /* delete atmost one */
+        PRINTF("TSCH-sixtop: Received a 6P Delete Request for %d links from node %d with LinkList : ",
+               sixtop_request_num_links, dest_addr->u8[7]);
+      }
 
-		    /* Parse the Candidate Link List */
-		    for(i = 0; i < max; i++) {
-		      READ16(buf + 9 + i * 4, ies.ie_sixtop.linkList[i].timeslot);
-		      READ16(buf + 9 + i * 4 + 2, ies.ie_sixtop.linkList[i].channel_offset);
-		      PRINTF("%d ", ies.ie_sixtop.linkList[i].timeslot);
-		    }
-		    PRINTF("\n");
+      /* Parse the Candidate Link List */
+      for(i = 0; i < max; i++) {
+        READ16(buf + 9 + i * 4, ies.ie_sixtop.linkList[i].timeslot);
+        READ16(buf + 9 + i * 4 + 2, ies.ie_sixtop.linkList[i].channel_offset);
+        PRINTF("%d ", ies.ie_sixtop.linkList[i].timeslot);
+      }
+      PRINTF("\n");
 
-		    /* Update the IE length */
-		    ie_len = 9 + (max * 4);
+      /* Update the IE length */
+      ie_len = 9 + (max * 4);
 
-		    /* Process Sixtop IE by code */
-		    sixtop_process_by_code(code, &ies, dest_addr);
+      /* Process Sixtop IE by code */
+      sixtop_process_by_code(code, &ies, dest_addr);
 
-		    break;
+      break;
 
-		  case RC_SUCCESS:       /* Response Code Success */
-		    if(sixtop_state == SIXTOP_ADD_RESPONSE_WAIT) {
-		      PRINTF("TSCH-sixtop: Received a 6P Add Response from node %d with LinkList : ", dest_addr->u8[7]);
-		      sixtop_state = SIXTOP_ADD_RESPONSE_RECEIVED;
-		    } else if(sixtop_state == SIXTOP_DELETE_RESPONSE_WAIT) {
-		      PRINTF("TSCH-sixtop: Received a 6P Delete Response from node %d with LinkList : ", dest_addr->u8[7]);
-		      sixtop_state = SIXTOP_DELETE_RESPONSE_RECEIVED;
-		    }
+    case RC_SUCCESS:         /* Response Code Success */
+      if(sixtop_state == SIXTOP_ADD_RESPONSE_WAIT) {
+        PRINTF("TSCH-sixtop: Received a 6P Add Response from node %d with LinkList : ", dest_addr->u8[7]);
+        sixtop_state = SIXTOP_ADD_RESPONSE_RECEIVED;
+      } else if(sixtop_state == SIXTOP_DELETE_RESPONSE_WAIT) {
+        PRINTF("TSCH-sixtop: Received a 6P Delete Response from node %d with LinkList : ", dest_addr->u8[7]);
+        sixtop_state = SIXTOP_DELETE_RESPONSE_RECEIVED;
+      }
 
-		    /* Parse the Candidate Link List */
-		    for(i = 0; i < sixtop_request_num_links; i++) {
-		      READ16(buf + 7 + i * 4, ies.ie_sixtop.linkList[i].timeslot);
-		      READ16(buf + 7 + i * 4 + 2, ies.ie_sixtop.linkList[i].channel_offset);
-		      PRINTF("%d ", ies.ie_sixtop.linkList[i].timeslot);
-		    }
-		    PRINTF("\n");
+      /* Parse the Candidate Link List */
+      for(i = 0; i < sixtop_request_num_links; i++) {
+        READ16(buf + 7 + i * 4, ies.ie_sixtop.linkList[i].timeslot);
+        READ16(buf + 7 + i * 4 + 2, ies.ie_sixtop.linkList[i].channel_offset);
+        PRINTF("%d ", ies.ie_sixtop.linkList[i].timeslot);
+      }
+      PRINTF("\n");
 
-		    /* Update the IE length */
-		    ie_len = 7 + (sixtop_request_num_links * 4);
+      /* Update the IE length */
+      ie_len = 7 + (sixtop_request_num_links * 4);
 
-		    /* Process Sixtop IE by code */
-		    sixtop_process_by_code(code, &ies, dest_addr);
+      /* Process Sixtop IE by code */
+      sixtop_process_by_code(code, &ies, dest_addr);
 
-		    break;
+      break;
 
-		  default:
-		    break;
+    default:
+      break;
     }
   }
 
