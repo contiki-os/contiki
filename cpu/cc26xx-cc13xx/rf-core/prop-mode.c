@@ -427,6 +427,26 @@ rf_cmd_prop_rx()
   return ret;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init_rx_buffers(void)
+{
+  rfc_dataEntry_t *entry;
+
+  entry = (rfc_dataEntry_t *)rx_buf_0;
+  entry->status = DATA_ENTRY_STATUS_PENDING;
+  entry->config.type = DATA_ENTRY_TYPE_GEN;
+  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
+  entry->length = RX_BUF_SIZE - 8;
+  entry->pNextEntry = rx_buf_1;
+
+  entry = (rfc_dataEntry_t *)rx_buf_1;
+  entry->status = DATA_ENTRY_STATUS_PENDING;
+  entry->config.type = DATA_ENTRY_TYPE_GEN;
+  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
+  entry->length = RX_BUF_SIZE - 8;
+  entry->pNextEntry = rx_buf_0;
+}
+/*---------------------------------------------------------------------------*/
 static int
 rx_on_prop(void)
 {
@@ -564,8 +584,6 @@ static const rf_core_primary_mode_t mode_prop = {
 static int
 init(void)
 {
-  rfc_dataEntry_t *entry;
-
   lpm_register_module(&prop_lpm_module);
 
   if(ti_lib_chipinfo_chip_family_is_cc13xx() == false) {
@@ -577,20 +595,6 @@ init(void)
   /* Initialise RX buffers */
   memset(rx_buf_0, 0, RX_BUF_SIZE);
   memset(rx_buf_1, 0, RX_BUF_SIZE);
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_1;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_0;
 
   /* Set of RF Core data queue. Circular buffer, no last entry */
   rx_data_queue.pCurrEntry = rx_buf_0;
@@ -904,6 +908,8 @@ on(void)
 
   rf_core_setup_interrupts(false);
 
+  init_rx_buffers();
+
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
    * This will block until the XOSC is actually ready, but give how we
@@ -927,8 +933,6 @@ on(void)
 static int
 off(void)
 {
-  rfc_dataEntry_t *entry;
-
   /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
    * from within an interrupt context. Abort, but pretend everything is OK.
@@ -947,12 +951,6 @@ off(void)
 
   /* We pulled the plug, so we need to restore the status manually */
   smartrf_settings_cmd_prop_rx_adv.status = RF_CORE_RADIO_OP_STATUS_IDLE;
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
 
   return RF_CORE_CMD_OK;
 }
