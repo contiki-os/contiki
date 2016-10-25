@@ -86,6 +86,8 @@ typedef struct {
   uint8_t src_pid_len;     /**<  Length (in bytes) of source PAN ID field */
   uint8_t src_addr_len;    /**<  Length (in bytes) of source address field */
   uint8_t aux_sec_len;     /**<  Length (in bytes) of aux security header field */
+  uint8_t gts_fields_len;
+  uint8_t pendingAddr_fields_len;
 } field_length_t;
 
 /*----------------------------------------------------------------------------*/
@@ -322,6 +324,16 @@ field_len(frame802154_t *p, field_length_t *flen)
     ;
   }
 #endif /* LLSEC802154_USES_AUX_HEADER */
+     if(p->fcf.frame_type == FRAME802154_BEACONFRAME){
+	        flen->gts_fields_len = 1;
+		flen->pendingAddr_fields_len=1+p->pendingAddr_fields.spec.numberOfShort*2+p->pendingAddr_fields.spec.numberOfExt*8;
+      }
+      else
+      {
+	   flen->gts_fields_len = 0;
+	   flen->pendingAddr_fields_len = 0;
+      }
+
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -338,8 +350,18 @@ frame802154_hdrlen(frame802154_t *p)
 {
   field_length_t flen;
   field_len(p, &flen);
-  return 2 + flen.seqno_len + flen.dest_pid_len + flen.dest_addr_len +
-         flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len;
+  int len=0;
+  if(p->fcf.frame_type == FRAME802154_CMDFRAME){
+      len+=1;
+  if(p->commandIdentifier == 0x01)
+      len+=1;
+  if(p->commandIdentifier == 0x02)
+      len+=3;
+  }
+  if(p->fcf.frame_type == FRAME802154_BEACONFRAME)
+	len+=2; /*Superframe specification*/
+  return len + 2 + flen.seqno_len + flen.dest_pid_len + flen.dest_addr_len +
+		     flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len + flen.gts_fields_len + flen.pendingAddr_fields_len;
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -436,7 +458,46 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
 #endif /* LLSEC802154_USES_AUX_HEADER */
-
+  if(p->fcf.frame_type == FRAME802154_BEACONFRAME)
+  {
+	buf[pos++] = (p->superframe_spec.beaconOrder & 0xff) | ((p->superframe_spec.superframeOrder << 4) & 0xff);
+	buf[pos++] = (p->superframe_spec.finalCapSlot & 0xff) | (p->superframe_spec.ble << 4) | (p->superframe_spec.reserved << 5) | \
+			(p->superframe_spec.panCoord << 6) | (p->superframe_spec.assocPermit << 7);
+	buf[pos++] = 0x00; /*GTS fields to be implemented.*/
+	buf[pos++] = (p->pendingAddr_fields.spec.numberOfShort & 0xff) | ((p->pendingAddr_fields.spec.numberOfExt << 4) & 0xff);
+	int i;
+	for(i=0; i < p->pendingAddr_fields.spec.numberOfShort; i++)
+	{
+		buf[pos++] = p->pendingAddr_fields.list.shortAddr[i].assignAddr[0];
+		buf[pos++] = p->pendingAddr_fields.list.shortAddr[i].assignAddr[1];
+	}
+	for(i=0; i < p->pendingAddr_fields.spec.numberOfExt; i++)
+	{
+		int j;
+               for(j=7;j>=0;j--)
+		 buf[pos++] = p->pendingAddr_fields.list.extAddr[i].assignAddr[j];
+	}
+  }
+  if(p->fcf.frame_type == FRAME802154_CMDFRAME)
+  {
+	buf[pos++] = p->commandIdentifier & 0xff;
+	if(p->commandIdentifier == 0x02)
+	{
+		buf[pos++]=p->assignedAddr.assignAddr[1];
+		buf[pos++]=p->assignedAddr.assignAddr[0];
+		buf[pos++]=p->assocStatus;
+	}
+	else if(p->commandIdentifier == 0x01) /*Association request*/
+	{
+		buf[pos++] = ((p->capability_info.deviceType & 0xff) << 1) | ((p->capability_info.powerSource & 0xff) << 2) | \
+			     ((p->capability_info.recOnIdle & 0xff) << 3) |((p->capability_info.security & 0xff) << 6) | \
+                             ((p->capability_info.allocate & 0xff) << 7);
+	}
+	else if(p->commandIdentifier == 0x04) /*Data request*/
+	{
+		buf[pos++] = (p->commandIdentifier & 0xff);
+	}
+  }
   return (int)pos;
 }
 /*----------------------------------------------------------------------------*/
@@ -588,7 +649,70 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
 #endif /* LLSEC802154_USES_AUX_HEADER */
+  if(pf->fcf.frame_type == FRAME802154_BEACONFRAME)
+  {
+	pf->superframe_spec.beaconOrder = p[0] & 0x0f;
+	pf->superframe_spec.superframeOrder = (p[0] & 0xf0) >> 4;
+	pf->superframe_spec.finalCapSlot = p[1] & 0x0f;
+        pf->superframe_spec.ble = ((p[1] & 0xf0) >> 4) & 1;
+	pf->superframe_spec.reserved = (((p[1] & 0xf0) >> 4) & 2) >> 1;
+        pf->superframe_spec.panCoord = (((p[1] & 0xf0) >> 4) & 4) >> 2;
+        pf->superframe_spec.assocPermit = (((p[1] & 0xf0) >> 4) & 8)>>3;
+	p += 2;
+	p += 1; /*Skip GTS for now */
+	pf->pendingAddr_fields.spec.numberOfShort = p[0] & 0x0f;
+	pf->pendingAddr_fields.spec.numberOfExt = (p[0] & 0xf0) >> 4;
+	p+=1;
+	if(pf->pendingAddr_fields.spec.numberOfShort > 0)
+	{
+		int i;
+		for(i=0;i<pf->pendingAddr_fields.spec.numberOfShort;i++)
+		{
+			pf->pendingAddr_fields.list.shortAddr[i].assignAddr[1] = p[0];
+			pf->pendingAddr_fields.list.shortAddr[i].assignAddr[0] = p[1];
+			p+=2;
+		}
+	}
+	if(pf->pendingAddr_fields.spec.numberOfExt > 0)
+	{
+		int i;
+		for(i=0;i<pf->pendingAddr_fields.spec.numberOfExt;i++)
+		{
+			int j;
+			int k=7;
+			//atLog(VIRTUAL802154, LOG_INFO, __FILE__,__LINE__,__func__,  "\n ext address: ");
+			for(j=0;j<8;j++){
+			//atLog(VIRTUAL802154, LOG_INFO, __FILE__,__LINE__,__func__,  "%02x", p[j]);
+			pf->pendingAddr_fields.list.extAddr[i].assignAddr[k] = p[j];
+			k--;
+			}
+			p+=8;
+		}
+	}	
 
+  }
+  else if(pf->fcf.frame_type == FRAME802154_CMDFRAME)
+  {
+	pf->commandIdentifier = p[0];
+	p+=1;
+	if(pf->commandIdentifier == 0x01)/*association request*/
+	{
+		pf->capability_info.deviceType = ((p[1] & 0x02) >> 1) & 0xff;
+		pf->capability_info.powerSource = ((p[1] & 0x04) >> 2) & 0xff;
+ 		pf->capability_info.recOnIdle = ((p[1] & 0x08) >> 3) & 0xff;
+		pf->capability_info.security = ((p[1] & 0x40) >> 6) & 0xff;
+		pf->capability_info.allocate = ((p[1] & 0x80) >> 7) & 0xff;
+		p+=1;
+	}
+ 	if(pf->commandIdentifier == 0x02)/*association response*/
+      	{
+		pf->allocAddress.assignAddr[0] = p[1];
+        	pf->allocAddress.assignAddr[1] = p[0];
+        	p+=2;
+		pf->assocStatus = p[0];
+		p+=1;	
+      	}
+  }
   /* header length */
   c = p - data;
   /* payload length */
