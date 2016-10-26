@@ -349,8 +349,9 @@ int
 frame802154_hdrlen(frame802154_t *p)
 {
   field_length_t flen;
-  field_len(p, &flen);
   int len=0;
+
+  field_len(p, &flen);
   if(p->fcf.frame_type == FRAME802154_CMDFRAME){
       len+=1;
   if(p->commandIdentifier == 0x01)
@@ -378,7 +379,7 @@ frame802154_hdrlen(frame802154_t *p)
 int
 frame802154_create(frame802154_t *p, uint8_t *buf)
 {
-  int c;
+  int c,i=0,j=0;
   field_length_t flen;
   uint8_t pos;
 #if LLSEC802154_USES_EXPLICIT_KEYS
@@ -465,7 +466,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
 			(p->superframe_spec.panCoord << 6) | (p->superframe_spec.assocPermit << 7);
 	buf[pos++] = 0x00; /*GTS fields to be implemented.*/
 	buf[pos++] = (p->pendingAddr_fields.spec.numberOfShort & 0xff) | ((p->pendingAddr_fields.spec.numberOfExt << 4) & 0xff);
-	int i;
+	//int i;
 	for(i=0; i < p->pendingAddr_fields.spec.numberOfShort; i++)
 	{
 		buf[pos++] = p->pendingAddr_fields.list.shortAddr[i].assignAddr[0];
@@ -473,9 +474,11 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
 	}
 	for(i=0; i < p->pendingAddr_fields.spec.numberOfExt; i++)
 	{
-		int j;
+		//int j;
                for(j=7;j>=0;j--)
-		 buf[pos++] = p->pendingAddr_fields.list.extAddr[i].assignAddr[j];
+	       {
+		  buf[pos++] = p->pendingAddr_fields.list.extAddr[i].assignAddr[j];
+	       }
 	}
   }
   if(p->fcf.frame_type == FRAME802154_CMDFRAME)

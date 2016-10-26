@@ -148,7 +148,7 @@ typedef union {
 
 typedef union {
    uint8_t assignAddr[8];
-   uint64_t readAddr;
+   uint16_t readAddr[4];
 }ext_addr_t;
 
 
