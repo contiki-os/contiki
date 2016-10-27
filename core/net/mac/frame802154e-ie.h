@@ -45,7 +45,7 @@
 #include "net/mac/tsch/tsch-private.h"
 
 #define FRAME802154E_IE_MAX_LINKS       4
-#define SIXTOP_IE_MAX_LINKS           	3
+#define SIXTOP_IE_MAX_LINKS             3
 
 /* Structures used for the Slotframe and Links information element */
 struct tsch_slotframe_and_links_link {
