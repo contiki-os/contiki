@@ -80,7 +80,7 @@ gpio_interrupt_init()
 void
 gpio_interrupt_isr(void)
 {
-  uint32_t pin_mask;
+  uint32_t pin_mask, enabled;
   uint8_t i;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -95,7 +95,10 @@ gpio_interrupt_isr(void)
   for(i = 0; i < NUM_IO_MAX; i++) {
     /* Call the handler if there is one registered for this event */
     if((pin_mask & (1 << i)) && handlers[i] != NULL) {
-      handlers[i](i);
+      enabled = HWREG(IOC_BASE + IOC_O_IOCFG0 + (i * 4)) & IOC_IOCFG0_EDGE_IRQ_EN;
+      if (enabled) {
+        handlers[i](i);
+      }
     }
   }
 
