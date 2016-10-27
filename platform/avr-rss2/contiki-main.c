@@ -71,7 +71,6 @@
 #include "contiki-lib.h"
 
 #include "dev/rs232.h"
-#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 #if AVR_WEBSERVER
@@ -186,9 +185,8 @@ initialize(void)
   watchdog_init();
   watchdog_start();
   leds_init();
-  serial_line_init();
 
-  rs232_init(RS232_PORT_0, USART_BAUD_38400, USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+  rs232_init(RS232_PORT_0, RS232_BAUDRATE, USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   rs232_redirect_stdout(RS232_PORT_0);
 
 #if 0
@@ -197,8 +195,6 @@ initialize(void)
   //UBRR0L = 16; UBRR0H = 0; UCSR0A = (1 << U2X0);  // 115.2k     2.1%  
   //UBRR0L =  3; UBRR0H = 0; UCSR0A = (1 << U2X0);  // 500k         0%
 #endif
-
-  rs232_set_input(RS232_PORT_0, serial_line_input_byte);
 
   clock_init();
 

@@ -106,6 +106,11 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define AVR_CONF_USE32KCRYSTAL 1
 #define SLIP_PORT RS232_PORT_0
 
+/* Default baud rare on RS232 port */
+#ifndef RS232_BAUDRATE
+#define RS232_BAUDRATE USART_BAUD_38400
+#endif 
+
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
 /* #define MMEM_CONF_SIZE 256 */
