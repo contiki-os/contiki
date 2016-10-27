@@ -200,8 +200,8 @@ PROCESS_THREAD(udp_client_process, ev, data)
 	UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 
   /* initialize serial line */
-  uart1_set_input(serial_line_input_byte);
-  serial_line_init();
+  //uart1_set_input(serial_line_input_byte);
+  //serial_line_init();
 
 
 #if WITH_COMPOWER

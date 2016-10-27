@@ -325,7 +325,20 @@ typedef struct rpl_stats rpl_stats_t;
 extern rpl_stats_t rpl_stats;
 #endif
 
+/*---------------------------------------------------------------------------*/
+/* Security */
+/*
+#if RPL_SECURITY
+struct rpl_counter{
+	uip_ipaddr_t owner;
+	uint32_t counter;
+	uint8_t used;
+};
+typedef struct rpl_counter rpl_counter_t;
 
+rpl_counter_t rpl_counter_table[NBR_TABLE_MAX_NEIGHBORS];
+#endif
+*/
 /*---------------------------------------------------------------------------*/
 /* RPL macros. */
 

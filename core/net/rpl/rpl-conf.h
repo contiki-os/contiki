@@ -242,7 +242,7 @@
 #ifdef RPL_CONF_WITH_DAO_ACK
 #define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
 #else
-#define RPL_WITH_DAO_ACK 0
+#define RPL_WITH_DAO_ACK 		1
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
@@ -340,11 +340,14 @@
 
 /*
  * RPL Security
+ * = 0  : Unsecured Mode
+ * = 1  : Secure Mode
+ * Authenticated Mode not implemented
  */
 #ifdef RPL_CONF_SECURITY
 #define RPL_SECURITY 					RPL_CONF_SECURITY
 #else	/* Not enabled by user, disable security */
-#define RPL_SECURITY					0
+#define RPL_SECURITY					1
 #endif
 
 /*

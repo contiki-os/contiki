@@ -41,6 +41,7 @@
 #include "ccm-star.h"
 #include "lib/aes-128.h"
 #include <string.h>
+#include <stdio.h>
 
 /* see RFC 3610 */
 #define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1u << 6) : 0) | (((M - 2u) >> 1) << 3) | 1u)
@@ -153,6 +154,7 @@ aead(const uint8_t* nonce,
     uint8_t *result, uint8_t mic_len,
     int forward)
 {
+
   if(!forward) {
     /* decrypt */
     ctr(nonce, m, m_len);

@@ -628,7 +628,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>259</width>
-    <z>3</z>
+    <z>4</z>
     <height>184</height>
     <location_x>3</location_x>
     <location_y>15</location_y>
@@ -642,7 +642,7 @@
       <viewport>2.349818846983307 0.0 0.0 2.349818846983307 150.19773526533348 176.95275613586946</viewport>
     </plugin_config>
     <width>520</width>
-    <z>2</z>
+    <z>3</z>
     <height>523</height>
     <location_x>14</location_x>
     <location_y>210</location_y>
@@ -655,7 +655,7 @@
       <coloring />
     </plugin_config>
     <width>937</width>
-    <z>0</z>
+    <z>1</z>
     <height>213</height>
     <location_x>265</location_x>
     <location_y>16</location_y>
@@ -702,10 +702,24 @@ while(1) {
       <active>true</active>
     </plugin_config>
     <width>651</width>
-    <z>1</z>
+    <z>2</z>
     <height>550</height>
     <location_x>547</location_x>
     <location_y>181</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>150</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
+    </plugin_config>
+    <width>1192</width>
+    <z>0</z>
+    <height>663</height>
+    <location_x>577</location_x>
+    <location_y>211</location_y>
   </plugin>
 </simconf>
 
