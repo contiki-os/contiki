@@ -48,7 +48,7 @@ To use 6top, make sure your platform supports TSCH and have sufficient memory.
 
 To add 6top to your application, first include the Sixtop module in your Makefile with:
 
-MODULES += core/net/mac/tsch/sixtop
+  MODULES += core/net/mac/tsch/sixtop
 
 Also enable the sixtop functionalities in your project-conf.h file with
 
