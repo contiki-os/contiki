@@ -64,7 +64,7 @@
   (var) = ((uint8_t *)(buf))[0] | ((uint8_t *)(buf))[1] << 8
 
 /* Required number of links specified in Link Request IE */
-static uint8_t sixtop_request_num_links = 0;
+uint8_t sixtop_request_num_links = 0;
 /* Sequence Number of Link Request IE */
 static int sixtop_request_seqno = 0;
 /* Sequence Number of Link Response IE */
