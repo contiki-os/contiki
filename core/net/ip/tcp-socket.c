@@ -399,3 +399,9 @@ tcp_socket_max_sendlen(struct tcp_socket *s)
   return s->output_data_maxlen - s->output_data_len;
 }
 /*---------------------------------------------------------------------------*/
+int
+tcp_socket_queuelen(struct tcp_socket *s)
+{
+  return s->output_data_len;
+}
+/*---------------------------------------------------------------------------*/
