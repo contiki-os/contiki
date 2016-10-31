@@ -184,7 +184,7 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
     /* No PAN ID in ACK */
     if(fcf->frame_type != FRAME802154_ACKFRAME) {
       if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
-        /* If compressed, don't inclue source PAN ID */
+        /* If compressed, don't include source PAN ID */
         src_pan_id = 1;
       }
       if(fcf->dest_addr_mode & 3) {
