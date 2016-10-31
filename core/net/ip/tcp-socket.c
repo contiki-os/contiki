@@ -357,6 +357,8 @@ tcp_socket_send(struct tcp_socket *s,
     s->output_senddata_len = s->output_data_len;
   }
 
+  tcpip_poll_tcp(s->c);
+
   return len;
 }
 /*---------------------------------------------------------------------------*/
