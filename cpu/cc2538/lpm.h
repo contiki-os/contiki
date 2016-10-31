@@ -79,6 +79,9 @@ extern rtimer_clock_t lpm_stats[3];
 #define LPM_PM2           2
 /** @} */
 /*---------------------------------------------------------------------------*/
+typedef bool (*lpm_periph_permit_pm1_func_t)(void);
+
+#if LPM_CONF_ENABLE
 /**
  * \brief Initialise the LPM module
  */
@@ -185,8 +188,6 @@ void lpm_exit(void);
  * \sa lpm_enter()
  */
 void lpm_set_max_pm(uint8_t pm);
-/*---------------------------------------------------------------------------*/
-typedef bool (*lpm_periph_permit_pm1_func_t)(void);
 
 /**
  * \brief Register a peripheral function which will get called by the LPM
@@ -207,12 +208,18 @@ typedef bool (*lpm_periph_permit_pm1_func_t)(void);
 void lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func);
 /*---------------------------------------------------------------------------*/
 /* Disable the entire module if required */
-#if LPM_CONF_ENABLE==0
+#else
 #define lpm_init()
 #define lpm_enter()
 #define lpm_exit()
-#define lpm_set_max_pm(...)
-#define lpm_register_peripheral(...)
+static inline void
+lpm_set_max_pm(uint8_t pm)
+{
+}
+static inline void
+lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func)
+{
+}
 #endif
 
 #endif /* LPM_H_ */
