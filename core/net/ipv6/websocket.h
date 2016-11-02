@@ -49,7 +49,6 @@ typedef enum {
   WEBSOCKET_PONG_RECEIVED = 11,
 } websocket_result_t;
 
-
 struct websocket;
 
 typedef void (* websocket_callback)(struct websocket *s,
