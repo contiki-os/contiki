@@ -161,7 +161,6 @@ parse_header_byte(struct websocket_http_client_state *s,
     }
   }
 
-
   /* Keep eating header bytes until we reach the end of it. The end is
      indicated by the string "\r\n\r\n". We don't actually look at any
      of the headers.
