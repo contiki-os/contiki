@@ -603,7 +603,10 @@ static int
 send_data(struct websocket *s, const void *data,
           uint16_t datalen, uint8_t data_type_opcode)
 {
-  uint8_t buf[WEBSOCKET_MAX_MSGLEN + 4 + 4];
+  uint8_t buf[WEBSOCKET_MAX_MSGLEN + 4 + 4]; /* The extra + 4 + 4 here
+                                                comes from the size of
+                                                the websocket framing
+                                                header. */
   struct websocket_frame_hdr *hdr;
   struct websocket_frame_mask *mask;
 
@@ -616,6 +619,8 @@ send_data(struct websocket *s, const void *data,
     return -1;
   }
 
+  /* We need to have 4 + 4 additional bytes for the websocket framing
+     header. */
   if(4 + 4 + datalen > websocket_http_client_sendbuflen(&s->s)) {
     PRINTF("websocket: too few bytes left (%d left, %d needed)\n",
            websocket_http_client_sendbuflen(&s->s),
@@ -689,6 +694,8 @@ websocket_ping(struct websocket *s)
   struct websocket_frame_hdr *hdr;
   struct websocket_frame_mask *mask;
 
+  /* We need 2 + 4 additional bytes for the websocket framing
+     header. */
   if(2 + 4 > websocket_http_client_sendbuflen(&s->s)) {
     return -1;
   }
