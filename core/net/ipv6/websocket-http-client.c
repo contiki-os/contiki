@@ -62,6 +62,13 @@ send_get(struct websocket_http_client_state *s)
   if(strlen(s->header) > 0) {
     tcp_socket_send_str(tcps, s->header);
   }
+  /* The Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw== header is
+     supposed to be a random value, encoded as base64, that is SHA1
+     hashed by the server and returned in a HTTP header. This is used
+     to make sure that we are not seeing some cached version of this
+     conversation. But we have no SHA1 code by default in Contiki, so
+     we can't check the return value. Therefore we just use a
+     hardcoded value here. */
   tcp_socket_send_str(tcps,
                       "Connection: Upgrade\r\n"
                       "Upgrade: websocket\r\n"
@@ -112,6 +119,8 @@ event(struct tcp_socket *tcps, void *ptr,
   } else if(e == TCP_SOCKET_ABORTED) {
     websocket_http_client_aborted(s);
   } else if(e == TCP_SOCKET_DATA_SENT) {
+    /* We could feed this information up to the websocket.c layer, but
+       we currently do not do that. */
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -131,7 +140,9 @@ parse_header_byte(struct websocket_http_client_state *s,
   /* Skip the space that follow the first part */
   PT_YIELD(&s->parse_header_pt);
 
-  /* Read the first three bytes that consistute the HTTP status code. */
+  /* Read the first three bytes that constistute the HTTP status
+     code. We store the HTTP status code as an integer in the
+     s->http_status field. */
   s->http_status = (b - '0');
   PT_YIELD(&s->parse_header_pt);
   s->http_status = s->http_status * 10 + (b - '0');
