@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, Yasuyuki Tanaka
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,96 +10,168 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  *
- * This file is part of the Contiki operating system.
- *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /**
  * \file
- *         A sixtop protocol that performs link addition/deletion
+ *         6top Protocol (6P) APIs
  * \author
- *         Shalu R <shalur@cdac.in>
- *         Lijo Thomas <lijo@cdac.in>
+ *         Yasuyuki Tanaka <yasuyuki.tanaka@inf.ethz.ch>
  */
 
 #ifndef __SIXTOP_H__
 #define __SIXTOP_H__
 
-#include "contiki.h"
-#include "stdbool.h"
-#include "net/ip/uip-debug.h"
 #include "net/linkaddr.h"
-#include "net/netstack.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "net/mac/tsch/tsch-asn.h"
+#include "sys/clock.h"
 
-#define SIXTOP_SUBIE_ID                                   0x00
-#define SIXTOP_VERSION                                    0x01
+/*
+ * The number of schedule functions which the sixtop module can have at most.
+ */
+#ifdef SIXTOP_CONF_NUM_OF_SCHEDULE_FUNCTIONS
+#define SIXTOP_NUM_OF_SCHEDULE_FUNCTIONS SIXTOP_CONF_NUM_OF_SCHEDULE_FUNCTIONS
+#else
+#define SIXTOP_NUM_OF_SCHEDULE_FUNCTIONS 1
+#endif
 
-/* Link Option OFF */
-#define LINK_OPTION_OFF                                   0
+/*
+ * The maximum number of transactions which the sixtop module can have at the
+ * same time.
+ */
+#ifdef SIXTOP_CONF_NUM_OF_TRANSACTIONS
+#define SIXTOP_NUM_OF_TRANSACTIONS SIXTOP_CONF_NUM_OF_TRANSACTIONS
+#else
+#define SIXTOP_NUM_OF_TRANSACTIONS 1
+#endif
 
-/* Maximum number of retransmissions permissible at MAC layer */
-#define SIXTOP_CONF_MAX_MAC_TRANSMISSIONS                 3
+/* The initial sequence number used for 6P request */
+#define SIXTOP_INITIAL_SEQUENCE_NUMBER 0
+
+/*
+ * The maximum number of cells which a request or response message can contain.
+ */
+#ifdef SIXTOP_CONF_IE_MAX_CELLS
+#define SIXTOP_IE_MAX_CELLS SIXTOP_CONF_IE_MAX_CELLS
+#else
+#define SIXTOP_IE_MAX_CELLS 3
+#endif
 
 /* 6P Command ID */
 enum sixtop_command_id {
-  CMD_ADD       = 0x01,
-  CMD_DELETE    = 0x02,
-  CMD_COUNT     = 0x03,
-  CMD_LIST      = 0x04,
-  CMD_CLEAR     = 0x05,
+  SIXTOP_CMD_ADD       = 0x01,
+  SIXTOP_CMD_DELETE    = 0x02,
+  SIXTOP_CMD_COUNT     = 0x03,
+  SIXTOP_CMD_LIST      = 0x04,
+  SIXTOP_CMD_CLEAR     = 0x05,
 };
+
+#define SIXTOP_CMD_MIN SIXTOP_CMD_ADD
+#define SIXTOP_CMD_MAX SIXTOP_CMD_CLEAR
 
 /* 6P Return Code */
 enum sixtop_return_code {
-  RC_SUCCESS    = 0x06, /* Operation succeeded */
-  RC_VER_ERR    = 0x07, /* Unsupported 6P version */
-  RC_SFID_ERR   = 0x08, /* Unsupported SFID */
-  RC_BUSY       = 0x09, /* Handling previous request */
-  RC_RESET      = 0x0a, /* Abort 6P transaction */
-  RC_ERR        = 0x0b, /* Operation failed */
+  SIXTOP_RC_SUCCESS    = 0x06, /* Operation succeeded */
+  SIXTOP_RC_ERR_VER    = 0x07, /* Unsupported 6P version */
+  SIXTOP_RC_ERR_SFID   = 0x08, /* Unsupported SFID */
+  SIXTOP_RC_ERR_GEN    = 0x09,
+  SIXTOP_RC_ERR_BUSY   = 0x0a, /* Handling previous request */
+  SIXTOP_RC_ERR_NORES  = 0x0b,
+  SIXTOP_RC_ERR_RESET  = 0x0c, /* Abort 6P transaction */
+  SIXTOP_RC_ERR        = 0x0d, /* Operation failed */
 };
+#define SIXTOP_RC_MIN SIXTOP_RC_SUCCESS
+#define SIXTOP_RC_MAX SIXTOP_RC_ERR
 
-/* Sixtop State Machine */
-enum {
-  SIXTOP_IDLE             = 0x00,
-  SIXTOP_ADD_REQUEST_WAIT_SENDDONE  = 0x01,       /* Waiting for SendDone confirmation of Add Request */
-  SIXTOP_ADD_RESPONSE_WAIT      = 0x02,     /* Waiting for Add Response */
-  SIXTOP_ADD_RESPONSE_WAIT_SENDDONE   = 0x03,     /* Waiting for SendDone confirmation of Add Response */
-  SIXTOP_ADD_RESPONSE_RECEIVED    = 0x04,     /* Received Add Response */
-  SIXTOP_DELETE_REQUEST_WAIT_SENDDONE = 0x05,     /* Waiting for SendDone confirmation of Delete Request */
-  SIXTOP_DELETE_RESPONSE_WAIT     = 0x06,     /* waiting for Delete Response */
-  SIXTOP_DELETE_RESPONSE_WAIT_SENDDONE = 0x07,    /* Waiting for SendDone confirmation of Add Response */
-  SIXTOP_DELETE_RESPONSE_RECEIVED   = 0x08,     /* Received Delete Response */
-} sixtop_state;
+/* type definitions */
+typedef enum {
+  SIXTOP_RETURN_SUCCESS,
+  SIXTOP_RETURN_FAILURE
+} sixtop_return_t;
 
-/********** Functions *********/
-/* Initiates a Sixtop Link addition */
-int sixtop_add_links(linkaddr_t *dest_addr, uint8_t num_Links);
-/* Initiates a Sixtop Link deletion */
-int sixtop_remove_link(linkaddr_t *dest_addr);
-/* Is it a Sixtop IE? Returns 0 if success */
-int sixtop_is_sixtop_ie(const uint8_t *buf, int buf_size, frame802154_t *frame, struct ieee802154_ies *ies);
-/* Set the Sequence Number of Link Response as in Link Request */
-void sixtop_set_seqno(uint8_t seq_num);
-/* Parse a Sixtop IE. Returns length of IE */
-int sixtop_parse_ie(const uint8_t *buf, linkaddr_t *dest_addr);
+typedef struct {
+  uint8_t num_cells;
+  uint16_t metadata;
+  uint32_t cell_list[SIXTOP_IE_MAX_CELLS];
+  uint16_t cell_list_len;
+} sixtop_msg_body_t;
 
-#endif /* __SIXTOP_H__ */
+typedef void (*sixtop_request_input_t)(uint8_t cmd,
+                                       const sixtop_msg_body_t *body,
+                                       const linkaddr_t *peer_addr);
+typedef void (*sixtop_response_input_t)(uint8_t cmd, uint8_t return_code,
+                                        const sixtop_msg_body_t *body,
+                                        const linkaddr_t *peer_addr);
+typedef void (*sixtop_callback_t)(const sixtop_msg_body_t *body,
+                                  const linkaddr_t *dest_addr,
+                                  sixtop_return_t status);
+typedef int (*sixtop_op_add_t)(linkaddr_t *peer_addr, uint8_t num_cells);
+typedef int (*sixtop_op_delete_t)(linkaddr_t *peer_addr, uint8_t num_cells);
+
+typedef struct {
+  uint8_t sfid;
+  clock_time_t timeout_interval;
+  void (*init)(void);
+  sixtop_request_input_t request_input;
+  sixtop_response_input_t response_input;
+  sixtop_op_add_t add;
+  sixtop_op_delete_t delete;
+} sixtop_sf_t;
+
+typedef struct {
+  uint8_t version;
+  uint8_t code;
+  uint8_t sfid;
+  uint8_t seqno;
+  uint8_t gab;
+  uint8_t gba;
+  uint8_t num_cells;
+  uint16_t metadata;
+  uint32_t cell_list[SIXTOP_IE_MAX_CELLS];
+  uint16_t cell_list_len;
+  /* there may be more fields to be defined */
+} sixtop_ie_t;
+
+/* available Schedule Functions */
+#define SIXTOP_SFID_SF_SIMPLE 0
+extern const sixtop_sf_t sf_simple_driver;
+
+/* APIs */
+/** APIs for upper layers **/
+int sixtop_add_sf(const sixtop_sf_t *);
+const sixtop_sf_t * sixtop_find_sf(uint8_t sfid);
+int sixtop_add_cells(uint8_t sfid, linkaddr_t *peer_addr,
+                     uint8_t num_cells);
+int sixtop_delete_cells(uint8_t sfid, linkaddr_t *peer_addr,
+                        uint8_t num_cells);
+
+/** APIs for Schedule Functions */
+void sixtop_response_output(uint8_t sfid, uint8_t cmd,
+                            const sixtop_msg_body_t *body,
+                            const linkaddr_t *dest_addr,
+                            sixtop_callback_t callback);
+void sixtop_request_output(uint8_t sfid, uint8_t cmd,
+                           const sixtop_msg_body_t *body,
+                           const linkaddr_t *dest_addr,
+                           sixtop_callback_t callback);
+
+/** APIs for the lower layer, i.e., TSCH MAC **/
+void sixtop_input(void (*llsec_input)(void));
+void sixtop_init(void);
+
+#endif /* ! __SIXTOP_H__ */

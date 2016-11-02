@@ -42,9 +42,11 @@
 #include "net/rpl/rpl.h"
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/sixtop/sixtop.h"
 #include "net/rpl/rpl-private.h"
 #include "net/ip/uip-debug.h"
-#include "net/mac/tsch/sixtop/sixtop.h"
+
 
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "RPL Node");
@@ -72,6 +74,8 @@ net_init(uip_ipaddr_t *br_prefix)
 PROCESS_THREAD(node_process, ev, data)
 {
   static struct etimer et;
+  struct tsch_neighbor *n;
+
   PROCESS_BEGIN();
 
   /* 3 possible roles:
@@ -104,6 +108,7 @@ PROCESS_THREAD(node_process, ev, data)
 
   tsch_set_pan_secured(LLSEC802154_ENABLED && (node_role == role_6dr_sec));
   is_coordinator = node_role > role_6ln;
+  sixtop_add_sf(&sf_simple_driver);
 
   if(is_coordinator) {
     uip_ipaddr_t prefix;
@@ -118,14 +123,17 @@ PROCESS_THREAD(node_process, ev, data)
     PROCESS_YIELD_UNTIL(etimer_expired(&et));
     etimer_reset(&et);
 
+    /* Get time-source neighbor */
+    n = tsch_queue_get_time_source();
+
     if(node_id != 1) {
       clock_delay(1000);
       if((added_num_of_links == 1) || (added_num_of_links == 3)) {
         printf("App : Add a link\n");
-        sixtop_add_links((linkaddr_t *)0xffff, 1);
+        sixtop_add_cells(sf_simple_driver.sfid, &n->addr, 1);
       } else if(added_num_of_links == 5) {
         printf("App : Delete a link\n");
-        sixtop_remove_link((linkaddr_t *)0xffff);
+        sixtop_delete_cells(sf_simple_driver.sfid, &n->addr, 1);
       }
       added_num_of_links++;
     }

@@ -54,6 +54,9 @@
 #include "net/mac/tsch/tsch-schedule.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include "net/mac/tsch/tsch-log.h"
+#if TSCH_WITH_SIXTOP
+#include "net/mac/tsch/sixtop/sixtop.h"
+#endif
 #include <string.h>
 
 #if TSCH_LOG_LEVEL >= 1
@@ -97,6 +100,9 @@ tsch_queue_add_nbr(const linkaddr_t *addr)
         n->is_broadcast = linkaddr_cmp(addr, &tsch_eb_address)
           || linkaddr_cmp(addr, &tsch_broadcast_address);
         tsch_queue_backoff_reset(n);
+#if TSCH_WITH_SIXTOP
+        n->sixtop_last_seqno = SIXTOP_INITIAL_SEQUENCE_NUMBER;
+#endif
         /* Add neighbor to the list */
         list_add(neighbor_list, n);
       }

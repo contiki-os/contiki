@@ -97,6 +97,9 @@ create_frame(int type, int do_create)
    * source nor destination address, we have dest PAN ID iff compression is *set*. */
   params.fcf.panid_compression = 0;
 
+  /* Set IE Present bit */
+  params.fcf.ie_list_present = packetbuf_attr(PACKETBUF_ATTR_MAC_METADATA);
+
   /* Insert IEEE 802.15.4 version bits. */
   params.fcf.frame_version = FRAME802154_VERSION;
   
