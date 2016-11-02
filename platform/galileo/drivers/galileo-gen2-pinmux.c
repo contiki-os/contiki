@@ -576,7 +576,7 @@ int
 galileo_brd_to_cpu_gpio_pin(unsigned pin, bool *sus)
 {
   static const int SUS = 0x100;
-  unsigned pins[GALILEO_NUM_PINS] = {
+  unsigned pins[GALILEO_NUM_DIGITAL_PINS] = {
           3,       4,       5,       6,
     SUS | 4,       8,       9, SUS | 0,
     SUS | 1, SUS | 2,       2, SUS | 3,
