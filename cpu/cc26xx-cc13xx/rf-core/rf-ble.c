@@ -73,6 +73,12 @@
 #define BLE_ADV_NAME_BUF_LEN        32
 #define BLE_ADV_PAYLOAD_BUF_LEN     64
 #define BLE_UUID_SIZE               16
+#define BLE_UID_SIZE                10 /*UI length*/
+/**Eddystone macros*/
+#define EDDYSTONE_FRAME_TYPE        0x00
+/*Eddystone header,0x14=20 bytes length UID*/
+#define EDDYSTONE_ADV_HEAD          { 0x02, 0x01, 0x06, 0x03, 0x03, 0xAA, 0xFE, 0x17, 0x16, 0xAA, 0xFE }
+#define EDDYSTONE_ADV_HEAD_LEN      11
 /*---------------------------------------------------------------------------*/
 static unsigned char ble_params_buf[32] CC_ALIGN(4);
 static uint8_t ble_mode_on = RF_BLE_IDLE;
@@ -80,6 +86,9 @@ static struct etimer ble_adv_et;
 static uint8_t payload[BLE_ADV_PAYLOAD_BUF_LEN];
 static int p = 0;
 static int i;
+#ifdef EDDYSTONE_ENABLED
+static uint8_t uid[BLE_UID_SIZE] = EDDYSTONE_CONF_UUID;
+#endif
 /*---------------------------------------------------------------------------*/
 typedef struct default_ble_tx_power_s {
    uint16_t ib:6;
@@ -93,7 +102,11 @@ static default_ble_tx_power_t tx_power = { 0x29, 0x00, 0x00, 0x00 };
 /* BLE beacond config */
 static struct ble_beacond_config {
   clock_time_t interval;
+#ifndef EDDYSTONE_ENABLED
   char adv_name[BLE_ADV_NAME_BUF_LEN];
+#else
+  uint8_t instance[EDDYSTONE_INSTANCE_LEN];
+#endif
 } beacond_config = { .interval = BLE_ADV_INTERVAL };
 /*---------------------------------------------------------------------------*/
 /* BLE overrides */
@@ -156,6 +169,7 @@ send_ble_adv_nc(int channel, uint8_t *adv_payload, int adv_payload_len)
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
+#ifndef EDDYSTONE_ENABLED
 void
 rf_ble_beacond_config(clock_time_t interval, const char *name)
 {
@@ -176,6 +190,22 @@ rf_ble_beacond_config(clock_time_t interval, const char *name)
     beacond_config.interval = interval;
   }
 }
+#else
+/*---------------------------------------------------------------------------*/
+void
+rf_ble_beacond_config(clock_time_t interval, uint8_t *instance)
+{
+  if(RF_BLE_ENABLED == 0) {
+    return;
+  }
+
+  memcpy(beacond_config.instance, instance, EDDYSTONE_INSTANCE_LEN);
+
+  if(interval != 0) {
+    beacond_config.interval = interval;
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf_ble_beacond_start()
@@ -188,9 +218,11 @@ rf_ble_beacond_start()
     return RF_CORE_CMD_ERROR;
   }
 
+#ifndef EDDYSTONE_ENABLED
   if(beacond_config.adv_name[0] == 0) {
     return RF_CORE_CMD_ERROR;
   }
+#endif
 
   ble_mode_on = RF_BLE_IDLE;
 
@@ -250,14 +282,14 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
   int j;
   uint32_t cmd_status;
   bool interrupts_disabled;
-
+  uint8_t eddystone_head[EDDYSTONE_ADV_HEAD_LEN]= EDDYSTONE_ADV_HEAD;
+  int tx_power;
   PROCESS_BEGIN();
 
   while(1) {
     etimer_set(&ble_adv_et, beacond_config.interval);
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&ble_adv_et) || ev == PROCESS_EVENT_EXIT);
-
     if(ev == PROCESS_EVENT_EXIT) {
       PROCESS_EXIT();
     }
@@ -267,6 +299,7 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
 
     /* device info */
     memset(payload, 0, BLE_ADV_PAYLOAD_BUF_LEN);
+#ifndef EDDYSTONE_ENABLED
     payload[p++] = 0x02;          /* 2 bytes */
     payload[p++] = BLE_ADV_TYPE_DEVINFO;
     payload[p++] = 0x1a;          /* LE general discoverable + BR/EDR */
@@ -275,7 +308,23 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
     memcpy(&payload[p], beacond_config.adv_name,
            strlen(beacond_config.adv_name));
     p += strlen(beacond_config.adv_name);
-
+#else
+    for(i = 0; i < EDDYSTONE_ADV_HEAD_LEN; i++) {
+        payload[p++] = ( eddystone_head[i] );
+    }
+    /*Eddystone UID frame */
+    payload[p++] = EDDYSTONE_FRAME_TYPE;
+    NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &tx_power);
+    payload[p++] = tx_power;
+    for(i = 0; i < BLE_UID_SIZE ; i++) {
+        payload[p++] = uid[i];
+    }
+    memcpy(&payload[p],beacond_config.instance,EDDYSTONE_INSTANCE_LEN);
+    p += EDDYSTONE_INSTANCE_LEN;
+    payload[p++] = 0;
+    payload[p++] = 0;
+    PRINTF("rf_ble_beacon_process: power tx %i\n",tx_power);
+#endif
     for(i = 0; i < BLE_ADV_MESSAGES; i++) {
       /*
        * Under ContikiMAC, some IEEE-related operations will be called from an
