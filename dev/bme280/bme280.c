@@ -35,13 +35,14 @@
 
 /**
  * \file
- *        Basic functions for Bosch BME280 based on datasheel Rev 1.1
+ *        Basic functions for Bosch BME280 based on datasheet Rev 1.1
  */
 
 #include "contiki.h"
 #include <string.h>
 #include "bme280.h"
-#include "dev/bme280-arch.h"
+#include "bme280-arch.h"
+#include "lib/sensors.h"
 
 static struct {
   unsigned short dig_t1;
@@ -160,19 +161,21 @@ bme280_init(uint8_t mode)
 {
   uint8_t buf[26];
 
+  bme280_arch_i2c_init();
+
   /* Do not mess with other chips */
-  i2c_read_mem(BME280_ADDR, 0xD0, buf, 1);
+  bme280_arch_i2c_read_mem(BME280_ADDR, 0xD0, buf, 1);
   if(buf[0] != BME280_CHIP_ID) {
     return 0;
   }
 
-  i2c_write_mem(BME280_ADDR, BME280_CNTL_RESET, 0xB6);
-  clock_delay_msec(BME280_MAX_WAIT);
+  bme280_arch_i2c_write_mem(BME280_ADDR, BME280_CNTL_RESET, 0xB6);
+  clock_delay_usec(BME280_MAX_WAIT);
 
   memset(buf, 0, sizeof(buf));
 
   /* Burst read of all calibration part 1 */
-  i2c_read_mem(BME280_ADDR, BME280_DIG_T1_ADDR, buf, sizeof(buf));
+  bme280_arch_i2c_read_mem(BME280_ADDR, BME280_DIG_T1_ADDR, buf, sizeof(buf));
   bm.dig_t1 = ((uint16_t)buf[1] << 8) | (uint16_t)buf[0];
   bm.dig_t2 = ((int16_t)buf[3] << 8) | (uint16_t)buf[2];
   bm.dig_t3 = ((int16_t)buf[5] << 8) | (uint16_t)buf[4];
@@ -189,7 +192,7 @@ bme280_init(uint8_t mode)
   bm.dig_h1 = (unsigned char)buf[25];
 
   /* Burst read of all calibration part 2 */
-  i2c_read_mem(BME280_ADDR, BME280_DIG_H2_ADDR, buf, 8);
+  bme280_arch_i2c_read_mem(BME280_ADDR, BME280_DIG_H2_ADDR, buf, 8);
   bm.dig_h2 = ((int16_t)buf[1] << 8) | (uint16_t)buf[0];
   bm.dig_h3 = (unsigned char)buf[2];
   bm.dig_h4 = ((int16_t)buf[3] << 4) | (((uint16_t)buf[4]) & 0xF);
@@ -217,23 +220,23 @@ bme280_read(uint8_t mode)
   /* Weather mode. See sectiom 3.5 Datasheet */
   if(mode == BME280_MODE_WEATHER) {
     /* Humidity oversampling *1 */
-    i2c_write_mem(BME280_ADDR, BME280_CNTL_HUM, 0x01);
+    bme280_arch_i2c_write_mem(BME280_ADDR, BME280_CNTL_HUM, 0x01);
 
     /*  00100111  0x27 oversampling *1 for t and p plus normal mode */
     /* 0.5 ms -- no filter -- no SPI */
-    i2c_write_mem(BME280_ADDR, BME280_CONTROL, 0x00);
+    bme280_arch_i2c_write_mem(BME280_ADDR, BME280_CONTROL, 0x00);
 
     /*  00100110  0x26 oversampling *1 for t and p  plus forced mode */
     /* Trigger measurement needed for every time in forced mode */
-    i2c_write_mem(BME280_ADDR, BME280_CNTL_MEAS, 0x26);
+    bme280_arch_i2c_write_mem(BME280_ADDR, BME280_CNTL_MEAS, 0x26);
     /* Wait to get into sleep mode == measurement done */
     for(i = 0; i < BME280_MAX_WAIT; i++) {
-      i2c_read_mem(BME280_ADDR, BME280_CNTL_MEAS, &sleep, 1);
+      bme280_arch_i2c_read_mem(BME280_ADDR, BME280_CNTL_MEAS, &sleep, 1);
       sleep = sleep& 0x03;
       if(sleep== 0) {
         break;
       } else {
-        clock_delay_msec(1);
+        clock_delay_usec(1000);
       }
     }
     if(i == BME280_MAX_WAIT) {
@@ -244,7 +247,7 @@ bme280_read(uint8_t mode)
   }
 
   /* Burst read of all measurements */
-  i2c_read_mem(BME280_ADDR, BME280_PRESS, buf, 8);
+  bme280_arch_i2c_read_mem(BME280_ADDR, BME280_PRESS, buf, 8);
   ut = (uint32_t)(buf[3]) << 12 | (uint32_t)(buf[4]) << 4 | (uint32_t)buf[5] >> 4;
   up = (uint32_t)(buf[0]) << 12 | (uint32_t)(buf[1]) << 4 | (uint32_t)buf[2] >> 4;
   uh = (uint32_t)(buf[6]) << 8 | (uint32_t)buf[7];

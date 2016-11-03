@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Copyright Robert Olsson
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,21 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- *
- * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
- * Created : 2016-09-14
  */
-
+/*---------------------------------------------------------------------------*/
 #ifndef BME280_ARCH_H
 #define BME280_ARCH_H
 
-/**
- * \file
- *	Architecture-specific definitions for the BME280 sensor for avr-rss2
- * \author
- * 	Robert Olsson
- */
+/* Initialize the I2C module */
+void bme280_arch_i2c_init();
 
-#include "i2c.h"
+/* I2C read registers */
+void bme280_arch_i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t *buf,
+                              uint8_t bytes);
+
+/* I2C write to a single register */
+void bme280_arch_i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value);
 
 #endif
+/*---------------------------------------------------------------------------*/
+/** @} */

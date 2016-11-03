@@ -37,13 +37,10 @@
 #include "lib/sensors.h"
 #include "dev/bme280/bme280.h"
 #include "dev/bme280/bme280-sensor.h"
-
-const struct sensors_sensor bme280_sensor;
-
+/*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-
   /* Read all measurements with one burst read */
   bme280_read(BME280_MODE_WEATHER);
 
@@ -66,14 +63,17 @@ value(int type)
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 static int
 status(int type)
 {
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 static int
 configure(int type, int c)
 {
   return bme280_init(BME280_MODE_WEATHER);
 }
+/*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(bme280_sensor, "bme280", value, configure, status);

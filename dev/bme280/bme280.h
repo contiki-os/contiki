@@ -36,7 +36,7 @@
 
 /**
  * \file
- *         Definitions for the Bosch BME280 based on datasheel Rev 1.1
+ *         Definitions for the Bosch BME280 based on datasheet Rev 1.1
  */
 
 #ifndef BME280_H
@@ -49,53 +49,52 @@
 uint8_t bme280_init(uint8_t mode);
 void bme280_read(uint8_t mode);
 
-#ifdef  I2C_BME280_ADDR
-#define BME280_ADDR I2C_BME280_ADDR
+#ifdef BME280_CONF_ADDR
+#define BME280_ADDR         BME280_CONF_ADDR
 #else
-#define  BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
+#define BME280_ADDR              (0x77 << 1) /* Alternative 0x76 */
 #endif
 
 /* Diffrent BOSCH chip id's */
-#define BMP085_CHIP_ID 0x55  /* And also BMP180 */
-#define BMP280_CHIP_ID 0x58
-#define BME280_CHIP_ID 0x60
+#define BMP085_CHIP_ID                 0x55  /* And also BMP180 */
+#define BMP280_CHIP_ID                 0x58
+#define BME280_CHIP_ID                 0x60
 
 /* Address map */
-#define BME280_DIG_T1_ADDR 0x88
-#define BME280_DIG_T2_ADDR 0x8A
-#define BME280_DIG_T3_ADDR 0x8C
-#define BME280_DIG_P1_ADDR 0x8E
-#define BME280_DIG_P2_ADDR 0x90
-#define BME280_DIG_P3_ADDR 0x92
-#define BME280_DIG_P4_ADDR 0x94
-#define BME280_DIG_P5_ADDR 0x96
-#define BME280_DIG_P6_ADDR 0x98
-#define BME280_DIG_P7_ADDR 0x9A
-#define BME280_DIG_P8_ADDR 0x9C
-#define BME280_DIG_P9_ADDR 0x9E
-#define BME280_DIG_H1_ADDR 0xA1
-#define BMP_CHIP_ID_ADDR 0xD0
-#define BME280_CNTL_RESET 0xE0
-#define BME280_DIG_H2_ADDR 0xE1
-#define BME280_DIG_H3_ADDR 0xE3
-#define BME280_DIG_H4_ADDR 0xE4
-#define BME280_DIG_H5_ADDR 0xE5
-#define BME280_DIG_H6_ADDR 0xE7
-#define BME280_CNTL_HUM 0xF2
-#define BME280_STATUS 0xF3
-#define BME280_CNTL_MEAS 0xF4
-#define BME280_CONTROL 0xF5
-#define BME280_PRESS 0xF7
+#define BME280_DIG_T1_ADDR             0x88
+#define BME280_DIG_T2_ADDR             0x8A
+#define BME280_DIG_T3_ADDR             0x8C
+#define BME280_DIG_P1_ADDR             0x8E
+#define BME280_DIG_P2_ADDR             0x90
+#define BME280_DIG_P3_ADDR             0x92
+#define BME280_DIG_P4_ADDR             0x94
+#define BME280_DIG_P5_ADDR             0x96
+#define BME280_DIG_P6_ADDR             0x98
+#define BME280_DIG_P7_ADDR             0x9A
+#define BME280_DIG_P8_ADDR             0x9C
+#define BME280_DIG_P9_ADDR             0x9E
+#define BME280_DIG_H1_ADDR             0xA1
+#define BMP_CHIP_ID_ADDR               0xD0
+#define BME280_CNTL_RESET              0xE0
+#define BME280_DIG_H2_ADDR             0xE1
+#define BME280_DIG_H3_ADDR             0xE3
+#define BME280_DIG_H4_ADDR             0xE4
+#define BME280_DIG_H5_ADDR             0xE5
+#define BME280_DIG_H6_ADDR             0xE7
+#define BME280_CNTL_HUM                0xF2
+#define BME280_STATUS                  0xF3
+#define BME280_CNTL_MEAS               0xF4
+#define BME280_CONTROL                 0xF5
+#define BME280_PRESS                   0xF7
 
 /* Function modes outlined in datasheet */
-#define BME280_MODE_NONE 0
-#define BME280_MODE_WEATHER 1
-#define BME280_MODE_HUMIDITY 2
-#define BME280_MODE_INDOOR_NAVIGATION 3
-#define BME280_MODE_GAMING 4
+#define BME280_MODE_NONE               0
+#define BME280_MODE_WEATHER            1
+#define BME280_MODE_HUMIDITY           2
+#define BME280_MODE_INDOOR_NAVIGATION  3
+#define BME280_MODE_GAMING             4
 
-#define BME280_MAX_WAIT 300 /* ms. Forced mode max wait */
-#define BME280_STARTUP_TIME 2 /* ms */
+#define BME280_MAX_WAIT                300000 /* ms. Forced mode max wait */
 
 struct {
   int32_t t_overscale100;
