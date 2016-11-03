@@ -37,7 +37,6 @@
 #define BME280_SENSOR_H_
 
 #include "lib/sensors.h"
-#include "lib/sensors.h"
 #include "bme280.h"
 
 extern const struct sensors_sensor bme280_sensor;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+/*---------------------------------------------------------------------------*/
 /**
  * \addtogroup zoul-examples
  * @{
@@ -46,7 +47,8 @@
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
-#include "dev/bme280.h"
+#include "dev/bme280/bme280.h"
+#include "dev/bme280/bme280-sensor.h"
 /*---------------------------------------------------------------------------*/
 #define BME280_USE_STD_API  1
 /*---------------------------------------------------------------------------*/
