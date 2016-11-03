@@ -39,13 +39,111 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
 #include "antenna-sw.h"
+#include "dev/ioc.h"
 #include <stdint.h>
 #include <string.h>
 /*---------------------------------------------------------------------------*/
+#define CLEAR(x, y, z) GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y)); \
+                       ioc_set_over(x, y, z);     \
+                       GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y));  \
+                       GPIO_CLR_PIN(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y));
+
+#define SET(x, y, z)   GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y)); \
+                       ioc_set_over(x, y, z);     \
+                       GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y));  \
+                       GPIO_SET_PIN(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y));
+
+#define INPUT(x, y, z) GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y)); \
+                       GPIO_SET_INPUT(GPIO_PORT_TO_BASE(x), GPIO_PIN_MASK(y));
+/*---------------------------------------------------------------------------*/
+/* The following functions configure the pins to minimize current draw, modules
+ * and libraries using these pins are in charge of configuring as corresponding
+ */
 static void
 configure_unused_pins(void)
 {
-  /* FIXME */
+  /* Port A pins */
+#if UART_CONF_ENABLE == 0
+  INPUT(GPIO_A_NUM, 0x00, IOC_OVERRIDE_DIS);
+  INPUT(GPIO_A_NUM, 0x01, IOC_OVERRIDE_DIS);
+#endif
+
+  /* ADC config as default is pin as input with analogue function enabled */
+#if ADC_SENSORS_ADC3_PIN == -1
+  CLEAR(GPIO_A_NUM, 0x02, IOC_OVERRIDE_DIS);
+#endif
+
+  /* Both the user button and ADC6 use PA3 as input, but ADC6 uses
+   * IOC_OVERRIDE_ANA to select as analogue, thus the pin is always in the
+   * lowest current draw configuration in both cases
+   */
+#if PLATFORM_CONF_WITH_BUTTON == 0
+#if ADC_SENSORS_ADC6_PIN == -1
+  INPUT(GPIO_A_NUM, 0x03, IOC_OVERRIDE_DIS);
+#endif
+#endif
+
+#if ADC_SENSORS_ADC2_PIN == -1
+  INPUT(GPIO_A_NUM, 0x04, IOC_OVERRIDE_DIS);
+#endif
+#if ADC_SENSORS_ADC1_PIN == -1
+  INPUT(GPIO_A_NUM, 0x05, IOC_OVERRIDE_DIS);
+#endif
+
+#if PLATFORM_WITH_MICRO_SD == 0
+#if ADC_SENSORS_ADC4_PIN == -1
+  INPUT(GPIO_A_NUM, 0x06, IOC_OVERRIDE_DIS);
+#endif
+#endif
+
+#if PLATFORM_WITH_MICRO_SD == 0
+#if ADC_SENSORS_ADC5_PIN == -1
+  INPUT(GPIO_A_NUM, 0x07, IOC_OVERRIDE_DIS);
+#endif
+#endif
+
+  /* Port B pins and CC1200 related ones */
+#if REMOTE_DUAL_RF_ENABLED == 0
+#if ANTENNA_SW_SELECT_DEFAULT == ANTENNA_SW_SELECT_2_4GHZ
+  CLEAR(GPIO_B_NUM, 0x00, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_B_NUM, 0x01, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_B_NUM, 0x02, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_B_NUM, 0x03, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_B_NUM, 0x04, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_B_NUM, 0x05, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_C_NUM, 0x07, IOC_OVERRIDE_DIS);
+#endif
+#endif
+
+  CLEAR(GPIO_B_NUM, 0x06, IOC_OVERRIDE_DIS); /* LED */
+  CLEAR(GPIO_B_NUM, 0x07, IOC_OVERRIDE_DIS); /* LED */
+
+  /* Port C pins */
+#if UART_CONF_ENABLE == 0
+  INPUT(GPIO_C_NUM, 0x00, IOC_OVERRIDE_DIS); /* UART1 */
+  INPUT(GPIO_C_NUM, 0x01, IOC_OVERRIDE_DIS); /* UART1 */
+#endif
+
+  INPUT(GPIO_C_NUM, 0x02, IOC_OVERRIDE_DIS); /* I2C */
+  INPUT(GPIO_C_NUM, 0x03, IOC_OVERRIDE_DIS); /* I2C */
+
+#if PLATFORM_WITH_MICRO_SD == 0
+  INPUT(GPIO_C_NUM, 0x04, IOC_OVERRIDE_DIS);
+  INPUT(GPIO_C_NUM, 0x05, IOC_OVERRIDE_DIS);
+  INPUT(GPIO_C_NUM, 0x06, IOC_OVERRIDE_DIS);
+#endif
+
+  /* Port D pins */
+  CLEAR(GPIO_D_NUM, 0x00, IOC_OVERRIDE_DIS);
+  CLEAR(GPIO_D_NUM, 0x01, IOC_OVERRIDE_DIS);
+
+#if ANTENNA_SW_SELECT_DEFAULT == ANTENNA_SW_SELECT_2_4GHZ
+  CLEAR(GPIO_D_NUM, 0x02, IOC_OVERRIDE_DIS);
+#endif
+
+  INPUT(GPIO_D_NUM, 0x03, IOC_OVERRIDE_DIS); /* RTCC interrupt */
+  CLEAR(GPIO_D_NUM, 0x04, IOC_OVERRIDE_DIS); /* LED */
+  CLEAR(GPIO_D_NUM, 0x05, IOC_OVERRIDE_DIS);
 }
 /*---------------------------------------------------------------------------*/
 void
