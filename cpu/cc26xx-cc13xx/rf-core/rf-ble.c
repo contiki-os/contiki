@@ -314,7 +314,9 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
         payload[p++] = uuid[i];
     }
     payload[p++] = beacond_config.major;
+    payload[p++] = (beacond_config.major << 8);
     payload[p++] = beacond_config.minor;
+    payload[p++] = (beacond_config.minor << 8);
     NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &tx_power);
     payload[p++] = tx_power;
     PRINTF("rf_ble_beacon_process: power tx %i\n",tx_power);
