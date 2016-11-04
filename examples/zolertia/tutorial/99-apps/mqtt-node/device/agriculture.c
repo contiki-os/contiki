@@ -33,7 +33,7 @@
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "dev/sht25.h"
-#include "dev/tsl2563.h"
+#include "dev/tsl256x.h"
 #include "dev/bmpx8x.h"
 #include "agriculture.h"
 #include "mqtt-res.h"
@@ -65,9 +65,9 @@ poll_sensors(void)
   agriculture_sensors.sensor[AGRICULTURE_SENSOR_HUMD].value = sht25.value(SHT25_VAL_HUM);
   SENSORS_DEACTIVATE(sht25);
 
-  SENSORS_ACTIVATE(tsl2563);
-  agriculture_sensors.sensor[AGRICULTURE_SENSOR_LIGHT].value = tsl2563.value(TSL2563_VAL_READ);
-  SENSORS_DEACTIVATE(tsl2563);
+  SENSORS_ACTIVATE(tsl256x);
+  agriculture_sensors.sensor[AGRICULTURE_SENSOR_LIGHT].value = tsl256x.value(TSL256X_VAL_READ);
+  SENSORS_DEACTIVATE(tsl256x);
 
   SENSORS_ACTIVATE(bmpx8x);
   agriculture_sensors.sensor[AGRICULTURE_SENSOR_PRES].value = bmpx8x.value(BMPx8x_READ_PRESSURE);
