@@ -545,10 +545,10 @@ frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
             PRINTF("frame802154e: entering MLME ie with len %u\n", nested_mlme_len);
             break;
           case PAYLOAD_IE_SIXTOP:
-            /* Now expect 'len' bytes of Sixtop sub-IEs */
-            nested_mlme_len = len;
-            PRINTF("frame802154e: entering Sixtop ie with len %u\n", nested_mlme_len);
-            return 0;     /* Sixtop IE detected, return success(0) */				    
+            PRINTF("frame802154e: entering Sixtop ie with len %u\n", len);
+            /* Sixtop IE detected, return success(0) 
+             * Further parsing of Sixtop IE is carried out at Sixtop layer */
+            return 0;     	            		    
           case PAYLOAD_IE_LIST_TERMINATION:
             PRINTF("frame802154e: payload ie list termination %u\n", len);
             return (len == 0) ? buf + len - start : -1;
