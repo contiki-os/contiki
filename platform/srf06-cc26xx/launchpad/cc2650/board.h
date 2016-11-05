@@ -178,6 +178,8 @@
  * Those values are not meant to be modified by the user
  * @{
  */
+#define BOARD_IOID_DIO0           IOID_0
+#define BOARD_IOID_DIO1           IOID_1
 #define BOARD_IOID_CS             IOID_11
 #define BOARD_IOID_TDO            IOID_16
 #define BOARD_IOID_TDI            IOID_17
@@ -193,6 +195,14 @@
 #define BOARD_IOID_DIO28          IOID_28
 #define BOARD_IOID_DIO29          IOID_29
 #define BOARD_IOID_DIO30          IOID_30
+
+#define BOARD_UNUSED_PINS { \
+    BOARD_IOID_DIO0, BOARD_IOID_DIO1, BOARD_IOID_CS, BOARD_IOID_TDO, \
+    BOARD_IOID_TDI, BOARD_IOID_DIO12, BOARD_IOID_DIO15, BOARD_IOID_DIO21, \
+    BOARD_IOID_DIO22, BOARD_IOID_DIO23, BOARD_IOID_DIO24, BOARD_IOID_DIO25, \
+    BOARD_IOID_DIO26, BOARD_IOID_DIO27, BOARD_IOID_DIO28, BOARD_IOID_DIO29, \
+    BOARD_IOID_DIO30, IOID_UNUSED \
+  }
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
