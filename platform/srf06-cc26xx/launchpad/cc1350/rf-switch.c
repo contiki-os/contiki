@@ -29,85 +29,64 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup launchpad-peripherals
+ * \addtogroup rf-switch
  * @{
  *
  * \file
- *  LaunchPad-specific board initialisation driver
+ * CC1350 LP RF switch driver
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
-#include "lib/sensors.h"
 #include "lpm.h"
-#include "ti-lib.h"
-#include "board-peripherals.h"
 #include "rf-core/rf-switch.h"
+#include "ti-lib.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
+#define POWER_PIN  IOID_30
+#define SELECT_PIN IOID_1
+/*---------------------------------------------------------------------------*/
 static void
-wakeup_handler(void)
+shutdown_handler(uint8_t mode)
 {
-  /* Turn on the PERIPH PD */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
-  while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
-        != PRCM_DOMAIN_POWER_ON);
+  ti_lib_gpio_clear_dio(POWER_PIN);
 }
 /*---------------------------------------------------------------------------*/
 /*
- * Declare a data structure to register with LPM.
- * We don't care about what power mode we'll drop to, we don't care about
- * getting notified before deep sleep. All we need is to be notified when we
- * wake up so we can turn power domains back on
+ * Declare a data structure to register with LPM. Always turn off the switch
+ * when we are dropping to deep sleep. We let the RF driver turn it on though.
  */
-LPM_MODULE(launchpad_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
+LPM_MODULE(rf_switch_module, NULL, shutdown_handler, NULL, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
-static void
-configure_unused_pins(void)
+void
+rf_switch_init()
 {
-  uint32_t pins[] = BOARD_UNUSED_PINS;
+  ti_lib_rom_ioc_pin_type_gpio_output(POWER_PIN);
+  ti_lib_gpio_clear_dio(POWER_PIN);
+  ti_lib_rom_ioc_pin_type_gpio_output(SELECT_PIN);
+  ti_lib_gpio_clear_dio(SELECT_PIN);
 
-  uint32_t *pin;
-
-  for(pin = pins; *pin != IOID_UNUSED; pin++) {
-    ti_lib_ioc_pin_type_gpio_input(*pin);
-    ti_lib_ioc_io_port_pull_set(*pin, IOC_IOPULL_DOWN);
-  }
+  lpm_register_module(&rf_switch_module);
 }
 /*---------------------------------------------------------------------------*/
 void
-board_init()
+rf_switch_power_up()
 {
-  /* Disable global interrupts */
-  bool int_disabled = ti_lib_int_master_disable();
-
-  /* Turn on relevant PDs */
-  wakeup_handler();
-
-  /* Enable GPIO peripheral */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
-
-  /* Apply settings and wait for them to take effect */
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
-  /* Make sure the external flash is in the lower power mode */
-  ext_flash_init();
-
-  lpm_register_module(&launchpad_module);
-
-  /* For unsupported peripherals, select a default pin configuration */
-  configure_unused_pins();
-
-  /* Initialise the RF switch if present */
-  rf_switch_init();
-
-  /* Re-enable interrupt if initially enabled. */
-  if(!int_disabled) {
-    ti_lib_int_master_enable();
-  }
+  ti_lib_gpio_set_dio(POWER_PIN);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_power_down()
+{
+  ti_lib_gpio_clear_dio(POWER_PIN);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_select_path(uint8_t path)
+{
+  ti_lib_gpio_write_dio(SELECT_PIN, path);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
