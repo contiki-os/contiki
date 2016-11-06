@@ -72,6 +72,7 @@
 /*---------------------------------------------------------------------------*/
 /* CC13xxware patches */
 #include "rf_patches/rf_patch_cpe_genfsk.h"
+#include "rf_patches/rf_patch_rfe_genfsk.h"
 /*---------------------------------------------------------------------------*/
 #include "rf-core/smartrf-settings.h"
 /*---------------------------------------------------------------------------*/
@@ -895,6 +896,7 @@ on(void)
     }
 
     rf_patch_cpe_genfsk();
+    rf_patch_rfe_genfsk();
 
     if(rf_core_start_rat() != RF_CORE_CMD_OK) {
       PRINTF("on: rf_core_start_rat() failed\n");
