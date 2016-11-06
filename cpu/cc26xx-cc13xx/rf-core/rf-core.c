@@ -45,6 +45,7 @@
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
@@ -260,6 +261,8 @@ rf_core_power_up()
     ti_lib_int_master_enable();
   }
 
+  rf_switch_power_up();
+
   /* Let CPE boot */
   HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = RF_CORE_CLOCKS_MASK;
 
@@ -364,6 +367,8 @@ rf_core_power_down()
   ti_lib_prcm_power_domain_off(PRCM_DOMAIN_RFCORE);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
         != PRCM_DOMAIN_POWER_OFF);
+
+  rf_switch_power_down();
 
   ti_lib_int_pend_clear(INT_RFC_CPE_0);
   ti_lib_int_pend_clear(INT_RFC_CPE_1);

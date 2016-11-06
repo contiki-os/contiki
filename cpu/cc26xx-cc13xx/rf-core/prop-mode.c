@@ -56,6 +56,7 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
 #include "rf-core/dot-15-4g.h"
 /*---------------------------------------------------------------------------*/
@@ -364,6 +365,8 @@ prop_div_radio_setup(void)
 {
   uint32_t cmd_status;
   rfc_radioOp_t *cmd = (rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup;
+
+  rf_switch_select_path(RF_SWITCH_PATH_SUBGHZ);
 
   /* Adjust loDivider depending on the selected band */
   smartrf_settings_cmd_prop_radio_div_setup.loDivider = PROP_MODE_LO_DIVIDER;
