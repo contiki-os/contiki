@@ -471,6 +471,8 @@ rf_radio_setup()
 
   cmd.txPower = tx_power_current->tx_power;
   cmd.pRegOverride = ieee_overrides;
+  cmd.config.frontEndMode = RF_CORE_RADIO_SETUP_FRONT_END_MODE;
+  cmd.config.biasMode = RF_CORE_RADIO_SETUP_BIAS_MODE;
   cmd.mode = 1;
 
   /* Send Radio setup to RF Core */

@@ -371,6 +371,12 @@ prop_div_radio_setup(void)
   /* Update to the correct TX power setting */
   smartrf_settings_cmd_prop_radio_div_setup.txPower = tx_power_current->tx_power;
 
+  /* Adjust RF Front End and Bias based on the board */
+  smartrf_settings_cmd_prop_radio_div_setup.config.frontEndMode =
+    RF_CORE_PROP_FRONT_END_MODE;
+  smartrf_settings_cmd_prop_radio_div_setup.config.biasMode =
+    RF_CORE_PROP_BIAS_MODE;
+
   /* Send Radio setup to RF Core */
   if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
     PRINTF("prop_div_radio_setup: DIV_SETUP, CMDSTA=0x%08lx, status=0x%04x\n",
