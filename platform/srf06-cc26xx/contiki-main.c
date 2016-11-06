@@ -32,14 +32,16 @@
  * \addtogroup cc26xx-platforms
  * @{
  *
- * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM, CC2650 SensorTag and LaunchPads
+ * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM, SensorTags and LaunchPads
  *
  * This platform supports a number of different boards:
  * - A standard TI SmartRF06EB with a CC26xx EM mounted on it
  * - A standard TI SmartRF06EB with a CC1310 EM mounted on it
- * - The new TI SensorTag2.0
+ * - The TI CC2650 SensorTag
+ * - The TI CC1350 SensorTag
  * - The TI CC2650 LaunchPad
  * - The TI CC1310 LaunchPad
+ * - The TI CC1350 LaunchPad
  * @{
  */
 #include "ti-lib.h"
