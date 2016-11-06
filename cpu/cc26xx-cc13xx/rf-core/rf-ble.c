@@ -45,6 +45,7 @@
 #include "net/linkaddr.h"
 #include "dev/oscillators.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
 #include "driverlib/rf_ble_cmd.h"
 #include "driverlib/rf_common_cmd.h"
@@ -216,6 +217,8 @@ rf_radio_setup()
 {
   uint32_t cmd_status;
   rfc_CMD_RADIO_SETUP_t cmd;
+
+  rf_switch_select_path(RF_SWITCH_PATH_2_4GHZ);
 
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
