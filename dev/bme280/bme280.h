@@ -55,9 +55,6 @@ void bme280_read(uint8_t mode);
 #define  BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
 #endif
 
-/* Diffrent BOSCH chip id's */
-#define BMP085_CHIP_ID 0x55  /* And also BMP180 */
-#define BMP280_CHIP_ID 0x58
 #define BME280_CHIP_ID 0x60
 
 /* Address map */
@@ -95,7 +92,6 @@ void bme280_read(uint8_t mode);
 #define BME280_MODE_GAMING 4
 
 #define BME280_MAX_WAIT 300 /* ms. Forced mode max wait */
-#define BME280_STARTUP_TIME 2 /* ms */
 
 struct {
   int32_t t_overscale100;
