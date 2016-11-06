@@ -137,8 +137,8 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
 
   /* 7: .4g mode with dynamic whitening and CRC choice */
   .formatConf.whitenMode = 0x7,
-  .config.frontEndMode = 0x0, /* Differential mode */
-  .config.biasMode = 0x1,     /* External bias*/
+  .config.frontEndMode = 0x00, /* Set by the driver */
+  .config.biasMode = 0x00,     /* Set by the driver */
   .config.analogCfgMode = 0x0,
   .config.bNoFsPowerUp = 0x0,
   .txPower = 0x00, /* Driver sets correct value */
