@@ -39,21 +39,12 @@
  *
  * \defgroup cc26xx-demo CC26xx Demo Project
  *
- *   Example project demonstrating the CC26xx platforms
+ *   Example project demonstrating the CC13xx/CC26xx platforms
  *
  *   This example will work for the following boards:
- *   - srf06-cc26xx: SmartRF06EB + CC26XX EM
- *   - sensortag-cc26xx: CC26XX sensortag
- *   - The CC2650 LaunchPad
- *
- *   By default, the example will build for the srf06-cc26xx board. To switch
- *   between platforms:
- *   - make clean
- *   - make BOARD=sensortag-cc26xx savetarget
- *
- *     or
- *
- *     make BOARD=srf06-cc26xx savetarget
+ *   - srf06-cc26xx: SmartRF06EB + CC13xx/CC26xx EM
+ *   - CC2650 and CC1350 SensorTag
+ *   - CC1310, CC1350, CC2650 LaunchPads
  *
  *   This is an IPv6/RPL-enabled example. Thus, if you have a border router in
  *   your installation (same RDC layer, same PAN ID and RF channel), you should
