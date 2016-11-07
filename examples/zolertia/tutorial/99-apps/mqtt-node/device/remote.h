@@ -88,6 +88,6 @@ extern sensor_values_t remote_sensors;
  */
 #define DEFAULT_CONF_ALARM_TIME       3
 /*---------------------------------------------------------------------------*/
-#endif /* FRIDGE_H_ */
+#endif /* REMOTE_H_ */
 /** @} */
 
