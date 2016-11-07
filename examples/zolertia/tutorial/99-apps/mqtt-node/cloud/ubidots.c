@@ -179,7 +179,9 @@ publish_event(sensor_values_t *msg)
   remain =- len;
 
   mqtt_res_u16_addr(aux, sizeof(aux));
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, aux, 0, 1);
+
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, aux,
+                      PUB_TOPIC_RAW, 0, 1);
   remain =- len;
 
   /* Include the sensor values, if `sensor_name` lenght is zero discard */
