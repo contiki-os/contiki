@@ -81,6 +81,9 @@
 #define RPL_DECRYPT						 0
 #define RPL_SEC_LVL_1					 1
 
+#define RPL_DIS_RESPONDED				 1
+#define RPL_DIS_NOT_RESPONDED			 0
+
 #define RPL_TIMESTAMP_MASK				 0x40
 #define RPL_TIMESTAMP_SHIFT				 7
 #define RPL_KIM_MASK					 0xC0
@@ -189,19 +192,6 @@ get_global_addr(uip_ipaddr_t *addr)
     }
   }
   return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-set64(uint8_t *buffer, int pos, uint64_t value)
-{
-  buffer[pos++] = value >> 56;
-  buffer[pos++] = (value >> 48) & 0xff;
-  buffer[pos++] = (value >> 40) & 0xff;
-  buffer[pos++] = (value >> 32) & 0xff;
-  buffer[pos++] = (value >> 24) & 0xff;
-  buffer[pos++] = (value >> 16) & 0xff;
-  buffer[pos++] = (value >> 8) & 0xff;
-  buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
 static uint32_t
@@ -351,7 +341,6 @@ dis_input(void)
   	  mic_len = 8;
   }
 
-
   /* We are in KIM = 0, only key_index is present */
   key_index = buffer[pos++];
   /* Key_index must be zero because we use preinstalled key */
@@ -404,12 +393,12 @@ dis_input(void)
 	   }
    }
 
-  last_dis.responded = 0;
+  last_dis.responded = RPL_DIS_NOT_RESPONDED;
   last_dis.timestamp = timestamp;
   last_dis.kim = kim;
   last_dis.lvl = lvl;
   last_dis.key_source = 0;
-  last_dis.key_index = 0;
+  last_dis.key_index = key_index;
 
 #endif
 
@@ -929,20 +918,28 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
 
 #if RPL_SECURITY
-  if(last_dis.responded == 1){
+  if(last_dis.responded == RPL_DIS_RESPONDED){
 	  buffer[pos++] = 0;              /* T = Reserved = 0 */
 	  buffer[pos++] = 0;              /* Algorithm = 0    */
 	  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
 	  buffer[pos++] = 0;              /* Flags */
-	  set32(buffer,pos,my_counter);   /* TODO myCounter */
+	  set32(buffer,pos,my_counter);
 	  pos+=4;
 	  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
   }
   else{
-	  buffer[pos++] = last_dis.timestamp << ;
-	  buffer[pos++] = 0;
-	  buffer[pos++] = last_dis.lvl;
-	  buffer[pos++] =
+	  buffer[pos] = 0;
+	  buffer[pos++] = last_dis.timestamp << RPL_TIMESTAMP_SHIFT ;
+	  buffer[pos++] = 0;	/* Algorithm = 0 */
+	  buffer[pos] = 0;
+	  buffer[pos] = last_dis.kim << RPL_KIM_SHIFT;
+	  buffer[pos] &= last_dis.lvl;
+	  ++pos;
+	  buffer[pos++] = 0;	/* Flags = 0 */
+	  set32(buffer,pos,my_counter);
+	  pos += 4;
+	  buffer[pos++] = last_dis.key_index;
+	  last_dis.responded = RPL_DIS_RESPONDED;
   }
   sec_len = pos;
 #endif

@@ -342,6 +342,7 @@
  * RPL Security
  * = 0  : Unsecured Mode
  * = 1  : Secure Mode
+ * = 2  : Authenticated Mode (Not yet Implemented)
  * Authenticated Mode not implemented
  */
 #ifdef RPL_CONF_SECURITY
@@ -356,7 +357,7 @@
 #ifdef RPL_SECURITY_CONF_K
 #define RPL_SECURITY_K RPL_SECURITY_CONF_K
 #else
-#define RPL_SECURITY_K { 0x36, 0x54, 0x69, 0x53, 0x43, 0x48, 0x20, 0x6D, 0x69, 0x6E, 0x69, 0x6D, 0x61, 0x6C, 0x31, 0x35 }
+#define RPL_SECURITY_K { 0xF7, 0x8E, 0xBA, 0xC9, 0xED, 0xE3, 0xE6, 0x68, 0xDF, 0x15, 0x72, 0xE0, 0x78, 0xB7, 0x80, 0x9E }
 #endif
 
 /*
@@ -371,7 +372,7 @@
 #ifdef RPL_SEC_LVL_CONF
 #define RPL_SEC_LVL   RPL_SEC_LVL_CONF
 #else
-#define RPL_SEC_LVL  1
+#define RPL_SEC_LVL  3
 #endif
 
 
