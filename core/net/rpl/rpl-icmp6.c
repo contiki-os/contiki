@@ -79,7 +79,7 @@
 #define RPL_NONCE_LENGTH				 13
 #define RPL_ENCRYPT						 1
 #define RPL_DECRYPT						 0
-#define RPL_SEC_LVL_1					 1
+#define RPL_SEC_LVL_1					 0x01
 
 #define RPL_DIS_RESPONDED				 1
 #define RPL_DIS_NOT_RESPONDED			 0
@@ -224,13 +224,13 @@ set16(uint8_t *buffer, int pos, uint16_t value)
 }
 /*---------------------------------------------------------------------------*/
 static void
-rpl_sec_aead(uint8_t *mic_len, int *pos, int sec_len, unsigned char *buffer, uint8_t *nonce, int forward)
+rpl_sec_aead(uint8_t *mic_len, int *pos, int sec_len, unsigned char *buffer, uint8_t *nonce, int forward, uint8_t lvl)
 {
 #if RPL_SECURITY
   CCM_STAR.set_key(rpl_key);
 
-  if((RPL_SEC_LVL == 1) || (RPL_SEC_LVL == 3)){	/* RPL_SEC_LVL odd, ENC-MAC mode */
-	  if(RPL_SEC_LVL == 1)
+  if((lvl == 1) || (lvl == 3)){	/* RPL_SEC_LVL odd, ENC-MAC mode */
+	  if(lvl == 1)
 		  *mic_len = 4;
 	  else
 		  *mic_len = 8;
@@ -241,7 +241,7 @@ rpl_sec_aead(uint8_t *mic_len, int *pos, int sec_len, unsigned char *buffer, uin
 			  buffer + *pos, *mic_len, 1);		/* 1 = Encrypt, 0 = Decrypt */
   }
   else{         /* RPL_SEC_LVL even, MAC-mode */
-	  if(RPL_SEC_LVL == 0){
+	  if(lvl == 0){
 		  *mic_len = 4;
 	  }
 	  else{
@@ -290,6 +290,11 @@ dis_input(void)
 {
   rpl_instance_t *instance;
   rpl_instance_t *end;
+
+  /* DAG Information Solicitation */
+  PRINTF("RPL: Received a DIS from ");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF("\n");
 
 #if RPL_SECURITY
   uint8_t buffer_length;
@@ -399,13 +404,7 @@ dis_input(void)
   last_dis.lvl = lvl;
   last_dis.key_source = 0;
   last_dis.key_index = key_index;
-
 #endif
-
-  /* DAG Information Solicitation */
-  PRINTF("RPL: Received a DIS from ");
-  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("\n");
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
       instance < end; ++instance) {
@@ -542,22 +541,11 @@ dis_output(uip_ipaddr_t *addr)
   }
 
   set32(nonce, 8, my_counter);
-  nonce[12] = RPL_SEC_LVL;
+  nonce[12] = RPL_SEC_LVL_1;
 
   my_counter++;
-/*
-  printf("RPL DIS: nonce=");
-    for(i=0;i<13;i++)
-  	  printf("%02x", nonce[i]);
-    printf("\n");
 
-  printf("DIS IP : ");
-    for(i=UIP_LLH_LEN;i< UIP_IPICMPH_LEN + sec_len;i++){
-  	  printf("%02x,",uip_buf[i]);
-    }
-  printf("\n");
-*/
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT);
+  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL_1);
 
   pos += mic_len;
 
@@ -898,6 +886,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
 #if RPL_SECURITY
   int sec_len;
+  uint8_t lvl;
   uint8_t nonce[RPL_NONCE_LENGTH];
   uint8_t mic_len; 			/* n-byte MAC length */
   int i;
@@ -919,6 +908,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
 #if RPL_SECURITY
   if(last_dis.responded == RPL_DIS_RESPONDED){
+	  PRINTF("RPL: Sending Regular Secure DIO\n");
 	  buffer[pos++] = 0;              /* T = Reserved = 0 */
 	  buffer[pos++] = 0;              /* Algorithm = 0    */
 	  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
@@ -926,20 +916,20 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 	  set32(buffer,pos,my_counter);
 	  pos+=4;
 	  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
+	  lvl = RPL_SEC_LVL;
   }
   else{
+	  PRINTF("RPL: Sending Secure DIO replying a DIS, lvl:%u\n", last_dis.lvl);
+	  last_dis.responded = RPL_DIS_RESPONDED;
 	  buffer[pos] = 0;
 	  buffer[pos++] = last_dis.timestamp << RPL_TIMESTAMP_SHIFT ;
 	  buffer[pos++] = 0;	/* Algorithm = 0 */
-	  buffer[pos] = 0;
-	  buffer[pos] = last_dis.kim << RPL_KIM_SHIFT;
-	  buffer[pos] &= last_dis.lvl;
-	  ++pos;
+	  buffer[pos++] = last_dis.lvl;
 	  buffer[pos++] = 0;	/* Flags = 0 */
 	  set32(buffer,pos,my_counter);
 	  pos += 4;
 	  buffer[pos++] = last_dis.key_index;
-	  last_dis.responded = RPL_DIS_RESPONDED;
+	  lvl = last_dis.lvl;
   }
   sec_len = pos;
 #endif
@@ -1100,10 +1090,10 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   }
 
   set32(nonce, 8, my_counter);
-  nonce[12] = RPL_SEC_LVL;
+  nonce[12] = lvl;
   my_counter++;
 
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT);
+  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, lvl);
 
   pos += mic_len;
 
@@ -1897,7 +1887,7 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 		  }
 	  printf("\n");
 */
-	  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT);
+	  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL);
 
 	  pos += mic_len;
 
@@ -2186,7 +2176,7 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
     }
   printf("\n");
 */
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT);
+  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL);
 
   pos += mic_len;
 
@@ -2215,6 +2205,8 @@ rpl_icmp6_register_handlers()
   uip_icmp6_register_input_handler(&dao_ack_handler);
 #if RPL_SECURITY
   uip_icmp6_register_input_handler(&cc_handler);
+
+  last_dis.responded = RPL_DIS_RESPONDED;
 #endif
 
 }
