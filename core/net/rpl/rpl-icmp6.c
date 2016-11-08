@@ -79,6 +79,7 @@
 #define RPL_NONCE_LENGTH				 13
 #define RPL_ENCRYPT						 1
 #define RPL_DECRYPT						 0
+#define RPL_SEC_LVL_1					 1
 
 #define RPL_TIMESTAMP_MASK				 0x40
 #define RPL_TIMESTAMP_SHIFT				 7
@@ -114,6 +115,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #if RPL_SECURITY
 static uint8_t rpl_key[16] = RPL_SECURITY_K;
 static uint32_t my_counter = 0;
+static rpl_sec_section_t last_dis;
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
@@ -349,37 +351,7 @@ dis_input(void)
   	  mic_len = 8;
   }
 
-/*  for(i=0;i<NBR_TABLE_MAX_NEIGHBORS;i++){
-	  if(rpl_counter_table[i].used == 1){
-		  if(uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &rpl_counter_table[i].owner) == 1){
-			if(counter == 0 && rpl_counter_table[i].counter != 0){
-				; //TODO CC_OUTPUT
-				//printf("Consistency Check Needed\n");
-				goto discard;
-			}
-			if(counter > rpl_counter_table[i].counter){
-					//printf("Watermark: %lu, counter: %lu\n", rpl_counter_table[i].counter, counter);
-					rpl_counter_table[i].counter = counter;
-					break;
-			}
-			else{
-					//printf("replay attack?!\n");
-					goto discard;
-			}
-		  }
-	  }
-  }
 
-  if(i == NBR_TABLE_MAX_NEIGHBORS){		//Add new neighbor
-	  for(i=0;i<NBR_TABLE_MAX_NEIGHBORS;i++){
-		  if(rpl_counter_table[i].used == 0){
-			  uip_ipaddr_copy(&rpl_counter_table[i].owner, &UIP_IP_BUF->srcipaddr);
-			  rpl_counter_table[i].used = 1;
-			  rpl_counter_table[i].counter = counter;
-		  }
-	  }
-  }
-*/
   /* We are in KIM = 0, only key_index is present */
   key_index = buffer[pos++];
   /* Key_index must be zero because we use preinstalled key */
@@ -431,6 +403,13 @@ dis_input(void)
 	     		 goto discard;
 	   }
    }
+
+  last_dis.responded = 0;
+  last_dis.timestamp = timestamp;
+  last_dis.kim = kim;
+  last_dis.lvl = lvl;
+  last_dis.key_source = 0;
+  last_dis.key_index = 0;
 
 #endif
 
@@ -505,11 +484,11 @@ dis_output(uip_ipaddr_t *addr)
    *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    */
 
-  buffer[pos++] = 0;              /* T = Reserved = 0 */
-  buffer[pos++] = 0;              /* Algorithm = 0    */
-  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
-  buffer[pos++] = 0;              /* Flags */
-  set32(buffer,pos,my_counter);   /* TODO myCounter */
+  buffer[pos++] = 0;                /* T = Reserved = 0 */
+  buffer[pos++] = 0;                /* Algorithm = 0    */
+  buffer[pos++] = RPL_SEC_LVL_1;    /* KIM = 0, LVL = RPL_SEC_LVL */
+  buffer[pos++] = 0;                /* Flags */
+  set32(buffer,pos,my_counter);     /* TODO myCounter */
   pos+=4;
   buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
 
@@ -950,15 +929,21 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
 
 #if RPL_SECURITY
-
-  buffer[pos++] = 0;              /* T = Reserved = 0 */
-  buffer[pos++] = 0;              /* Algorithm = 0    */
-  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
-  buffer[pos++] = 0;              /* Flags */
-  set32(buffer,pos,my_counter);   /* TODO myCounter */
-  pos+=4;
-  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
-
+  if(last_dis.responded == 1){
+	  buffer[pos++] = 0;              /* T = Reserved = 0 */
+	  buffer[pos++] = 0;              /* Algorithm = 0    */
+	  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
+	  buffer[pos++] = 0;              /* Flags */
+	  set32(buffer,pos,my_counter);   /* TODO myCounter */
+	  pos+=4;
+	  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
+  }
+  else{
+	  buffer[pos++] = last_dis.timestamp << ;
+	  buffer[pos++] = 0;
+	  buffer[pos++] = last_dis.lvl;
+	  buffer[pos++] =
+  }
   sec_len = pos;
 #endif
 
