@@ -314,7 +314,11 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
     }
     /*Eddystone UID frame */
     payload[p++] = EDDYSTONE_FRAME_TYPE;
+#ifndef TXPOWER_DBM_CONF
     NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &tx_power);
+#else
+    tx_power=TXPOWER_DBM_CONF;
+#endif
     payload[p++] = tx_power;
     for(i = 0; i < BLE_UID_SIZE ; i++) {
         payload[p++] = uid[i];
