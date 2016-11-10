@@ -216,7 +216,7 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 
   while(r != NULL) {
     if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), nexthop) &&
-        r->state.dag == dag) {
+       r->state.dag == dag) {
       r->state.lifetime = 0;
     }
     r = uip_ds6_route_next(r);
@@ -261,7 +261,7 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
-    if(instance->used == 1 ) {
+    if(instance->used == 1) {
       parent = rpl_find_parent_any_dag(instance, &ipaddr);
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
@@ -287,7 +287,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   PRINTF(", state=%u\n", nbr->state);
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
-    if(instance->used == 1 ) {
+    if(instance->used == 1) {
       p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
       if(p != NULL) {
         p->rank = INFINITE_RANK;

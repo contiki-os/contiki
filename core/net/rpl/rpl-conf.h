@@ -67,7 +67,7 @@
 #ifdef RPL_CONF_SUPPORTED_OFS
 #define RPL_SUPPORTED_OFS RPL_CONF_SUPPORTED_OFS
 #else /* RPL_CONF_SUPPORTED_OFS */
-#define RPL_SUPPORTED_OFS {&rpl_mrhof}
+#define RPL_SUPPORTED_OFS { &rpl_mrhof }
 #endif /* RPL_CONF_SUPPORTED_OFS */
 
 /*
@@ -95,7 +95,7 @@
 #ifdef RPL_CONF_DEFAULT_INSTANCE
 #define RPL_DEFAULT_INSTANCE RPL_CONF_DEFAULT_INSTANCE
 #else
-#define RPL_DEFAULT_INSTANCE	       0x1e
+#define RPL_DEFAULT_INSTANCE         0x1e
 #endif /* RPL_CONF_DEFAULT_INSTANCE */
 
 /*
@@ -155,16 +155,16 @@
 #endif /* RPL_CONF_DAG_LIFETIME */
 
 /*
- * 
+ *
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG
-  #if RPL_MAX_DAG_PER_INSTANCE > 1
-    #define RPL_DAO_SPECIFY_DAG 1
-  #else
-    #define RPL_DAO_SPECIFY_DAG 0
-  #endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+#if RPL_MAX_DAG_PER_INSTANCE > 1
+#define RPL_DAO_SPECIFY_DAG 1
 #else
-  #define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
+#define RPL_DAO_SPECIFY_DAG 0
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+#else
+#define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
 #endif /* RPL_CONF_DAO_SPECIFY_DAG */
 
 /*
@@ -242,7 +242,7 @@
 #ifdef RPL_CONF_WITH_DAO_ACK
 #define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
 #else
-#define RPL_WITH_DAO_ACK 		0
+#define RPL_WITH_DAO_ACK    0
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
@@ -346,9 +346,9 @@
  * Authenticated Mode not implemented
  */
 #ifdef RPL_CONF_SECURITY
-#define RPL_SECURITY 					RPL_CONF_SECURITY
-#else	/* Not enabled by user, disable security */
-#define RPL_SECURITY					0
+#define RPL_SECURITY          RPL_CONF_SECURITY
+#else /* Not enabled by user, disable security */
+#define RPL_SECURITY          0
 #endif
 
 /*
@@ -374,6 +374,5 @@
 #else
 #define RPL_SEC_LVL  1
 #endif
-
 
 #endif /* RPL_CONF_H */

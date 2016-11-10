@@ -50,7 +50,7 @@ typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 /*---------------------------------------------------------------------------*/
 /* IANA Routing Metric/Constraint Type as defined in RFC6551 */
-#define RPL_DAG_MC_NONE			            0 /* Local identifier for empty MC */
+#define RPL_DAG_MC_NONE                 0 /* Local identifier for empty MC */
 #define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
 #define RPL_DAG_MC_ENERGY               2 /* Node Energy */
 #define RPL_DAG_MC_HOPCOUNT             3 /* Hop Count */
@@ -73,14 +73,14 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_DAG_MC_AGGR_MULTIPLICATIVE  3
 
 /* The bit index within the flags field of the rpl_metric_object_energy structure. */
-#define RPL_DAG_MC_ENERGY_INCLUDED	    3
-#define RPL_DAG_MC_ENERGY_TYPE		      1
-#define RPL_DAG_MC_ENERGY_ESTIMATION	  0
+#define RPL_DAG_MC_ENERGY_INCLUDED      3
+#define RPL_DAG_MC_ENERGY_TYPE          1
+#define RPL_DAG_MC_ENERGY_ESTIMATION    0
 
 /* IANA Node Type Field as defined in RFC6551 */
-#define RPL_DAG_MC_ENERGY_TYPE_MAINS		   0
-#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		 1
-#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	 2
+#define RPL_DAG_MC_ENERGY_TYPE_MAINS       0
+#define RPL_DAG_MC_ENERGY_TYPE_BATTERY     1
+#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING  2
 
 /* IANA Objective Code Point as defined in RFC6550 */
 #define RPL_OCP_OF0     0
@@ -222,7 +222,7 @@ struct rpl_of {
   rpl_rank_t (*rank_via_parent)(rpl_parent_t *);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
-  void (*update_metric_container)( rpl_instance_t *);
+  void (*update_metric_container)(rpl_instance_t *);
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
@@ -340,7 +340,6 @@ enum rpl_mode rpl_set_mode(enum rpl_mode mode);
  * \retval The RPL mode
  */
 enum rpl_mode rpl_get_mode(void);
-
 
 /**
  * Get the RPL's best guess on if we have downward route or not.
