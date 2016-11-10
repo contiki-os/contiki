@@ -65,7 +65,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 
 #include "net/ip/uip-debug.h"
 
@@ -117,8 +117,8 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 #if RPL_SECURITY
 static uint8_t rpl_key[16] = RPL_SECURITY_K;
-static uint32_t my_counter = 0;
-static rpl_sec_section_t last_dis;
+static uint32_t rpl_sec_counter = 0;
+static rpl_sec_section_t rpl_last_dis;
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
@@ -221,40 +221,6 @@ set16(uint8_t *buffer, int pos, uint16_t value)
 {
   buffer[pos++] = value >> 8;
   buffer[pos++] = value & 0xff;
-}
-/*---------------------------------------------------------------------------*/
-static void
-rpl_sec_aead(uint8_t *mic_len, int *pos, int sec_len, unsigned char *buffer, uint8_t *nonce, int forward, uint8_t lvl)
-{
-#if RPL_SECURITY
-  CCM_STAR.set_key(rpl_key);
-
-  if((lvl == 1) || (lvl == 3)){	/* RPL_SEC_LVL odd, ENC-MAC mode */
-	  if(lvl == 1)
-		  *mic_len = 4;
-	  else
-		  *mic_len = 8;
-
-	  CCM_STAR.aead(nonce,
-			  buffer + sec_len, *pos - sec_len,
-			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-			  buffer + *pos, *mic_len, 1);		/* 1 = Encrypt, 0 = Decrypt */
-  }
-  else{         /* RPL_SEC_LVL even, MAC-mode */
-	  if(lvl == 0){
-		  *mic_len = 4;
-	  }
-	  else{
-		  *mic_len = 8;
-	  }
-
-	  CCM_STAR.mic(nonce,
-			  	  buffer + sec_len, *pos - sec_len,
-	  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-				  buffer + *pos, *mic_len);
-  	  }
-
-#endif
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
@@ -376,34 +342,27 @@ dis_input(void)
   CCM_STAR.set_key(rpl_key);
 
   if(lvl == 1 || lvl == 3){		/* RPL_SEC_LVL odd, MAC-mode */
- 	  CCM_STAR.aead(nonce,
- 			  buffer + sec_len, buffer_length,
+ 	  CCM_STAR.aead(nonce, buffer + sec_len, buffer_length,
  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
- 			  mic, mic_len, 0);		/* 1 = Encrypt, 0 = Decrypt */
-
-  	  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-  		  printf("Wrong MIC\n");
-  		  goto discard;
-  	  }
-   }
-   else{         /* RPL_SEC_LVL even, MAC-mode */
-
-	   CCM_STAR.mic(nonce,
-	 			  buffer + sec_len, buffer_length,
+ 			  mic, mic_len, RPL_DECRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  CCM_STAR.mic(nonce, buffer + sec_len, buffer_length,
 	 			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
 	 			  mic, mic_len);
+  }
 
-	   if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-	     		 goto discard;
-	   }
-   }
+  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
+	  PRINTF("RPL: MIC mismatch\n");
+	  goto discard;
+  }
 
-  last_dis.responded = RPL_DIS_NOT_RESPONDED;
-  last_dis.timestamp = timestamp;
-  last_dis.kim = kim;
-  last_dis.lvl = lvl;
-  last_dis.key_source = 0;
-  last_dis.key_index = key_index;
+  rpl_last_dis.responded = RPL_DIS_NOT_RESPONDED;
+  rpl_last_dis.timestamp = timestamp;
+  rpl_last_dis.kim = kim;
+  rpl_last_dis.lvl = lvl;
+  rpl_last_dis.key_source = 0;
+  rpl_last_dis.key_index = key_index;
 #endif
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
@@ -476,7 +435,7 @@ dis_output(uip_ipaddr_t *addr)
   buffer[pos++] = 0;                /* Algorithm = 0    */
   buffer[pos++] = RPL_SEC_LVL_1;    /* KIM = 0, LVL = RPL_SEC_LVL */
   buffer[pos++] = 0;                /* Flags */
-  set32(buffer,pos,my_counter);     /* TODO myCounter */
+  set32(buffer,pos,rpl_sec_counter);
   pos+=4;
   buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
 
@@ -540,21 +499,27 @@ dis_output(uip_ipaddr_t *addr)
 	  nonce[i] = (UIP_IP_BUF->srcipaddr).u8[(8+i)];
   }
 
-  set32(nonce, 8, my_counter);
+  set32(nonce, 8, rpl_sec_counter);
   nonce[12] = RPL_SEC_LVL_1;
 
-  my_counter++;
+  rpl_sec_counter++;
 
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL_1);
+  CCM_STAR.set_key(rpl_key);
+
+  mic_len = 4;		/* Always send DIS with RPL_SEC_LVL = 1 */
+
+  CCM_STAR.aead(nonce, buffer + sec_len, pos - sec_len,
+		  	  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+			  buffer + pos, mic_len, RPL_ECNRYPT);
 
   pos += mic_len;
-
 
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_SEC_DIS, pos);
 #else
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, pos);
 #endif
 }
+
 /*---------------------------------------------------------------------------*/
 static void
 dio_input(void)
@@ -635,38 +600,6 @@ dio_input(void)
   	  mic_len = 8;
   }
 
-  /*
-  for(j=0;j<NBR_TABLE_MAX_NEIGHBORS;j++){
-	  if(rpl_counter_table[j].used == 1){
-		  if(uip_ip6addr_cmp(&UIP_IP_BUF->srcipaddr, &rpl_counter_table[j].owner) == 1){
-			if(counter == 0 && rpl_counter_table[j].counter != 0){
-				; //TODO CC_OUTPUT
-				PRINTF("Consistency Check Needed\n");
-				goto discard;
-			}
-			if(counter > rpl_counter_table[j].counter){
-					PRINTF("Watermark: %lu, counter: %lu\n", rpl_counter_table[j].counter, counter);
-					rpl_counter_table[j].counter = counter;
-					break;
-			}
-			else{
-					PRINTF("replay attack?!\n");
-					goto discard;
-			}
-		  }
-	  }
-  }
-
-  if(j == NBR_TABLE_MAX_NEIGHBORS){		//Add new neighbor
-	  for(j=0;j<NBR_TABLE_MAX_NEIGHBORS;j++){
-		  if(rpl_counter_table[j].used == 0){
-			  uip_ip6addr_copy(&rpl_counter_table[j].owner, &UIP_IP_BUF->srcipaddr);
-			  rpl_counter_table[j].used = 1;
-			  rpl_counter_table[j].counter = counter;
-		  }
-	  }
-  }
-*/
   /* We are in KIM = 0, only key_index is present */
   key_index = buffer[i++];
   /* Key_index must be zero because we use preinstalled key */
@@ -697,27 +630,20 @@ dio_input(void)
   CCM_STAR.set_key(rpl_key);
 
   if(lvl == 1 || lvl == 3){		/* RPL_SEC_LVL odd, MAC-mode */
- 	  CCM_STAR.aead(nonce,
- 			  buffer + sec_len, buffer_length,
+ 	  CCM_STAR.aead(nonce, buffer + sec_len, buffer_length,
  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
- 			  mic, mic_len, 0);		/* 1 = Encrypt, 0 = Decrypt */
-
-  	  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-  		  printf("Wrong MIC\n");
-  		  goto discard;
-  	  }
-   }
-   else{         /* RPL_SEC_LVL even, MAC-mode */
-
-	   CCM_STAR.mic(nonce,
-	 			  buffer + sec_len, buffer_length,
+ 			  mic, mic_len, RPL_DECRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  CCM_STAR.mic(nonce, buffer + sec_len, buffer_length,
 	 			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
 	 			  mic, mic_len);
+  }
 
-	   if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-	     		 goto discard;
-	   }
-   }
+  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
+	  PRINTF("RPL: MIC mismatch\n");
+	  goto discard;
+  }
 
 #endif
 
@@ -886,7 +812,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
 #if RPL_SECURITY
   int sec_len;
-  uint8_t lvl;
+  uint8_t sec_lvl;
   uint8_t nonce[RPL_NONCE_LENGTH];
   uint8_t mic_len; 			/* n-byte MAC length */
   int i;
@@ -907,29 +833,29 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
 
 #if RPL_SECURITY
-  if(last_dis.responded == RPL_DIS_RESPONDED){
+  if(rpl_last_dis.responded == RPL_DIS_RESPONDED){
 	  PRINTF("RPL: Sending Regular Secure DIO\n");
 	  buffer[pos++] = 0;              /* T = Reserved = 0 */
 	  buffer[pos++] = 0;              /* Algorithm = 0    */
 	  buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
 	  buffer[pos++] = 0;              /* Flags */
-	  set32(buffer,pos,my_counter);
+	  set32(buffer,pos,rpl_sec_counter);
 	  pos+=4;
 	  buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
-	  lvl = RPL_SEC_LVL;
+	  sec_lvl = RPL_SEC_LVL;
   }
   else{
-	  PRINTF("RPL: Sending Secure DIO replying a DIS, lvl:%u\n", last_dis.lvl);
-	  last_dis.responded = RPL_DIS_RESPONDED;
+	  PRINTF("RPL: Sending Secure DIO replying a DIS, lvl:%u\n", rpl_last_dis.lvl);
+	  rpl_last_dis.responded = RPL_DIS_RESPONDED;
 	  buffer[pos] = 0;
-	  buffer[pos++] = last_dis.timestamp << RPL_TIMESTAMP_SHIFT ;
+	  buffer[pos++] = rpl_last_dis.timestamp << RPL_TIMESTAMP_SHIFT ;
 	  buffer[pos++] = 0;	/* Algorithm = 0 */
-	  buffer[pos++] = last_dis.lvl;
+	  buffer[pos++] = rpl_last_dis.lvl;
 	  buffer[pos++] = 0;	/* Flags = 0 */
-	  set32(buffer,pos,my_counter);
+	  set32(buffer,pos,rpl_sec_counter);
 	  pos += 4;
-	  buffer[pos++] = last_dis.key_index;
-	  lvl = last_dis.lvl;
+	  buffer[pos++] = rpl_last_dis.key_index;
+	  sec_lvl = rpl_last_dis.lvl;
   }
   sec_len = pos;
 #endif
@@ -1089,11 +1015,36 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   	  nonce[i] = (UIP_IP_BUF->srcipaddr).u8[(8+i)];
   }
 
-  set32(nonce, 8, my_counter);
-  nonce[12] = lvl;
-  my_counter++;
+  set32(nonce, 8, rpl_sec_counter);
+  nonce[12] = sec_lvl;
+  rpl_sec_counter++;
 
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, lvl);
+  CCM_STAR.set_key(rpl_key);
+
+  if((sec_lvl == 1) || (sec_lvl == 3)){		/* RPL_SEC_LVL odd, ENC-MAC mode */
+	  if(sec_lvl == 1){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
+	  CCM_STAR.aead(nonce,
+			  buffer + sec_len, pos - sec_len,
+			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+			  buffer + pos, mic_len, RPL_ECNRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  if(sec_lvl == 0){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
+	  CCM_STAR.mic(nonce,
+			  	  buffer + sec_len, pos - sec_len,
+	  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+				  buffer + pos, mic_len);
+  }
 
   pos += mic_len;
 
@@ -1570,28 +1521,25 @@ dao_input(void)
   CCM_STAR.set_key(rpl_key);
 
   if(lvl == 1 || lvl == 3){		/* RPL_SEC_LVL odd, MAC-mode */
- 	  CCM_STAR.aead(nonce,
- 			  buffer + sec_len, buffer_length,
+ 	  CCM_STAR.aead(nonce, buffer + sec_len, buffer_length,
  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
- 			  mic, mic_len, 0);		/* 1 = Encrypt, 0 = Decrypt */
-
-  	  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-  		  printf("Wrong MIC\n");
-  		  goto discard;
-  	  }
-   }
-   else{         /* RPL_SEC_LVL even, MAC-mode */
-
-	   CCM_STAR.mic(nonce,
-	 			  buffer + sec_len, buffer_length,
+ 			  mic, mic_len, RPL_DECRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  CCM_STAR.mic(nonce, buffer + sec_len, buffer_length,
 	 			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
 	 			  mic, mic_len);
+  }
 
-	   if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-	     		 goto discard;
-	   }
-   }
+  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
+	  PRINTF("RPL: MIC mismatch\n");
+	  goto discard;
+  }
 
+  /*
+   * Security Section is valid so it is removed from buffer so
+   * the code of storing/non-storing mode is untouched
+   */
   for(i=0;i<buffer_length;i++){
 	  buffer[i] = buffer[i+sec_len];
   }
@@ -1784,7 +1732,7 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
   buffer[pos++] = 0;              /* Algorithm = 0    */
   buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
   buffer[pos++] = 0;              /* Flags */
-  set32(buffer,pos,my_counter);   /* TODO myCounter */
+  set32(buffer,pos,rpl_sec_counter);
   pos+=4;
   buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
 
@@ -1871,23 +1819,37 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 		  nonce[i] = (UIP_IP_BUF->srcipaddr).u8[(8+i)];
 	  }
 
-	  set32(nonce, 8, my_counter);
+	  set32(nonce, 8, rpl_sec_counter);
 	  nonce[12] = RPL_SEC_LVL;
 
-	  my_counter ++;
-/*
-	  printf("RPL DAO: nonce=");
-	  for(i=0;i<13;i++)
-		  printf("%x", nonce[i]);
-	  printf("\n");
+	  rpl_sec_counter ++;
 
-	  printf("DAO IP : ");
-	  for(i=UIP_LLH_LEN;i<UIP_IPH_LEN + UIP_ICMPH_LEN + sec_len;i++){
-			  printf("%x",uip_buf[i]);
+	  CCM_STAR.set_key(rpl_key);
+
+	  if((RPL_SEC_LVL == 1) || (RPL_SEC_LVL == 3)){		/* RPL_SEC_LVL odd, ENC-MAC mode */
+		  if(RPL_SEC_LVL == 1){
+			  mic_len = 4;
 		  }
-	  printf("\n");
-*/
-	  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL);
+		  else{
+			  mic_len = 8;
+		  }
+		  CCM_STAR.aead(nonce,
+				  buffer + sec_len, pos - sec_len,
+				  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+				  buffer + pos, mic_len, RPL_ECNRYPT);
+	  }
+	  else{         /* RPL_SEC_LVL even, MAC-mode */
+		  if(RPL_SEC_LVL == 0){
+			  mic_len = 4;
+		  }
+		  else{
+			  mic_len = 8;
+		  }
+		  CCM_STAR.mic(nonce,
+				  	  buffer + sec_len, pos - sec_len,
+		  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+					  buffer + pos, mic_len);
+	  }
 
 	  pos += mic_len;
 
@@ -1988,27 +1950,20 @@ dao_ack_input(void)
   CCM_STAR.set_key(rpl_key);
 
   if(lvl == 1 || lvl == 3){		/* RPL_SEC_LVL odd, MAC-mode */
- 	  CCM_STAR.aead(nonce,
- 			  buffer + sec_len, buffer_length,
+ 	  CCM_STAR.aead(nonce, buffer + sec_len, buffer_length,
  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
- 			  mic, mic_len, 0);		/* 1 = Encrypt, 0 = Decrypt */
-
-  	  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-  		  printf("Wrong MIC\n");
-  		  goto discard;
-  	  }
-   }
-   else{         /* RPL_SEC_LVL even, MAC-mode */
-
-	   CCM_STAR.mic(nonce,
-	 			  buffer + sec_len, buffer_length,
+ 			  mic, mic_len, RPL_DECRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  CCM_STAR.mic(nonce, buffer + sec_len, buffer_length,
 	 			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
 	 			  mic, mic_len);
+  }
 
-	   if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
-	     		 goto discard;
-	   }
-   }
+  if(memcmp(mic, buffer + sec_len + buffer_length, mic_len) != 0){
+	  PRINTF("RPL: MIC mismatch\n");
+	  goto discard;
+  }
 
 #endif
 
@@ -2121,7 +2076,7 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
   buffer[pos++] = 0;              /* Algorithm = 0    */
   buffer[pos++] = RPL_SEC_LVL;    /* KIM = 0, LVL = RPL_SEC_LVL */
   buffer[pos++] = 0;              /* Flags */
-  set32(buffer,pos,my_counter);   /* TODO myCounter */
+  set32(buffer,pos,rpl_sec_counter);
   pos+=4;
   buffer[pos++] = 0; 	 /* KIM = 0 => Key Identifier = Key Group = 0 for shared key */
 
@@ -2160,23 +2115,37 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 	  nonce[i] = (UIP_IP_BUF->srcipaddr).u8[(8+i)];
   }
 
-  set32(nonce, 8, my_counter);
+  set32(nonce, 8, rpl_sec_counter);
   nonce[12] = RPL_SEC_LVL;
 
-  my_counter++;
-/*
-  printf("RPL DAO ACK: nonce=");
-    for(i=0;i<13;i++)
-  	  printf("%x", nonce[i]);
-    printf("\n");
+  rpl_sec_counter++;
 
-  printf("DAO ACK IP : ");
-    for(i=UIP_LLH_LEN;i<UIP_IPH_LEN + UIP_ICMPH_LEN + sec_len;i++){
-  	  printf("%x",uip_buf[i]);
-    }
-  printf("\n");
-*/
-  rpl_sec_aead(&mic_len, &pos, sec_len, buffer, nonce, RPL_ENCRYPT, RPL_SEC_LVL);
+  CCM_STAR.set_key(rpl_key);
+
+  if((RPL_SEC_LVL == 1) || (RPL_SEC_LVL == 3)){		/* RPL_SEC_LVL odd, ENC-MAC mode */
+	  if(RPL_SEC_LVL == 1){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
+	  CCM_STAR.aead(nonce,
+			  buffer + sec_len, pos - sec_len,
+			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+			  buffer + pos, mic_len, RPL_ECNRYPT);
+  }
+  else{         /* RPL_SEC_LVL even, MAC-mode */
+	  if(RPL_SEC_LVL == 0){
+		  mic_len = 4;
+	  }
+	  else{
+		  mic_len = 8;
+	  }
+	  CCM_STAR.mic(nonce,
+			  	  buffer + sec_len, pos - sec_len,
+	  			  uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
+				  buffer + pos, mic_len);
+  }
 
   pos += mic_len;
 
@@ -2206,7 +2175,7 @@ rpl_icmp6_register_handlers()
 #if RPL_SECURITY
   uip_icmp6_register_input_handler(&cc_handler);
 
-  last_dis.responded = RPL_DIS_RESPONDED;
+  rpl_last_dis.responded = RPL_DIS_RESPONDED;
 #endif
 
 }

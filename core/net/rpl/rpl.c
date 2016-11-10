@@ -331,7 +331,6 @@ void
 rpl_init(void)
 {
   uip_ipaddr_t rplmaddr;
-  int i;
   PRINTF("RPL started\n");
   default_instance = NULL;
 

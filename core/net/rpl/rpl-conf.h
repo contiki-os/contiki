@@ -242,7 +242,7 @@
 #ifdef RPL_CONF_WITH_DAO_ACK
 #define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
 #else
-#define RPL_WITH_DAO_ACK 		1
+#define RPL_WITH_DAO_ACK 		0
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
@@ -348,7 +348,7 @@
 #ifdef RPL_CONF_SECURITY
 #define RPL_SECURITY 					RPL_CONF_SECURITY
 #else	/* Not enabled by user, disable security */
-#define RPL_SECURITY					1
+#define RPL_SECURITY					0
 #endif
 
 /*
@@ -372,7 +372,7 @@
 #ifdef RPL_SEC_LVL_CONF
 #define RPL_SEC_LVL   RPL_SEC_LVL_CONF
 #else
-#define RPL_SEC_LVL  3
+#define RPL_SEC_LVL  1
 #endif
 
 
