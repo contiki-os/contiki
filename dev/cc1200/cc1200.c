@@ -439,7 +439,7 @@ read(void *buf, unsigned short bufsize);
  * a packet in the air or not.
  */
 static int
-channel_clear(void);
+channel_clear(radio_cca_reason_t reason);
 /* Check if the radio driver is currently receiving a packet. */
 static int
 receiving_packet(void);
@@ -755,7 +755,7 @@ transmit(unsigned short transmit_len)
 
   if(tx_mode_value & RADIO_TX_MODE_SEND_ON_CCA) {
     /* Perform clear channel assessment */
-    if(!channel_clear()) {
+    if(!channel_clear(RADIO_CCA_CA)) {
       /* Channel occupied */
       RIMESTATS_ADD(contentiondrop);
       if(was_off) {
@@ -902,7 +902,7 @@ read(void *buf, unsigned short buf_len)
  * packet in the air or not.
  */
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
 
   uint8_t cca, was_off = 0;

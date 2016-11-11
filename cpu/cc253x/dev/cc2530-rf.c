@@ -111,7 +111,7 @@ static uint8_t CC_AT_DATA rf_flags;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
-static int channel_clear(void); /* transmit() needs our prototype */
+static int channel_clear(radio_cca_reason_t reason); /* transmit() needs our prototype */
 /*---------------------------------------------------------------------------*/
 /* TX Power dBm lookup table. Values from SmartRF Studio v1.16.0 */
 typedef struct output_config {
@@ -430,7 +430,7 @@ transmit(unsigned short transmit_len)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
   }
 
-  if(channel_clear() == CC2530_RF_CCA_BUSY) {
+  if(channel_clear(RADIO_CCA_CA) == CC2530_RF_CCA_BUSY) {
     RIMESTATS_ADD(contentiondrop);
     return RADIO_TX_COLLISION;
   }
@@ -574,7 +574,7 @@ read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   if(FSMSTAT1 & FSMSTAT1_CCA) {
     return CC2530_RF_CCA_CLEAR;

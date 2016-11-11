@@ -657,7 +657,7 @@ pending_packet(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-cca(void)
+cca(radio_cca_reason_t reason)
 {
   bool_t is_channel_busy = bJPT_CCA(current_channel,
                                     E_JPT_CCA_MODE_CARRIER_OR_ENERGY,

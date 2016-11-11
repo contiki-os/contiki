@@ -238,7 +238,7 @@ read(void *buf, unsigned short buf_len)
 /** Perform a Clear-Channel Assessment (CCA) to find out if there is
     a packet in the air or not. */
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   /* Not implemented; assume clear */
   return 1;

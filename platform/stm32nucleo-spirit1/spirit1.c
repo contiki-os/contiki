@@ -105,7 +105,7 @@ static int spirit_radio_prepare(const void *payload, unsigned short payload_len)
 static int spirit_radio_transmit(unsigned short payload_len);
 static int spirit_radio_send(const void *data, unsigned short len);
 static int spirit_radio_read(void *buf, unsigned short bufsize);
-static int spirit_radio_channel_clear(void);
+static int spirit_radio_channel_clear(radio_cca_reason_t reason);
 static int spirit_radio_receiving_packet(void);
 static int spirit_radio_pending_packet(void);
 static int spirit_radio_on(void);
@@ -417,7 +417,7 @@ spirit_radio_read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 static int
-spirit_radio_channel_clear(void)
+spirit_radio_channel_clear(radio_cca_reason_t reason)
 {
   float rssi_value;
   /* Local variable used to memorize the SPIRIT1 state */

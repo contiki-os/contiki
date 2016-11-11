@@ -399,7 +399,7 @@ get_sfd_timestamp(void)
 /* Netstack API radio driver functions */
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   int cca;
   uint8_t was_off = 0;
@@ -625,7 +625,7 @@ transmit(unsigned short transmit_len)
   }
 
   if(send_on_cca) {
-    if(channel_clear() == CC2538_RF_CCA_BUSY) {
+    if(channel_clear(RADIO_CCA_CA) == CC2538_RF_CCA_BUSY) {
       RIMESTATS_ADD(contentiondrop);
       return RADIO_TX_COLLISION;
     }

@@ -160,7 +160,7 @@ static int cc2420_send(const void *data, unsigned short len);
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int get_cca_threshold(void);
-static int cc2420_cca(void);
+static int cc2420_cca(radio_cca_reason_t reason);
 static uint16_t getreg(enum cc2420_register regname);
 
 static void set_frame_filtering(uint8_t enable);
@@ -1061,7 +1061,7 @@ cc2420_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-cc2420_cca(void)
+cc2420_cca(radio_cca_reason_t reason)
 {
   int cca;
   int radio_was_off = 0;

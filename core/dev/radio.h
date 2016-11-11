@@ -231,6 +231,16 @@ enum {
   RADIO_TX_NOACK,
 };
 
+/*
+ * The reason why are requesting a CCA from the radio: As part of pre-TX
+ * collision avoidance or as part of incoming frame detection. These are used
+ * as arguments to channel_clear()
+ */
+typedef enum {
+  RADIO_CCA_CA,
+  RADIO_CCA_FRAME_DETECT,
+} radio_cca_reason_t;
+
 /**
  * The structure of a device driver for a radio in Contiki.
  */
@@ -251,8 +261,11 @@ struct radio_driver {
   int (* read)(void *buf, unsigned short buf_len);
 
   /** Perform a Clear-Channel Assessment (CCA) to find out if there is
-      a packet in the air or not. */
-  int (* channel_clear)(void);
+      a packet in the air or not. If mode is RADIO_CCA_CA then this function
+      is being called by the RDC layer before TX as part of a collision
+      avoidance logic. If mode is RADIO_CCA_FRAME_DETECT, then the function is
+      being called by the RDC layer as part of incoming frame detection. */
+  int (* channel_clear)(radio_cca_reason_t reason);
 
   /** Check if the radio driver is currently receiving a packet */
   int (* receiving_packet)(void);

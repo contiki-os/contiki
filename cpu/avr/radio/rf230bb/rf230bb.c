@@ -250,7 +250,7 @@ static int rf230_send(const void *data, unsigned short len);
 
 static int rf230_receiving_packet(void);
 static int rf230_pending_packet(void);
-static int rf230_cca(void);
+static int rf230_cca(radio_cca_reason_t reason);
 
 uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
@@ -1665,7 +1665,7 @@ rf230_get_raw_rssi(void)
 
 /*---------------------------------------------------------------------------*/
 static int
-rf230_cca(void)
+rf230_cca(radio_cca_reason_t reason)
 {
   uint8_t cca=0;
   uint8_t radio_was_off = 0;

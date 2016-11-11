@@ -159,7 +159,7 @@ adf7023_read(void *buf, unsigned short buf_len)
   return num_bytes;
 }
 int
-adf7023_channel_clear(void)
+adf7023_channel_clear(radio_cca_reason_t reason)
 {
   /* Perform a Clear-Channel Assessment (CCA) to find out if there is a packet in the air or not. */
   return 1;

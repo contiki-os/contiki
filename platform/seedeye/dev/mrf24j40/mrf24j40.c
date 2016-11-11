@@ -821,7 +821,7 @@ mrf24j40_read(void *data, uint16_t len)
 }
 /*---------------------------------------------------------------------------*/
 int
-mrf24j40_cca(void)
+mrf24j40_cca(radio_cca_reason_t reason)
 {
   uint8_t ret;
 

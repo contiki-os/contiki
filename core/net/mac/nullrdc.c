@@ -167,7 +167,7 @@ send_one_packet(mac_callback_t sent, void *ptr)
           ret = MAC_TX_NOACK;
           if(NETSTACK_RADIO.receiving_packet() ||
              NETSTACK_RADIO.pending_packet() ||
-             NETSTACK_RADIO.channel_clear() == 0) {
+             NETSTACK_RADIO.channel_clear(RADIO_CCA_FRAME_DETECT) == 0) {
             int len;
             uint8_t ackbuf[ACK_LEN];
 

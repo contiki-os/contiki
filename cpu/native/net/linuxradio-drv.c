@@ -121,7 +121,7 @@ my_read(void *buf, unsigned short buf_len)
   return 0;
 }
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   return 1;
 }

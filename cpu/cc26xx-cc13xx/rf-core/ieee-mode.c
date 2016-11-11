@@ -1079,7 +1079,7 @@ read_frame(void *buf, unsigned short buf_len)
 }
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   uint8_t was_off = 0;
   uint8_t cca_info;

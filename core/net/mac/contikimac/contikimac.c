@@ -423,7 +423,7 @@ powercycle(struct rtimer *t, void *ptr)
              the radio medium to make sure that we wasn't woken up by a
              false positive: a spurious radio interference that was not
              caused by an incoming packet. */
-        if(NETSTACK_RADIO.channel_clear() == 0) {
+        if(NETSTACK_RADIO.channel_clear(RADIO_CCA_FRAME_DETECT) == 0) {
           packet_seen = 1;
           break;
         }
@@ -452,7 +452,7 @@ powercycle(struct rtimer *t, void *ptr)
 #if !RDC_CONF_HARDWARE_CSMA
        /* A cca cycle will disrupt rx on some radios, e.g. mc1322x, rf230 */
        /*TODO: Modify those drivers to just return the internal RSSI when already in rx mode */
-        if(NETSTACK_RADIO.channel_clear()) {
+        if(NETSTACK_RADIO.channel_clear(RADIO_CCA_FRAME_DETECT)) {
           ++silence_periods;
         } else {
           silence_periods = 0;
@@ -674,7 +674,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 #if CCA_CHECK_TIME > 0
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME)) { }
 #endif
-      if(NETSTACK_RADIO.channel_clear() == 0) {
+      if(NETSTACK_RADIO.channel_clear(RADIO_CCA_CA) == 0) {
         collisions++;
         off();
         break;
@@ -758,7 +758,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
       if(!is_broadcast && (NETSTACK_RADIO.receiving_packet() ||
                            NETSTACK_RADIO.pending_packet() ||
-                           NETSTACK_RADIO.channel_clear() == 0)) {
+                           NETSTACK_RADIO.channel_clear(RADIO_CCA_FRAME_DETECT) == 0)) {
         uint8_t ackbuf[ACK_LEN];
         wt = RTIMER_NOW();
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }

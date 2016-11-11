@@ -50,7 +50,7 @@ int adf7023_send(const void *payload, unsigned short payload_len);
 int adf7023_read(void *buf, unsigned short buf_len);
 
 /* Perform a Clear-Channel Assessment (CCA) to find out if there is a packet in the air or not. */
-int adf7023_channel_clear(void);
+int adf7023_channel_clear(radio_cca_reason_t reason);
 
 /* Check if the radio driver is currently receiving a packet. */
 int adf7023_receiving_packet(void);

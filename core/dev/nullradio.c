@@ -34,7 +34,7 @@ radio_read(void *buf, unsigned short buf_len)
 }
 /*---------------------------------------------------------------------------*/
 static int
-channel_clear(void)
+channel_clear(radio_cca_reason_t reason)
 {
   return 1;
 }
