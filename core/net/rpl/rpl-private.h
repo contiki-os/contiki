@@ -103,16 +103,16 @@
 
 /*---------------------------------------------------------------------------*/
 /* RPL IPv6 extension header option. */
-#define RPL_HDR_OPT_LEN     4
-#define RPL_HOP_BY_HOP_LEN    (RPL_HDR_OPT_LEN + 2 + 2)
-#define RPL_RH_LEN     4
-#define RPL_SRH_LEN    4
-#define RPL_RH_TYPE_SRH   3
-#define RPL_HDR_OPT_DOWN    0x80
-#define RPL_HDR_OPT_DOWN_SHIFT    7
-#define RPL_HDR_OPT_RANK_ERR    0x40
+#define RPL_HDR_OPT_LEN        		  4
+#define RPL_HOP_BY_HOP_LEN            (RPL_HDR_OPT_LEN + 2 + 2)
+#define RPL_RH_LEN                    4
+#define RPL_SRH_LEN                   4
+#define RPL_RH_TYPE_SRH               3
+#define RPL_HDR_OPT_DOWN              0x80
+#define RPL_HDR_OPT_DOWN_SHIFT        7
+#define RPL_HDR_OPT_RANK_ERR          0x40
 #define RPL_HDR_OPT_RANK_ERR_SHIFT    6
-#define RPL_HDR_OPT_FWD_ERR   0x20
+#define RPL_HDR_OPT_FWD_ERR           0x20
 #define RPL_HDR_OPT_FWD_ERR_SHIFT     5
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
@@ -324,21 +324,6 @@ typedef struct rpl_stats rpl_stats_t;
 
 extern rpl_stats_t rpl_stats;
 #endif
-
-/*---------------------------------------------------------------------------*/
-/* Security */
-/*
-   #if RPL_SECURITY
-   struct rpl_counter{
-   uip_ipaddr_t owner;
-   uint32_t counter;
-   uint8_t used;
-   };
-   typedef struct rpl_counter rpl_counter_t;
-
-   rpl_counter_t rpl_counter_table[NBR_TABLE_MAX_NEIGHBORS];
-   #endif
- */
 /*---------------------------------------------------------------------------*/
 /* RPL macros. */
 

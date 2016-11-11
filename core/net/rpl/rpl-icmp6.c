@@ -76,18 +76,18 @@
 #define RPL_DIO_PREFERENCE_MASK          0x07
 
 #if RPL_SECURITY
-#define RPL_NONCE_LENGTH         13
+#define RPL_NONCE_LENGTH       13
 #define RPL_ENCRYPT            1
 #define RPL_DECRYPT            0
 #define RPL_SEC_LVL_1          0x01
 
-#define RPL_DIS_RESPONDED        1
-#define RPL_DIS_NOT_RESPONDED      0
+#define RPL_DIS_RESPONDED      1
+#define RPL_DIS_NOT_RESPONDED  0
 
-#define RPL_TIMESTAMP_MASK         0x40
-#define RPL_TIMESTAMP_SHIFT        7
+#define RPL_TIMESTAMP_MASK     0x40
+#define RPL_TIMESTAMP_SHIFT    7
 #define RPL_KIM_MASK           0xC0
-#define RPL_KIM_SHIFT            6
+#define RPL_KIM_SHIFT          6
 #define RPL_LVL_MASK           0x07
 #endif /* RPL_SECURITY */
 
@@ -968,21 +968,18 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   PRINT6ADDR(uc_addr);
   PRINTF("\n");
   uip_ip6addr_copy(&addr, uc_addr);
-  /* uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos); */
 #else /* RPL_LEAF_ONLY */
   /* Unicast requests get unicast replies! */
   if(uc_addr == NULL) {
     PRINTF("RPL: Sending a multicast-DIO with rank %u\n",
            (unsigned)instance->current_dag->rank);
     uip_create_linklocal_rplnodes_mcast(&addr);
-    /* uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos); */
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
            (unsigned)instance->current_dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
     uip_ip6addr_copy(&addr, uc_addr);
-    /* uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos); */
   }
 #endif /* RPL_LEAF_ONLY */
 
@@ -1208,11 +1205,6 @@ dao_input_storing(void)
         PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
         PRINTF("\n");
 
-        /* buffer = UIP_ICMP_PAYLOAD;
-         *  buffer[3] = out_seq;
-         *  uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
-         *               ICMP6_RPL, RPL_CODE_DAO, buffer_length);
-         */
         dao_output_target_seq(dag->preferred_parent, &prefix, lifetime, out_seq);
       }
     }
@@ -1298,10 +1290,6 @@ fwd_dao:
       PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
       PRINTF(" in seq: %d out seq: %d\n", sequence, out_seq);
 
-      /* buffer = UIP_ICMP_PAYLOAD; */
-      /* buffer[3] = out_seq; / * add an outgoing seq no before fwd * / */
-      /* uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent), */
-      /*               ICMP6_RPL, RPL_CODE_DAO, buffer_length); */
       dao_output_target_seq(dag->preferred_parent, &prefix, lifetime, out_seq);
     }
     if(should_ack) {
@@ -2011,8 +1999,6 @@ dao_ack_input(void)
         PRINTF("RPL: Fwd DAO ACK to:");
         PRINT6ADDR(nexthop);
         PRINTF("\n");
-        /* buffer[2] = re->state.dao_seqno_in; */
-        /* uip_icmp6_send(nexthop, ICMP6_RPL, RPL_CODE_DAO_ACK, 4); */
         dao_ack_output(instance, nexthop, re->state.dao_seqno_in, status);
       }
 
@@ -2134,12 +2120,18 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 static void
 cc_input()
 {
+	/*
+	 * TODO
+	 */
 }
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 static void
 cc_output()
 {
+	/*
+	 * TODO
+	 */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -2151,7 +2143,6 @@ rpl_icmp6_register_handlers()
   uip_icmp6_register_input_handler(&dao_ack_handler);
 #if RPL_SECURITY
   uip_icmp6_register_input_handler(&cc_handler);
-
   rpl_last_dis.responded = RPL_DIS_RESPONDED;
 #endif
 }

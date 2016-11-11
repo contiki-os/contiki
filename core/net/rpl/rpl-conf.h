@@ -67,7 +67,7 @@
 #ifdef RPL_CONF_SUPPORTED_OFS
 #define RPL_SUPPORTED_OFS RPL_CONF_SUPPORTED_OFS
 #else /* RPL_CONF_SUPPORTED_OFS */
-#define RPL_SUPPORTED_OFS { &rpl_mrhof }
+#define RPL_SUPPORTED_OFS {&rpl_mrhof}
 #endif /* RPL_CONF_SUPPORTED_OFS */
 
 /*
@@ -240,9 +240,9 @@
  * This will also enable retransmission of DAO when no ack is received.
  * */
 #ifdef RPL_CONF_WITH_DAO_ACK
-#define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
+#define RPL_WITH_DAO_ACK 	RPL_CONF_WITH_DAO_ACK
 #else
-#define RPL_WITH_DAO_ACK    0
+#define RPL_WITH_DAO_ACK 	0
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
@@ -370,7 +370,7 @@
  */
 
 #ifdef RPL_SEC_LVL_CONF
-#define RPL_SEC_LVL   RPL_SEC_LVL_CONF
+#define RPL_SEC_LVL  RPL_SEC_LVL_CONF
 #else
 #define RPL_SEC_LVL  1
 #endif
