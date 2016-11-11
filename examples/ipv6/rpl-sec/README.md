@@ -6,23 +6,23 @@ RPL defines in RFC 6550 security features that provide confidentiality, integrit
 RPL defines three security modes of operation:
 
 1. Unsecure: 
-	RPL messages are sent without any security mechanism activated
+	In this security mode, RPL uses basic DIS, DIO, DAO, and DAO-ACK messages, which do not have Security sections.
 2. Secure: 
 	RPL uses secure messages. 
 	To join a RPL Instance, a node must have a preinstalled key.
 	Nodes use this to provide message confidentiality, integrity, and authenticity. 
 	Nodes can be either hosts or routers.
 3. Authenticated: 
-	In this security mode, RPL uses secure messages. 
+	RPL uses secure messages. 
 	To join a RPL Instance, a node must have a preinstalled key. 
 	Nodes use this key to provide message confidentiality, integrity, and authenticity. 
 	Using this preinstalled key, a node may join the network as a host only. 
 	To join the network as a router, a node must obtain a second key from a key authority.
 
-Messages are encrypted/authenticated with CCM* library.
+Messages are encrypted/authenticated by using CCM* library.
 
 Developed by:
-Antonio Arena, Universit√† di Pisa, rnantn@gmail.com, github user:[arenantonio92](https://github.com/arenantonio92)
+Antonio Arena, Universita'† di Pisa, rnantn@gmail.com, github user:[arenantonio92](https://github.com/arenantonio92)
 
 ## **Features**
 
