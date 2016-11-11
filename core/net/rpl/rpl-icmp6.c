@@ -507,7 +507,7 @@ dis_output(uip_ipaddr_t *addr)
 
   CCM_STAR.aead(nonce, buffer + sec_len, pos - sec_len,
                 uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                buffer + pos, mic_len, RPL_ECNRYPT);
+                buffer + pos, mic_len, RPL_ENCRYPT);
 
   pos += mic_len;
 
@@ -1019,7 +1019,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     CCM_STAR.aead(nonce,
                   buffer + sec_len, pos - sec_len,
                   uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                  buffer + pos, mic_len, RPL_ECNRYPT);
+                  buffer + pos, mic_len, RPL_ENCRYPT);
   } else {      /* RPL_SEC_LVL even, MAC-mode */
     if(sec_lvl == 0) {
       mic_len = 4;
@@ -1808,7 +1808,7 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
       CCM_STAR.aead(nonce,
                     buffer + sec_len, pos - sec_len,
                     uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                    buffer + pos, mic_len, RPL_ECNRYPT);
+                    buffer + pos, mic_len, RPL_ENCRYPT);
     } else {      /* RPL_SEC_LVL even, MAC-mode */
       if(RPL_SEC_LVL == 0) {
         mic_len = 4;
@@ -2095,7 +2095,7 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
     CCM_STAR.aead(nonce,
                   buffer + sec_len, pos - sec_len,
                   uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                  buffer + pos, mic_len, RPL_ECNRYPT);
+                  buffer + pos, mic_len, RPL_ENCRYPT);
   } else {      /* RPL_SEC_LVL even, MAC-mode */
     if(RPL_SEC_LVL == 0) {
       mic_len = 4;

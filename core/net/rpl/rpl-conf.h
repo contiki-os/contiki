@@ -354,8 +354,8 @@
 /*
  * RPL Pre-installed key for Secure Mode
  */
-#ifdef RPL_SECURITY_CONF_K
-#define RPL_SECURITY_K RPL_SECURITY_CONF_K
+#ifdef RPL_CONF_SECURITY_K
+#define RPL_SECURITY_K RPL_CONF_SECURITY_K
 #else
 #define RPL_SECURITY_K { 0xF7, 0x8E, 0xBA, 0xC9, 0xED, 0xE3, 0xE6, 0x68, 0xDF, 0x15, 0x72, 0xE0, 0x78, 0xB7, 0x80, 0x9E }
 #endif
@@ -369,8 +369,8 @@
  * LVL = 3 : ENC-MAC-64 mode
  */
 
-#ifdef RPL_SEC_LVL_CONF
-#define RPL_SEC_LVL  RPL_SEC_LVL_CONF
+#ifdef RPL_CONF_SEC_LVL
+#define RPL_SEC_LVL  RPL_CONF_SEC_LVL
 #else
 #define RPL_SEC_LVL  1
 #endif

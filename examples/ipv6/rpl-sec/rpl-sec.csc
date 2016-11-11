@@ -24,9 +24,9 @@
       org.contikios.cooja.mspmote.Z1MoteType
       <identifier>z11</identifier>
       <description>Z1 Server</description>
-      <source EXPORT="discard">[CONFIG_DIR]/udp-server.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-sec/udp-server.c</source>
       <commands EXPORT="discard">make udp-server.z1 TARGET=z1</commands>
-      <firmware EXPORT="copy">[CONFIG_DIR]/udp-server.z1</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-sec/udp-server.z1</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -44,9 +44,9 @@
       org.contikios.cooja.mspmote.Z1MoteType
       <identifier>z12</identifier>
       <description>Z1 Client</description>
-      <source EXPORT="discard">[CONFIG_DIR]/udp-client.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-sec/udp-client.c</source>
       <commands EXPORT="discard">make udp-client.z1 TARGET=z1</commands>
-      <firmware EXPORT="copy">[CONFIG_DIR]/udp-client.z1</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-sec/udp-client.z1</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -172,7 +172,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>4</z>
+    <z>1</z>
     <height>160</height>
     <location_x>400</location_x>
     <location_y>0</location_y>
@@ -189,7 +189,7 @@
       <viewport>2.544312327536739 0.0 0.0 2.544312327536739 45.47684633005 83.87083682749252</viewport>
     </plugin_config>
     <width>400</width>
-    <z>0</z>
+    <z>2</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -202,7 +202,7 @@
       <coloring />
     </plugin_config>
     <width>1520</width>
-    <z>3</z>
+    <z>5</z>
     <height>240</height>
     <location_x>400</location_x>
     <location_y>160</location_y>
@@ -222,7 +222,7 @@
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>1920</width>
-    <z>2</z>
+    <z>4</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>814</location_y>
@@ -234,36 +234,25 @@
       <decorations>true</decorations>
     </plugin_config>
     <width>1240</width>
-    <z>1</z>
+    <z>3</z>
     <height>160</height>
     <location_x>680</location_x>
     <location_y>0</location_y>
   </plugin>
- <plugin>
-    org.contikios.cooja.plugins.ScriptRunner
+  <plugin>
+    org.contikios.cooja.plugins.RadioLogger
     <plugin_config>
-      <script>TIMEOUT(8000000);
- log.log("first simulation message at time : " + time + "\n");
- finish = false;
- while (true) {
-        log.log(time + ":" + id + ":" + msg + "\n");
-        if( sim.getSimulationTimeMillis() &gt; 7999900 &amp;&amp; !finish ) {
-                finish  = true;
-                allm = sim.getMotes();
-                for( var i = 0; i &lt; allm.length ; i++ ) {
-                        write(allm[i], "finish");
-                }
-        }
-
-        SCRIPT_SWITCH();
- }</script>
-      <active>false</active>
+      <split>150</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
+      <analyzers name="6lowpan-pcap" />
     </plugin_config>
-    <width>600</width>
-    <z>4</z>
-    <height>700</height>
-    <location_x>109</location_x>
-    <location_y>40</location_y>
+    <width>1511</width>
+    <z>0</z>
+    <height>578</height>
+    <location_x>405</location_x>
+    <location_y>397</location_y>
   </plugin>
 </simconf>
 
