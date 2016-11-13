@@ -259,6 +259,12 @@ volatile static uint8_t *rx_read_entry;
 
 static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
+#ifdef IEEE_MODE_CONF_BOARD_OVERRIDES
+#define IEEE_MODE_BOARD_OVERRIDES IEEE_MODE_CONF_BOARD_OVERRIDES
+#else
+#define IEEE_MODE_BOARD_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
 /* Overrides for IEEE 802.15.4, differential mode */
 static uint32_t ieee_overrides[] = {
   0x00354038, /* Synth: Set RTRIM (POTAILRESTRIM) to 5 */
@@ -273,6 +279,7 @@ static uint32_t ieee_overrides[] = {
   0x002B50DC, /* Adjust AGC DC filter */
   0x05000243, /* Increase synth programming timeout */
   0x002082C3, /* Increase synth programming timeout */
+  IEEE_MODE_BOARD_OVERRIDES
   0xFFFFFFFF, /* End of override list */
 };
 /*---------------------------------------------------------------------------*/

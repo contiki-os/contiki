@@ -28,9 +28,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
+
 #include "driverlib/rf_mailbox.h"
 #include "driverlib/rf_common_cmd.h"
 #include "driverlib/rf_prop_cmd.h"
+
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES
+#define SMARTRF_SETTINGS_BOARD_OVERRIDES SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES
+#else
+#define SMARTRF_SETTINGS_BOARD_OVERRIDES
+#endif
 /*---------------------------------------------------------------------------*/
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
 static uint32_t overrides[] =
@@ -106,6 +116,9 @@ static uint32_t overrides[] =
   /* Overrides for CRC16 functionality */
   (uint32_t)0x943,
   (uint32_t)0x963,
+
+  /* Board-specific overrides, if any */
+  SMARTRF_SETTINGS_BOARD_OVERRIDES
 
   (uint32_t)0xFFFFFFFF,
 };
