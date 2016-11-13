@@ -52,15 +52,9 @@
 #include "hw_rfc_pwr.h"
 /*---------------------------------------------------------------------------*/
 /* RF Core Mailbox API */
-#include "rf-core/api/mailbox.h"
-#include "rf-core/api/common_cmd.h"
-#include "rf-core/api/ble_cmd.h"
-#include "rf-core/api/ieee_cmd.h"
-#include "rf-core/api/data_entry.h"
-#include "rf-core/api/ble_mailbox.h"
-#include "rf-core/api/ieee_mailbox.h"
-#include "rf-core/api/prop_mailbox.h"
-#include "rf-core/api/prop_cmd.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
+#include "driverlib/rf_data_entry.h"
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <stdbool.h>
