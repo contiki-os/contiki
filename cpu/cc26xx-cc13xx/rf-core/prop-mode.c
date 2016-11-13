@@ -186,7 +186,7 @@ typedef struct output_config {
 
 static const output_config_t output_power[] = {
   { 14, 0xa73f },
-  { 13, 0xa73f }, /* 12.5 */
+  { 13, 0xa63f }, /* 12.5 */
   { 12, 0xb818 },
   { 11, 0x50da },
   { 10, 0x38d3 },
