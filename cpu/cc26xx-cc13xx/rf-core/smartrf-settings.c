@@ -118,9 +118,9 @@ rfc_CMD_FS_t smartrf_settings_cmd_fs =
   .synthConf.bTxMode = 0x0,
   .synthConf.refFreq = 0x0,
   .__dummy0 = 0x00,
-  .midPrecal = 0x00,
-  .ktPrecal = 0x00,
-  .tdcPrecal = 0x0000,
+  .__dummy1 = 0x00,
+  .__dummy2 = 0x00,
+  .__dummy3 = 0x0000,
 };
 /*---------------------------------------------------------------------------*/
 /* CMD_PROP_TX_ADV */
