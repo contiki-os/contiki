@@ -166,25 +166,23 @@ static uint8_t rf_stats[16] = { 0 };
 /* TX Power dBm lookup table - values from SmartRF Studio */
 typedef struct output_config {
   radio_value_t dbm;
-  uint8_t register_ib;
-  uint8_t register_gc;
-  uint8_t temp_coeff;
+  uint16_t tx_power; /* Value for the CMD_RADIO_SETUP.txPower field */
 } output_config_t;
 
 static const output_config_t output_power[] = {
-  {  5, 0x30, 0x00, 0x93 },
-  {  4, 0x24, 0x00, 0x93 },
-  {  3, 0x1c, 0x00, 0x5a },
-  {  2, 0x18, 0x00, 0x4e },
-  {  1, 0x14, 0x00, 0x42 },
-  {  0, 0x21, 0x01, 0x31 },
-  { -3, 0x18, 0x01, 0x25 },
-  { -6, 0x11, 0x01, 0x1d },
-  { -9, 0x0e, 0x01, 0x19 },
-  {-12, 0x0b, 0x01, 0x14 },
-  {-15, 0x0b, 0x03, 0x0c },
-  {-18, 0x09, 0x03, 0x0c },
-  {-21, 0x07, 0x03, 0x0c },
+  {  5, 0x9330 },
+  {  4, 0x9324 },
+  {  3, 0x5a1c },
+  {  2, 0x4e18 },
+  {  1, 0x4214 },
+  {  0, 0x3161 },
+  { -3, 0x2558 },
+  { -6, 0x1d52 },
+  { -9, 0x194e },
+  {-12, 0x144b },
+  {-15, 0x0ccb },
+  {-18, 0x0cc9 },
+  {-21, 0x0cc7 },
 };
 
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
@@ -455,9 +453,7 @@ set_tx_power(radio_value_t power)
 
   memset(&cmd, 0x00, sizeof(cmd));
   cmd.commandNo = CMD_SET_TX_POWER;
-  cmd.txPower.IB = output_power[i].register_ib;
-  cmd.txPower.GC = output_power[i].register_gc;
-  cmd.txPower.tempCoeff = output_power[i].temp_coeff;
+  cmd.txPower = output_power[i].tx_power;
 
   if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
     PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
@@ -473,9 +469,7 @@ rf_radio_setup()
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  cmd.txPower.IB = tx_power_current->register_ib;
-  cmd.txPower.GC = tx_power_current->register_gc;
-  cmd.txPower.tempCoeff = tx_power_current->temp_coeff;
+  cmd.txPower = tx_power_current->tx_power;
   cmd.pRegOverride = ieee_overrides;
   cmd.mode = 1;
 
