@@ -64,11 +64,11 @@
 #include "hw_rfc_pwr.h"
 /*---------------------------------------------------------------------------*/
 /* RF Core Mailbox API */
-#include "rf-core/api/mailbox.h"
-#include "rf-core/api/common_cmd.h"
-#include "rf-core/api/data_entry.h"
-#include "rf-core/api/prop_mailbox.h"
-#include "rf-core/api/prop_cmd.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
+#include "driverlib/rf_data_entry.h"
+#include "driverlib/rf_prop_mailbox.h"
+#include "driverlib/rf_prop_cmd.h"
 /*---------------------------------------------------------------------------*/
 /* CC13xxware patches */
 #include "rf_patches/rf_patch_cpe_genfsk.h"

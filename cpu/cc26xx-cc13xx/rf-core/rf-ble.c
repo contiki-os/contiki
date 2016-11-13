@@ -46,8 +46,8 @@
 #include "dev/oscillators.h"
 #include "rf-core/rf-core.h"
 #include "rf-core/rf-ble.h"
-#include "rf-core/api/ble_cmd.h"
-#include "rf-core/api/common_cmd.h"
+#include "driverlib/rf_ble_cmd.h"
+#include "driverlib/rf_common_cmd.h"
 #include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>

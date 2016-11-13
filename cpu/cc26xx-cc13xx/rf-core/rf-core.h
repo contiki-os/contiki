@@ -52,7 +52,7 @@
 #define RF_CORE_H_
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
-#include "rf-core/api/common_cmd.h"
+#include "driverlib/rf_common_cmd.h"
 
 #include <stdint.h>
 #include <stdbool.h>
