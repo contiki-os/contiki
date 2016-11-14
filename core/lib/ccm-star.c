@@ -41,7 +41,6 @@
 #include "ccm-star.h"
 #include "lib/aes-128.h"
 #include <string.h>
-#include <stdio.h>
 
 /* see RFC 3610 */
 #define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1u << 6) : 0) | (((M - 2u) >> 1) << 3) | 1u)
