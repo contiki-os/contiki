@@ -38,6 +38,7 @@
  * Contributors: Niclas Finne <nfi@sics.se>, Joel Hoglund <joel@sics.se>,
  *               Mathieu Pouillot <m.pouillot@watteco.com>
  *               George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
+ *               Antonio Arena <rnantn@gmail.com> (RPL Security features)
  */
 
 /**
