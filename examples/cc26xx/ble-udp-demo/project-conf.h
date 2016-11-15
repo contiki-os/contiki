@@ -63,7 +63,7 @@
 #define SICSLOWPAN_CONF_FRAG                    0
 #define SICSLOWPAN_FRAMER_HDRLEN                0
 
-///* network layer settings */
+/* network layer settings */
 #define UIP_CONF_ROUTER                         0
 #define UIP_CONF_ND6_SEND_NA                    1
 #define UIP_CONF_IP_FORWARD                     0
