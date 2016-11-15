@@ -462,7 +462,8 @@ PROCESS_THREAD(ble_mac_process, ev, data)
     PROCESS_YIELD();
     if(ev == PROCESS_EVENT_POLL) {
       if(tx_buffer.sdu_length > 0) {
-        NETSTACK_RADIO.get_value(RADIO_CONST_BLE_BUFFER_AMOUNT, &num_buffer);
+        NETSTACK_RADIO.get_value(RADIO_CONST_BLE_BUFFER_AMOUNT,
+                                 (radio_value_t *)&num_buffer);
         if(num_buffer > 0) {
           /* transmit data */
           packetbuf_clear();
@@ -499,7 +500,8 @@ PROCESS_THREAD(ble_mac_process, ev, data)
       }
     } else if((ev == PROCESS_EVENT_TIMER) && (data == &l2cap_timer)) {
       if(tx_buffer.sdu_length > 0) {
-        NETSTACK_RADIO.get_value(RADIO_CONST_BLE_BUFFER_AMOUNT, &num_buffer);
+        NETSTACK_RADIO.get_value(RADIO_CONST_BLE_BUFFER_AMOUNT,
+                                 (radio_value_t *)&num_buffer);
         if(num_buffer > 0) {
           packetbuf_clear();
 
