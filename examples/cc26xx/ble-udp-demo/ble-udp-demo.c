@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 #define CLIENT_PORT     61617
 #define SERVER_ADDR     "aaaa::1"
-//#define SERVER_ADDR     "fe80::21a:7dff:feda:7114"
+/*#define SERVER_ADDR     "fe80::21a:7dff:feda:7114" */
 #define SERVER_PORT     61616
 
 #define ECHO_INTERVAL   (1 * CLOCK_SECOND)
@@ -87,10 +87,10 @@ tcpip_handler(void)
 static void
 timeout_handler(void)
 {
-    unsigned short msg_len = strlen(TEST_PAYLOAD);
-    sprintf(send_buf, TEST_PAYLOAD);
-    printf("sending %d bytes of UDP payload\n", msg_len);
-    uip_udp_packet_send(conn, send_buf, msg_len);
+  unsigned short msg_len = strlen(TEST_PAYLOAD);
+  sprintf(send_buf, TEST_PAYLOAD);
+  printf("sending %d bytes of UDP payload\n", msg_len);
+  uip_udp_packet_send(conn, send_buf, msg_len);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ble_udp_demo_process, ev, data)
@@ -104,11 +104,11 @@ PROCESS_THREAD(ble_udp_demo_process, ev, data)
 
   /* wait for an echo response from the server */
   do {
-      leds_on(LEDS_RED);
-      uip_icmp6_send(&server_addr, ICMP6_ECHO_REQUEST, 0, 20);
-      etimer_set(&timer, ECHO_INTERVAL);
-      leds_off(LEDS_RED);
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+    leds_on(LEDS_RED);
+    uip_icmp6_send(&server_addr, ICMP6_ECHO_REQUEST, 0, 20);
+    etimer_set(&timer, ECHO_INTERVAL);
+    leds_off(LEDS_RED);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
   } while(!echo_received);
 
   /* creating the UDP connection */
@@ -118,14 +118,13 @@ PROCESS_THREAD(ble_udp_demo_process, ev, data)
 
   etimer_set(&timer, SEND_INTERVAL);
   while(1) {
-      PROCESS_YIELD();
-      if((ev == PROCESS_EVENT_TIMER) && (data == &timer)) {
-          timeout_handler();
-                etimer_set(&timer, SEND_INTERVAL);
-      }
-      else if(ev == tcpip_event) {
-          tcpip_handler();
-      }
+    PROCESS_YIELD();
+    if((ev == PROCESS_EVENT_TIMER) && (data == &timer)) {
+      timeout_handler();
+      etimer_set(&timer, SEND_INTERVAL);
+    } else if(ev == tcpip_event) {
+      tcpip_handler();
+    }
   }
 
   PROCESS_END();
