@@ -542,7 +542,7 @@ na_input(void)
         goto discard;
       }
 
-#if NETSTACK_RADIO != ble_mode
+#if NETSTACK_RADIO != ble_mode_driver
       /**
        * The neighbor table is not needed in ble mode
        */
