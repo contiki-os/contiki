@@ -647,7 +647,7 @@ dio_input(void)
   dio.rank = get16(buffer, i);
   i += 2;
 
-  PRINTF("RPL: Incoming DIO (id, ver, rank) = (%u,%u,%u)",
+  PRINTF("RPL: Incoming DIO (id, ver, rank) = (%u,%u,%u)\n",
          (unsigned)dio.instance_id,
          (unsigned)dio.version,
          (unsigned)dio.rank);
