@@ -41,6 +41,7 @@
 #include <ctype.h>
 
 #define DEBUG DEBUG_PRINT
+
 #include "net/ip/uip-debug.h"
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -49,6 +50,8 @@
 #define UDP_SERVER_PORT	5678
 
 #define UDP_EXAMPLE_ID  190
+
+#define SERVER_REPLY 1
 
 static struct uip_udp_conn *server_conn;
 

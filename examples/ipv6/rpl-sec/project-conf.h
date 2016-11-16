@@ -72,6 +72,8 @@
 
 #define RPL_CONF_SEC_LVL 	3	/* See rpl-conf.h all possible levels */
 
+#define  RPL_CONF_SEC_REPLAY_PROTECTION 1
+
 
 #if WITH_NON_STORING
 #undef RPL_NS_CONF_LINK_NUM
