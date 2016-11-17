@@ -455,6 +455,7 @@
  * requiring to put the PIC into deep-sleep and waking up at a certain time.
  * @{
  */
+#define PLATFORM_HAS_RTC            1
 #define RTC_SDA_PORT                I2C_SDA_PORT
 #define RTC_SDA_PIN                 I2C_SDA_PIN
 #define RTC_SCL_PORT                I2C_SCL_PORT

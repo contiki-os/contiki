@@ -55,10 +55,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#ifndef DATE
-#define DATE "Unknown"
-#endif
-/*---------------------------------------------------------------------------*/
 #define LOOP_PERIOD             60L
 #define LOOP_INTERVAL           (CLOCK_SECOND * LOOP_PERIOD)
 #define TEST_ALARM_SECOND       15
@@ -109,57 +105,12 @@ rtcc_interrupt_callback(uint8_t value)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_remote_rtcc_process, ev, data)
 {
-  static char *next;
-
   PROCESS_BEGIN();
 
-  /* Alternatively for test only, undefine DATE and define on your own as
-   * #define DATE "07 06 12 15 16 00 00"
-   * Also note that if you restart the node at a given time, it will use the
-   * already defined DATE, so if you want to update the device date/time you
-   * need to reflash the node
-   */
-
-  /* Get the system date in the following format: wd dd mm yy hh mm ss */
-  printf("RE-Mote RTC test, system date: %s\n", DATE);
-
-  /* Sanity check */
-  if(strcmp("Unknown", DATE) == 0) {
-    printf("Fail: could not retrieve date from system\n");
-    PROCESS_EXIT();
-  }
-
-  /* Configure RTC and return structure with all parameters */
-  rtcc_init();
+  printf("RE-Mote RTC test\n");
 
   /* Map interrupt callback handler */
   RTCC_REGISTER_INT1(rtcc_interrupt_callback);
-
-  /* Configure the RTC with the current values */
-  simple_td->weekdays    = (uint8_t)strtol(DATE, &next, 10);
-  simple_td->day         = (uint8_t)strtol(next, &next, 10);
-  simple_td->months      = (uint8_t)strtol(next, &next, 10);
-  simple_td->years       = (uint8_t)strtol(next, &next, 10);
-  simple_td->hours       = (uint8_t)strtol(next, &next, 10);
-  simple_td->minutes     = (uint8_t)strtol(next, &next, 10);
-  simple_td->seconds     = (uint8_t)strtol(next, NULL, 10);
-
-  /* Don't care about the milliseconds... */
-  simple_td->miliseconds = 0;
-
-  /* This example relies on 24h mode */
-  simple_td->mode = RTCC_24H_MODE;
-
-  /* And to simplify the configuration, it relies it will be executed in the
-   * present century
-   */
-  simple_td->century = RTCC_CENTURY_20XX;
-
-  /* Set the time and date */
-  if(rtcc_set_time_date(simple_td) == AB08_ERROR) {
-    printf("Fail: Time and date not configured\n");
-    PROCESS_EXIT();
-  }
 
   /* Wait a bit */
   etimer_set(&et, (CLOCK_SECOND * 2));

@@ -577,6 +577,27 @@ typedef uint32_t rtimer_clock_t;
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
+/**
+ * \name RTC
+ *
+ * @{
+ */
+#ifdef PLATFORM_HAS_RTC
+
+#ifndef RTC_CONF_INIT
+#define RTC_CONF_INIT   0 /**< Whether to initialize the RTC */
+#endif
+
+#ifndef RTC_CONF_SET_FROM_SYS
+#define RTC_CONF_SET_FROM_SYS    0 /**< Whether to set the RTC from the build system */
+#endif
+
+#else
+#undef RTC_CONF_INIT
+#define RTC_CONF_INIT   0
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
 
 #endif /* CONTIKI_CONF_H_ */
 
