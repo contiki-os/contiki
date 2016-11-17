@@ -405,6 +405,7 @@
  * external module, to be used with SSI1
  * @{
  */
+#define USD_SPI_INSTANCE         1
 #define USD_CLK_PORT             SPI1_CLK_PORT
 #define USD_CLK_PIN              SPI1_CLK_PIN
 #define USD_MOSI_PORT            SPI1_TX_PORT
