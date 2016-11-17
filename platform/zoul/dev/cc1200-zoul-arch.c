@@ -241,7 +241,7 @@ cc1200_arch_gpio2_disable_irq(void)
 int
 cc1200_arch_gpio0_read_pin(void)
 {
-  return GPIO_READ_PIN(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
+  return (GPIO_READ_PIN(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK) ? 1 : 0);
 }
 /*---------------------------------------------------------------------------*/
 int
