@@ -198,6 +198,14 @@ void spix_set_mode(uint8_t spi, uint32_t frame_format,
                    uint32_t data_size);
 
 /**
+ * \brief Sets the SPI clock frequency of the given SSI instance.
+ *
+ * \param spi SSI instance
+ * \param freq Frequency (Hz)
+ */
+void spix_set_clock_freq(uint8_t spi, uint32_t freq);
+
+/**
  * \brief Configure a GPIO to be the chip select pin.
  *
  * Even if this function does not depend on the SPI instance used, we rename
