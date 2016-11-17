@@ -109,17 +109,17 @@
 /*---------------------------------------------------------------------------*/
 /* New API macros */
 #define SPIX_WAITFORTxREADY(spi) do { \
-    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_TNF)) ; \
+    while(!(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_TNF)) ; \
 } while(0)
-#define SPIX_BUF(spi)                   REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_DR)
+#define SPIX_BUF(spi)                   REG(SSI_BASE(spi) + SSI_DR)
 #define SPIX_WAITFOREOTx(spi) do { \
-    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_BSY) ; \
+    while(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_BSY) ; \
 } while(0)
 #define SPIX_WAITFOREORx(spi) do { \
-    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE)) ; \
+    while(!(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_RNE)) ; \
 } while(0)
 #define SPIX_FLUSH(spi) do { \
-    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE) { \
+    while(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_RNE) { \
         SPIX_BUF(spi);                                           \
     } \
 } while(0)
