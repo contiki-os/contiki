@@ -55,8 +55,8 @@
 #define DEFAULT_CONF_AUTH_IS_REQUIRED      1
 #define DEFAULT_CONF_AUTH_USER_IS_REQUIRED 0
 /*---------------------------------------------------------------------------*/
-/* Host "mqtt.relayr.io" with IP 54.171.127.130 */
-#define MQTT_DEMO_CONF_BROKER_IP_ADDR "::ffff:36ab:7f82"
+/* Host "mqtt.relayr.io" with IP 52.48.96.194 */
+#define MQTT_DEMO_CONF_BROKER_IP_ADDR "::ffff:3430:60C2"
 
 /* This is pretty harcoded by the v1 API version */
 #define DEFAULT_PUB_STRING            "/data"
