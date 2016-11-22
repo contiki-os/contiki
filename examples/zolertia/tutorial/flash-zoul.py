@@ -63,7 +63,7 @@ except ImportError:
     have_hex_support = False
 
 #version
-VERSION_STRING = "2.0"
+VERSION_STRING = "2.1"
 
 # Verbose level
 QUIET = 5
@@ -236,7 +236,7 @@ class CommandInterface(object):
         # it has actually entered its bootloader mode.
         #
         # See contiki-os/contiki#1533
-        time.sleep(0.002)
+        time.sleep(0.1)
 
     def close(self):
         self.sp.close()
@@ -692,17 +692,29 @@ class CC2538(Chip):
 
         #Read out primary IEEE address, flash and RAM size
         model = self.command_interface.cmdMemRead(FLASH_CTRL_DIECFG0)
-        self.size = (model[3] & 0x70) * 0x2000 # in bytes
+        self.size = (model[3] & 0x70) >> 4
+        if 0 < self.size <= 4:
+            self.size *= 0x20000 # in bytes
+        else:
+            self.size = 0x10000 # in bytes
         self.bootloader_address = self.flash_start_addr + self.size - ccfg_len
 
-        sram = 16 + ((((model[2] << 8) | model[3]) & 0x380) >> 5) # in KB
+        sram = (((model[2] << 8) | model[3]) & 0x380) >> 7
+        sram = (2 - sram) << 3 if sram <= 1 else 32 # in KB
 
         pg = self.command_interface.cmdMemRead(FLASH_CTRL_DIECFG2)
         pg_major = (pg[2] & 0xF0) >> 4
+        if pg_major == 0:
+            pg_major = 1
         pg_minor = pg[2] & 0x0F
 
-        ieee_addr = self.command_interface.cmdMemRead(addr_ieee_address_primary + 4)
-        ieee_addr += self.command_interface.cmdMemRead(addr_ieee_address_primary)
+        ti_oui = bytearray([0x00, 0x12, 0x4B])
+        ieee_addr = self.command_interface.cmdMemRead(addr_ieee_address_primary)
+        ieee_addr_end = self.command_interface.cmdMemRead(addr_ieee_address_primary + 4)
+        if ieee_addr[:3] == ti_oui:
+            ieee_addr += ieee_addr_end
+        else:
+            ieee_addr = ieee_addr_end + ieee_addr
 
         mdebug(5, "CC2538 PG%d.%d: %dKB Flash, %dKB SRAM, CCFG at 0x%08X"
                % (pg_major, pg_minor, self.size >> 10, sram,

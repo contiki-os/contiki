@@ -1,9 +1,9 @@
 {
     "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
-    "id": "bbbd83a4-46aa-421a-ab52-2018b1993643",
-    "name": "Zolertia IoT fridge",
+    "id": "4c1fa17e-4983-4ac4-9aae-ff4071052092",
+    "name": "Zolertia IoT cold-chain monitoring",
     "productNumber": "",
-    "description": "Monitor a connected fridge, with temperature and humidity sensors, able to control a switch.",
+    "description": "Monitor and control goods in a cold-chain process, with temperature, light and humidity sensors, able to control a switch.",
     "website": "http://zolertia.io",
     "manufacturer": {
         "name": "Zolertia SL",
@@ -19,6 +19,16 @@
             "transport": {
                 "cloud": {
                     "commands": [
+                        {
+                            "name": "light_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "lux",
+                                "maximum": 32000,
+                                "minimum": 0
+                            }
+                        },
                         {
                             "name": "humidity_thresh",
                             "path": "",
@@ -72,6 +82,22 @@
                         }
                     ],
                     "readings": [
+                        {
+                            "path": "",
+                            "meaning": "alarm_light",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "lux"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "light",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "lux"
+                            }
+                        },
                         {
                             "path": "",
                             "meaning": "alarm_humidity",
@@ -148,5 +174,6 @@
         }
     },
     "createdAt": "2016-05-11T07:41:31.214Z",
-    "updatedAt": "2016-11-22T15:32:10.075Z"
+    "updatedAt": "2016-11-22T15:31:06.419Z"
 }
+
