@@ -3,10 +3,10 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 all: mqtt-client
 
 # Platform options: relayr, thingsio, bluemix, ubidots
-MQTT_PLATFORM ?= bluemix
+MQTT_PLATFORM ?= ubidots
 
 # Sensor options: fridge, agriculture, remote, irrigation, coldchain
-MQTT_SENSORS  ?= remote
+MQTT_SENSORS  ?= coinbox
 
 # -----------------------------------------------------------------------------#
 # Don't touch anything below if you don't know what you are doing
@@ -69,6 +69,13 @@ ifeq ($(MQTT_SENSORS), remote)
   CONTIKI_TARGET_SOURCEFILES += adc-sensors.c
   CFLAGS += -DMQTT_SENSORS="remote"
   CFLAGS += -DDEFAULT_SENSORS_NUM=5
+endif
+
+ifeq ($(MQTT_SENSORS), coinbox)
+  PROJECT_SOURCEFILES += coinbox.c
+  CONTIKI_TARGET_SOURCEFILES += mp3-wtv020sd.c led-strip.c
+  CFLAGS += -DMQTT_SENSORS="coinbox"
+  CFLAGS += -DDEFAULT_COMMANDS_NUM=1
 endif
 
 WITH_LLSEC ?= 1

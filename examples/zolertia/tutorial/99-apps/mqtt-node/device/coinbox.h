@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Zolertia
+ * Copyright (c) 2016, Antonio Lignan - antonio.lignan@gmail.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,77 +28,20 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup zoul-led-strip
- * @{
- *
- * Driver to control a bright LED strip powered at 3VDC, drawing power directly
- * from the battery power supply.  An example on how to adapt 12VDC LED strips
- * to 3VDC is provided at http://www.hackster.io/zolertia
- * @{
- *
- * \file
- * Driver for a bright LED strip
- */
+#ifndef COINBOX_H_
+#define COINBOX_H_
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "dev/gpio.h"
-#include "led-strip.h"
-
-#include <stdint.h>
+#include "mqtt-sensors.h"
 /*---------------------------------------------------------------------------*/
-#define LED_STRIP_PORT_BASE GPIO_PORT_TO_BASE(LED_STRIP_PORT)
-#define LED_STRIP_PIN_MASK  GPIO_PIN_MASK(LED_STRIP_PIN)
+enum {
+  COINBOX_COMMAND = 0,
+};
 /*---------------------------------------------------------------------------*/
-static uint8_t initialized = 0;
+extern command_values_t coinbox_commands;
 /*---------------------------------------------------------------------------*/
-void
-led_strip_config(void)
-{
-  /* Software controlled */
-  GPIO_SOFTWARE_CONTROL(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
-  /* Set pin to output */
-  GPIO_SET_OUTPUT(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
-  /* Set the pin to a default position */
-  GPIO_SET_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
-
-  initialized = 1;
-}
+/* Command string: play the coinbox */
+#define DEFAULT_COMMAND_EVENT_COINBOX   "coinbox"
 /*---------------------------------------------------------------------------*/
-int
-led_strip_switch(uint8_t val)
-{
-  if(!initialized) {
-    return LED_STRIP_ERROR;
-  }
-
-  if(val != LED_STRIP_ON && val != LED_STRIP_OFF) {
-    return LED_STRIP_ERROR;
-  }
-
-  /* Set the LED to ON or OFF */
-  GPIO_WRITE_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK, val);
-
-  return val;
-}
-/*---------------------------------------------------------------------------*/
-int
-led_strip_get(void)
-{
-  if(!initialized) {
-    return LED_STRIP_ERROR;
-  }
-
-  /* Inverse logic, return ON if the pin is low */
-  if(GPIO_READ_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK)) {
-    return LED_STRIP_OFF;
-  }
-  return LED_STRIP_ON;
-}
-/*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */
+#endif /* COINBOX_H_ */
+/** @} */
 

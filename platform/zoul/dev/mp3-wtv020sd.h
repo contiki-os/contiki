@@ -52,6 +52,53 @@
 /* -------------------------------------------------------------------------- */
 #include <stdint.h>
 /* -------------------------------------------------------------------------- */
+/*
+ * The WTV020SD can be used in MP3 mode (GPIO-controlled) or 2-line mode (CLK
+ * and DATA line).  The following pin-out can be implemented without reusing
+ * the pins as below (in 2-line mode the CLK/DATA functions replace the VOL+/-
+ * keys, others remain the same), but this would require more GPIOs to
+ * interface all functions, so we chose the configuration that uses the less
+ * number of GPIOs, and emulate all functions available in each mode
+ */
+#ifndef MP3_WTV020SD_P07_PORT
+#define MP3_WTV020SD_P07_PORT    GPIO_C_NUM
+#endif
+#ifndef MP3_WTV020SD_P07_PIN
+#define MP3_WTV020SD_P07_PIN     3
+#endif
+#ifndef MP3_WTV020SD_P02_PORT
+#define MP3_WTV020SD_P02_PORT    GPIO_C_NUM
+#endif
+#ifndef MP3_WTV020SD_P02_PIN
+#define MP3_WTV020SD_P02_PIN     2
+#endif
+#ifndef MP3_WTV020SD_P06_PORT
+#define MP3_WTV020SD_P06_PORT    GPIO_D_NUM
+#endif
+#ifndef MP3_WTV020SD_P06_PIN
+#define MP3_WTV020SD_P06_PIN     1
+#endif
+
+/* Used in line mode */
+#ifndef MP3_WTV020SD_P04_PORT
+#define MP3_WTV020SD_P04_PORT    GPIO_B_NUM
+#endif
+#ifndef MP3_WTV020SD_P04_PIN
+#define MP3_WTV020SD_P04_PIN     0
+#endif
+#ifndef MP3_WTV020SD_P05_PORT
+#define MP3_WTV020SD_P05_PORT    GPIO_B_NUM
+#endif
+#ifndef MP3_WTV020SD_P05_PIN
+#define MP3_WTV020SD_P05_PIN     1
+#endif
+#ifndef MP3_WTV020SD_RESET_PORT
+#define MP3_WTV020SD_RESET_PORT  GPIO_B_NUM
+#endif
+#ifndef MP3_WTV020SD_RESET_PIN
+#define MP3_WTV020SD_RESET_PIN   1
+#endif
+/* -------------------------------------------------------------------------- */
 #define MP3_WTV020SD_ERROR              -1
 #define MP3_WTV020SD_SUCCESS          0x00
 #define MP3_WTV020SD_GPIO_MODE        0x01

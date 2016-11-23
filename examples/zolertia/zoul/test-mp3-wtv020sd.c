@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Zolertia
+ * Copyright (c) 2016, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,74 +29,62 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul-led-strip
+ * \addtogroup zoul-examples
  * @{
  *
- * Driver to control a bright LED strip powered at 3VDC, drawing power directly
- * from the battery power supply.  An example on how to adapt 12VDC LED strips
- * to 3VDC is provided at http://www.hackster.io/zolertia
+ * \defgroup zoul-mp3-wtv020sd-test mp3-wtv020sd MP3 player
+ *
+ * Demonstrates the use of the mp3-wtv020sd mp3 player
  * @{
  *
  * \file
- * Driver for a bright LED strip
+ *  Test file for the external mp3-wtv020sd MP3 player
+ *
+ * \author
+ *         Antonio Lignan <alinan@zolertia.com>
  */
 /*---------------------------------------------------------------------------*/
+#include <stdio.h>
 #include "contiki.h"
-#include "dev/gpio.h"
-#include "led-strip.h"
-
-#include <stdint.h>
+#include "dev/i2c.h"
+#include "dev/leds.h"
+#include "dev/mp3-wtv020sd.h"
+#include "dev/led-strip.h"
 /*---------------------------------------------------------------------------*/
-#define LED_STRIP_PORT_BASE GPIO_PORT_TO_BASE(LED_STRIP_PORT)
-#define LED_STRIP_PIN_MASK  GPIO_PIN_MASK(LED_STRIP_PIN)
+PROCESS(remote_mp3wtv020sd_process, "mp3-wtv020sd test process");
+AUTOSTART_PROCESSES(&remote_mp3wtv020sd_process);
 /*---------------------------------------------------------------------------*/
-static uint8_t initialized = 0;
+static struct etimer et;
 /*---------------------------------------------------------------------------*/
-void
-led_strip_config(void)
+PROCESS_THREAD(remote_mp3wtv020sd_process, ev, data)
 {
-  /* Software controlled */
-  GPIO_SOFTWARE_CONTROL(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
-  /* Set pin to output */
-  GPIO_SET_OUTPUT(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
-  /* Set the pin to a default position */
-  GPIO_SET_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK);
+  static uint16_t counter;
 
-  initialized = 1;
+  PROCESS_BEGIN();
+
+  led_strip_config();
+  mp3_wtv020sd_config(MP3_WTV020SD_GPIO_MODE);
+
+  counter = 0;
+  mp3_wtv020sd_gpio_play();
+
+  etimer_set(&et, CLOCK_SECOND / 4);
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    counter % 2 ? led_strip_switch(LED_STRIP_ON) : led_strip_switch(LED_STRIP_OFF);
+    if(counter > 28) {
+      mp3_wtv020sd_gpio_stop();
+      led_strip_switch(LED_STRIP_OFF);
+     break;
+    }
+    counter++;
+    etimer_reset(&et);
+  }
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-int
-led_strip_switch(uint8_t val)
-{
-  if(!initialized) {
-    return LED_STRIP_ERROR;
-  }
-
-  if(val != LED_STRIP_ON && val != LED_STRIP_OFF) {
-    return LED_STRIP_ERROR;
-  }
-
-  /* Set the LED to ON or OFF */
-  GPIO_WRITE_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK, val);
-
-  return val;
-}
-/*---------------------------------------------------------------------------*/
-int
-led_strip_get(void)
-{
-  if(!initialized) {
-    return LED_STRIP_ERROR;
-  }
-
-  /* Inverse logic, return ON if the pin is low */
-  if(GPIO_READ_PIN(LED_STRIP_PORT_BASE, LED_STRIP_PIN_MASK)) {
-    return LED_STRIP_OFF;
-  }
-  return LED_STRIP_ON;
-}
-/*---------------------------------------------------------------------------*/
-
 /**
  * @}
  * @}

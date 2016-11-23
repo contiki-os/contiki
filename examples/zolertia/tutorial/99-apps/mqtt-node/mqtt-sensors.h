@@ -67,6 +67,7 @@ typedef struct command_values {
 #endif /* DEFAULT_COMMANDS_NUM */
 /*---------------------------------------------------------------------------*/
 /* Auxiliary function to fill the sensor_values_t structure */
+#if DEFAULT_SENSORS_NUM
 int mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val,
                          char *name, char *alarm, char *config, int16_t min,
                          int16_t max, int16_t thres, int16_t thresl,
@@ -76,6 +77,7 @@ int mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val,
  * periodic sensor events */
 void mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
                        process_event_t data);
+#endif
 /*---------------------------------------------------------------------------*/
 #endif /* MQTT_SENSORS_H_ */
 /** @} */

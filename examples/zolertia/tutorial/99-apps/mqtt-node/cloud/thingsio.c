@@ -59,11 +59,13 @@
 /* Lenght of the `{"key":"` substring in the publication handler */
 #define MQTT_THINGSIO_KEYVAR_LEN      9
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 /* Topic placeholders */
 static char data_topic[CONFIG_PUB_TOPIC_LEN];
+#endif
 static char cmd_topic[CONFIG_SUB_CMD_TOPIC_LEN];
 /*---------------------------------------------------------------------------*/
 PROCESS(thingsio_process, "The Things.io MQTT process");
@@ -71,6 +73,7 @@ PROCESS(thingsio_process, "The Things.io MQTT process");
 /* Include there the processes to include */
 PROCESS_NAME(mqtt_res_process);
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
+#if DEFAULT_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
 /*---------------------------------------------------------------------------*/
@@ -210,6 +213,7 @@ publish_event(sensor_values_t *msg)
   PRINTF("Things.io: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
+#endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
@@ -329,6 +333,7 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
       return;
     }
 
+#if DEFAULT_SENSORS_NUM
     /* Change a sensor's threshold, skip is `sensor_config` is empty */
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
@@ -380,6 +385,7 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
         return;
       }
     }
+#endif /* DEFAULT_SENSORS_NUM */
 
     /* We are now checking for any string command expected by the subscribed
      * sensor module
@@ -418,6 +424,7 @@ init_platform(void)
   /* Create client id */
   mqtt_res_client_id(conf.client_id, DEFAULT_IP_ADDR_STR_LEN);
 
+#if DEFAULT_SENSORS_NUM
   /* Create topics */
   if(strlen(DEFAULT_CONF_AUTH_USER)) {
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
@@ -427,7 +434,7 @@ init_platform(void)
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
              conf.auth_user, DEFAULT_PUB_STRING);
   }
-
+#endif
 #if MQTT_THINGSIO_USE_PUB_TOPIC_AS_CMD
   if(strlen(DEFAULT_CONF_AUTH_USER)) {
     snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
@@ -457,7 +464,9 @@ PROCESS_THREAD(thingsio_process, ev, data)
 
   printf("\nThe Things.io process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
+#if DEFAULT_SENSORS_NUM
   printf("  Data topic:   %s\n", data_topic);
+#endif
   printf("  Cmd topic:    %s\n\n", cmd_topic);
 
   while(1) {
@@ -465,8 +474,9 @@ PROCESS_THREAD(thingsio_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == mqtt_client_event_connected) {
+#if DEFAULT_SENSORS_NUM
       seq_nr_value = 0;
-
+#endif
       /* Start the MQTT resource process */
       process_start(&mqtt_res_process, NULL);
 
@@ -481,7 +491,7 @@ PROCESS_THREAD(thingsio_process, ev, data)
       /* We are not connected, disable the sensors */
       process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
-
+#if DEFAULT_SENSORS_NUM
     /* Check for periodic publish events */
     if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
       seq_nr_value++;
@@ -498,6 +508,7 @@ PROCESS_THREAD(thingsio_process, ev, data)
       sensor_val_t *sensorPtr = (sensor_val_t *) data;
       publish_alarm(sensorPtr);
     }
+#endif /* DEFAULT_SENSORS_NUM */
   }
 
   PROCESS_END();

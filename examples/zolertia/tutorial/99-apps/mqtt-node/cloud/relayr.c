@@ -62,11 +62,13 @@ enum {
   PUB_TOPIC_STRING
 };
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 /* Topic placeholders */
 static char data_topic[CONFIG_PUB_TOPIC_LEN];
+#endif
 static char cmd_topic[CONFIG_SUB_CMD_TOPIC_LEN];
 /*---------------------------------------------------------------------------*/
 PROCESS(relayr_process, "Relayr MQTT process");
@@ -74,6 +76,7 @@ PROCESS(relayr_process, "Relayr MQTT process");
 /* Include there the processes to include */
 PROCESS_NAME(mqtt_res_process);
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
+#if DEFAULT_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
 /*---------------------------------------------------------------------------*/
@@ -221,6 +224,7 @@ publish_event(sensor_values_t *msg)
   PRINTF("Relayr: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
+#endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
@@ -322,6 +326,7 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       return;
     }
 
+#if DEFAULT_SENSORS_NUM
     /* Change a sensor's threshold, skip is `sensor_config` is empty */
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
@@ -367,10 +372,11 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
         return;
       }
     }
-
+#endif /* DEFAULT_SENSORS_NUM */
     /* We are now checking for any string command expected by the subscribed
      * sensor module
      */
+
 #if DEFAULT_COMMANDS_NUM
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
 
@@ -407,14 +413,18 @@ init_platform(void)
 
   /* Create topics */
   if(strlen(DEFAULT_CONF_AUTH_USER)) {
+#if DEFAULT_SENSORS_NUM
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
              DEFAULT_PUB_STRING);
+#endif
     snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
              DEFAULT_CMD_STRING);
   } else {
     /* If we are here it means the mqtt_client has already check credentials */
+#if DEFAULT_SENSORS_NUM
     snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
              conf.auth_user, DEFAULT_PUB_STRING);
+#endif
     snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
              conf.auth_user, DEFAULT_CMD_STRING);
   }
@@ -429,7 +439,9 @@ PROCESS_THREAD(relayr_process, ev, data)
 
   printf("\nRelayr process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
+#if DEFAULT_SENSORS_NUM
   printf("  Data topic:   %s\n", data_topic);
+#endif
   printf("  Cmd topic:    %s\n\n", cmd_topic);
 
   while(1) {
@@ -437,13 +449,16 @@ PROCESS_THREAD(relayr_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == mqtt_client_event_connected) {
-      seq_nr_value = 0;
 
       /* Start the MQTT resource process */
       process_start(&mqtt_res_process, NULL);
 
       /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
       subscribe(cmd_topic);
+
+#if DEFAULT_SENSORS_NUM
+      seq_nr_value = 0;
+#endif /* DEFAULT_SENSORS_NUM */
 
       /* Enable the sensor */
       process_start(&SENSORS_NAME(MQTT_SENSORS, _sensors_process), NULL);
@@ -453,7 +468,7 @@ PROCESS_THREAD(relayr_process, ev, data)
       /* We are not connected, disable the sensors */
       process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
-
+#if DEFAULT_SENSORS_NUM
     /* Check for periodic publish events */
     if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
       seq_nr_value++;
@@ -470,6 +485,7 @@ PROCESS_THREAD(relayr_process, ev, data)
       sensor_val_t *sensorPtr = (sensor_val_t *) data;
       publish_alarm(sensorPtr);
     }
+#endif /* DEFAULT_SENSORS_NUM */
   }
 
   PROCESS_END();
