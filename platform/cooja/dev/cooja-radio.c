@@ -46,15 +46,13 @@
 #define COOJA_RADIO_BUFSIZE PACKETBUF_SIZE
 #define CCA_SS_THRESHOLD -95
 
-#define WITH_TURNAROUND 1
-#define WITH_SEND_CCA 1
-
 const struct simInterface radio_interface;
 
 /* COOJA */
 char simReceiving = 0;
 char simInDataBuffer[COOJA_RADIO_BUFSIZE];
 int simInSize = 0;
+rtimer_clock_t simLastPacketTimestamp = 0;
 char simOutDataBuffer[COOJA_RADIO_BUFSIZE];
 int simOutSize = 0;
 char simRadioHWOn = 1;
@@ -66,8 +64,37 @@ int simLQI = 105;
 
 static const void *pending_data;
 
-PROCESS(cooja_radio_process, "cooja radio process");
+/* If we are in the polling mode, poll_mode is 1; otherwise 0 */
+static int poll_mode = 0; /* default 0, disabled */
+static int auto_ack = 0; /* AUTO_ACK is not supported; always 0 */
+static int addr_filter = 0; /* ADDRESS_FILTER is not supported; always 0 */
+static int send_on_cca = (COOJA_TRANSMIT_ON_CCA != 0);
 
+PROCESS(cooja_radio_process, "cooja radio process");
+/*---------------------------------------------------------------------------*/
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_frame_filtering(int enable)
+{
+  addr_filter = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_auto_ack(int enable)
+{
+  auto_ack = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_poll_mode(int enable)
+{
+  poll_mode = enable;
+}
 /*---------------------------------------------------------------------------*/
 void
 radio_set_channel(int channel)
@@ -97,7 +124,7 @@ radio_signal_strength_current(void)
 int
 radio_LQI(void)
 {
-	return simLQI;
+  return simLQI;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -152,8 +179,10 @@ radio_read(void *buf, unsigned short bufsize)
 
   memcpy(buf, simInDataBuffer, simInSize);
   simInSize = 0;
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
-  packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+  if(!poll_mode) {
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+  }
 
   return tmp;
 }
@@ -173,14 +202,14 @@ radio_send(const void *payload, unsigned short payload_len)
   int radiostate = simRadioHWOn;
 
   /* Simulate turnaround time of 2ms for packets, 1ms for acks*/
-#if WITH_TURNAROUND
+#if COOJA_SIMULATE_TURNAROUND
   simProcessRunValue = 1;
   cooja_mt_yield();
   if(payload_len > 3) {
     simProcessRunValue = 1;
     cooja_mt_yield();
   }
-#endif /* WITH_TURNAROUND */
+#endif /* COOJA_SIMULATE_TURNAROUND */
 
   if(!simRadioHWOn) {
     /* Turn on radio temporarily */
@@ -197,11 +226,11 @@ radio_send(const void *payload, unsigned short payload_len)
   }
 
   /* Transmit on CCA */
-#if WITH_SEND_CCA
-  if(!channel_clear()) {
+#if COOJA_TRANSMIT_ON_CCA
+  if(send_on_cca && !channel_clear()) {
     return RADIO_TX_COLLISION;
   }
-#endif /* WITH_SEND_CCA */
+#endif /* COOJA_TRANSMIT_ON_CCA */
 
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
@@ -253,6 +282,9 @@ PROCESS_THREAD(cooja_radio_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    if(poll_mode) {
+      continue;
+    }
 
     packetbuf_clear();
     len = radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -275,18 +307,87 @@ init(void)
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  switch(param) {
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    if(addr_filter) {
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    }
+    if(auto_ack) {
+      *value |= RADIO_RX_MODE_AUTOACK;
+    }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+    *value = simSignalStrength;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    *value = simLQI;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  switch(param) {
+  case RADIO_PARAM_RX_MODE:
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
+        RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    /* Only disabling is acceptable for RADIO_RX_MODE_ADDRESS_FILTER */
+    if ((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0) {
+      return RADIO_RESULT_NOT_SUPPORTED;
+    }
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+
+    /* Only disabling is acceptable for RADIO_RX_MODE_AUTOACK */
+    if ((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0) {
+      return RADIO_RESULT_NOT_SUPPORTED;
+    }
+    set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    if(value < 11 || value > 26) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    radio_set_channel(value);
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t *)dest = (rtimer_clock_t)simLastPacketTimestamp;
+    return RADIO_RESULT_OK;
+  }
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
@@ -315,5 +416,5 @@ const struct radio_driver cooja_radio_driver =
 };
 /*---------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,
-	      doInterfaceActionsBeforeTick,
-	      doInterfaceActionsAfterTick);
+              doInterfaceActionsBeforeTick,
+              doInterfaceActionsAfterTick);
