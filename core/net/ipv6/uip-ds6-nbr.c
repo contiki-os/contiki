@@ -96,8 +96,12 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     uip_packetqueue_new(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
 #if UIP_ND6_SEND_NA
-    /* timers are set separately, for now we put them in expired state */
-    stimer_set(&nbr->reachable, 0);
+    if(nbr->state == NBR_REACHABLE) {
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+    } else {
+      /* We set the timer in expired state */
+      stimer_set(&nbr->reachable, 0);
+    }
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
 #endif /* UIP_ND6_SEND_NA */
@@ -321,6 +325,20 @@ uip_ds6_neighbor_periodic(void)
     nbr = nbr_table_next(ds6_neighbors, nbr);
   }
 }
+/*---------------------------------------------------------------------------*/
+#if UIP_ND6_SEND_NA
+void
+uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
+{
+  uip_ds6_nbr_t *nbr;
+  nbr = uip_ds6_nbr_lookup(ipaddr);
+  if(nbr != NULL) {
+    nbr->state = NBR_REACHABLE;
+    nbr->nscount = 0;
+    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+  }
+}
+#endif /* UIP_ND6_SEND_NA */
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_get_least_lifetime_neighbor(void)
