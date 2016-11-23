@@ -376,9 +376,6 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_setMemory(JNIEnv *env, jobject obj, 
 JNIEXPORT void JNICALL
 Java_org_contikios_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
 {
-  clock_time_t nextEtimer;
-  rtimer_clock_t nextRtimer;
-
   simProcessRunValue = 0;
 
   /* Let all simulation interfaces act first */
@@ -403,21 +400,11 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
   doActionsAfterTick();
 
   /* Do we have any pending timers */
-  simEtimerPending = etimer_pending() || rtimer_arch_pending();
-  if(!simEtimerPending) {
-    return;
-  }
+  simEtimerPending = etimer_pending();
 
   /* Save nearest expiration time */
-  nextEtimer = etimer_next_expiration_time() - (clock_time_t) simCurrentTime;
-  nextRtimer = rtimer_arch_next() - (rtimer_clock_t) simCurrentTime;
-  if(etimer_pending() && rtimer_arch_pending()) {
-    simNextExpirationTime = MIN(nextEtimer, nextRtimer);
-  } else if(etimer_pending()) {
-    simNextExpirationTime = nextEtimer;
-  } else if(rtimer_arch_pending()) {
-    simNextExpirationTime = nextRtimer;
-  }
+  simEtimerNextExpirationTime = etimer_next_expiration_time();
+
 }
 /*---------------------------------------------------------------------------*/
 /**

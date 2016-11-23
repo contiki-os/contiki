@@ -36,7 +36,10 @@
 #include "contiki-conf.h"
 #include "sys/clock.h"
 
-#define RTIMER_ARCH_SECOND CLOCK_CONF_SECOND
+#define RTIMER_ARCH_SECOND UINT64_C(1000000)
+
+#define US_TO_RTIMERTICKS(US) (US)
+#define RTIMERTICKS_TO_US(T)  (T)
 
 rtimer_clock_t rtimer_arch_now(void);
 int rtimer_arch_check(void);
