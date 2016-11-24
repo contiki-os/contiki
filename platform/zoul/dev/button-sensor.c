@@ -157,10 +157,10 @@ config_user(int type, int value)
   case SENSORS_ACTIVE:
     if(value) {
       GPIO_ENABLE_INTERRUPT(BUTTON_USER_PORT_BASE, BUTTON_USER_PIN_MASK);
-      nvic_interrupt_enable(BUTTON_USER_VECTOR);
+      NVIC_EnableIRQ(BUTTON_USER_VECTOR);
     } else {
       GPIO_DISABLE_INTERRUPT(BUTTON_USER_PORT_BASE, BUTTON_USER_PIN_MASK);
-      nvic_interrupt_disable(BUTTON_USER_VECTOR);
+      NVIC_DisableIRQ(BUTTON_USER_VECTOR);
     }
     return value;
   case BUTTON_SENSOR_CONFIG_TYPE_INTERVAL:

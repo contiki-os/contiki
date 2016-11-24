@@ -603,7 +603,7 @@ configure(int type, int value)
     int_en = 1;
     GPIO_ENABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
     ioc_set_over(I2C_INT_PORT, I2C_INT_PIN, IOC_OVERRIDE_PUE);
-    nvic_interrupt_enable(I2C_INT_VECTOR);
+    NVIC_EnableIRQ(I2C_INT_VECTOR);
 
     PRINTF("Gyro: Data interrupt configured\n");
     return GROVE_GYRO_SUCCESS;

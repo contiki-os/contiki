@@ -119,7 +119,7 @@ configure(int type, int value)
   process_start(&motion_int_process, NULL);
 
   GPIO_ENABLE_INTERRUPT(MOTION_SENSOR_PORT_BASE, MOTION_SENSOR_PIN_MASK);
-  nvic_interrupt_enable(MOTION_SENSOR_VECTOR);
+  NVIC_EnableIRQ(MOTION_SENSOR_VECTOR);
   return MOTION_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
