@@ -97,8 +97,8 @@ coap_remove_observer(coap_observer_t *o)
   PRINTF("Removing observer for /%s [0x%02X%02X]\n", o->url, o->token[0],
          o->token[1]);
 
-  memb_free(&observers_memb, o);
   list_remove(observers_list, o);
+  memb_free(&observers_memb, o);
 }
 /*---------------------------------------------------------------------------*/
 int
