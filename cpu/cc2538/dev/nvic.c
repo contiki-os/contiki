@@ -38,74 +38,12 @@
  */
 #include "contiki.h"
 #include "dev/nvic.h"
-#include "dev/scb.h"
-#include "reg.h"
-
-#include <stdint.h>
-
-static uint32_t *interrupt_enable;
-static uint32_t *interrupt_disable;
-static uint32_t *interrupt_pend;
-static uint32_t *interrupt_unpend;
+#include "cc2538_cm3.h"
 /*---------------------------------------------------------------------------*/
 void
 nvic_init()
 {
-  interrupt_enable = (uint32_t *)NVIC_EN0;
-  interrupt_disable = (uint32_t *)NVIC_DIS0;
-  interrupt_pend = (uint32_t *)NVIC_PEND0;
-  interrupt_unpend = (uint32_t *)NVIC_UNPEND0;
-
   /* Provide our interrupt table to the NVIC */
-  REG(SCB_VTABLE) = NVIC_VTABLE_ADDRESS;
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_enable(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_enable[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_disable(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_disable[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_en_restore(uint32_t intr, uint8_t v)
-{
-  if(v != 1) {
-    return;
-  }
-
-  interrupt_enable[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
-nvic_interrupt_en_save(uint32_t intr)
-{
-  uint8_t rv = ((interrupt_enable[intr >> 5] & (1 << (intr & 0x1F)))
-      > NVIC_INTERRUPT_DISABLED);
-
-  nvic_interrupt_disable(intr);
-
-  return rv;
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_pend(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_pend[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_unpend(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_unpend[intr >> 5] = 1 << (intr & 0x1F);
+  SCB->VTOR = NVIC_VTABLE_ADDRESS;
 }
 /** @} */

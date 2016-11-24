@@ -1,19 +1,19 @@
 /**
- * @defgroup cmsis CMSIS (Cortex Microcontroller Software Interface Standard)
- * @ingroup arm
+ * \defgroup cmsis CMSIS (Cortex Microcontroller Software Interface Standard)
+ * \ingroup arm
  */
 
 /**
- * @defgroup aducrf101 ADUCRF101
- * @ingroup arm
+ * \defgroup aducrf101 ADUCRF101
+ * \ingroup arm
  */
 
 /**
- * @defgroup at91sam7s AT91SAM7S
- * @ingroup arm
+ * \defgroup at91sam7s AT91SAM7S
+ * \ingroup arm
  */
 
 /**
- * @defgroup stm32f103 STM32F103
- * @ingroup arm
+ * \defgroup stm32f103 STM32F103
+ * \ingroup arm
  */

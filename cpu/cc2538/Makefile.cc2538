@@ -14,7 +14,7 @@ LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
-CFLAGS += -Wall
+CFLAGS += -Wall -DCMSIS_DEV_HDR=\"cc2538_cm3.h\"
 LDFLAGS += -mcpu=cortex-m3 -mthumb -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
 LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
@@ -42,7 +42,7 @@ endif
 CLEAN += symbols.c symbols.h *.d *.elf *.hex
 
 ### CPU-dependent directories
-CONTIKI_CPU_DIRS = . dev usb
+CONTIKI_CPU_DIRS = ../arm/common/CMSIS . dev usb
 
 ### Use the existing debug I/O in cpu/arm/common
 CONTIKI_CPU_DIRS += ../arm/common/dbg-io
@@ -52,7 +52,7 @@ CONTIKI_CPU_DIRS += ../cc253x/usb/common ../cc253x/usb/common/cdc-acm
 
 ### CPU-dependent source files
 CONTIKI_CPU_SOURCEFILES += soc.c clock.c rtimer-arch.c uart.c watchdog.c
-CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
+CONTIKI_CPU_SOURCEFILES += nvic.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
 CONTIKI_CPU_SOURCEFILES += crypto.c aes.c ecb.c cbc.c ctr.c cbc-mac.c gcm.c
 CONTIKI_CPU_SOURCEFILES += ccm.c sha256.c
 CONTIKI_CPU_SOURCEFILES += cc2538-aes-128.c cc2538-ccm-star.c
@@ -79,7 +79,7 @@ CPU_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CPU_START_SOURCEFILES
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 
-MODULES += lib/newlib
+MODULES += lib/newlib cpu/arm/common/sys
 
 .SECONDEXPANSION:
 
@@ -123,4 +123,4 @@ LDGENFLAGS += -x c -P -E
 # NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
 $(LDSCRIPT): $(SOURCE_LDSCRIPT) FORCE | $(OBJECTDIR)
 	$(TRACE_CC)
-	$(Q)$(CC) $(LDGENFLAGS) $< -o $@
+	$(Q)$(CC) $(LDGENFLAGS) $< | grep -v '^\s*#\s*pragma\>' > $@
