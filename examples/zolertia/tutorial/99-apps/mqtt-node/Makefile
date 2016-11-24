@@ -3,9 +3,9 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 all: mqtt-client
 
 # Platform options: relayr, thingsio, bluemix, ubidots
-MQTT_PLATFORM ?= relayr
+MQTT_PLATFORM ?= bluemix
 
-# Sensor options: fridge, agriculture, remote, irrigation, coldchain, coinbox
+# Sensor options: fridge, agriculture, remote, watering, coldchain, coinbox
 MQTT_SENSORS  ?= remote
 
 # -----------------------------------------------------------------------------#
@@ -55,10 +55,10 @@ ifeq ($(MQTT_SENSORS), agriculture)
   CFLAGS += -DDEFAULT_SENSORS_NUM=4
 endif
 
-ifeq ($(MQTT_SENSORS), irrigation)
-  PROJECT_SOURCEFILES += irrigation.c
-  CONTIKI_TARGET_SOURCEFILES += soil-humidity.c grove-relay.c
-  CFLAGS += -DMQTT_SENSORS="irrigation"
+ifeq ($(MQTT_SENSORS), watering)
+  PROJECT_SOURCEFILES += watering.c
+  CONTIKI_TARGET_SOURCEFILES += relay.c adc-sensors.c
+  CFLAGS += -DMQTT_SENSORS="watering"
   CFLAGS += -DDEFAULT_SENSORS_NUM=1
   CFLAGS += -DDEFAULT_COMMANDS_NUM=1
 endif

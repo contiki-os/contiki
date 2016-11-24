@@ -73,7 +73,7 @@
 #define ANALOG_GROVE_LOUDNESS               0x03
 #define ANALOG_VAC_SENSOR                   0x04
 #define ANALOG_AAC_SENSOR                   0x05
-/* -------------------------------------------------------------------------- */
+#define ANALOG_SOIL_MOIST_SENSOR            0x06
 #define ADC_SENSORS "ADC sensors API"
 /* -------------------------------------------------------------------------- */
 extern const struct sensors_sensor adc_sensors;

@@ -28,26 +28,26 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef IRRIGATION_H_
-#define IRRIGATION_H_
+#ifndef WATERING_H_
+#define WATERING_H_
 /*---------------------------------------------------------------------------*/
 #include "mqtt-sensors.h"
 /*---------------------------------------------------------------------------*/
 enum {
-  IRRIGATION_SENSOR_SOIL = 0,
+  WATERING_SENSOR_SOIL = 0,
 };
 
 enum {
-  IRRIGATION_COMMAND_VALVE = 0,
+  WATERING_COMMAND_VALVE = 0,
 };
 /*---------------------------------------------------------------------------*/
 /* Sensor process events */
-extern process_event_t irrigation_sensors_data_event;
-extern process_event_t irrigation_sensors_alarm_event;
+extern process_event_t watering_sensors_data_event;
+extern process_event_t watering_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
-extern sensor_values_t irrigation_sensors;
+extern sensor_values_t watering_sensors;
 /*---------------------------------------------------------------------------*/
-extern command_values_t irrigation_commands;
+extern command_values_t watering_commands;
 /*---------------------------------------------------------------------------*/
 /* PUBLISH strings */
 #define DEFAULT_PUBLISH_EVENT_SOIL    "soil_moisture"
@@ -71,6 +71,6 @@ extern command_values_t irrigation_commands;
 
 #define ELECTROVALVE_ON_INTERVAL      ((CLOCK_SECOND)*2)
 /*---------------------------------------------------------------------------*/
-#endif /* IRRIGATION_H_ */
+#endif /* WATERING_H_ */
 /** @} */
 
