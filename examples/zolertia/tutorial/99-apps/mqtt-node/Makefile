@@ -3,7 +3,7 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 all: mqtt-client
 
 # Platform options: relayr, thingsio, bluemix, ubidots
-MQTT_PLATFORM ?= bluemix
+MQTT_PLATFORM ?= relayr
 
 # Sensor options: fridge, agriculture, remote, irrigation, coldchain, coinbox
 MQTT_SENSORS  ?= remote
@@ -11,11 +11,10 @@ MQTT_SENSORS  ?= remote
 # -----------------------------------------------------------------------------#
 # Don't touch anything below if you don't know what you are doing
 # -----------------------------------------------------------------------------#
-PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
-
 CLOUD_RESOURCES_DIR = ./cloud
 DEVICE_RESOURCES_DIR = ./device
-PROJECTDIRS += $(CLOUD_RESOURCES_DIR) $(DEVICE_RESOURCES_DIR) 
+INTERNALS_RESOURCES_DIR = ./internals
+PROJECTDIRS += $(CLOUD_RESOURCES_DIR) $(DEVICE_RESOURCES_DIR) $(INTERNALS_RESOURCES_DIR)
 
 # Platform checks
 ifeq ($(MQTT_PLATFORM), bluemix)
@@ -86,6 +85,9 @@ WITH_IP64 = 1
 CFLAGS += -DMQTT_PLATFORM=$(MQTT_PLATFORM)
 
 APPS += mqtt
+
+# Webserver and internals
+PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
 
 CONTIKI = ../../../../..
 include $(CONTIKI)/Makefile.include
