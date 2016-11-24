@@ -86,8 +86,16 @@ CFLAGS += -DMQTT_PLATFORM=$(MQTT_PLATFORM)
 
 APPS += mqtt
 
-# Webserver and internals
-PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
+# MQTT internals
+PROJECT_SOURCEFILES += mqtt-sensors.c mqtt-res.c
+
+# Alternatively includes the webserver to configure credentials
+WITH_WEBSERVER ?= 1
+ifeq ($(WITH_WEBSERVER), 1)
+  PROJECT_SOURCEFILES += httpd-simple.c
+endif
+
+CFLAGS += -DWITH_WEBSERVER=$(WITH_WEBSERVER)
 
 CONTIKI = ../../../../..
 include $(CONTIKI)/Makefile.include
