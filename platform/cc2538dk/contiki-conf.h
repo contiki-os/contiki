@@ -364,6 +364,10 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL      RF_CHANNEL
+#endif
+
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              25
 #endif /* CC2538_RF_CONF_CHANNEL */
