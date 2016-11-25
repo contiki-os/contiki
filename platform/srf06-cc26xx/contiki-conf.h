@@ -121,6 +121,10 @@
 #else
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 
+#ifdef RF_CHANNEL
+#define RF_CORE_CONF_CHANNEL             RF_CHANNEL
+#endif
+
 #ifndef RF_CORE_CONF_CHANNEL
 #define RF_CORE_CONF_CHANNEL                     25
 #endif
