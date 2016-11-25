@@ -309,7 +309,7 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 }
 /*---------------------------------------------------------------------------*/
 static int
-should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
+should_refresh_routes(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
 {
   /* if MOP is set to no downward routes no DAO should be sent */
   if(instance->mop == RPL_MOP_NO_DOWNWARD_ROUTES) {
@@ -827,12 +827,16 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     PRINTF("RPL: Changed preferred parent, rank changed from %u to %u\n",
   	(unsigned)old_rank, best_dag->rank);
     RPL_STAT(rpl_stats.parent_switch++);
-    if(RPL_IS_STORING(instance) && last_parent != NULL) {
-      /* Send a No-Path DAO to the removed preferred parent. */
-      dao_output(last_parent, RPL_ZERO_LIFETIME);
+    if(RPL_IS_STORING(instance)) {
+      if(last_parent != NULL) {
+        /* Send a No-Path DAO to the removed preferred parent. */
+        dao_output(last_parent, RPL_ZERO_LIFETIME);
+      }
+      /* Trigger DAO transmission from immediate children.
+       * Only for storing mode, see RFC6550 section 9.6. */
+      RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
     }
     /* The DAO parent set changed - schedule a DAO transmission. */
-    RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
     rpl_schedule_dao(instance);
     rpl_reset_dio_timer(instance);
 #if DEBUG
@@ -1318,8 +1322,12 @@ rpl_local_repair(rpl_instance_t *instance)
   instance->has_downward_route = 0;
 
   rpl_reset_dio_timer(instance);
-  /* Request refresh of DAO registrations next DIO */
-  RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  if(RPL_IS_STORING(instance)) {
+    /* Request refresh of DAO registrations next DIO. Only for storing mode. In
+     * non-storing mode, non-root nodes increment DTSN only on when their parent do,
+     * or on global repair (see RFC6550 section 9.6.) */
+    RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  }
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1604,7 +1612,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* We don't use route control, so we can have only one official parent. */
   if(dag->joined && p == dag->preferred_parent) {
-    if(should_send_dao(instance, dio, p)) {
+    if(should_refresh_routes(instance, dio, p)) {
+      /* Our parent is requesting a new DAO. Increment DTSN in turn,
+       * in both storing and non-storing mode (see RFC6550 section 9.6.) */
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
     }
