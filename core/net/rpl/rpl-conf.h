@@ -197,14 +197,19 @@
 /*
  * DIO redundancy. To learn more about this, see RFC 6206.
  *
- * RFC 6550 suggests a default value of 10. It is unclear what the basis
- * of this suggestion is. Network operators might attain more efficient
- * operation by tuning this parameter for specific deployments.
+ * RFC 6550 suggests a default value of 10. It is unclear what the basis of
+ * this suggestion is. Instead, we disable the suppression mechanism by default.
+ * In Contiki, nodes maintain a single DAO parent. They need to hear a DIO from
+ * this parent to notice DTSN updates. DIO suppression can in result in large
+ * delays (many Trickle periods, in dense networks) in DTSN update. Network
+ * operators might attain more efficient operation by tuning this parameter
+ * for specific deployments.
+ *
  */
 #ifdef RPL_CONF_DIO_REDUNDANCY
 #define RPL_DIO_REDUNDANCY          RPL_CONF_DIO_REDUNDANCY
 #else
-#define RPL_DIO_REDUNDANCY          10
+#define RPL_DIO_REDUNDANCY          0
 #endif
 
 /*
