@@ -89,6 +89,10 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
+#ifdef RF_CHANNEL
+#define RF_CORE_CONF_CHANNEL             RF_CHANNEL
+#endif
+
 /*
  * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
  * project has specified otherwise. Depending on the final mode, determine a
@@ -120,10 +124,6 @@
 #define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 240)
 #else
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
-
-#ifdef RF_CHANNEL
-#define RF_CORE_CONF_CHANNEL             RF_CHANNEL
-#endif
 
 #ifndef RF_CORE_CONF_CHANNEL
 #define RF_CORE_CONF_CHANNEL                     25
