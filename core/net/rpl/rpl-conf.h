@@ -372,7 +372,7 @@
 #ifdef RPL_CONF_SEC_LVL
 #define RPL_SEC_LVL  RPL_CONF_SEC_LVL
 #else
-#define RPL_SEC_LVL 3
+#define RPL_SEC_LVL 1
 #endif
 
 #endif /* RPL_CONF_H */
