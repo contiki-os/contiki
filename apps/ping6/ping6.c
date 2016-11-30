@@ -89,7 +89,7 @@ ping6handler(process_event_t ev, process_data_t data)
     /** \note the scanf here is blocking (the all stack is blocked waiting
      *  for user input). This is far from ideal and could be improved
      */
-    scanf("%s", command);
+    scanf("%19s", command);
 
     if(strcmp(command,"ping6") != 0){
       PRINTF("> invalid command\n");
