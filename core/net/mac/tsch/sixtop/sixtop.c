@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Centre for Development of Advanced Computing.
+ * Copyright (c) 2016, Centre for Development of Advanced Computing (C-DAC).
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
