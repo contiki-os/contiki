@@ -159,6 +159,7 @@ bme280_h_overscale1024(int32_t uh)
 uint8_t
 bme280_init(uint8_t mode)
 {
+  uint16_t i;
   uint8_t buf[26];
 
   bme280_arch_i2c_init();
@@ -170,7 +171,10 @@ bme280_init(uint8_t mode)
   }
 
   bme280_arch_i2c_write_mem(BME280_ADDR, BME280_CNTL_RESET, 0xB6);
-  clock_delay_usec(BME280_MAX_WAIT);
+
+  for(i = 0; i < BME280_MAX_WAIT; i++) {
+    clock_delay_usec(1000);
+  }
 
   memset(buf, 0, sizeof(buf));
 
