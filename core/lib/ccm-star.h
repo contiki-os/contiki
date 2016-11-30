@@ -75,17 +75,6 @@ struct ccm_star_driver {
       const uint8_t* a, uint8_t a_len,
       uint8_t *result, uint8_t mic_len,
       int forward);
-
-  /**
-   * \brief			Generates authenticated MIC, used (at the moment) in RPL secure mode
-   * 				with security level that doesn't need encryption but only authentication.
-   * 				The params are the same as in the previous function.
-   */
-  void (*mic)(const uint8_t *nonce,
-      const uint8_t *m, uint8_t m_len,
-      const uint8_t *a, uint8_t a_len,
-      uint8_t *result,
-      uint8_t mic_len);
 };
 
 extern const struct ccm_star_driver CCM_STAR;

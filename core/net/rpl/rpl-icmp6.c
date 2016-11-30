@@ -360,10 +360,10 @@ sec_aead(uint8_t *ccm_nonce, int buffer_len, int sec_len,
                     uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
                     buffer + sec_len + buffer_len, mic_len, forward);
     } else {
-      CCM_STAR.mic(ccm_nonce,
-                   buffer + sec_len, buffer_len,
-                   uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                   buffer + sec_len + buffer_len, mic_len);
+      CCM_STAR.aead(ccm_nonce,
+                    NULL, 0,
+                    uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len + buffer_len,
+				    mic, mic_len, forward);
     }
     return mic_len;
   } else {
@@ -374,10 +374,10 @@ sec_aead(uint8_t *ccm_nonce, int buffer_len, int sec_len,
                       uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
                       mic, mic_len, forward);
       } else {
-        CCM_STAR.mic(ccm_nonce,
-                     buffer + sec_len, buffer_len,
-                     uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len,
-                     mic, mic_len);
+        CCM_STAR.aead(ccm_nonce,
+                      NULL, 0,
+                      uip_buf + UIP_LLH_LEN, UIP_IPICMPH_LEN + sec_len + buffer_len,
+    				  mic, mic_len, forward);
       }
       if(memcmp(mic, buffer + sec_len + buffer_len, mic_len) != 0) {
         return 0;
@@ -1987,7 +1987,6 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
   int sec_len;
   uint8_t ccm_nonce[RPL_NONCE_LENGTH];
   uint8_t mic_len;      /* n-byte MAC length */
-  int i;
 #endif /* RPL_SECURITY */
 
   pos = 0;

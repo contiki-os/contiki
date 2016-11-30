@@ -174,6 +174,5 @@ aead(const uint8_t* nonce,
 const struct ccm_star_driver ccm_star_driver = {
   set_key,
   aead,
-  mic
 };
 /*---------------------------------------------------------------------------*/
