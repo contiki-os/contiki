@@ -106,7 +106,12 @@ static bool rat_offset_known = false;
 PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 /*---------------------------------------------------------------------------*/
 #define RF_CORE_CLOCKS_MASK (RFC_PWR_PWMCLKEN_RFC_M | RFC_PWR_PWMCLKEN_CPE_M \
-                             | RFC_PWR_PWMCLKEN_CPERAM_M)
+                             | RFC_PWR_PWMCLKEN_CPERAM_M | RFC_PWR_PWMCLKEN_FSCA_M \
+                             | RFC_PWR_PWMCLKEN_PHA_M | RFC_PWR_PWMCLKEN_RAT_M \
+                             | RFC_PWR_PWMCLKEN_RFERAM_M | RFC_PWR_PWMCLKEN_RFE_M \
+                             | RFC_PWR_PWMCLKEN_MDMRAM_M | RFC_PWR_PWMCLKEN_MDM_M)
+/*---------------------------------------------------------------------------*/
+#define RF_CMD0	0x0607
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf_core_is_accessible()
@@ -257,6 +262,12 @@ rf_core_power_up()
 
   /* Let CPE boot */
   HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = RF_CORE_CLOCKS_MASK;
+
+  /* Turn on additional clocks on boot */
+  HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
+  HWREG(RFC_DBELL_BASE+RFC_DBELL_O_CMDR) =
+    CMDR_DIR_CMD_2BYTE(RF_CMD0,
+                       RFC_PWR_PWMCLKEN_MDMRAM | RFC_PWR_PWMCLKEN_RFERAM);
 
   /* Send ping (to verify RFCore is ready and alive) */
   if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_PING), &cmd_status) != RF_CORE_CMD_OK) {
