@@ -573,8 +573,6 @@ init(void)
     return RF_CORE_CMD_ERROR;
   }
 
-  rf_core_set_modesel();
-
   /* Initialise RX buffers */
   memset(rx_buf_0, 0, RX_BUF_SIZE);
   memset(rx_buf_1, 0, RX_BUF_SIZE);
@@ -599,9 +597,6 @@ init(void)
 
   /* Initialize current read pointer to first element (used in ISR) */
   rx_read_entry = rx_buf_0;
-
-  /* Let CC13xxware automatically set a correct value for RTRIM for us */
-  ti_lib_rfcrtrim((rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup);
 
   smartrf_settings_cmd_prop_rx_adv.pQueue = &rx_data_queue;
   smartrf_settings_cmd_prop_rx_adv.pOutput = (uint8_t *)&rx_stats;
@@ -895,8 +890,29 @@ on(void)
       return RF_CORE_CMD_ERROR;
     }
 
+    /* Keep track of RF Core mode */
+    rf_core_set_modesel();
+
+    /* Apply patches to radio core */
     rf_patch_cpe_genfsk();
+    while(!HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG));
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
     rf_patch_rfe_genfsk();
+
+    /* Initialize bus request */
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDR) =
+      CMDR_DIR_CMD_1BYTE(CMD_BUS_REQUEST, 1);
+
+    /* set VCOLDO reference */
+    ti_lib_rfc_adi3vco_ldo_voltage_mode(true);
+
+    /* Let CC13xxware automatically set a correct value for RTRIM for us */
+    ti_lib_rfc_rtrim((rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup);
+
+    /* Make sure BUS_REQUEST is done */
+    while(!HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG));
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
 
     if(rf_core_start_rat() != RF_CORE_CMD_OK) {
       PRINTF("on: rf_core_start_rat() failed\n");
