@@ -140,9 +140,6 @@ struct tsch_neighbor {
   struct tsch_packet *tx_array[TSCH_QUEUE_NUM_PER_NEIGHBOR];
   /* Circular buffer of pointers to packet. */
   struct ringbufindex tx_ringbuf;
-#if TSCH_WITH_SIXTOP
-  uint8_t sixtop_last_seqno; /* the last sequence number used for 6P request */
-#endif
 };
 
 /***** External Variables *****/

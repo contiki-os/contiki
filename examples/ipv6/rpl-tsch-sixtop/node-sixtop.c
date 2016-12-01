@@ -33,7 +33,7 @@
  *
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
- *				 Shalu R <shalur@cdac.in>
+ *         Shalu R <shalur@cdac.in>
  *         Lijo Thomas <lijo@cdac.in>
  */
 
@@ -47,6 +47,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/ip/uip-debug.h"
 
+#include "sf-simple.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "RPL Node");
@@ -130,10 +131,10 @@ PROCESS_THREAD(node_process, ev, data)
       clock_delay(1000);
       if((added_num_of_links == 1) || (added_num_of_links == 3)) {
         printf("App : Add a link\n");
-        sixtop_add_cells(sf_simple_driver.sfid, &n->addr, 1);
+        sf_simple_add_links(&n->addr, 1);
       } else if(added_num_of_links == 5) {
         printf("App : Delete a link\n");
-        sixtop_delete_cells(sf_simple_driver.sfid, &n->addr, 1);
+        sf_simple_remove_links(&n->addr);
       }
       added_num_of_links++;
     }

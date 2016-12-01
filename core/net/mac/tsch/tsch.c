@@ -409,6 +409,9 @@ tsch_start_coordinator(void)
 #if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
   tsch_schedule_create_minimal();
 #endif
+#if TSCH_WITH_SIXTOP
+  sixtop_init_sf();
+#endif
 
   tsch_is_associated = 1;
   tsch_join_priority = 0;
@@ -858,6 +861,10 @@ tsch_init(void)
 
   tsch_is_initialized = 1;
 
+#if TSCH_WITH_SIXTOP
+  sixtop_init();
+#endif
+
 #if TSCH_AUTOSTART
   /* Start TSCH operation.
    * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
@@ -1005,9 +1012,6 @@ turn_on(void)
     PRINTF("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
     return 1;
   }
-#if TSCH_WITH_SIXTOP
-  sixtop_init();
-#endif
   return 0;
 }
 /*---------------------------------------------------------------------------*/

@@ -29,149 +29,127 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
+ * \addtogroup net
+ * @{
+ */
+/**
+ * \defgroup sixtop 6TiSCH Operation Sublayer (6top)
+ * @{
+ */
+/**
  * \file
- *         6top Protocol (6P) APIs
+ *         6TiSCH Operation Sublayer (6top) APIs
  * \author
  *         Yasuyuki Tanaka <yasuyuki.tanaka@inf.ethz.ch>
  */
 
-#ifndef __SIXTOP_H__
-#define __SIXTOP_H__
+#ifndef _SIXTOP_H_
+#define _SIXTOP_H_
 
-#include "net/linkaddr.h"
-#include "sys/clock.h"
-
-/*
- * The number of schedule functions which the sixtop module can have at most.
+/**
+ * \brief The maximum number of Schedule Functions in the system.
  */
-#ifdef SIXTOP_CONF_NUM_OF_SCHEDULE_FUNCTIONS
-#define SIXTOP_NUM_OF_SCHEDULE_FUNCTIONS SIXTOP_CONF_NUM_OF_SCHEDULE_FUNCTIONS
+#ifdef SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
+#define SIXTOP_MAX_SCHEDULE_FUNCTIONS SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
 #else
-#define SIXTOP_NUM_OF_SCHEDULE_FUNCTIONS 1
+#define SIXTOP_MAX_SCHEDULE_FUNCTIONS 1
 #endif
 
-/*
- * The maximum number of transactions which the sixtop module can have at the
- * same time.
+/**
+ * \brief The maximum number of transactions which the sixtop module can handle
+ * at the same time.
  */
-#ifdef SIXTOP_CONF_NUM_OF_TRANSACTIONS
-#define SIXTOP_NUM_OF_TRANSACTIONS SIXTOP_CONF_NUM_OF_TRANSACTIONS
+#ifdef SIXTOP_CONF_6P_MAX_TRANSACTIONS
+#define SIXTOP_6P_MAX_TRANSACTIONS SIXTOP_CONF_6P_MAX_TRANSACTIONS
 #else
-#define SIXTOP_NUM_OF_TRANSACTIONS 1
+#define SIXTOP_6P_MAX_TRANSACTIONS 1
 #endif
 
-/* The initial sequence number used for 6P request */
-#define SIXTOP_INITIAL_SEQUENCE_NUMBER 0
-
-/*
- * The maximum number of cells which a request or response message can contain.
+/**
+ * \brief The initial sequence number used for 6P request
  */
-#ifdef SIXTOP_CONF_IE_MAX_CELLS
-#define SIXTOP_IE_MAX_CELLS SIXTOP_CONF_IE_MAX_CELLS
+#define SIXTOP_6P_INITIAL_SEQUENCE_NUMBER 0
+
+/**
+ * \brief The maximum number of neighbor objects which 6P can have at the same
+ * time.
+ */
+#ifdef SIXTOP_CONF_6P_MAX_NEIGHBORS
+#define SIXTOP_6P_MAX_NEIGHBORS SIXTOP_CONF_6P_MAX_NEIGHBORS
 #else
-#define SIXTOP_IE_MAX_CELLS 3
+#include "net/nbr-table.h"
+#define SIXTOP_6P_MAX_NEIGHBORS NBR_TABLE_MAX_NEIGHBORS
 #endif
 
-/* 6P Command ID */
-enum sixtop_command_id {
-  SIXTOP_CMD_ADD       = 0x01,
-  SIXTOP_CMD_DELETE    = 0x02,
-  SIXTOP_CMD_COUNT     = 0x03,
-  SIXTOP_CMD_LIST      = 0x04,
-  SIXTOP_CMD_CLEAR     = 0x05,
-};
+#include "sixp.h"
 
-#define SIXTOP_CMD_MIN SIXTOP_CMD_ADD
-#define SIXTOP_CMD_MAX SIXTOP_CMD_CLEAR
-
-/* 6P Return Code */
-enum sixtop_return_code {
-  SIXTOP_RC_SUCCESS    = 0x06, /* Operation succeeded */
-  SIXTOP_RC_ERR_VER    = 0x07, /* Unsupported 6P version */
-  SIXTOP_RC_ERR_SFID   = 0x08, /* Unsupported SFID */
-  SIXTOP_RC_ERR_GEN    = 0x09,
-  SIXTOP_RC_ERR_BUSY   = 0x0a, /* Handling previous request */
-  SIXTOP_RC_ERR_NORES  = 0x0b,
-  SIXTOP_RC_ERR_RESET  = 0x0c, /* Abort 6P transaction */
-  SIXTOP_RC_ERR        = 0x0d, /* Operation failed */
-};
-#define SIXTOP_RC_MIN SIXTOP_RC_SUCCESS
-#define SIXTOP_RC_MAX SIXTOP_RC_ERR
-
-/* type definitions */
-typedef enum {
-  SIXTOP_RETURN_SUCCESS,
-  SIXTOP_RETURN_FAILURE
-} sixtop_return_t;
-
+/**
+ * /brief Schedule Function Driver
+ */
 typedef struct {
-  uint8_t num_cells;
-  uint16_t metadata;
-  uint32_t cell_list[SIXTOP_IE_MAX_CELLS];
-  uint16_t cell_list_len;
-} sixtop_msg_body_t;
-
-typedef void (*sixtop_request_input_t)(uint8_t cmd,
-                                       const sixtop_msg_body_t *body,
-                                       const linkaddr_t *peer_addr);
-typedef void (*sixtop_response_input_t)(uint8_t cmd, uint8_t return_code,
-                                        const sixtop_msg_body_t *body,
-                                        const linkaddr_t *peer_addr);
-typedef void (*sixtop_callback_t)(const sixtop_msg_body_t *body,
-                                  const linkaddr_t *dest_addr,
-                                  sixtop_return_t status);
-typedef int (*sixtop_op_add_t)(linkaddr_t *peer_addr, uint8_t num_cells);
-typedef int (*sixtop_op_delete_t)(linkaddr_t *peer_addr, uint8_t num_cells);
-
-typedef struct {
-  uint8_t sfid;
-  clock_time_t timeout_interval;
-  void (*init)(void);
-  sixtop_request_input_t request_input;
-  sixtop_response_input_t response_input;
-  sixtop_op_add_t add;
-  sixtop_op_delete_t delete;
+  uint8_t sfid;                             /**< SFID */
+  clock_time_t timeout_interval;            /**< Timeout Value */
+  void (*init)(void);                       /**< Init Function */
+  sixp_request_input_t request_input;       /**< Request Handler */
+  sixp_response_input_t response_input;     /**< Response Handler */
+  sixp_response_input_t confirmation_input; /**< Confirm. Handler */
+  sixp_timeout_handler_t timeout_handler;   /**< Timeout Handler */
 } sixtop_sf_t;
+/**
+ * \var sixtop_sf_t::sfid
+ * managed:   0x00-0xfe
+ * unmanaged: 0xf0-0xfe
+ * reserved:  0xff
+ */
 
-typedef struct {
-  uint8_t version;
-  uint8_t code;
-  uint8_t sfid;
-  uint8_t seqno;
-  uint8_t gab;
-  uint8_t gba;
-  uint8_t num_cells;
-  uint16_t metadata;
-  uint32_t cell_list[SIXTOP_IE_MAX_CELLS];
-  uint16_t cell_list_len;
-  /* there may be more fields to be defined */
-} sixtop_ie_t;
 
-/* available Schedule Functions */
-#define SIXTOP_SFID_SF_SIMPLE 0
-extern const sixtop_sf_t sf_simple_driver;
+/**
+ * \brief Add a Schedule Function (SF) to 6top Sublayer
+ * \param sf The pointer to a Schedule Function driver
+ * \return 0 on success, -1 on failure
+ *
+ * If a SF which has the same SFID as the specified one has already been added,
+ * -1 will be returned.
+ *
+ * If there is no room to another SF, -1 will be returned as well. You can
+ * specify how many SFs can be added with SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS.
+ */
+int sixtop_add_sf(const sixtop_sf_t *sf);
 
-/* APIs */
-/** APIs for upper layers **/
-int sixtop_add_sf(const sixtop_sf_t *);
-const sixtop_sf_t * sixtop_find_sf(uint8_t sfid);
-int sixtop_add_cells(uint8_t sfid, linkaddr_t *peer_addr,
-                     uint8_t num_cells);
-int sixtop_delete_cells(uint8_t sfid, linkaddr_t *peer_addr,
-                        uint8_t num_cells);
+/**
+ * \brief Find a SF which has been added by SFID
+ * \param sfid Schedule Function Identifier for the concerned SF
+ * \return The pointer to a SF having the specified SFID on success, NULL on
+ *         failure (not found)
+ */
+const sixtop_sf_t *sixtop_find_sf(uint8_t sfid);
 
-/** APIs for Schedule Functions */
-void sixtop_response_output(uint8_t sfid, uint8_t cmd,
-                            const sixtop_msg_body_t *body,
-                            const linkaddr_t *dest_addr,
-                            sixtop_callback_t callback);
-void sixtop_request_output(uint8_t sfid, uint8_t cmd,
-                           const sixtop_msg_body_t *body,
-                           const linkaddr_t *dest_addr,
-                           sixtop_callback_t callback);
+/**
+ * \brief Output a frame stored in packetbuf
+ * \param dest_addr Destination address for the outgoing frame
+ * \param callback MAC callback function to get the TX result
+ * \param arg The pointer to an argument which is returned by the callback
+ */
+void sixtop_output(const linkaddr_t *dest_addr,
+                   mac_callback_t callback, void *arg);
 
-/** APIs for the lower layer, i.e., TSCH MAC **/
+/**
+ * \brief Input a frame stored in packetbuf
+ * \param llsec_input An upper layer input function which is called at the end
+ *                    of sixtop_input()
+ */
 void sixtop_input(void (*llsec_input)(void));
+
+/**
+ * \brief Initialize 6top module
+ */
 void sixtop_init(void);
 
-#endif /* ! __SIXTOP_H__ */
+/**
+ * \brief Initialize SFs which has been added in the system
+ */
+void sixtop_init_sf(void);
+
+#endif /* !_SIXTOP_H_ */
+/** @} */
+/** @} */
