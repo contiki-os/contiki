@@ -141,15 +141,27 @@ SYSCALLS_DEFINE(uart_16x50_tx, uart_16x50_driver_t c_this, uint8_t c)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief Perform common initialization that must precede per-port
+ *        initialization.
+ */
+/*---------------------------------------------------------------------------*/
+void
+uart_16x50_init(void)
+{
+  SYSCALLS_INIT(uart_16x50_setup);
+  SYSCALLS_INIT(uart_16x50_tx);
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief          Initialize an MMIO-programmable 16X50 UART.
  * \param c_this   Structure that will be initialized to represent the device.
  * \param pci_addr PCI address of device.
  * \param dl       Divisor setting to configure the baud rate.
  */
 void
-uart_16x50_init(uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *c_this,
-                pci_config_addr_t pci_addr,
-                uint16_t dl)
+uart_16x50_init_port(uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *c_this,
+                     pci_config_addr_t pci_addr,
+                     uint16_t dl)
 {
   uart_16x50_driver_t loc_c_this;
 
@@ -157,9 +169,7 @@ uart_16x50_init(uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *c_this,
    * firmware during boot.
    */
   pci_init(c_this, pci_addr, UART_MMIO_SZ, 0, 0);
-  SYSCALLS_INIT(uart_16x50_setup);
   SYSCALLS_AUTHZ(uart_16x50_setup, *c_this);
-  SYSCALLS_INIT(uart_16x50_tx);
   SYSCALLS_AUTHZ(uart_16x50_tx, *c_this);
 
   prot_domains_copy_dcd(&loc_c_this, c_this);

@@ -337,7 +337,7 @@ More things to play around with
 
 Build a Sniffer - Live Traffic Capture with Wireshark
 -----------------------------------------------------
-There is a sniffer example in `examples/cc2538dk/sniffer/`
+There is a sniffer example in `examples/sensniff/`
 
 Diverging from platform defaults, this example configures the UART to use a baud rate of 460800. The reason is that sniffers operating at 115200 are liable to corrupt frames. This is almost certain to occur when sniffing a ContikiMAC-based deployment. See more details on how to configure UART baud rates in the "Advanced Topics" section.
 
@@ -366,7 +366,6 @@ Switching between UART and USB (CDC-ACM)
 By default, everything is configured to use the UART (stdio, border router's SLIP, sniffer's output stream). If you want to change this, these are the relevant lines in contiki-conf.h (0: UART, 1: USB):
 
     #define SLIP_ARCH_CONF_USB          0 /** SLIP over UART by default */
-    #define CC2538_RF_CONF_SNIFFER_USB  0 /** Sniffer out over UART by default */
     #define DBG_CONF_USB                0 /** All debugging over UART by default */
 
 You can multiplex things (for instance, SLIP as well as debugging over USB or SLIP over USB but debugging over UART and other combinations).
@@ -377,7 +376,6 @@ By default, everything is configured to use the UART0 (stdio, border router's SL
 
     #define SERIAL_LINE_CONF_UART       0
     #define SLIP_ARCH_CONF_UART         0
-    #define CC2538_RF_CONF_SNIFFER_UART 0
     #define DBG_CONF_UART               0
     #define UART1_CONF_UART             0
 

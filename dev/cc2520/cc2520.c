@@ -55,12 +55,19 @@
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
+#ifdef CC2520_CONF_RSSI_OFFSET
+#define RSSI_OFFSET CC2520_CONF_RSSI_OFFSET
+#else /* CC2520_CONF_RSSI_OFFSET */
+/* The RSSI_OFFSET is approximate 76 (see CC2520 specification) */
+#define RSSI_OFFSET 76
+#endif /* CC2520_CONF_RSSI_OFFSET */
+
 #include <stdio.h>
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
-#define PRINTF(...) do {} while (0)
+#define PRINTF(...) do {} while(0)
 #endif
 
 #if 0 && DEBUG
@@ -81,11 +88,11 @@ int cc2520_authority_level_of_sender;
 
 int cc2520_packets_seen, cc2520_packets_read;
 
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-  do {                                                                  \
-    rtimer_clock_t t0;                                                  \
-    t0 = RTIMER_NOW();                                                  \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+#define BUSYWAIT_UNTIL(cond, max_time) \
+  do { \
+    rtimer_clock_t t0; \
+    t0 = RTIMER_NOW(); \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))); \
   } while(0)
 
 volatile uint8_t cc2520_sfd_counter;
@@ -96,7 +103,6 @@ static volatile uint16_t last_packet_timestamp;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2520_process, "CC2520 driver");
 /*---------------------------------------------------------------------------*/
-
 
 int cc2520_on(void);
 int cc2520_off(void);
@@ -141,7 +147,6 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_NOT_SUPPORTED;
   }
 }
-
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
@@ -166,38 +171,35 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_NOT_SUPPORTED;
   }
 }
-
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
   return RADIO_RESULT_NOT_SUPPORTED;
 }
-
 static radio_result_t
 set_object(radio_param_t param, const void *src, size_t size)
 {
   return RADIO_RESULT_NOT_SUPPORTED;
 }
-
 const struct radio_driver cc2520_driver =
-  {
-    cc2520_init,
-    cc2520_prepare,
-    cc2520_transmit,
-    cc2520_send,
-    cc2520_read,
-    /* cc2520_set_channel, */
-    /* detected_energy, */
-    cc2520_cca,
-    cc2520_receiving_packet,
-    pending_packet,
-    cc2520_on,
-    cc2520_off,
-    get_value,
-    set_value,
-    get_object,
-    set_object
-  };
+{
+  cc2520_init,
+  cc2520_prepare,
+  cc2520_transmit,
+  cc2520_send,
+  cc2520_read,
+  /* cc2520_set_channel, */
+  /* detected_energy, */
+  cc2520_cca,
+  cc2520_receiving_packet,
+  pending_packet,
+  cc2520_on,
+  cc2520_off,
+  get_value,
+  set_value,
+  get_object,
+  set_object
+};
 
 /*---------------------------------------------------------------------------*/
 
@@ -269,7 +271,9 @@ off(void)
 }
 /*---------------------------------------------------------------------------*/
 #define GET_LOCK() locked++
-static void RELEASE_LOCK(void) {
+static void
+RELEASE_LOCK(void)
+{
   if(locked == 1) {
     if(lock_on) {
       on();
@@ -315,7 +319,7 @@ cc2520_init(void)
 {
   {
     int s = splhigh();
-    cc2520_arch_init();		/* Initalize ports and SPI. */
+    cc2520_arch_init();   /* Initalize ports and SPI. */
     CC2520_DISABLE_FIFOP_INT();
     CC2520_FIFOP_INT_INIT();
     splx(s);
@@ -339,57 +343,57 @@ cc2520_init(void)
   /* Change default values as recommended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA.*/
 
-  setreg(CC2520_TXCTRL,      0x94);
-  setreg(CC2520_TXPOWER,     0x13);    // Output power 1 dBm
+  setreg(CC2520_TXCTRL, 0x94);
+  setreg(CC2520_TXPOWER, 0x13);        /* Output power 1 dBm */
 
   /*
 
-	valeurs de TXPOWER
-	  0x03 -> -18 dBm
-	  0x2C -> -7 dBm
-	  0x88 -> -4 dBm
-	  0x81 -> -2 dBm
-	  0x32 -> 0 dBm
-	  0x13 -> 1 dBm
-	  0x32 -> 0 dBm
-	  0x13 -> 1 dBm
-	  0xAB -> 2 dBm
-	  0xF2 -> 3 dBm
-	  0xF7 -> 5 dBm
-  */
-  setreg(CC2520_CCACTRL0,    0xF8);  // CCA treshold -80dBm
+     valeurs de TXPOWER
+     0x03 -> -18 dBm
+     0x2C -> -7 dBm
+     0x88 -> -4 dBm
+     0x81 -> -2 dBm
+     0x32 -> 0 dBm
+     0x13 -> 1 dBm
+     0x32 -> 0 dBm
+     0x13 -> 1 dBm
+     0xAB -> 2 dBm
+     0xF2 -> 3 dBm
+     0xF7 -> 5 dBm
+   */
+  setreg(CC2520_CCACTRL0, 0xF8);     /* CCA treshold -80dBm */
 
-  // Recommended RX settings
-  setreg(CC2520_MDMCTRL0,    0x84);  // Controls modem
-  setreg(CC2520_MDMCTRL1,    0x14);  // Controls modem
-  setreg(CC2520_RXCTRL,      0x3F);  // Adjust currents in RX related analog modules
-  setreg(CC2520_FSCTRL,      0x5A);  // Adjust currents in synthesizer.
-  setreg(CC2520_FSCAL1,      0x2B);  // Adjust currents in VCO
-  setreg(CC2520_AGCCTRL1,    0x11);  // Adjust target value for AGC control loop
-  setreg(CC2520_AGCCTRL2,    0xEB);
+  /* Recommended RX settings */
+  setreg(CC2520_MDMCTRL0, 0x84);     /* Controls modem */
+  setreg(CC2520_MDMCTRL1, 0x14);     /* Controls modem */
+  setreg(CC2520_RXCTRL, 0x3F);       /* Adjust currents in RX related analog modules */
+  setreg(CC2520_FSCTRL, 0x5A);       /* Adjust currents in synthesizer. */
+  setreg(CC2520_FSCAL1, 0x2B);       /* Adjust currents in VCO */
+  setreg(CC2520_AGCCTRL1, 0x11);     /* Adjust target value for AGC control loop */
+  setreg(CC2520_AGCCTRL2, 0xEB);
 
-  //  Disable external clock
-  setreg(CC2520_EXTCLOCK,    0x00);
+  /*  Disable external clock */
+  setreg(CC2520_EXTCLOCK, 0x00);
 
-  //  Tune ADC performance
-  setreg(CC2520_ADCTEST0,    0x10);
-  setreg(CC2520_ADCTEST1,    0x0E);
-  setreg(CC2520_ADCTEST2,    0x03);
+  /*  Tune ADC performance */
+  setreg(CC2520_ADCTEST0, 0x10);
+  setreg(CC2520_ADCTEST1, 0x0E);
+  setreg(CC2520_ADCTEST2, 0x03);
 
   /* Set auto CRC on frame. */
 #if CC2520_CONF_AUTOACK
-  setreg(CC2520_FRMCTRL0,    AUTOCRC | AUTOACK);
-  setreg(CC2520_FRMFILT0,    FRAME_MAX_VERSION|FRAME_FILTER_ENABLE);
+  setreg(CC2520_FRMCTRL0, AUTOCRC | AUTOACK);
+  setreg(CC2520_FRMFILT0, FRAME_MAX_VERSION | FRAME_FILTER_ENABLE);
 #else
   /* setreg(CC2520_FRMCTRL0,    0x60); */
-  setreg(CC2520_FRMCTRL0,    AUTOCRC);
+  setreg(CC2520_FRMCTRL0, AUTOCRC);
   /* Disable filter on @ (remove if you want to address specific wismote) */
-  setreg(CC2520_FRMFILT0,    0x00);
+  setreg(CC2520_FRMFILT0, 0x00);
 #endif /* CC2520_CONF_AUTOACK */
   /* SET_RXENMASK_ON_TX */
-  setreg(CC2520_FRMCTRL1,          1);
+  setreg(CC2520_FRMCTRL1, 1);
   /* Set FIFOP threshold to maximum .*/
-  setreg(CC2520_FIFOPCTRL,   FIFOP_THR(0x7F));
+  setreg(CC2520_FIFOPCTRL, FIFOP_THR(0x7F));
 
   cc2520_set_pan_addr(0xffff, 0x0000, NULL);
   cc2520_set_channel(26);
@@ -430,7 +434,7 @@ cc2520_transmit(unsigned short payload_len)
 
 #if WITH_SEND_CCA
   strobe(CC2520_INS_SRXON);
-  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID) , RTIMER_SECOND / 10);
+  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 10);
   strobe(CC2520_INS_STXONCCA);
 #else /* WITH_SEND_CCA */
   strobe(CC2520_INS_STXON);
@@ -457,24 +461,24 @@ cc2520_transmit(unsigned short payload_len)
         return RADIO_TX_COLLISION;
       }
       if(receive_on) {
-	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+        ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       }
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
       /* We wait until transmission has ended so that we get an
-	 accurate measurement of the transmission time.*/
-     //BUSYWAIT_UNTIL(getreg(CC2520_EXCFLAG0) & TX_FRM_DONE , RTIMER_SECOND / 100);
+         accurate measurement of the transmission time.*/
+      /* BUSYWAIT_UNTIL(getreg(CC2520_EXCFLAG0) & TX_FRM_DONE , RTIMER_SECOND / 100); */
       BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
-      ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2520_get_txpower());
+      ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT, cc2520_get_txpower());
 #endif
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       if(receive_on) {
-	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+        ENERGEST_ON(ENERGEST_TYPE_LISTEN);
       } else {
-	/* We need to explicitly turn off the radio,
-	 * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
-	off();
+        /* We need to explicitly turn off the radio,
+         * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
+        off();
       }
 
       if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
@@ -510,9 +514,9 @@ cc2520_prepare(const void *payload, unsigned short payload_len)
 
   PRINTF("cc2520: sending %d bytes\n", payload_len);
   /*int i;
-  for(i = 0; i < payload_len;i++)
-	  printf("%x",((uint8_t *) payload)[i]);
-  printf("\n");*/
+     for(i = 0; i < payload_len;i++)
+     printf("%x",((uint8_t *) payload)[i]);
+     printf("\n");*/
   RIMESTATS_ADD(lltx);
 
   /* Wait for any previous transmission to finish. */
@@ -641,15 +645,14 @@ cc2520_set_pan_addr(unsigned pan,
   tmp[1] = pan >> 8;
   CC2520_WRITE_RAM(&tmp, CC2520RAM_PANID, 2);
 
-
   tmp[0] = addr & 0xff;
   tmp[1] = addr >> 8;
   CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
   if(ieee_addr != NULL) {
     int f;
     uint8_t tmp_addr[8];
-    // LSB first, MSB last for 802.15.4 addresses in CC2520
-    for (f = 0; f < 8; f++) {
+    /* LSB first, MSB last for 802.15.4 addresses in CC2520 */
+    for(f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
     }
     CC2520_WRITE_RAM(tmp_addr, CC2520RAM_IEEEADDR, 8);
@@ -737,15 +740,13 @@ cc2520_read(void *buf, unsigned short bufsize)
   getrxdata(footer, FOOTER_LEN);
 
   if(footer[1] & FOOTER1_CRC_OK) {
-    cc2520_last_rssi = footer[0];
+    cc2520_last_rssi = footer[0] - RSSI_OFFSET;
     cc2520_last_correlation = footer[1] & FOOTER1_CORRELATION;
-
 
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2520_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2520_last_correlation);
 
     RIMESTATS_ADD(llrx);
-
   } else {
     RIMESTATS_ADD(badcrc);
     len = FOOTER_LEN;
@@ -809,6 +810,7 @@ cc2520_rssi(void)
   BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
 
   rssi = (int)((signed char)getreg(CC2520_RSSI));
+  rssi -= RSSI_OFFSET;
 
   if(radio_was_off) {
     cc2520_off();
@@ -818,12 +820,12 @@ cc2520_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 /*
-static int
-detected_energy(void)
-{
-  return cc2520_rssi();
-}
-*/
+   static int
+   detected_energy(void)
+   {
+   return cc2520_rssi();
+   }
+ */
 /*---------------------------------------------------------------------------*/
 int
 cc2520_cca_valid(void)

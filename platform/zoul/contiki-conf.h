@@ -77,8 +77,6 @@ typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
 /** @} */
 /*---------------------------------------------------------------------------*/
-#define TSCH_CONF_HW_FRAME_FILTERING    0
-
 /* 352us from calling transmit() until the SFD byte has been sent */
 #define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(352))
 /* 192us as in datasheet but ACKs are not always received, so adjusted to 250us */
@@ -102,7 +100,16 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * \name CC2538 System Control configuration
+ *
+ * @{
+ */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1 /**< Use the on-board 32.768-kHz crystal */
+#endif
+/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name CFS configuration
@@ -190,10 +197,6 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_ARCH_CONF_USB          0 /**< SLIP over UART by default */
 #endif
 
-#ifndef CC2538_RF_CONF_SNIFFER_USB
-#define CC2538_RF_CONF_SNIFFER_USB  0 /**< Sniffer out over UART by default */
-#endif
-
 #ifndef DBG_CONF_USB
 #define DBG_CONF_USB                0 /**< All debugging over UART by default */
 #endif
@@ -205,12 +208,6 @@ typedef uint32_t rtimer_clock_t;
 #if !SLIP_ARCH_CONF_USB
 #ifndef SLIP_ARCH_CONF_UART
 #define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
-#endif
-#endif
-
-#if !CC2538_RF_CONF_SNIFFER_USB
-#ifndef CC2538_RF_CONF_SNIFFER_UART
-#define CC2538_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
 #endif
 #endif
 
@@ -240,15 +237,6 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #endif
 
-/*
- * When set, the radio turns off address filtering and sends all captured
- * frames down a peripheral (UART or USB, depending on the value of
- * CC2538_RF_CONF_SNIFFER_USB)
- */
-#ifndef CC2538_RF_CONF_SNIFFER
-#define CC2538_RF_CONF_SNIFFER      0
-#endif
-
 /**
  * \brief Define this as 1 to build a headless node.
  *
@@ -269,12 +257,6 @@ typedef uint32_t rtimer_clock_t;
 
 #undef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        0
-
-/* Little sanity check: We can't have quiet sniffers */
-#if CC2538_RF_CONF_SNIFFER
-#error "CC2538_RF_CONF_SNIFFER == 1 and CC2538_CONF_QUIET == 1"
-#error "These values are conflicting. Please set either to 0"
-#endif
 #endif /* CC2538_CONF_QUIET */
 
 /**
@@ -283,8 +265,7 @@ typedef uint32_t rtimer_clock_t;
 #ifndef USB_SERIAL_CONF_ENABLE
 #define USB_SERIAL_CONF_ENABLE \
   ((SLIP_ARCH_CONF_USB & SLIP_ARCH_CONF_ENABLED) | \
-   DBG_CONF_USB | \
-   (CC2538_RF_CONF_SNIFFER & CC2538_RF_CONF_SNIFFER_USB))
+   DBG_CONF_USB)
 #endif
 
 /*
@@ -304,9 +285,6 @@ typedef uint32_t rtimer_clock_t;
 #define UART_IN_USE_BY_SLIP(u)        (SLIP_ARCH_CONF_ENABLED && \
                                        !SLIP_ARCH_CONF_USB && \
                                        SLIP_ARCH_CONF_UART == (u))
-#define UART_IN_USE_BY_RF_SNIFFER(u)  (CC2538_RF_CONF_SNIFFER && \
-                                       !CC2538_RF_CONF_SNIFFER_USB && \
-                                       CC2538_RF_CONF_SNIFFER_UART == (u))
 #define UART_IN_USE_BY_DBG(u)         (!DBG_CONF_USB && DBG_CONF_UART == (u))
 #define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
 
@@ -314,7 +292,6 @@ typedef uint32_t rtimer_clock_t;
   UART_CONF_ENABLE && \
   (UART_IN_USE_BY_SERIAL_LINE(u) || \
    UART_IN_USE_BY_SLIP(u) || \
-   UART_IN_USE_BY_RF_SNIFFER(u) || \
    UART_IN_USE_BY_DBG(u) || \
    UART_IN_USE_BY_UART1(u)) \
 )
@@ -481,7 +458,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
 #ifndef NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_WITH_IPV6                        0
+#define NETSTACK_CONF_WITH_IPV6              0
 #endif
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -520,7 +497,7 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                16
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        16
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 16

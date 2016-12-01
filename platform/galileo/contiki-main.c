@@ -65,9 +65,9 @@ app_main(void)
   process_init();
   procinit_init();
   ctimer_init();
-  autostart_start(autostart_processes);
-
   eth_init();
+
+  autostart_start(autostart_processes);
 
   while(1) {
     process_run();
@@ -86,8 +86,11 @@ main(void)
   quarkX1000_imr_conf();
 #endif
   irq_init();
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
+  quarkX1000_uart_init();
+  /* Initialize UART connected to Galileo Gen1 3.5mm audio-style jack or
+   * Galileo Gen2 FTDI header
+   */
+  quarkX1000_uart_init_port(QUARK_X1000_UART_1, 115200);
   clock_init();
   rtimer_init();
 
@@ -96,11 +99,15 @@ main(void)
   quarkX1000_i2c_init();
   quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
                            QUARKX1000_I2C_ADDR_MODE_7BIT);
+  /* The GPIO subsystem must be initialized prior to configuring pinmux, because
+   * the pinmux configuration automatically performs GPIO configuration for the
+   * relevant pins.
+   */
+  quarkX1000_gpio_init();
   /* use default pinmux configuration */
   if(galileo_pinmux_initialize() < 0) {
     fprintf(stderr, "Failed to initialize pinmux\n");
   }
-  quarkX1000_gpio_init();
   shared_isr_init();
 
   /* The ability to remap interrupts is not needed after this point and should

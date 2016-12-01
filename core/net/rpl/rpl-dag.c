@@ -554,13 +554,6 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     if(instance->def_route == NULL) {
       return 0;
     }
-  } else {
-    PRINTF("RPL: Removing default route\n");
-    if(instance->def_route != NULL) {
-      uip_ds6_defrt_rm(instance->def_route);
-    } else {
-      PRINTF("RPL: Not actually removing default route, since instance had no default route\n");
-    }
   }
   return 1;
 }
@@ -917,11 +910,11 @@ rpl_select_parent(rpl_dag_t *dag)
       /* Probe the best parent shortly in order to get a fresh estimate */
       dag->instance->urgent_probing_target = best;
       rpl_schedule_probing(dag->instance);
-#else /* RPL_WITH_PROBING */
-      rpl_set_preferred_parent(dag, best);
-      dag->rank = rpl_rank_via_parent(dag->preferred_parent);
-#endif /* RPL_WITH_PROBING */
     }
+#else /* RPL_WITH_PROBING */
+    rpl_set_preferred_parent(dag, best);
+    dag->rank = rpl_rank_via_parent(dag->preferred_parent);
+#endif /* RPL_WITH_PROBING */
   } else {
     rpl_set_preferred_parent(dag, NULL);
   }
@@ -1086,6 +1079,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
       || (!RPL_WITH_STORING && (dio->mop == RPL_MOP_STORING_NO_MULTICAST
           || dio->mop == RPL_MOP_STORING_MULTICAST))) {
     PRINTF("RPL: DIO advertising a non-supported MOP %u\n", dio->mop);
+    return;
   }
 
   /* Determine the objective function by using the

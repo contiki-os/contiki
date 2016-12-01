@@ -252,10 +252,11 @@ If you prefer this guide in other formats, use the excellent [pandoc] to convert
 More Reading
 ============
 1. [Zolertia website][zolertia-site]
-2. [CC2538 System-on-Chip Solution][cc2538]
-3. [CC1200 sub-1GHz RF transceiver][cc1200]
-4. [Zolertia Hackster channel][hackster]
-5. [IoT in five days open source and online book][IoT5days]
+2. [Zolertia Wiki page][zolertia-wiki]
+3. [CC2538 System-on-Chip Solution][cc2538]
+4. [CC1200 sub-1GHz RF transceiver][cc1200]
+5. [Zolertia Hackster channel][hackster]
+6. [IoT in five days open source and online book][IoT5days]
 
 Maintainers
 ===========
@@ -263,6 +264,7 @@ The Zoul and derived platforms (as well as the Z1 mote) are maintained by Zolert
 Main contributor: Antonio Lignan <alignan@zolertia.com>
 
 [zolertia-site]: http://www.zolertia.io/products "Zolertia"
+[zolertia-wiki]: https://github.com/Zolertia/Resources/wiki "Zolertia Wiki"
 [cc1200]: http://www.ti.com/product/cc1200 "CC1200"
 [smart-rf-studio]: http://www.ti.com/tool/smartrftm-studio "SmartRF Studio"
 [smart-rf-flashprog]: http://www.ti.com/tool/flash-programmer "SmartRF Flash Programmer"

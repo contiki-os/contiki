@@ -763,9 +763,9 @@ check_rat_overflow(bool first_time)
 {
   static uint32_t last_value;
   uint32_t current_value;
-  uint8_t interrupts_enabled;
+  uint8_t interrupts_disabled;
 
-  interrupts_enabled = ti_lib_int_master_disable();
+  interrupts_disabled = ti_lib_int_master_disable();
   if(first_time) {
     last_value = HWREG(RFC_RAT_BASE + RATCNT);
   } else {
@@ -777,7 +777,7 @@ check_rat_overflow(bool first_time)
     }
     last_value = current_value;
   }
-  if(interrupts_enabled) {
+  if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
 }
@@ -867,7 +867,6 @@ transmit(unsigned short transmit_len)
   uint8_t tx_active = 0;
   rtimer_clock_t t0;
   volatile rfc_CMD_IEEE_TX_t cmd;
-  uint8_t interrupts_enabled;
 
   if(!rf_is_on()) {
     was_off = 1;
@@ -908,16 +907,8 @@ transmit(unsigned short transmit_len)
   cmd.startTime = 0;
   cmd.startTrigger.triggerType = TRIG_NOW;
 
-  /* XXX: there seems to be no function that gets interrupt state w/o changing it */
-  interrupts_enabled = ti_lib_int_master_disable();
-  if(interrupts_enabled) {
-    ti_lib_int_master_enable();
-  }
-
   /* Enable the LAST_FG_COMMAND_DONE interrupt, which will wake us up */
-  if(interrupts_enabled) {
-    rf_core_cmd_done_en(true, poll_mode);
-  }
+  rf_core_cmd_done_en(true, poll_mode);
 
   ret = rf_core_send_cmd((uint32_t)&cmd, &cmd_status);
 
@@ -934,7 +925,7 @@ transmit(unsigned short transmit_len)
        *  1) make the `lpm_sleep()` call here unconditional;
        *  2) change the radio ISR priority to allow radio ISR to interrupt rtimer ISR.
        */
-      if(interrupts_enabled) {
+      if(!poll_mode) {
         lpm_sleep();
       }
     }
@@ -966,13 +957,11 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(interrupts_enabled) {
-    /*
-     * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
-     * except when we are transmitting
-     */
-    rf_core_cmd_done_dis(poll_mode);
-  }
+  /*
+   * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
+   * except when we are transmitting
+   */
+  rf_core_cmd_done_dis(poll_mode);
 
   if(was_off) {
     off();

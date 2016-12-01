@@ -40,7 +40,7 @@
  * @{
  *
  * \file
- *  Test application for the Sparkfun's weather meter
+ *         Test application for the Sparkfun's weather meter
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -155,5 +155,5 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
 /**
  * @}
  * @}
- * @}
  */
+

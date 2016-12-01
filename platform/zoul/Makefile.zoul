@@ -4,9 +4,15 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
-### If no board is specified the default option is the RE-Mote
+### If no board is specified the default option is the RE-Mote revision B
 ifeq ($(BOARD),)
-  BOARD=remote
+  BOARD = remote-revb
+endif
+
+### As previously the RE-Mote revision A was plainly defined as remote, keep for
+### backward compatibility
+ifeq ($(BOARD), remote)
+  override BOARD = remote-reva
 endif
 
 PYTHON = python
@@ -22,7 +28,7 @@ PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
 
 ### Include
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
-CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c cc1200-zoul-arch.c
+CONTIKI_TARGET_SOURCEFILES += leds.c cc1200-zoul-arch.c
 CONTIKI_TARGET_SOURCEFILES += adc-zoul.c button-sensor.c zoul-sensors.c
 CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
 
@@ -45,7 +51,7 @@ MODULES += core/net core/net/mac \
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
-### USe the specific Zoul subplatform to query for connected devices
+### Use the specific Zoul subplatform to query for connected devices
 ifdef MOTELIST_ZOLERTIA
   MOTELIST_FLAGS += -b $(MOTELIST_ZOLERTIA)
 endif

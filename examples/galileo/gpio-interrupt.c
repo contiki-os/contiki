@@ -33,10 +33,11 @@
 #include "contiki.h"
 #include "sys/ctimer.h"
 
+#include "galileo-gpio.h"
 #include "gpio.h"
 
-#define PIN_OUTPUT 5
-#define PIN_INTR 6
+#define PIN_OUTPUT 2
+#define PIN_INTR 3
 
 static struct ctimer timer;
 
@@ -47,8 +48,8 @@ static void
 timeout(void *data)
 {
   /* emulate an interrupt */
-  quarkX1000_gpio_write(PIN_OUTPUT, 0);
-  quarkX1000_gpio_write(PIN_OUTPUT, 1);
+  galileo_gpio_write(PIN_OUTPUT, 0);
+  galileo_gpio_write(PIN_OUTPUT, 1);
 
   ctimer_reset(&timer);
 }
@@ -63,8 +64,7 @@ PROCESS_THREAD(gpio_interrupt_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  quarkX1000_gpio_config(PIN_OUTPUT, QUARKX1000_GPIO_OUT);
-  quarkX1000_gpio_config(PIN_INTR, QUARKX1000_GPIO_INT | QUARKX1000_GPIO_ACTIVE_HIGH | QUARKX1000_GPIO_EDGE);
+  galileo_gpio_config(PIN_INTR, QUARKX1000_GPIO_INT | QUARKX1000_GPIO_ACTIVE_HIGH | QUARKX1000_GPIO_EDGE);
 
   quarkX1000_gpio_set_callback(callback);
 

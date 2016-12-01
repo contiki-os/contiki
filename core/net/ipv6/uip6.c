@@ -73,6 +73,7 @@
 
 #include "sys/cc.h"
 #include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
@@ -890,7 +891,7 @@ ext_hdr_options_process(void)
        */
 #if UIP_CONF_IPV6_RPL
       PRINTF("Processing RPL option\n");
-      if(rpl_verify_hbh_header(uip_ext_opt_offset)) {
+      if(!rpl_verify_hbh_header(uip_ext_opt_offset)) {
         PRINTF("RPL Option Error: Dropping Packet\n");
         return 1;
       }
@@ -1227,14 +1228,6 @@ uip_process(uint8_t flag)
         UIP_STAT(++uip_stat.ip.drop);
         goto send;
       }
-
-#if UIP_CONF_IPV6_RPL
-      if(!rpl_update_header()) {
-        /* Packet can not be forwarded */
-        PRINTF("RPL header update error\n");
-        goto drop;
-      }
-#endif /* UIP_CONF_IPV6_RPL */
 
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       PRINTF("Forwarding packet to ");
@@ -1582,10 +1575,6 @@ uip_process(uint8_t flag)
   }
 #endif /* UIP_UDP_CHECKSUMS */
 
-#if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
-#endif /* UIP_CONF_IPV6_RPL */
-
   UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
@@ -1854,8 +1843,10 @@ uip_process(uint8_t flag)
       if((UIP_TCP_BUF->flags & TCP_SYN)) {
         if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) {
           goto tcp_send_synack;
+#if UIP_ACTIVE_OPEN
         } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
           goto tcp_send_syn;
+#endif
         }
       }
       goto tcp_send_ack;

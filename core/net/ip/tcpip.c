@@ -548,6 +548,15 @@ tcpip_ipv6_output(void)
     return;
   }
 
+#if UIP_CONF_IPV6_RPL
+  if(!rpl_update_header()) {
+    /* Packet can not be forwarded */
+    PRINTF("tcpip_ipv6_output: RPL header update error\n");
+    uip_clear_buf();
+    return;
+  }
+#endif /* UIP_CONF_IPV6_RPL */
+
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
 
@@ -651,12 +660,6 @@ tcpip_ipv6_output(void)
 
     /* End of next hop determination */
 
-#if UIP_CONF_IPV6_RPL
-    if(!rpl_finalize_header(nexthop)) {
-      uip_clear_buf();
-      return;
-    }
-#endif /* UIP_CONF_IPV6_RPL */
     nbr = uip_ds6_nbr_lookup(nexthop);
     if(nbr == NULL) {
 #if UIP_ND6_SEND_NA
