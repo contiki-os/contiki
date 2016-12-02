@@ -40,9 +40,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Only for TMOTE Sky? */
 #include "dev/serial-line.h"
-#include "dev/uart1.h"
 #include "net/ipv6/uip-ds6-route.h"
 
 #define UDP_CLIENT_PORT 8765
@@ -203,11 +201,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
 	UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-
-  /* initialize serial line */
-  uart1_set_input(serial_line_input_byte);
-  serial_line_init();
-
 
 #if WITH_COMPOWER
   powertrace_sniff(POWERTRACE_ON);
