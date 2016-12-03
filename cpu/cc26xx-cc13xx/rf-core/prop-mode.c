@@ -599,6 +599,9 @@ init(void)
   /* Initialize current read pointer to first element (used in ISR) */
   rx_read_entry = rx_buf_0;
 
+  /* Let CC13xxware automatically set a correct value for RTRIM for us */
+  ti_lib_rfcrtrim((rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup);
+
   smartrf_settings_cmd_prop_rx_adv.pQueue = &rx_data_queue;
   smartrf_settings_cmd_prop_rx_adv.pOutput = (uint8_t *)&rx_stats;
 
