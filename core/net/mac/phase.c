@@ -67,6 +67,12 @@ struct phase_queueitem {
   struct rdc_buf_list *buf_list;
 };
 
+#if PHASE_CONF_DRIFT_CORRECT
+#define PHASE_DRIFT(e) ((e)->drift)
+#else
+#define PHASE_DRIFT(e) 0
+#endif
+
 #define PHASE_DEFER_THRESHOLD 1
 #define PHASE_QUEUESIZE       8
 
@@ -151,96 +157,99 @@ send_packet(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 phase_status_t
+phase_wait_rtime(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
+                rtimer_clock_t guard_time, rtimer_clock_t* wait)
+{
+  rtimer_clock_t now, sync;
+  int32_t s;
+
+  /* We go through the list of phases to find if we have recorded a
+     phase for this particular neighbor. If so, we can compute the
+     time for the next expected phase and setup a ctimer to switch on
+     the radio just before the phase. */
+  struct phase *e = nbr_table_get_from_lladdr(nbr_phase, neighbor);
+
+  if(e == NULL) {
+    return PHASE_UNKNOWN;
+  }
+
+  now = RTIMER_NOW();
+  sync = (e == NULL) ? now : e->time;
+
+  if(PHASE_DRIFT_CORRECT && (PHASE_DRIFT(e) > cycle_time)) {
+    /* drift per cycle */
+    s = PHASE_DRIFT(e) % cycle_time / (PHASE_DRIFT(e) / cycle_time);
+    /* estimated drift to now */
+    s = s * (now - sync) / cycle_time;
+    sync += s;
+  }
+
+  /* Check if cycle_time is a power of two */
+  if(!(cycle_time & (cycle_time - 1))) {
+    /* Faster if cycle_time is a power of two */
+    *wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
+  } else {
+    /* Works generally */
+    *wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
+  }
+
+  if(*wait < guard_time) {
+    *wait += cycle_time;
+  }
+
+  *wait = *wait - guard_time;
+
+  return PHASE_OK;
+}
+/*---------------------------------------------------------------------------*/
+phase_status_t
 phase_wait(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
            rtimer_clock_t guard_time,
            mac_callback_t mac_callback, void *mac_callback_ptr,
            struct rdc_buf_list *buf_list)
 {
-  struct phase *e;
-  //  const linkaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
-  /* We go through the list of phases to find if we have recorded a
-     phase for this particular neighbor. If so, we can compute the
-     time for the next expected phase and setup a ctimer to switch on
-     the radio just before the phase. */
-  e = nbr_table_get_from_lladdr(nbr_phase, neighbor);
-  if(e != NULL) {
-    rtimer_clock_t wait, now, expected, sync;
-    clock_time_t ctimewait;
-    
-    /* We expect phases to happen every CYCLE_TIME time
-       units. The next expected phase is at time e->time +
-       CYCLE_TIME. To compute a relative offset, we subtract
-       with clock_time(). Because we are only interested in turning
-       on the radio within the CYCLE_TIME period, we compute the
-       waiting time with modulo CYCLE_TIME. */
-    
-    /*      printf("neighbor phase 0x%02x (cycle 0x%02x)\n", e->time & (cycle_time - 1),
-            cycle_time);*/
+  rtimer_clock_t wait;
+  rtimer_clock_t expected;
+  phase_status_t status;
+  clock_time_t ctimewait;
+  rtimer_clock_t now;
 
-    /*      if(e->noacks > 0) {
-            printf("additional wait %d\n", additional_wait);
-            }*/
-    
-    now = RTIMER_NOW();
+  status = phase_wait_rtime(neighbor, cycle_time, guard_time, &wait);
 
-    sync = (e == NULL) ? now : e->time;
-
-#if PHASE_DRIFT_CORRECT
-    {
-      int32_t s;
-      if(e->drift > cycle_time) {
-        s = e->drift % cycle_time / (e->drift / cycle_time);  /* drift per cycle */
-        s = s * (now - sync) / cycle_time;                    /* estimated drift to now */
-        sync += s;                                            /* add it in */
-      }
-    }
-#endif
-
-    /* Check if cycle_time is a power of two */
-    if(!(cycle_time & (cycle_time - 1))) {
-      /* Faster if cycle_time is a power of two */
-      wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
-    } else {
-      /* Works generally */
-      wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
-    }
-
-    if(wait < guard_time) {
-      wait += cycle_time;
-    }
-
-    ctimewait = (CLOCK_SECOND * (wait - guard_time)) / RTIMER_ARCH_SECOND;
-
-    if(ctimewait > PHASE_DEFER_THRESHOLD) {
-      struct phase_queueitem *p;
-      
-      p = memb_alloc(&queued_packets_memb);
-      if(p != NULL) {
-        if(buf_list == NULL) {
-          packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
-          p->q = queuebuf_new_from_packetbuf();
-          if(p->q == NULL) {
-            /* memory allocation failed */
-            memb_free(&queued_packets_memb, p);
-            return PHASE_UNKNOWN;
-          }
-        }
-        p->mac_callback = mac_callback;
-        p->mac_callback_ptr = mac_callback_ptr;
-        p->buf_list = buf_list;
-        ctimer_set(&p->timer, ctimewait, send_packet, p);
-        return PHASE_DEFERRED;
-      }
-    }
-
-    expected = now + wait - guard_time;
-    if(!RTIMER_CLOCK_LT(expected, now)) {
-      /* Wait until the receiver is expected to be awake */
-      while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
-    }
-    return PHASE_SEND_NOW;
+  if(status == PHASE_UNKNOWN) {
+    return status;
   }
-  return PHASE_UNKNOWN;
+
+  ctimewait = (CLOCK_SECOND * wait) / RTIMER_ARCH_SECOND;
+
+  if(ctimewait > PHASE_DEFER_THRESHOLD) {
+    struct phase_queueitem *p;
+
+    p = memb_alloc(&queued_packets_memb);
+    if(p != NULL) {
+      if(buf_list == NULL) {
+        packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
+        p->q = queuebuf_new_from_packetbuf();
+        if(p->q == NULL) {
+          /* memory allocation failed */
+          memb_free(&queued_packets_memb, p);
+          return PHASE_UNKNOWN;
+        }
+      }
+      p->mac_callback = mac_callback;
+      p->mac_callback_ptr = mac_callback_ptr;
+      p->buf_list = buf_list;
+      ctimer_set(&p->timer, ctimewait, send_packet, p);
+      return PHASE_DEFERRED;
+    }
+  }
+  now = RTIMER_NOW();
+  expected = now + wait;
+  if(!RTIMER_CLOCK_LT(expected, now)) {
+    /* Wait until the receiver is expected to be awake */
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
+  }
+  return PHASE_SEND_NOW;
 }
 /*---------------------------------------------------------------------------*/
 void

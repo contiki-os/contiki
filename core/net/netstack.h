@@ -97,6 +97,16 @@
 #endif /* NETSTACK_CONF_RADIO */
 #endif /* NETSTACK_RADIO */
 
+#ifdef NETSTACK_CONF_USE_RFASYNC
+#define NETSTACK_USE_RFASYNC NETSTACK_CONF_USE_RFASYNC
+#else
+#define NETSTACK_USE_RFASYNC 0
+#endif
+
+#if NETSTACK_USE_RFASYNC && defined(NETSTACK_CONF_RFASYNC)
+#define NETSTACK_RFASYNC NETSTACK_CONF_RFASYNC
+#endif
+
 #ifndef NETSTACK_FRAMER
 #ifdef NETSTACK_CONF_FRAMER
 #define NETSTACK_FRAMER NETSTACK_CONF_FRAMER
@@ -110,6 +120,7 @@
 #include "net/mac/rdc.h"
 #include "net/mac/framer.h"
 #include "dev/radio.h"
+#include "dev/radio-async.h"
 
 /**
  * The structure of a network driver in Contiki.
@@ -124,12 +135,13 @@ struct network_driver {
   void (* input)(void);
 };
 
-extern const struct network_driver NETSTACK_NETWORK;
-extern const struct llsec_driver   NETSTACK_LLSEC;
-extern const struct rdc_driver     NETSTACK_RDC;
-extern const struct mac_driver     NETSTACK_MAC;
-extern const struct radio_driver   NETSTACK_RADIO;
-extern const struct framer         NETSTACK_FRAMER;
+extern const struct network_driver     NETSTACK_NETWORK;
+extern const struct llsec_driver       NETSTACK_LLSEC;
+extern const struct rdc_driver         NETSTACK_RDC;
+extern const struct mac_driver         NETSTACK_MAC;
+extern const struct radio_driver       NETSTACK_RADIO;
+extern const struct framer             NETSTACK_FRAMER;
+extern const struct radio_async_driver NETSTACK_RFASYNC;
 
 void netstack_init(void);
 

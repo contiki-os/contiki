@@ -42,7 +42,11 @@
 void
 netstack_init(void)
 {
+#if NETSTACK_USE_RFASYNC
+  NETSTACK_RFASYNC.init();
+#else
   NETSTACK_RADIO.init();
+#endif
   NETSTACK_RDC.init();
   NETSTACK_LLSEC.init();
   NETSTACK_MAC.init();
