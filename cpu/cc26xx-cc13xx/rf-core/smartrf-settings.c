@@ -42,6 +42,12 @@
 #define SMARTRF_SETTINGS_BOARD_OVERRIDES
 #endif
 /*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_RSSI_OFFSET
+#define SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET SMARTRF_SETTINGS_CONF_OVERRIDE_RSSI_OFFSET
+#else
+#define SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET 0x00FB88A3
+#endif
+/*---------------------------------------------------------------------------*/
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
 static uint32_t overrides[] =
 {
@@ -103,10 +109,11 @@ static uint32_t overrides[] =
   /* Tx: Configure PA ramping setting */
   HW_REG_OVERRIDE(0x608C, 0x8213),
   /*
-   * override_phy_rx_rssi_offset_5db.xml
-   * Rx: Set RSSI offset to adjust reported RSSI by +5 dB
+   * Rx: Set RSSI offset to adjust reported RSSI
+   * The board can override this
    */
-  (uint32_t)0x00FB88A3,
+  (uint32_t)SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET,
+
   /*
    * TX power override
    * Tx: Set PA trim to max (in ADI0, set PACTL0=0xF8)
