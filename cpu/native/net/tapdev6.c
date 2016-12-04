@@ -166,7 +166,7 @@ tapdev_init_darwin_routes(void)
 
   addreq6.ifra_addr.sin6_family = AF_INET6;
   addreq6.ifra_addr.sin6_len = sizeof(addreq6.ifra_addr);
-  addreq6.ifra_addr.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+  addreq6.ifra_addr.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xFD00);
   addreq6.ifra_addr.sin6_addr.__u6_addr.__u6_addr16[7] = UIP_HTONS(0x0001);
 
   addreq6.ifra_prefixmask.sin6_family = AF_INET6;
@@ -227,7 +227,7 @@ tapdev_init_darwin_routes(void)
 
   msg.dst.sin6_family = AF_INET6;
   msg.dst.sin6_len = sizeof(msg.dst);
-  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xFD00);
 
   msg.gw.sdl_family = AF_LINK;
   msg.gw.sdl_len = sizeof(msg.gw);
@@ -269,7 +269,7 @@ tapdev_cleanup_darwin_routes(void)
 
   msg.dst.sin6_family = AF_INET6;
   msg.dst.sin6_len = sizeof(msg.dst);
-  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xFD00);
 
   msg.gw.sdl_family = AF_LINK;
   msg.gw.sdl_len = sizeof(msg.gw);
