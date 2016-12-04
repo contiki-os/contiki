@@ -207,13 +207,13 @@ static int we_are_receiving_burst = 0;
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 2500
 #endif
 
-/* AFTER_ACK_DETECTECT_WAIT_TIME is the time to wait after a potential
+/* AFTER_ACK_DETECTED_WAIT_TIME is the time to wait after a potential
    ACK packet has been detected until we can read it out from the
    radio. */
-#ifdef CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME
-#define AFTER_ACK_DETECTECT_WAIT_TIME      CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME
+#ifdef CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME
+#define AFTER_ACK_DETECTED_WAIT_TIME      CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME
 #else
-#define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
+#define AFTER_ACK_DETECTED_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
 #endif
 
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
@@ -761,7 +761,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
                            NETSTACK_RADIO.channel_clear() == 0)) {
         uint8_t ackbuf[ACK_LEN];
         wt = RTIMER_NOW();
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTED_WAIT_TIME)) { }
 
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN && seqno == ackbuf[ACK_LEN - 1]) {
