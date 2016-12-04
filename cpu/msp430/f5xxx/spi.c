@@ -54,7 +54,7 @@ spi_init(void)
 //  UCB0MCTL = 0;                       // Dont need modulation control.
 
   P3SEL |= BV(SCK) | BV(MOSI) | BV(MISO); // Select Peripheral functionality
-  P3DIR |= BV(SCK) | BV(MISO);  // Configure as outputs(SIMO,CLK).
+  P3DIR |= BV(SCK) | BV(MOSI);  // Configure as outputs(SIMO,CLK).
 
   //ME1   |= USPIE0;            // Module enable ME1 --> U0ME? xxx/bg
 
