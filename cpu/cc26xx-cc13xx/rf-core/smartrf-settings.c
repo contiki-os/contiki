@@ -48,6 +48,12 @@
 #define SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET 0x00FB88A3
 #endif
 /*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
+#define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
+#else
+#define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET 0x00038883
+#endif
+/*---------------------------------------------------------------------------*/
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
 static uint32_t overrides[] =
 {
@@ -96,9 +102,9 @@ static uint32_t overrides[] =
   ADI_HALFREG_OVERRIDE(0, 61, 0xF, 0xD),
   /*
    * override_phy_gfsk_rx.xml
-   * Rx: Set LNA bias current trim offset to 3
+   * Rx: Set LNA bias current trim offset. The board can override this
    */
-  (uint32_t)0x00038883,
+  (uint32_t)SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET,
   /* Rx: Freeze RSSI on sync found event */
   HW_REG_OVERRIDE(0x6084, 0x35F1),
   /*
