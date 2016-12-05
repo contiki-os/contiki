@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB  
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,21 @@
  * This file is part of the Contiki operating system.
  *
  *
- * Author  : Robert Olsson robert@radio-sensors.com
- * Created : 2015-11-22
+ * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
+ * Created : 2016-09-14
  */
 
-/**
- * \file
- *         Project specific configuration defines for example
- *
- */
+#ifndef BME280_SENSOR_H_
+#define BME280_SENSOR_H_
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+#include "lib/sensors.h"
+#include "lib/sensors.h"
+#include "bme280.h"
 
-/* #define BME280_32BIT */
+extern const struct sensors_sensor bme280_sensor;
 
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_MAC nullmac_driver
+#define BME280_SENSOR_TEMP         0
+#define BME280_SENSOR_HUMIDITY     1
+#define BME280_SENSOR_PRESSURE     2
 
-//#define NETSTACK_CONF_MAC         csma_driver
-//#define NETSTACK_CONF_RDC         contikimac_driver
-
-#endif /* PROJECT_CONF_H_ */
+#endif /* BME280_SENSOR_H_ */

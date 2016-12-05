@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB  
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,51 @@
  * This file is part of the Contiki operating system.
  *
  *
- * Author  : Robert Olsson robert@radio-sensors.com
- * Created : 2015-11-22
+ * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
+ * Created : 2016-09-14
  */
 
-/**
- * \file
- *         Project specific configuration defines for example
- *
- */
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/bme280/bme280.h"
+#include "dev/bme280/bme280-sensor.h"
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+const struct sensors_sensor bme280_sensor;
 
-/* #define BME280_32BIT */
+static int
+value(int type)
+{
 
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_MAC nullmac_driver
+  /* Read all measurements with one burst read */
+  bme280_read(BME280_MODE_WEATHER);
 
-//#define NETSTACK_CONF_MAC         csma_driver
-//#define NETSTACK_CONF_RDC         contikimac_driver
+  /* Return a la Contiki API */
+  switch(type) {
 
-#endif /* PROJECT_CONF_H_ */
+  case BME280_SENSOR_TEMP:
+    return bme280_mea.t_overscale100 / 100;
+
+  case BME280_SENSOR_HUMIDITY:
+    return bme280_mea.h_overscale1024 >> 10;
+
+  case BME280_SENSOR_PRESSURE:
+    /* Scale down w. 10 not to overslow the signed int */
+#ifdef BME280_64BIT
+    return bme280_mea.p_overscale256 / (256 * 10);
+#else
+    return bme280_mea.p / 10;
+#endif
+  }
+  return 0;
+}
+static int
+status(int type)
+{
+  return 0;
+}
+static int
+configure(int type, int c)
+{
+  return bme280_init(BME280_MODE_WEATHER);
+}
+SENSORS_SENSOR(bme280_sensor, "bme280", value, configure, status);
