@@ -42,6 +42,7 @@ It has been tested on the following platforms:
   * Zolertia Zoul (`zoul`, tested on hardware)
   * OpenMote-CC2538 (`openmote-cc2538`, tested on hardware)
   * CC2650 (`srf06-cc26xx`, tested on hardware)
+  * Cooja mote (`cooja`, tested with cooja)
 
 This implementation was present at the ETSI Plugtest
 event in Prague in July 2015, and did successfully inter-operate with all
@@ -83,7 +84,7 @@ Orchestra is implemented in:
 
 A simple TSCH+RPL example is included under `examples/ipv6/rpl-tsch`.
 To use TSCH, first make sure your platform supports it.
-Currently, `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, and `srf06-cc26xx` are the supported platforms.
+Currently, `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `srf06-cc26xx`, and `cooja` are the supported platforms.
 To add your own, we refer the reader to the next section.
 
 To add TSCH to your application, first include the TSCH module from your makefile with:
@@ -179,7 +180,7 @@ Instead, TSCH will poll the driver for incoming packets, from interrupt, exactly
 
 TSCH will check when initializing (in `tsch_init`) that the radio driver supports all required features, namely:
 * get and set Rx mode (`RADIO_PARAM_RX_MODE`) as follows:
-  * enable address filtering with `RADIO_RX_MODE_ADDRESS_FILTER`
+  * disable address filtering with `RADIO_RX_MODE_ADDRESS_FILTER`
   * disable auto-ack with `RADIO_RX_MODE_AUTOACK`
   * enable poll mode with `RADIO_RX_MODE_POLL_MODE`
 * get and set Tx mode (`RADIO_PARAM_TX_MODE`) as follows: 

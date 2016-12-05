@@ -38,8 +38,9 @@
 
 #define RTIMER_ARCH_SECOND UINT64_C(1000000)
 
-#define US_TO_RTIMERTICKS(US) (US)
-#define RTIMERTICKS_TO_US(T)  (T)
+#define US_TO_RTIMERTICKS(US)   (US)
+#define RTIMERTICKS_TO_US(T)    (T)
+#define RTIMERTICKS_TO_US_64(T) (T)
 
 rtimer_clock_t rtimer_arch_now(void);
 int rtimer_arch_check(void);
