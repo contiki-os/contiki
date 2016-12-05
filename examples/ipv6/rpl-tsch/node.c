@@ -170,15 +170,21 @@ PROCESS_THREAD(node_process, ev, data)
   static enum { role_6ln, role_6dr, role_6dr_sec } node_role;
   node_role = role_6ln;
 
+  int coordinator_candidate = 0;
+
+#ifdef CONTIKI_TARGET_Z1
   /* Set node with MAC address c1:0c:00:00:00:00:01 as coordinator,
    * convenient in cooja for regression tests using z1 nodes
    * */
-
-#ifdef CONTIKI_TARGET_Z1
   extern unsigned char node_mac[8];
   unsigned char coordinator_mac[8] = { 0xc1, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
-  if(memcmp(node_mac, coordinator_mac, 8) == 0) {
+  coordinator_candidate = (memcmp(node_mac, coordinator_mac, 8) == 0);
+#elif CONTIKI_TARGET_COOJA
+  coordinator_candidate = (node_id == 1);
+#endif
+
+  if(coordinator_candidate) {
     if(LLSEC802154_ENABLED) {
       node_role = role_6dr_sec;
     } else {
@@ -187,7 +193,6 @@ PROCESS_THREAD(node_process, ev, data)
   } else {
     node_role = role_6ln;
   }
-#endif
 
 #if CONFIG_VIA_BUTTON
   {
