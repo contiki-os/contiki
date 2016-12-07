@@ -54,17 +54,13 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-/** \brief Disables all CPU interrupts */
-unsigned long cpu_cpsid(void);
+#include "cc2538_cm3.h"
 
 /** \brief Enables all CPU interrupts */
-unsigned long cpu_cpsie(void);
-
-/** \brief Enables all CPU interrupts */
-#define INTERRUPTS_ENABLE()  cpu_cpsie()
+#define INTERRUPTS_ENABLE()  __enable_irq()
 
 /** \brief Disables all CPU interrupts. */
-#define INTERRUPTS_DISABLE() cpu_cpsid()
+#define INTERRUPTS_DISABLE() __disable_irq()
 
 #endif /* CPU_H_ */
 

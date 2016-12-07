@@ -174,7 +174,7 @@ handle_dio_timer(void *ptr)
 
   if(instance->dio_send) {
     /* send DIO if counter is less than desired redundancy */
-    if(instance->dio_redundancy != 0 && instance->dio_counter < instance->dio_redundancy) {
+    if(instance->dio_redundancy == 0 || instance->dio_counter < instance->dio_redundancy) {
 #if RPL_CONF_STATS
       instance->dio_totsend++;
 #endif /* RPL_CONF_STATS */

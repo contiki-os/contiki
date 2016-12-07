@@ -40,7 +40,7 @@ char simDontFallAsleep = 0;
 
 int simProcessRunValue;
 int simEtimerPending;
-clock_time_t simNextExpirationTime;
+clock_time_t simEtimerNextExpirationTime;
 
 void doActionsBeforeTick() {
   // Poll all interfaces to do their thing before the tick

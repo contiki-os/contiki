@@ -32,7 +32,7 @@
  * \addtogroup remote
  * @{
  *
- * \defgroup remote-power-mgmt RE-Mote power management driver
+ * \defgroup remote-power-mgmt-reva RE-Mote power management driver
  *
  * The power management module is composed by a nano-watt (gating) timer and an
  * ultra-low power MCU, driving the RE-Mote power supply when connected to an
@@ -152,29 +152,29 @@ typedef enum {
  * @{
  */
 /** \brief Initializes the Power Management driver
- * \return \c   PM_SUCCESS if initialized, else \c PM_ERROR
+ * \return PM_SUCCESS if initialized, else PM_ERROR
  */
 int8_t pm_init(void);
 /* -------------------------------------------------------------------------- */
 /** \brief Enable the shutdown mode, periodically driven by the Nano Timer
- * \return \c   PM_SUCCESS if successful, else \c PM_ERROR
+ * \return PM_SUCCESS if successful, else PM_ERROR
  */
 int8_t pm_enable_timer(void);
 /* -------------------------------------------------------------------------- */
 /** \brief Disable the Nano Timer
- * \return \c   PM_SUCCESS if successful, else \c PM_ERROR
+ * \return PM_SUCCESS if successful, else  PM_ERROR
  */
 int8_t pm_disable_timer(void);
 /* -------------------------------------------------------------------------- */
 /** \brief Get the current state of the power management module
  * \param state Pointer to a variable to save the state
- * \return \c   PM_SUCCESS if successful, else \c PM_ERROR
+ * \return PM_SUCCESS if successful, else  PM_ERROR
  */
 int8_t pm_get_state(uint8_t *state);
 /* -------------------------------------------------------------------------- */
 /** \brief Get the firmware version of the power management module
  * \param state Pointer to a variable to save the state
- * \return \c   PM_SUCCESS if successful, else \c PM_ERROR
+ * \return PM_SUCCESS if successful, else  PM_ERROR
  */
 int8_t pm_get_firmware_version(uint8_t *state);
 /* -------------------------------------------------------------------------- */

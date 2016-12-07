@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http:/www.ti.com/
+ * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,27 +26,68 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-/**
- * \file
- * Header for with definitions related to the cc2538 SysTick
- */
-/*---------------------------------------------------------------------------*/
-#ifndef SYSTICK_H_
-#define SYSTICK_H_
-/*---------------------------------------------------------------------------*/
-/* SysTick Register Definitions */
-#define SYSTICK_STCTRL            0xE000E010    /* Control and Status */
-#define SYSTICK_STRELOAD          0xE000E014    /* Reload Value */
-#define SYSTICK_STCURRENT         0xE000E018    /* Current Value */
-#define SYSTICK_STCAL             0xE000E01C    /* SysTick Calibration */
-/*---------------------------------------------------------------------------*/
-/* Bit Definitions for the STCTRL Register */
-#define SYSTICK_STCTRL_COUNT      0x00010000    /* Count Flag */
-#define SYSTICK_STCTRL_CLK_SRC    0x00000004    /* Clock Source */
-#define SYSTICK_STCTRL_INTEN      0x00000002    /* Interrupt Enable */
-#define SYSTICK_STCTRL_ENABLE     0x00000001    /* Enable */
+#include "contiki.h"
 
-#endif /* SYSTICK_H_ */
+#include "websocket.h"
 
-/** @} */
+#include <stdio.h>
+
+static struct websocket s;
+
+static void callback(struct websocket *s, websocket_result_t r,
+                     const uint8_t *data, uint16_t datalen);
+
+#define RECONNECT_INTERVAL 10 * CLOCK_SECOND
+static struct ctimer reconnect_timer;
+
+/*---------------------------------------------------------------------------*/
+PROCESS(websocket_example_process, "Websocket Example");
+AUTOSTART_PROCESSES(&websocket_example_process);
+/*---------------------------------------------------------------------------*/
+static void
+reconnect_callback(void *ptr)
+{
+  websocket_open(&s, "ws://172.16.0.1:8080/",
+                 "contiki", NULL, callback);
+}
+/*---------------------------------------------------------------------------*/
+static void
+callback(struct websocket *s, websocket_result_t r,
+         const uint8_t *data, uint16_t datalen)
+{
+  if(r == WEBSOCKET_CLOSED ||
+     r == WEBSOCKET_RESET ||
+     r == WEBSOCKET_HOSTNAME_NOT_FOUND ||
+     r == WEBSOCKET_TIMEDOUT) {
+    ctimer_set(&reconnect_timer, RECONNECT_INTERVAL, reconnect_callback, s);
+  } else if(r == WEBSOCKET_CONNECTED) {
+    websocket_send_str(s, "Connected");
+  } else if(r == WEBSOCKET_DATA) {
+    printf("websocket-example: Received data '%.*s' (len %d)\n", datalen,
+           data, datalen);
+  }
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(websocket_example_process, ev, data)
+{
+  static struct etimer et;
+  PROCESS_BEGIN();
+
+  ctimer_set(&reconnect_timer, RECONNECT_INTERVAL, reconnect_callback, &s);
+
+  websocket_init(&s);
+  while(1) {
+    etimer_set(&et, CLOCK_SECOND / 8);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    char buf[] = "012345678";
+    static int count;
+    buf[0] = (count % 9) + '0';
+    count++;
+    websocket_send_str(&s, buf);
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/

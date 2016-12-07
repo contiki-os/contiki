@@ -98,6 +98,17 @@ void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
 int uip_ds6_nbr_num(void);
 
+#if UIP_ND6_SEND_NA
+/**
+ * \brief Refresh the reachable state of a neighbor. This function
+ * may be called when a node receives an IPv6 message that confirms the
+ * reachability of a neighbor.
+ * \param ipaddr pointer to the IPv6 address whose neighbor reachability state
+ * should be refreshed.
+ */
+void uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr);
+#endif /* UIP_ND6_SEND_NA */
+
 /**
  * \brief
  *    This searches inside the neighbor table for the neighbor that is about to

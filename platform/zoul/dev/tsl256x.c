@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul-tsl2563-sensor
+ * \addtogroup zoul-tsl256x-sensor
  * @{
  *
  * \file
- *  Driver for the external TSL2563 light sensor
+ *  Driver for the external TSL256X light sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -45,7 +45,7 @@
 #include "dev/gpio.h"
 #include "dev/zoul-sensors.h"
 #include "lib/sensors.h"
-#include "tsl2563.h"
+#include "tsl256x.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -54,14 +54,14 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-#define TSL2563_INT_PORT_BASE  GPIO_PORT_TO_BASE(I2C_INT_PORT)
-#define TSL2563_INT_PIN_MASK   GPIO_PIN_MASK(I2C_INT_PIN)
+#define TSL256X_INT_PORT_BASE  GPIO_PORT_TO_BASE(I2C_INT_PORT)
+#define TSL256X_INT_PIN_MASK   GPIO_PIN_MASK(I2C_INT_PIN)
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 static uint8_t gain;
 static uint8_t timming;
 /*---------------------------------------------------------------------------*/
-void (*tsl2563_int_callback)(uint8_t value);
+void (*tsl256x_int_callback)(uint8_t value);
 /*---------------------------------------------------------------------------*/
 static uint16_t
 calculate_lux(uint8_t *buf)
@@ -80,13 +80,13 @@ calculate_lux(uint8_t *buf)
   buffer[1] = (buf[3] << 8 | (buf[2]));
 
   switch(timming) {
-  case TSL2563_TIMMING_INTEG_402MS:
+  case TSL256X_TIMMING_INTEG_402MS:
     chscale = (1 << CH_SCALE);
     break;
-  case TSL2563_TIMMING_INTEG_101MS:
+  case TSL256X_TIMMING_INTEG_101MS:
     chscale = CHSCALE_TINT1;
     break;
-  case TSL2563_TIMMING_INTEG_13_7MS:
+  case TSL256X_TIMMING_INTEG_13_7MS:
     chscale = CHSCALE_TINT0;
     break;
   }
@@ -132,135 +132,135 @@ calculate_lux(uint8_t *buf)
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_read_reg(uint8_t reg, uint8_t *buf, uint8_t regNum)
+tsl256x_read_reg(uint8_t reg, uint8_t *buf, uint8_t regNum)
 {
   i2c_master_enable();
-  if(i2c_single_send(TSL2563_ADDR, reg) == I2C_MASTER_ERR_NONE) {
+  if(i2c_single_send(TSL256X_ADDR, reg) == I2C_MASTER_ERR_NONE) {
     while(i2c_master_busy());
-    if(i2c_burst_receive(TSL2563_ADDR, buf, regNum) == I2C_MASTER_ERR_NONE) {
-      return TSL2563_SUCCESS;
+    if(i2c_burst_receive(TSL256X_ADDR, buf, regNum) == I2C_MASTER_ERR_NONE) {
+      return TSL256X_SUCCESS;
     }
   }
-  return TSL2563_ERROR;
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_write_reg(uint8_t *buf, uint8_t num)
+tsl256x_write_reg(uint8_t *buf, uint8_t num)
 {
   if((buf == NULL) || (num <= 0)) {
-    PRINTF("TSL2563: invalid write values\n");
-    return TSL2563_ERROR;
+    PRINTF("TSL256X: invalid write values\n");
+    return TSL256X_ERROR;
   }
 
   i2c_master_enable();
-  if(i2c_burst_send(TSL2563_ADDR, buf, num) == I2C_MASTER_ERR_NONE) {
-    return TSL2563_SUCCESS;
+  if(i2c_burst_send(TSL256X_ADDR, buf, num) == I2C_MASTER_ERR_NONE) {
+    return TSL256X_SUCCESS;
   }
-  return TSL2563_ERROR;
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_on(void)
+tsl256x_on(void)
 {
   uint8_t buf[2];
-  buf[0] = (TSL2563_COMMAND + TSL2563_CONTROL);
-  buf[1] = TSL2563_CONTROL_POWER_ON;
+  buf[0] = (TSL256X_COMMAND + TSL256X_CONTROL);
+  buf[1] = TSL256X_CONTROL_POWER_ON;
 
-  if(tsl2563_write_reg(buf, 2) == I2C_MASTER_ERR_NONE) {
-    if(i2c_single_receive(TSL2563_ADDR, &buf[0]) == I2C_MASTER_ERR_NONE) {
-      if((buf[0] & 0x0F) == TSL2563_CONTROL_POWER_ON) {
-        PRINTF("TSL2563: powered on\n");
-        return TSL2563_SUCCESS;
+  if(tsl256x_write_reg(buf, 2) == I2C_MASTER_ERR_NONE) {
+    if(i2c_single_receive(TSL256X_ADDR, &buf[0]) == I2C_MASTER_ERR_NONE) {
+      if((buf[0] & 0x0F) == TSL256X_CONTROL_POWER_ON) {
+        PRINTF("TSL256X: powered on\n");
+        return TSL256X_SUCCESS;
       }
     }
   }
 
-  PRINTF("TSL2563: failed to power on\n");
-  return TSL2563_ERROR;
+  PRINTF("TSL256X: failed to power on\n");
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_id_register(uint8_t *buf)
+tsl256x_id_register(uint8_t *buf)
 {
-  if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_ID_REG),
-                      buf, 1) == TSL2563_SUCCESS) {
-    PRINTF("TSL2563: partnum/revnum 0x%02X\n", *buf);
-    return TSL2563_SUCCESS;
+  if(tsl256x_read_reg((TSL256X_COMMAND + TSL256X_ID_REG),
+                      buf, 1) == TSL256X_SUCCESS) {
+    PRINTF("TSL256X: partnum/revnum 0x%02X\n", *buf);
+    return TSL256X_SUCCESS;
   }
 
-  return TSL2563_ERROR;
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_off(void)
+tsl256x_off(void)
 {
   uint8_t buf[2];
-  buf[0] = (TSL2563_COMMAND + TSL2563_CONTROL);
-  buf[1] = TSL2563_CONTROL_POWER_OFF;
+  buf[0] = (TSL256X_COMMAND + TSL256X_CONTROL);
+  buf[1] = TSL256X_CONTROL_POWER_OFF;
 
-  if(tsl2563_write_reg(buf, 2) == I2C_MASTER_ERR_NONE) {
-    PRINTF("TSL2563: powered off\n");
-    return TSL2563_SUCCESS;
+  if(tsl256x_write_reg(buf, 2) == I2C_MASTER_ERR_NONE) {
+    PRINTF("TSL256X: powered off\n");
+    return TSL256X_SUCCESS;
   }
 
-  PRINTF("TSL2563: failed to power off\n");
-  return TSL2563_ERROR;
+  PRINTF("TSL256X: failed to power off\n");
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_clear_interrupt(void)
+tsl256x_clear_interrupt(void)
 {
-  uint8_t buf = (TSL2563_COMMAND + TSL2563_CLEAR_INTERRUPT);
-  if(tsl2563_write_reg(&buf, 1) != I2C_MASTER_ERR_NONE) {
-    PRINTF("TSL2563: failed to clear the interrupt\n");
-    return TSL2563_ERROR;
+  uint8_t buf = (TSL256X_COMMAND + TSL256X_CLEAR_INTERRUPT);
+  if(tsl256x_write_reg(&buf, 1) != I2C_MASTER_ERR_NONE) {
+    PRINTF("TSL256X: failed to clear the interrupt\n");
+    return TSL256X_ERROR;
   }
-  return TSL2563_SUCCESS;
+  return TSL256X_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 static int
-tsl2563_read_sensor(uint16_t *lux)
+tsl256x_read_sensor(uint16_t *lux)
 {
   uint8_t buf[4];
 
   /* This is hardcoded to use word write/read operations */
-  if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_D0LOW),
-                      &buf[0], 2) == TSL2563_SUCCESS) {
-    if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_D1LOW),
-                        &buf[2], 2) == TSL2563_SUCCESS) {
+  if(tsl256x_read_reg((TSL256X_COMMAND + TSL256X_D0LOW),
+                      &buf[0], 2) == TSL256X_SUCCESS) {
+    if(tsl256x_read_reg((TSL256X_COMMAND + TSL256X_D1LOW),
+                        &buf[2], 2) == TSL256X_SUCCESS) {
 
-      PRINTF("TSL2563: CH0 0x%02X%02X CH1 0x%02X%02X\n", buf[1], buf[0],
+      PRINTF("TSL256X: CH0 0x%02X%02X CH1 0x%02X%02X\n", buf[1], buf[0],
              buf[3], buf[2]);
       *lux = calculate_lux(buf);
-      return TSL2563_SUCCESS;
+      return TSL256X_SUCCESS;
     }
   }
-  PRINTF("TSL2563: failed to read\n");
-  return TSL2563_ERROR;
+  PRINTF("TSL256X: failed to read\n");
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-PROCESS(tsl2563_int_process, "TSL2563 interrupt process handler");
+PROCESS(tsl256x_int_process, "TSL256X interrupt process handler");
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(tsl2563_int_process, ev, data)
+PROCESS_THREAD(tsl256x_int_process, ev, data)
 {
   PROCESS_EXITHANDLER();
   PROCESS_BEGIN();
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    tsl2563_clear_interrupt();
-    tsl2563_int_callback(0);
+    tsl256x_clear_interrupt();
+    tsl256x_int_callback(0);
   }
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 static void
-tsl2563_interrupt_handler(uint8_t port, uint8_t pin)
+tsl256x_interrupt_handler(uint8_t port, uint8_t pin)
 {
   /* There's no alert/interruption flag to check, clear the interruption by
    * writting to the CLEAR bit in the COMMAND register
    */
-  process_poll(&tsl2563_int_process);
+  process_poll(&tsl256x_int_process);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -268,195 +268,195 @@ configure(int type, int value)
 {
   uint8_t buf[3];
 
-  if((type != TSL2563_ACTIVE) && (type != TSL2563_INT_OVER) &&
-     (type != TSL2563_INT_BELOW) && (type != TSL2563_INT_DISABLE) &&
-     (type != TSL2563_TIMMING_CFG)) {
-    PRINTF("TSL2563: invalid start value\n");
-    return TSL2563_ERROR;
+  if((type != TSL256X_ACTIVE) && (type != TSL256X_INT_OVER) &&
+     (type != TSL256X_INT_BELOW) && (type != TSL256X_INT_DISABLE) &&
+     (type != TSL256X_TIMMING_CFG)) {
+    PRINTF("TSL256X: invalid start value\n");
+    return TSL256X_ERROR;
   }
 
   /* As default the power-on values of the sensor are gain 1X, 402ms integration
    * time (not nominal), with manual control disabled
    */
 
-  if(type == TSL2563_ACTIVE) {
+  if(type == TSL256X_ACTIVE) {
     if(value) {
       i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
                I2C_SCL_NORMAL_BUS_SPEED);
 
       /*  Initialize interrupts handlers */
-      tsl2563_int_callback = NULL;
+      tsl256x_int_callback = NULL;
 
       /* Power on the sensor and check for the part number */
-      if(tsl2563_on() == TSL2563_SUCCESS) {
-        if(tsl2563_id_register(&buf[0]) == TSL2563_SUCCESS) {
-          if((buf[0] & TSL2563_ID_PARTNO_MASK) == TSL2563_EXPECTED_PARTNO) {
+      if(tsl256x_on() == TSL256X_SUCCESS) {
+        if(tsl256x_id_register(&buf[0]) == TSL256X_SUCCESS) {
+          if((buf[0] & TSL256X_ID_PARTNO_MASK) == TSL256X_EXPECTED_PARTNO) {
 
             /* Read the timming/gain configuration */
-            if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_TIMMING),
-                                &buf[0], 1) == TSL2563_SUCCESS) {
-              gain = buf[0] & TSL2563_TIMMING_GAIN;
-              timming = buf[0] & TSL2563_TIMMING_INTEG_MASK;
-              PRINTF("TSL2563: enabled, timming %u gain %u\n", timming, gain);
+            if(tsl256x_read_reg((TSL256X_COMMAND + TSL256X_TIMMING),
+                                &buf[0], 1) == TSL256X_SUCCESS) {
+              gain = buf[0] & TSL256X_TIMMING_GAIN;
+              timming = buf[0] & TSL256X_TIMMING_INTEG_MASK;
+              PRINTF("TSL256X: enabled, timming %u gain %u\n", timming, gain);
 
               /* Restart the over interrupt threshold */
-              buf[0] = (TSL2563_COMMAND + TSL2563_THRHIGHLOW);
+              buf[0] = (TSL256X_COMMAND + TSL256X_THRHIGHLOW);
               buf[1] = 0xFF;
               buf[2] = 0xFF;
 
-              if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
-                PRINTF("TSL2563: failed to clear over interrupt\n");
-                return TSL2563_ERROR;
+              if(tsl256x_write_reg(buf, 3) != TSL256X_SUCCESS) {
+                PRINTF("TSL256X: failed to clear over interrupt\n");
+                return TSL256X_ERROR;
               }
 
               /* Restart the below interrupt threshold */
-              buf[0] = (TSL2563_COMMAND + TSL2563_THRLOWLOW);
+              buf[0] = (TSL256X_COMMAND + TSL256X_THRLOWLOW);
               buf[1] = 0x00;
               buf[2] = 0x00;
 
-              if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
-                PRINTF("TSL2563: failed to clear below interrupt\n");
-                return TSL2563_ERROR;
+              if(tsl256x_write_reg(buf, 3) != TSL256X_SUCCESS) {
+                PRINTF("TSL256X: failed to clear below interrupt\n");
+                return TSL256X_ERROR;
               }
 
               /* Clear any pending interrupt */
-              if(tsl2563_clear_interrupt() == TSL2563_SUCCESS) {
+              if(tsl256x_clear_interrupt() == TSL256X_SUCCESS) {
                 enabled = 1;
-                return TSL2563_SUCCESS;
+                return TSL256X_SUCCESS;
               }
             }
           }
         }
       }
-      return TSL2563_ERROR;
+      return TSL256X_ERROR;
     } else {
-      if(tsl2563_off() == TSL2563_SUCCESS) {
-        PRINTF("TSL2563: stopped\n");
+      if(tsl256x_off() == TSL256X_SUCCESS) {
+        PRINTF("TSL256X: stopped\n");
         enabled = 0;
-        return TSL2563_SUCCESS;
+        return TSL256X_SUCCESS;
       }
-      return TSL2563_ERROR;
+      return TSL256X_ERROR;
     }
   }
 
   if(!enabled) {
-    PRINTF("TSL2563: sensor not started\n");
-    return TSL2563_ERROR;
+    PRINTF("TSL256X: sensor not started\n");
+    return TSL256X_ERROR;
   }
 
-  if(type == TSL2563_INT_DISABLE) {
+  if(type == TSL256X_INT_DISABLE) {
 
     /* Ensure the GPIO doesn't generate more interrupts, this may affect others
      * I2C digital sensors using the bus and sharing this pin, so an user may
      * comment the line below
      */
-    GPIO_DISABLE_INTERRUPT(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
+    GPIO_DISABLE_INTERRUPT(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
 
     /* This also wipes out the persistance value, to be reconfigured when
      * enabling back the interruption
      */
-    buf[0] = (TSL2563_COMMAND + TSL2563_INTERRUPT);
-    buf[1] = TSL2563_INTR_DISABLED;
+    buf[0] = (TSL256X_COMMAND + TSL256X_INTERRUPT);
+    buf[1] = TSL256X_INTR_DISABLED;
 
-    if(tsl2563_write_reg(buf, 2) != TSL2563_SUCCESS) {
-      PRINTF("TSL2563: failed to disable the interrupt\n");
-      return TSL2563_ERROR;
+    if(tsl256x_write_reg(buf, 2) != TSL256X_SUCCESS) {
+      PRINTF("TSL256X: failed to disable the interrupt\n");
+      return TSL256X_ERROR;
     }
-    return TSL2563_SUCCESS;
+    return TSL256X_SUCCESS;
   }
 
   /* Configure the timming and gain */
-  if(type == TSL2563_TIMMING_CFG) {
-    if((value != TSL2563_G16X_402MS) && (value != TSL2563_G1X_402MS) &&
-       (value != TSL2563_G1X_101MS) && (value != TSL2563_G1X_13_7MS)) {
-      PRINTF("TSL2563: invalid timming configuration values\n");
-      return TSL2563_ERROR;
+  if(type == TSL256X_TIMMING_CFG) {
+    if((value != TSL256X_G16X_402MS) && (value != TSL256X_G1X_402MS) &&
+       (value != TSL256X_G1X_101MS) && (value != TSL256X_G1X_13_7MS)) {
+      PRINTF("TSL256X: invalid timming configuration values\n");
+      return TSL256X_ERROR;
     }
 
-    buf[0] = (TSL2563_COMMAND + TSL2563_TIMMING);
+    buf[0] = (TSL256X_COMMAND + TSL256X_TIMMING);
     buf[1] = value;
 
-    if(tsl2563_write_reg(buf, 2) == TSL2563_SUCCESS) {
-      if(value == TSL2563_G16X_402MS) {
+    if(tsl256x_write_reg(buf, 2) == TSL256X_SUCCESS) {
+      if(value == TSL256X_G16X_402MS) {
         gain = 1;
       }
 
       switch(value) {
-      case TSL2563_G16X_402MS:
-      case TSL2563_G1X_402MS:
-        timming = TSL2563_TIMMING_INTEG_402MS;
+      case TSL256X_G16X_402MS:
+      case TSL256X_G1X_402MS:
+        timming = TSL256X_TIMMING_INTEG_402MS;
         break;
-      case TSL2563_G1X_101MS:
-        timming = TSL2563_TIMMING_INTEG_101MS;
+      case TSL256X_G1X_101MS:
+        timming = TSL256X_TIMMING_INTEG_101MS;
         break;
-      case TSL2563_G1X_13_7MS:
-        timming = TSL2563_TIMMING_INTEG_13_7MS;
+      case TSL256X_G1X_13_7MS:
+        timming = TSL256X_TIMMING_INTEG_13_7MS;
         break;
       }
 
-      PRINTF("TSL2563: new timming %u gain %u\n", timming, gain);
-      return TSL2563_SUCCESS;
+      PRINTF("TSL256X: new timming %u gain %u\n", timming, gain);
+      return TSL256X_SUCCESS;
     }
-    PRINTF("TSL2563: failed to configure timming\n");
-    return TSL2563_ERROR;
+    PRINTF("TSL256X: failed to configure timming\n");
+    return TSL256X_ERROR;
   }
 
   /* From here we handle the interrupt configuration, it requires the interrupt
-   * callback handler to have been previously set using the TSL2563_REGISTER_INT
+   * callback handler to have been previously set using the TSL256X_REGISTER_INT
    * macro
    */
 
   buf[1] = ((uint8_t *)&value)[0];
   buf[2] = ((uint8_t *)&value)[1];
 
-  if(type == TSL2563_INT_OVER) {
-    buf[0] = (TSL2563_COMMAND + TSL2563_THRHIGHLOW);
-  } else if(type == TSL2563_INT_BELOW) {
-    buf[0] = (TSL2563_COMMAND + TSL2563_THRLOWLOW);
+  if(type == TSL256X_INT_OVER) {
+    buf[0] = (TSL256X_COMMAND + TSL256X_THRHIGHLOW);
+  } else if(type == TSL256X_INT_BELOW) {
+    buf[0] = (TSL256X_COMMAND + TSL256X_THRLOWLOW);
   }
 
-  if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
-    PRINTF("TSL2563: failed to set interrupt level\n");
-    return TSL2563_ERROR;
+  if(tsl256x_write_reg(buf, 3) != TSL256X_SUCCESS) {
+    PRINTF("TSL256X: failed to set interrupt level\n");
+    return TSL256X_ERROR;
   }
 
   /* Now configure the interruption register (level interrupt, 2 integration
    * cycles after threshold has been reached (roughly 804ms if timming is 402ms)
    */
-  buf[0] = (TSL2563_COMMAND + TSL2563_INTERRUPT);
-  buf[1] = (TSL2563_INTR_LEVEL << TSL2563_INTR_SHIFT);
-  buf[1] += TSL2563_INT_PERSIST_2_CYCLES;
+  buf[0] = (TSL256X_COMMAND + TSL256X_INTERRUPT);
+  buf[1] = (TSL256X_INTR_LEVEL << TSL256X_INTR_SHIFT);
+  buf[1] += TSL256X_INT_PERSIST_2_CYCLES;
 
-  if(tsl2563_write_reg(buf, 2) != TSL2563_SUCCESS) {
-    PRINTF("TSL2563: failed to enable interrupt\n");
-    return TSL2563_ERROR;
+  if(tsl256x_write_reg(buf, 2) != TSL256X_SUCCESS) {
+    PRINTF("TSL256X: failed to enable interrupt\n");
+    return TSL256X_ERROR;
   }
 
   /* Configure the interrupts pins */
-  GPIO_SOFTWARE_CONTROL(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
-  GPIO_SET_INPUT(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
+  GPIO_SOFTWARE_CONTROL(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
+  GPIO_SET_INPUT(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
 
   /* Pull-up resistor, detect falling edge */
-  GPIO_DETECT_EDGE(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
-  GPIO_TRIGGER_SINGLE_EDGE(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
-  GPIO_DETECT_FALLING(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
-  gpio_register_callback(tsl2563_interrupt_handler, I2C_INT_PORT, I2C_INT_PIN);
+  GPIO_DETECT_EDGE(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
+  GPIO_TRIGGER_SINGLE_EDGE(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
+  GPIO_DETECT_FALLING(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
+  gpio_register_callback(tsl256x_interrupt_handler, I2C_INT_PORT, I2C_INT_PIN);
 
   /* Spin process until an interrupt is received */
-  process_start(&tsl2563_int_process, NULL);
+  process_start(&tsl256x_int_process, NULL);
 
   /* Enable interrupts */
-  GPIO_ENABLE_INTERRUPT(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
+  GPIO_ENABLE_INTERRUPT(TSL256X_INT_PORT_BASE, TSL256X_INT_PIN_MASK);
 
   /* The RE-Mote revision A has this pin shared and with a pull-down resistor,
    * for other platforms (like the firefly), change to enable pull-up internal
    * resistor instead if no external pull-up is present.
    */
   ioc_set_over(I2C_INT_PORT, I2C_INT_PIN, IOC_OVERRIDE_PUE);
-  nvic_interrupt_enable(I2C_INT_VECTOR);
+  NVIC_EnableIRQ(I2C_INT_VECTOR);
 
-  PRINTF("TSL2563: Interrupt configured\n");
-  return TSL2563_SUCCESS;
+  PRINTF("TSL256X: Interrupt configured\n");
+  return TSL256X_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -476,19 +476,19 @@ value(int type)
   uint16_t lux;
 
   if(!enabled) {
-    PRINTF("TSL2563: sensor not started\n");
-    return TSL2563_ERROR;
+    PRINTF("TSL256X: sensor not started\n");
+    return TSL256X_ERROR;
   }
 
-  if(type == TSL2563_VAL_READ) {
-    if(tsl2563_read_sensor(&lux) != TSL2563_ERROR) {
+  if(type == TSL256X_VAL_READ) {
+    if(tsl256x_read_sensor(&lux) != TSL256X_ERROR) {
       return lux;
     }
-    PRINTF("TSL2563: fail to read\n");
+    PRINTF("TSL256X: fail to read\n");
   }
-  return TSL2563_ERROR;
+  return TSL256X_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(tsl2563, TSL2563_SENSOR, value, configure, status);
+SENSORS_SENSOR(tsl256x, TSL256X_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
 /** @} */

@@ -67,10 +67,12 @@ typedef struct cc1200_rf_cfg {
    * synch word + phy header, payload + CRC.
    */
   rtimer_clock_t tx_pkt_lifetime;
+  /* The maximum time it takes to switch from Tx to Rx */
+  rtimer_clock_t tx_rx_turnaround;
   /* Base frequency in kHz */
   uint32_t chan_center_freq0;
-  /* Channel spacing in kHz */
-  uint16_t chan_spacing;
+  /* Channel spacing in Hz */
+  uint32_t chan_spacing;
   /* The minimum channel */
   uint8_t min_channel;
   /* The maximum channel */
@@ -82,6 +84,9 @@ typedef struct cc1200_rf_cfg {
    * CC1200_CONST_CCA_THRESHOLD_MIN and CC1200_CONST_CCA_THRESHOLD_MAX.
    */
   int8_t cca_threshold;
+  /* The RSSI offset in dBm.
+   * -99 when MDMCFG1.DVGA_GAIN=00, -81 when MDMCFG1.DVGA_GAIN=01 */
+  int8_t rssi_offset;
 } cc1200_rf_cfg_t;
 /*---------------------------------------------------------------------------*/
 #endif /* CC1200_RF_CFG_H  */

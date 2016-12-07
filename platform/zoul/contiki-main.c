@@ -47,7 +47,6 @@
 #include "contiki.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
-#include "dev/scb.h"
 #include "dev/nvic.h"
 #include "dev/uart.h"
 #include "dev/watchdog.h"

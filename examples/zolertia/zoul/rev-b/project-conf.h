@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,26 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-cpu
+ * \addtogroup remote-examples
+ * @{
+ *
+ * \defgroup remote-power-mgmt-revb-test RE-Mote rev.B power management test
+ *
+ * Test the RE-Mote revision B power management implementation
  * @{
  *
  * \file
- * Implementations of interrupt control on the cc2538 Cortex-M3 micro
+ * Project specific configuration defines for the basic RE-Mote examples
  */
-/*---------------------------------------------------------------------------*/
-unsigned long __attribute__((naked))
-cpu_cpsie(void)
-{
-  unsigned long ret;
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
-  /* Read PRIMASK and enable interrupts */
-  __asm("    mrs     r0, PRIMASK\n"
-        "    cpsie   i\n"
-        "    bx      lr\n"
-        : "=r" (ret));
+#define BROADCAST_CHANNEL     129
+#define NETSTACK_CONF_RDC     nullrdc_driver
 
-  /* The inline asm returns, we never reach here.
-   * We add a return statement to keep the compiler happy */
-  return ret;
-}
-/*---------------------------------------------------------------------------*/
-unsigned long __attribute__((naked))
-cpu_cpsid(void)
-{
-  unsigned long ret;
+#endif /* PROJECT_CONF_H_ */
 
-  /* Read PRIMASK and disable interrupts */
-  __asm("    mrs     r0, PRIMASK\n"
-        "    cpsid   i\n"
-        "    bx      lr\n"
-        : "=r" (ret));
-
-  /* The inline asm returns, we never reach here.
-   * We add a return statement to keep the compiler happy */
-  return ret;
-}
-/*---------------------------------------------------------------------------*/
-
-/** @} */
+/**
+ * @}
+ * @}
+ */

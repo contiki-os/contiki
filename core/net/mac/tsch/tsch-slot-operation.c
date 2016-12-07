@@ -54,6 +54,10 @@
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-security.h"
 #include "net/mac/tsch/tsch-adaptive-timesync.h"
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+#include "lib/simEnvChange.h"
+#include "sys/cooja_mt.h"
+#endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
 
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
@@ -104,7 +108,10 @@
 #if RTIMER_SECOND < (32 * 1024)
 #error "TSCH: RTIMER_SECOND < (32 * 1024)"
 #endif
-#if RTIMER_SECOND >= 200000
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+/* Use 0 usec guard time for Cooja Mote with a 1 MHz Rtimer*/
+#define RTIMER_GUARD 0u
+#elif RTIMER_SECOND >= 200000
 #define RTIMER_GUARD (RTIMER_SECOND / 100000)
 #else
 #define RTIMER_GUARD 2u
@@ -200,7 +207,12 @@ tsch_get_lock(void)
     if(tsch_in_slot_operation) {
       busy_wait = 1;
       busy_wait_time = RTIMER_NOW();
-      while(tsch_in_slot_operation);
+      while(tsch_in_slot_operation) {
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+        simProcessRunValue = 1;
+        cooja_mt_yield();
+#endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
+      }
       busy_wait_time = RTIMER_NOW() - busy_wait_time;
     }
     if(!tsch_locked) {
