@@ -728,8 +728,8 @@ request_input(const sixtop_ie_t *ie, const linkaddr_t *peer_addr)
 
   if((trans = find_trans(peer_addr)) != NULL) {
     PRINTF("6top: another request [peer_addr=");
-    PRINTLLADDR((const uip_lladdr_t *)&peer_addr);
-    PRINTF("seqno=%u] is in process\n", trans->seqno);
+    PRINTLLADDR((const uip_lladdr_t *)peer_addr);
+    PRINTF(" seqno=%u] is in process\n", trans->seqno);
     send_6p_packet(SIXP_TYPE_RESPONSE,
                    (sixp_code_t)(sixp_return_code_t)SIXP_RC_ERR_BUSY,
                    ie->sfid, ie->seqno, NULL, 0, peer_addr);
