@@ -848,6 +848,24 @@ in an unexpected manner, since segment register load instructions are
 unprivileged.  Similar segment register updates must be performed for
 similar reasons when dispatching system calls.
 
+#### SafeStack Stack Corruption Mitigation
+
+LLVM Clang supports a stack corruption mitigation called SafeStack.
+It moves allocations that may be accessed in an unsafe manner to an
+"unsafe stack," away from the return addresses that are stored on the
+safe stack [4].
+
+This feature can be enabled by building musl libc.  It requires a
+version of LLVM Clang with support for the SafeStack feature with
+single-threaded storage for the unsafe stack pointer for Contiki.
+
+Note that it may still be possible for a malicious or erroneous memory
+write to affect the main stack, since it is accessible through the DS
+and ES segments.  Also note that unlike SafeStack with runtime support
+provided by LLVM compiler-rt, this implementation of SafeStack does
+not randomize the location of the safe stack or protect it in any
+other way.
+
 ### Software-Switched Segment-Based Protection Domains
 
 Primary implementation sources:
@@ -995,3 +1013,6 @@ References
 [3] "Intel(R) Quark(TM) SoC X1000 Secure Boot Programmer's Reference
     Manual,"
     http://www.intel.com/support/processors/quark/sb/CS-035228.htm
+
+[4] "SafeStack - Clang documentation,"
+    http://clang.llvm.org/docs/SafeStack.html

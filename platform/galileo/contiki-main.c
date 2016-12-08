@@ -76,11 +76,14 @@ app_main(void)
   halt();
 }
 /*---------------------------------------------------------------------------*/
+void libc_init(void);
 /* Kernel entrypoint */
 int
 main(void)
 {
   uintptr_t *func_ptr;
+
+  libc_init();
 
 #ifdef X86_CONF_RESTRICT_DMA
   quarkX1000_imr_conf();

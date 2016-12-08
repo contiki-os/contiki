@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,22 +28,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "stacks.h"
+	.section .text
 
-uint8_t stacks_main[STACKS_SIZE_MAIN]
-  __attribute__((section(".main_stack"), aligned(4)));
-#if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
-uint8_t stacks_int[STACKS_SIZE_INT]
-  __attribute__((section(".int_stack"), aligned(4)));
-uint8_t stacks_exc[STACKS_SIZE_EXC]
-  __attribute__((section(".exc_stack"), aligned(4)));
-#endif
+	.extern galileo_vsyscall
+	.global galileo_vsyscall_asm
 
-#ifdef __has_feature
-#if __has_feature(safe_stack)
-/** Unsafe stack (see http://clang.llvm.org/docs/SafeStack.html). */
-uint8_t stacks_unsafe[STACKS_SIZE_UNSAFE] __attribute__((aligned(4)));
+galileo_vsyscall_asm:
+	/* Save and restore the registers that are defined to be caller-saved by the
+	 * cdecl convention, just in case the caller has not done this already.
+	 * This may not actually be necessary here.
+	 */
+	push %ecx
+	push %edx
 
-uint32_t __safestack_unsafe_stack_ptr;
-#endif
-#endif
+	push %ebp
+	push %edi
+	push %esi
+	push %edx
+	push %ecx
+	push %ebx
+	push %eax
+
+	call galileo_vsyscall
+
+	add $28, %esp
+
+	pop %edx
+	pop %ecx
+
+	ret

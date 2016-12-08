@@ -79,8 +79,8 @@ SECTIONS {
 
     .bss ALIGN (32) :
     {
-        *(COMMON)
         *(.main_stack)
+        *(COMMON)
         *(.bss*)
 
         *(.gdt_bss_start)
@@ -93,4 +93,10 @@ SECTIONS {
     }
 
     _ebss_pre_dma_addr = ALIGN(32);
+
+    /DISCARD/ :
+    {
+        *(.eh_frame)
+        *(.eh_frame_hdr)
+    }
 }
