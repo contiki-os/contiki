@@ -336,30 +336,6 @@ typedef struct uip_nd6_opt_redirected_hdr {
  * @{
  */
  /**
- * \brief Process a neighbor solicitation
- *
- * The NS can be received in 3 cases (procedures):
- * - sender is performing DAD (ip src = unspecified, no SLLAO option)
- * - sender is performing NUD (ip dst = unicast)
- * - sender is performing address resolution (ip dest = solicited node mcast
- * address)
- *
- * We do:
- * - if the tgt belongs to me, reply, otherwise ignore
- * - if i was performing DAD for the same address, two cases:
- * -- I already sent a NS, hence I win
- * -- I did not send a NS yet, hence I lose
- *
- * If we need to send a NA in response (i.e. the NS was done for NUD, or
- * address resolution, or DAD and there is a conflict), we do it in this
- * function: set src, dst, tgt address in the three cases, then for all cases
- * set the rest, including  SLLAO
- *
- */
-void
-uip_nd6_ns_input(void);
-
-/**
  * \brief Send a neighbor solicitation, send a Neighbor Advertisement
  * \param src pointer to the src of the NS if known
  * \param dest pointer to ip address to send the NS, for DAD or ADDR Resol,
