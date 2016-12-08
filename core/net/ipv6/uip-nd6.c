@@ -157,7 +157,27 @@ create_llao(uint8_t *llao, uint8_t type) {
 }
 
 /*------------------------------------------------------------------*/
-
+ /**
+ * Neighbor Solicitation Processing
+ *
+ * The NS can be received in 3 cases (procedures):
+ * - sender is performing DAD (ip src = unspecified, no SLLAO option)
+ * - sender is performing NUD (ip dst = unicast)
+ * - sender is performing address resolution (ip dest = solicited node mcast
+ * address)
+ *
+ * We do:
+ * - if the tgt belongs to me, reply, otherwise ignore
+ * - if i was performing DAD for the same address, two cases:
+ * -- I already sent a NS, hence I win
+ * -- I did not send a NS yet, hence I lose
+ *
+ * If we need to send a NA in response (i.e. the NS was done for NUD, or
+ * address resolution, or DAD and there is a conflict), we do it in this
+ * function: set src, dst, tgt address in the three cases, then for all cases
+ * set the rest, including  SLLAO
+ *
+ */
 #if UIP_ND6_SEND_NA
 static void
 ns_input(void)
@@ -238,9 +258,9 @@ ns_input(void)
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
-#if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
+#if UIP_ND6_DEF_MAXDADNS > 0
 #if UIP_CONF_IPV6_CHECKS
       if(!uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
         PRINTF("NS received is bad\n");
@@ -258,9 +278,7 @@ ns_input(void)
         goto discard;
       }
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
-    if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
-      /* DAD CASE */
-      goto discard;
+      goto discard;  /* DAD CASE */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
 #if UIP_CONF_IPV6_CHECKS
