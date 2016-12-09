@@ -1309,7 +1309,6 @@ cfs_coffee_configure_log(const char *filename, unsigned log_size,
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-#if COFFEE_IO_SEMANTICS
 int
 cfs_coffee_set_io_semantics(int fd, unsigned flags)
 {
@@ -1321,7 +1320,6 @@ cfs_coffee_set_io_semantics(int fd, unsigned flags)
 
   return 0;
 }
-#endif
 /*---------------------------------------------------------------------------*/
 int
 cfs_coffee_format(void)
