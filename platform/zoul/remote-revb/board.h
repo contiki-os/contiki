@@ -433,6 +433,13 @@
  * a microSD in the slot, or when connected to disable the microSD to save power
  * @{
  */
+#ifdef PLATFORM_CONF_WITH_MICRO_SD
+#define PLATFORM_WITH_MICRO_SD PLATFORM_CONF_WITH_MICRO_SD
+#else
+#define PLATFORM_WITH_MICRO_SD 1
+#endif
+
+#if PLATFORM_WITH_MICRO_SD
 #define USD_CLK_PORT             SPI1_CLK_PORT
 #define USD_CLK_PIN              SPI1_CLK_PIN
 #define USD_MOSI_PORT            SPI1_TX_PORT
@@ -443,6 +450,7 @@
 #define USD_CSN_PIN              7
 #define USD_SEL_PORT             GPIO_A_NUM
 #define USD_SEL_PIN              6
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
