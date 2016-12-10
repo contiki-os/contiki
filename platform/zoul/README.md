@@ -60,6 +60,7 @@ In terms of hardware support, the following drivers have been implemented for th
     * Built-in core temperature and battery sensor.
   * CC1200 sub-1GHz radio interface.
   * Real Time Clock Calendar (on the RE-Mote platform).
+  * SD
 
 There is a Zoul powering the RE-Mote and Firefly platforms, check out its specific README files for more information about on-board features.
 

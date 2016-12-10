@@ -54,6 +54,7 @@ sensniff/ev-aducrf101mkxz \
 cfs-coffee/cc2538dk \
 cfs-coffee/openmote-cc2538 \
 cfs-coffee/zoul \
+fat/zoul:BOARD=remote-revb \
 ipv6/rpl-tsch/zoul \
 ipv6/rpl-tsch/zoul:MAKE_WITH_ORCHESTRA=1 \
 ipv6/rpl-tsch/zoul:MAKE_WITH_SECURITY=1
