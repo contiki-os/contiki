@@ -40,12 +40,13 @@
 /* Here we define the i2c address for dev we support */
 #define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
 #define I2C_SHT2X_ADDR    (0x40 << 1) /* SHT2X ADDR */
-
+#define I2C_BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
 
 /* Here we define a enumration for devices */
 #define I2C_AT24MAC       (1<<0)
 #define I2C_SHT2X         (1<<1)
 #define I2C_CO2SA         (1<<2)  /* Sense-Air CO2 */
+#define I2C_BME280        (1<<3)
 
 #define I2C_READ    1
 #define I2C_WRITE   0
