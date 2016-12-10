@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
 
+#include "rf-core/dot-15-4g.h"
 #include "driverlib/rf_mailbox.h"
 #include "driverlib/rf_common_cmd.h"
 #include "driverlib/rf_prop_cmd.h"
@@ -40,6 +41,12 @@
 #define SMARTRF_SETTINGS_BOARD_OVERRIDES SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES
 #else
 #define SMARTRF_SETTINGS_BOARD_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_BAND_OVERRIDES
+#define SMARTRF_SETTINGS_BAND_OVERRIDES SMARTRF_SETTINGS_CONF_BAND_OVERRIDES
+#else
+#define SMARTRF_SETTINGS_BAND_OVERRIDES
 #endif
 /*---------------------------------------------------------------------------*/
 #ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_RSSI_OFFSET
@@ -132,6 +139,9 @@ static uint32_t overrides[] =
 
   /* Board-specific overrides, if any */
   SMARTRF_SETTINGS_BOARD_OVERRIDES
+
+  /* Band-specific overrides, if any */
+  SMARTRF_SETTINGS_BAND_OVERRIDES
 
   (uint32_t)0xFFFFFFFF,
 };
