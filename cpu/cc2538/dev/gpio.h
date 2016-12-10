@@ -100,6 +100,20 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_SET_OUTPUT(PORT_BASE, PIN_MASK) \
   do { REG((PORT_BASE) + GPIO_DIR) |= (PIN_MASK); } while(0)
 
+/** \brief Return whether pins with PIN_MASK of port with PORT_BASE are set to
+ * output.
+ * \param PORT_BASE GPIO Port register offset
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ * \return The direction of the pins specified by PIN_MASK
+ *
+ * This macro will \e not return 0 or 1. Instead, it will return the directions
+ * of the pins specified by PIN_MASK ORed together. Thus, if 0xC3
+ * (0x80 | 0x40 | 0x02 | 0x01) is passed as the PIN_MASK and pins 7 and 0 are
+ * set to output, the macro will return 0x81.
+ */
+#define GPIO_IS_OUTPUT(PORT_BASE, PIN_MASK) \
+  (REG((PORT_BASE) + GPIO_DIR) & (PIN_MASK))
+
 /** \brief Set pins with PIN_MASK of port with PORT_BASE high.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
