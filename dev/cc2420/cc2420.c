@@ -34,6 +34,7 @@
  */
 
 #include <string.h>
+// #include <stdio.h>
 
 #include "contiki.h"
 
@@ -68,6 +69,7 @@
 #define FOOTER_LEN          2
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
+#define AUX_LEN (CHECKSUM_LEN + FOOTER_LEN)
 
 #ifdef CC2420_CONF_RSSI_OFFSET
 #define RSSI_OFFSET CC2420_CONF_RSSI_OFFSET
@@ -100,6 +102,11 @@ enum write_ram_order {
 #else
 #define LEDS_ON(x)
 #define LEDS_OFF(x)
+#endif
+
+#if CC2420_CONF_HEXDUMP
+// #include "uart0.h"
+static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #endif
 
 /* Conversion map between PA_LEVEL and output power in dBm
@@ -971,8 +978,41 @@ cc2420_read(void *buf, unsigned short bufsize)
   } else if(len - FOOTER_LEN > bufsize) {
     RIMESTATS_ADD(toolong);
   } else {
+
+#if CC2420_CONF_HEXDUMP
+  /* If we reach here, chances are the FIFO is holding a valid frame */
+  uart0_writeb(magic[0]);
+  uart0_writeb(magic[1]);
+  uart0_writeb(magic[2]);
+  uart0_writeb(magic[3]);
+  uart0_writeb(len );
+  // printf("* %u ", magic[0]);
+  // printf("%u ", magic[1]);
+  // printf("%u ", magic[2]);
+  // printf("%u ", magic[3]);
+  // printf("%u ", len);
+#endif
+
     getrxdata((uint8_t *) buf, len - FOOTER_LEN);
     getrxdata(footer, FOOTER_LEN);
+
+#if CC2420_CONF_HEXDUMP
+  int i;
+  for(i = 0; i < len - AUX_LEN; ++i) {
+    uart0_writeb(((unsigned char*)(buf))[i]);
+    // printf("%u ", ((unsigned char*)(buf))[i]);
+  }
+#if CC2420_CONF_CHECKSUM
+  for(i = 0; i < CHECKSUM_LEN; ++i) {
+    uart0_writeb(((unsigned char*)( &checksum ))[i]);
+    // printf("%u ", checksum[i]);
+  }
+#endif /* CC2420_CONF_CHECKSUM */
+  for(i = 0; i < FOOTER_LEN; ++i) {
+    uart0_writeb(((unsigned char*)(footer))[i]);
+    // printf("%u ", footer[i]);
+  }
+#endif
     
     if(footer[1] & FOOTER1_CRC_OK) {
       cc2420_last_rssi = footer[0] + RSSI_OFFSET;
@@ -1004,6 +1044,13 @@ cc2420_read(void *buf, unsigned short bufsize)
         }
       }
     }
+
+#if CC2420_CONF_HEXDUMP
+  uart0_writeb(cc2420_last_rssi);
+  uart0_writeb(cc2420_last_correlation);
+  // printf("%u ", cc2420_last_rssi);
+  // printf("%u\n", cc2420_last_correlation);
+#endif
     
     RELEASE_LOCK();
     return len - FOOTER_LEN;

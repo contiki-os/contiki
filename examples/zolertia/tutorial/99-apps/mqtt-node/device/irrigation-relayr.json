@@ -1,0 +1,133 @@
+{
+    "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
+    "id": "d986ab95-143b-4a1b-a441-cf130525eb51",
+    "name": "Zolertia IoT Irrigation control",
+    "productNumber": "",
+    "description": "Monitor and control the soil moisture in your crops and gardens using nano-power wireless connectivity",
+    "website": "http://zolertia.io",
+    "manufacturer": {
+        "name": "Zolertia SL",
+        "website": "http://zolertia.io",
+        "contactInfo": {
+            "email": "info@zolertia.io"
+        }
+    },
+    "resources": [],
+    "firmware": {
+        "1.0.0": {
+            "binaries": "",
+            "transport": {
+                "cloud": {
+                    "commands": [
+                        {
+                            "name": "electrovalve",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "soil_moist_thresl",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli Celsius",
+                                "maximum": 11999,
+                                "minimum": -1999
+                            }
+                        },
+                        {
+                            "name": "update_period",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds",
+                                "maximum": 3600,
+                                "minimum": 5
+                            }
+                        },
+                        {
+                            "name": "enable_sensor",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "reboot",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "leds_toggle",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        }
+                    ],
+                    "readings": [
+                        {
+                            "path": "",
+                            "meaning": "alarm_soil_moist",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "%",
+                                "maximum": 99,
+                                "minimum": 1
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "uptime",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "rssi",
+                            "valueSchema": {
+                                "type": "number",
+                                "maximum": -130
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "parent",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "soil moisture",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "%",
+                                "maximum": 100,
+                                "minimum": 0
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "ID",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "configurations": []
+                }
+            },
+            "repository": "",
+            "releaseDate": "",
+            "releaseNotes": "",
+            "documentation": ""
+        }
+    }
+}
+

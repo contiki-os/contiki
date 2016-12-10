@@ -18,6 +18,11 @@ endif
 PYTHON = python
 BSL_FLAGS += -e -w -v
 
+# Backward compatibility with Z1
+ifdef MOTES
+  PORT = $(MOTES)
+endif
+
 ### Configure the build for the board and pull in board-specific sources
 CONTIKI_TARGET_DIRS += . dev
 CONTIKI_TARGET_DIRS += . $(BOARD)
