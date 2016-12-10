@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import java.net.*;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.dialogs.MessageList;
@@ -202,7 +204,36 @@ public abstract class CoreComm {
    * @throws MoteTypeCreationException
    *           If Java class compilation error occurs
    */
-  public static void compileSourceFile(String className)
+  public static void compileSourceFile(final String className)
+    throws MoteTypeCreationException {
+    /* _compileSourceFile() creates MessageListUI, a sub-class of JList, and
+     * makes some updates on it. This method ensures that these things are done
+     * in the EventDispatch thread. */
+    try {
+      if (SwingUtilities.isEventDispatchThread()) {
+        _compileSourceFile(className);
+      } else {
+        SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+              try {
+                _compileSourceFile(className);
+              } catch (MoteTypeCreationException e) {
+                e.printStackTrace();
+              }
+            }
+          });
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (MoteTypeCreationException e) {
+      throw e;
+    }
+    return;
+  }
+
+  private static void _compileSourceFile(String className)
       throws MoteTypeCreationException {
     MessageListUI compilationOutput = new MessageListUI();
     OutputStream compilationStandardStream = compilationOutput
