@@ -327,11 +327,11 @@ public abstract class CoreComm {
 
     compileSourceFile(className);
 
-    Class newCoreCommClass = loadClassFile(className);
+    Class<?> newCoreCommClass = loadClassFile(className);
 
     try {
-      Constructor constr = newCoreCommClass
-          .getConstructor(new Class[] { File.class });
+      Constructor<?> constr = newCoreCommClass
+          .getConstructor(new Class<?>[] { File.class });
       CoreComm newCoreComm = (CoreComm) constr
           .newInstance(new Object[] { libFile });
 
