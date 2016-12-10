@@ -49,16 +49,31 @@
 #define SMARTRF_SETTINGS_BAND_OVERRIDES
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_RSSI_OFFSET
-#define SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET SMARTRF_SETTINGS_CONF_OVERRIDE_RSSI_OFFSET
+/* RSSI offset configuration for the 431-527MHz band */
+#ifdef SMARTRF_SETTINGS_CONF_RSSI_OFFSET_431_527
+#define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 SMARTRF_SETTINGS_CONF_RSSI_OFFSET_431_527
 #else
-#define SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET 0x00FB88A3
+#define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 0x000288A3
+#endif
+/*---------------------------------------------------------------------------*/
+/* RSSI offset configuration for the 779-930MHz band */
+#ifdef SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930
+#define SMARTRF_SETTINGS_RSSI_OFFSET_779_930 SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930
+#else
+#define SMARTRF_SETTINGS_RSSI_OFFSET_779_930 0x00FB88A3
 #endif
 /*---------------------------------------------------------------------------*/
 #ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
 #define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
 #else
 #define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET 0x00038883
+#endif
+/*---------------------------------------------------------------------------*/
+/* Select RSSI offset value based on the frequency band */
+#if DOT_15_4G_FREQUENCY_BAND_ID==DOT_15_4G_FREQUENCY_BAND_470
+#define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_431_527
+#else
+#define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_779_930
 #endif
 /*---------------------------------------------------------------------------*/
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
@@ -125,7 +140,7 @@ static uint32_t overrides[] =
    * Rx: Set RSSI offset to adjust reported RSSI
    * The board can override this
    */
-  (uint32_t)SMARTRF_SETTINGS_OVERRIDE_RSSI_OFFSET,
+  (uint32_t)RSSI_OFFSET,
 
   /*
    * TX power override
