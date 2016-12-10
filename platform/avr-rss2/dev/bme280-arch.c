@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2016, Zolertia
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,23 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup zoul-examples
- * @{
- *
- * \file
- * Project specific configuration defines for the basic RE-Mote examples
- */
+#include "contiki.h"
+#include "i2c.h"
 /*---------------------------------------------------------------------------*/
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
-
-#define BROADCAST_CHANNEL     129
-#define NETSTACK_CONF_RDC     nullrdc_driver
-
-/* Pin definition for the test-motion example, for the RE-Mote it uses the
- * ADC1 pin
- */
-#define MOTION_SENSOR_PORT       GPIO_A_NUM
-#define MOTION_SENSOR_PIN        5
-#define MOTION_SENSOR_VECTOR     GPIO_A_IRQn
-
-/* Use the following I2C address for the BME280 sensor (from MikroElektronika) */
-#define BME280_CONF_ADDR         0x76
-
-#endif /* PROJECT_CONF_H_ */
-
-/** @} */
+void
+bme280_arch_i2c_init(void)
+{
+  /* Does nothing */
+}
+/*---------------------------------------------------------------------------*/
+void
+bme280_arch_i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value)
+{
+  i2c_write_mem(addr, reg, value);
+}
+/*---------------------------------------------------------------------------*/
+void
+bme280_arch_i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t *buf, uint8_t bytes)
+{
+  i2c_read_mem(addr, reg, buf, bytes);
+}
