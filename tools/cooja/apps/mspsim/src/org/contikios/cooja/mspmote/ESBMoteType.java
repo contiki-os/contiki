@@ -151,7 +151,7 @@ public class ESBMoteType extends MspMoteType {
       throw new MoteTypeCreationException("No identifier");
     }
 
-    final MessageList compilationOutput = visAvailable ? new MessageListUI() : new MessageListText();
+    final MessageList compilationOutput = MessageContainer.createMessageList(visAvailable);
 
     if (getCompileCommands() != null) {
       /* Handle multiple compilation commands one by one */
