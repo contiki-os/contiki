@@ -73,7 +73,7 @@ activate_electrovalve(int arg)
 static void
 poll_sensors(void)
 {
-  watering_sensors.sensor[WATERING_SENSOR_SOIL].value = adc_sensors.value(ANALOG_GROVE_LIGHT);
+  watering_sensors.sensor[WATERING_SENSOR_SOIL].value = adc_sensors.value(ANALOG_SOIL_MOIST_SENSOR);
 
   mqtt_sensor_check(&watering_sensors, watering_sensors_alarm_event,
                     watering_sensors_data_event);
