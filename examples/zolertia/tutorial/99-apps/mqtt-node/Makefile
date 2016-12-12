@@ -5,7 +5,7 @@ all: mqtt-client
 # Platform options: relayr, thingsio, bluemix, ubidots
 MQTT_PLATFORM ?= bluemix
 
-# Sensor options: fridge, agriculture, remote, watering, coldchain, coinbox
+# Sensor options: fridge, agriculture, remote, watering, coldchain, coinbox, flowerpot
 MQTT_SENSORS  ?= remote
 
 # -----------------------------------------------------------------------------#
@@ -76,6 +76,14 @@ ifeq ($(MQTT_SENSORS), coinbox)
   CFLAGS += -DMQTT_SENSORS="coinbox"
   CFLAGS += -DDEFAULT_COMMANDS_NUM=1
 endif
+
+ifeq ($(MQTT_SENSORS), flowerpot)
+  PROJECT_SOURCEFILES += flowerpot.c
+  CONTIKI_TARGET_SOURCEFILES += sht25.c adc-sensors.c
+  CFLAGS += -DMQTT_SENSORS="flowerpot"
+  CFLAGS += -DDEFAULT_SENSORS_NUM=3
+endif
+
 
 WITH_LLSEC ?= 1
 CFLAGS += -DWITH_LLSEC_ENABLED=$(WITH_LLSEC)
