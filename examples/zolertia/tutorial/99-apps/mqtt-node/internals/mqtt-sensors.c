@@ -44,6 +44,7 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 static void
 mqtt_sensor_strings(char *dest, char *topic)
 {
@@ -124,5 +125,6 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
   /* Post a process notifying there's new sensor data available */
   process_post(PROCESS_BROADCAST, data, reg);
 }
+#endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/
 /** @} */

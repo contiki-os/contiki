@@ -47,10 +47,17 @@
 /* -------------------------------------------------------------------------- */
 #include <stdint.h>
 /* -------------------------------------------------------------------------- */
-#define LED_STRIP_OFF   0xFF
-#define LED_STRIP_ON    0x00
+#ifndef LED_STRIP_PORT
+#define LED_STRIP_PORT      GPIO_A_NUM
+#endif
+#ifndef LED_STRIP_PIN
+#define LED_STRIP_PIN       5
+#endif
+/* -------------------------------------------------------------------------- */
+#define LED_STRIP_OFF       0xFF
+#define LED_STRIP_ON        0x00
 
-#define LED_STRIP_ERROR   -1
+#define LED_STRIP_ERROR     (-1)
 /* -------------------------------------------------------------------------- */
 /**
  * \brief Init function for the bright LED strip driver

@@ -42,7 +42,9 @@
 #include "ip64-addr.h"
 #include "lib/crc16.h"
 #include "mqtt-client.h"
+#if WITH_WEBSERVER
 #include "httpd-simple.h"
+#endif
 #include "dev/sys-ctrl.h"
 
 #include "cfs/cfs.h"
@@ -135,6 +137,7 @@ process_event_t mqtt_client_event_disconnected;
 mqtt_client_config_t conf;
 static uint8_t *pCfg;
 /*---------------------------------------------------------------------------*/
+#if WITH_WEBSERVER
 static int
 auth_user_post_handler(char *key, int key_len, char *val, int val_len)
 {
@@ -177,6 +180,7 @@ auth_token_post_handler(char *key, int key_len, char *val, int val_len)
 /*---------------------------------------------------------------------------*/
 HTTPD_SIMPLE_POST_HANDLER(auth_user, auth_user_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(auth_token, auth_token_post_handler);
+#endif /* WITH_WEBSERVER */
 /*---------------------------------------------------------------------------*/
 PROCESS(mqtt_demo_process, "Zolertia MQTT Client");
 /*---------------------------------------------------------------------------*/
@@ -547,6 +551,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   printf("  Broker IP:      %s\n", MQTT_DEMO_BROKER_IP_ADDR);
   printf("  Broken port:    %u\n", DEFAULT_BROKER_PORT);
   printf("  Radio/Encrypt:  ch%02u llsec (%u)\n", aux, WITH_LLSEC_ENABLED);
+  printf("  Webserver/cfg:  %u\n", WITH_WEBSERVER);
 
   /* Set the initial state */
   state = STATE_INIT;
@@ -575,6 +580,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   /* Initialize configuration strings */
 
   /* Start the webserver */
+#if WITH_WEBSERVER
   process_start(&httpd_simple_process, NULL);
 
   /* The HTTPD_SIMPLE_POST_HANDLER macro should have already created the
@@ -582,7 +588,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
    */
   httpd_simple_register_post_handler(&auth_user_handler);
   httpd_simple_register_post_handler(&auth_token_handler);
-
+#endif
   /* Check if we can start the state machine with the stored values, or we need
    * to bootstrap until configured over httpd.  When flashing a new image, the
    * configuration values are lost.  Default is to leave both DEFAULT_AUTH_USER
@@ -604,9 +610,9 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
       print_config_info();
 
     } else {
-
-      /* Bootstrap until we get the credentials over webservice */
       printf("No client information found!\n");
+#if WITH_WEBSERVER
+      /* Bootstrap until we get the credentials over webservice */
       printf("Awaiting provisioning over the httpd webserver\n");
 
       while(1) {
@@ -618,13 +624,17 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
         PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
         printf("*** New configuration over httpd\n");
       }
+#else
+      /* No further configuration is possible if the info is not harcoded */
+      PROCESS_EXIT();
+#endif /* WITH_WEBSERVER */
     }
 #endif /* DEFAULT_AUTH_USER_ONLY_REQUIRED */
 #endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
 #if DEFAULT_AUTH_USER_ONLY_REQUIRED
     if(!(strlen(DEFAULT_AUTH_USER))) {
       printf("\nNo hardcoded User ID found\n");
-
+#if WITH_WEBSERVER
       while(1) {
         if(strlen(conf.auth_user)) {
           printf("Configuration found, continuing...\n");
@@ -634,8 +644,12 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
         PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
         printf("*** New configuration over httpd\n");
       }
+#else
+      /* No further configuration is possible if the info is not harcoded */
+      PROCESS_EXIT();
+#endif /* WITH_WEBSERVER */
     }
-#endif
+#endif /* DEFAULT_AUTH_USER_ONLY_REQUIRED */
   }
 
   /* Start the platform process */
@@ -654,12 +668,12 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
     /* The update_config() should schedule a timer right away */
     PROCESS_YIELD();
-
+#if WITH_WEBSERVER
     if(ev == httpd_simple_event_new_config) {
       PRINTF("Client: *** New configuration over httpd\n");
       etimer_set(&publish_periodic_timer, 0);
     }
-
+#endif
     /* We are waiting for the timer to kick the state_machine() */
     if((ev == PROCESS_EVENT_TIMER && data == &publish_periodic_timer) ||
        ev == PROCESS_EVENT_POLL) {

@@ -62,11 +62,13 @@ enum {
   PUB_TOPIC_STRING
 };
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 /* Topic placeholders */
 static char data_topic[CONFIG_PUB_TOPIC_LEN];
+#endif
 static char cmd_topic[CONFIG_SUB_CMD_TOPIC_LEN];
 /*---------------------------------------------------------------------------*/
 PROCESS(ubidots_process, "Ubidots MQTT process");
@@ -74,6 +76,7 @@ PROCESS(ubidots_process, "Ubidots MQTT process");
 /* Include there the processes to include */
 PROCESS_NAME(mqtt_res_process);
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
+#if DEFAULT_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
 /*---------------------------------------------------------------------------*/
@@ -214,6 +217,7 @@ publish_event(sensor_values_t *msg)
   PRINTF("Ubidots: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
+#endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
@@ -316,7 +320,7 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       // mqtt_write_config_to_flash();
       return;
     }
-
+#if DEFAULT_SENSORS_NUM
     /* Change a sensor's threshold, skip is `sensor_config` is empty */
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
@@ -367,6 +371,7 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
         return;
       }
     }
+#endif /* DEFAULT_SENSORS_NUM */
 
     /* We are now checking for any string command expected by the subscribed
      * sensor module
@@ -376,7 +381,7 @@ ubidots_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       if(strncmp((const char *)&topic[aux], 
           SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
-          strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
+          strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0) {
 
         /* Take integers as argument value */
         aux = atoi((const char*) chunk);
@@ -404,10 +409,11 @@ init_platform(void)
 
   /* Create client id */
   mqtt_res_client_id(conf.client_id, DEFAULT_IP_ADDR_STR_LEN);
-
+#if DEFAULT_SENSORS_NUM
   /* Create topics, use only the last 12 bytes of the client ID */
   snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s/%s", DEFAULT_TOPIC_LONG,
            &conf.client_id[strlen(conf.client_id) - UBIDOTS_LABEL_LEN]);
+#endif
   snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s/%s%s", DEFAULT_TOPIC_LONG,
            &conf.client_id[strlen(conf.client_id) - UBIDOTS_LABEL_LEN],
            DEFAULT_CMD_STRING);
@@ -422,7 +428,9 @@ PROCESS_THREAD(ubidots_process, ev, data)
 
   printf("\nUbidots process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
+#if DEFAULT_SENSORS_NUM
   printf("  Data topic:   %s\n", data_topic);
+#endif
   printf("  Cmd topic:    %s\n\n", cmd_topic);
 
   while(1) {
@@ -430,8 +438,9 @@ PROCESS_THREAD(ubidots_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == mqtt_client_event_connected) {
+#if DEFAULT_SENSORS_NUM
       seq_nr_value = 0;
-
+#endif
       /* Start the MQTT resource process */
       process_start(&mqtt_res_process, NULL);
 
@@ -446,7 +455,7 @@ PROCESS_THREAD(ubidots_process, ev, data)
       /* We are not connected, disable the sensors */
       process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
-
+#if DEFAULT_SENSORS_NUM
     /* Check for periodic publish events */
     if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
       seq_nr_value++;
@@ -463,6 +472,7 @@ PROCESS_THREAD(ubidots_process, ev, data)
       sensor_val_t *sensorPtr = (sensor_val_t *) data;
       publish_alarm(sensorPtr);
     }
+#endif /* DEFAULT_SENSORS_NUM */
   }
 
   PROCESS_END();

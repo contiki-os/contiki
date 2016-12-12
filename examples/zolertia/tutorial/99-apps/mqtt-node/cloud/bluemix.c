@@ -56,17 +56,20 @@
 #define SENSORS_NAME_EXPAND(x, y) x##y
 #define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 /* Topic placeholders */
 static char data_topic[CONFIG_PUB_TOPIC_LEN];
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS(bluemix_process, "IBM bluemix MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the processes to include */
 PROCESS_NAME(mqtt_res_process);
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
+#if DEFAULT_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
 /*---------------------------------------------------------------------------*/
@@ -205,6 +208,7 @@ publish_event(sensor_values_t *msg)
   PRINTF("bluemix: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
+#endif /* DEFAULT_SENSORS_NUM*/
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
@@ -222,10 +226,11 @@ init_platform(void)
 
   /* Create client id */
   mqtt_res_client_id(conf.client_id, DEFAULT_IP_ADDR_STR_LEN);
-
+#if DEFAULT_SENSORS_NUM
   /* Create topics */
   snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "iot-2/evt/%s/fmt/json",
            DEFAULT_PUB_STRING);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(bluemix_process, ev, data)
@@ -237,14 +242,18 @@ PROCESS_THREAD(bluemix_process, ev, data)
 
   printf("\nIBM bluemix process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
+#if DEFAULT_SENSORS_NUM
   printf("  Data topic:   %s\n", data_topic);
+#endif
 
   while(1) {
 
     PROCESS_YIELD();
 
     if(ev == mqtt_client_event_connected) {
+#if DEFAULT_SENSORS_NUM
       seq_nr_value = 0;
+#endif
 
       /* Start the MQTT resource process */
       process_start(&mqtt_res_process, NULL);
@@ -260,6 +269,7 @@ PROCESS_THREAD(bluemix_process, ev, data)
       process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
 
+#if DEFAULT_SENSORS_NUM
     /* Check for periodic publish events */
     if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
       seq_nr_value++;
@@ -276,6 +286,7 @@ PROCESS_THREAD(bluemix_process, ev, data)
       sensor_val_t *sensorPtr = (sensor_val_t *) data;
       publish_alarm(sensorPtr);
     }
+#endif /* DEFAULT_SENSORS_NUM */
   }
 
   PROCESS_END();

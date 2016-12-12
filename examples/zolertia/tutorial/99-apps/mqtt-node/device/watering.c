@@ -32,9 +32,9 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "sys/etimer.h"
-#include "dev/soil-humidity.h"
-#include "dev/grove-relay.h"
-#include "irrigation.h"
+#include "dev/adc-sensors.h"
+#include "dev/relay.h"
+#include "watering.h"
 #include "mqtt-res.h"
 
 #include <stdio.h>
@@ -48,16 +48,16 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-sensor_values_t irrigation_sensors;
+sensor_values_t watering_sensors;
 /*---------------------------------------------------------------------------*/
-command_values_t irrigation_commands;
+command_values_t watering_commands;
 /*---------------------------------------------------------------------------*/
-process_event_t irrigation_sensors_data_event;
-process_event_t irrigation_sensors_alarm_event;
+process_event_t watering_sensors_data_event;
+process_event_t watering_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
 static uint8_t electrovalve_status = 0;
 /*---------------------------------------------------------------------------*/
-PROCESS(irrigation_sensors_process, "Irrigation sensor process");
+PROCESS(watering_sensors_process, "Irrigation sensor process");
 /*---------------------------------------------------------------------------*/
 static int
 activate_electrovalve(int arg)
@@ -73,13 +73,13 @@ activate_electrovalve(int arg)
 static void
 poll_sensors(void)
 {
-  irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = soil_hum.value(1);
+  watering_sensors.sensor[WATERING_SENSOR_SOIL].value = adc_sensors.value(ANALOG_GROVE_LIGHT);
 
-  mqtt_sensor_check(&irrigation_sensors, irrigation_sensors_alarm_event,
-                    irrigation_sensors_data_event);
+  mqtt_sensor_check(&watering_sensors, watering_sensors_alarm_event,
+                    watering_sensors_data_event);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(irrigation_sensors_process, ev, data)
+PROCESS_THREAD(watering_sensors_process, ev, data)
 {
   static struct etimer et;
   static struct etimer valve;
@@ -88,63 +88,58 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
   PROCESS_BEGIN();
 
   /* Load sensor defaults */
-  irrigation_sensors.num = 0;
+  watering_sensors.num = 0;
 
-  mqtt_sensor_register(&irrigation_sensors, IRRIGATION_SENSOR_SOIL,
+  mqtt_sensor_register(&watering_sensors, WATERING_SENSOR_SOIL,
                        DEFAULT_SOIL_MOIST_MAX, DEFAULT_PUBLISH_EVENT_SOIL,
                        DEFAULT_PUBLISH_ALARM_SOIL, DEFAULT_SUBSCRIBE_CFG_SOILTHR,
                        DEFAULT_SOIL_MOIST_MIN, DEFAULT_SOIL_MOIST_MAX,
                        DEFAULT_SOIL_THRESH, DEFAULT_SOIL_THRESL, 0);
 
   /* Sanity check */
-  if(irrigation_sensors.num != DEFAULT_SENSORS_NUM) {
+  if(watering_sensors.num != DEFAULT_SENSORS_NUM) {
     printf("Irrigation sensors: error! number of sensors mismatch!\n");
     PROCESS_EXIT();
   }
 
   /* Load commands default */
-  irrigation_commands.num = 1;
-  memcpy(irrigation_commands.command[IRRIGATION_COMMAND_VALVE].command_name,
+  watering_commands.num = 1;
+  memcpy(watering_commands.command[WATERING_COMMAND_VALVE].command_name,
          DEFAULT_COMMAND_EVENT_VALVE, strlen(DEFAULT_COMMAND_EVENT_VALVE));
-  irrigation_commands.command[IRRIGATION_COMMAND_VALVE].cmd = activate_electrovalve;
+  watering_commands.command[WATERING_COMMAND_VALVE].cmd = activate_electrovalve;
 
   /* Sanity check */
-  if(irrigation_commands.num != DEFAULT_COMMANDS_NUM) {
+  if(watering_commands.num != DEFAULT_COMMANDS_NUM) {
     printf("Irrigation commands: error! number of commands mismatch!\n");
     PROCESS_EXIT();
   }
 
   /* Get an event ID for our events */
-  irrigation_sensors_data_event = process_alloc_event();
-  irrigation_sensors_alarm_event = process_alloc_event();
+  watering_sensors_data_event = process_alloc_event();
+  watering_sensors_alarm_event = process_alloc_event();
 
   /* Start the periodic process */
   etimer_set(&et, DEFAULT_SAMPLING_INTERVAL);
 
   /* Configure ADC channel for soil moisture measurements */
-  SENSORS_ACTIVATE(soil_hum);
+  adc_sensors.configure(ANALOG_SOIL_MOIST_SENSOR, 5);
 
   /* Configure GPIO for Relay activation */
-  grove_relay_configure();
+  SENSORS_ACTIVATE(relay);
   
   while(1) {
 
     PROCESS_YIELD();
 
     if(electrovalve_status) {
-      if((grove_relay_set(GROVE_RELAY_ON)) == GROVE_RELAY_ERROR) {
-        PRINTF("Irrigation: Failed to open the valve\n"); 
-      } else {
-        etimer_set(&valve, ELECTROVALVE_ON_INTERVAL);
-        electrovalve_status = 0;
-      }
+      relay.value(RELAY_ON);
+      etimer_set(&valve, ELECTROVALVE_ON_INTERVAL);
+      electrovalve_status = 0;
+
     } else {  
       if(ev == PROCESS_EVENT_TIMER && data == &valve) {
-        if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
-          PRINTF("Irrigation: Failed to stop the valve\n"); 
-        } else {
-          electrovalve_status = 0;
-        }
+        relay.value(RELAY_OFF);
+        electrovalve_status = 0;
       }
     }
     

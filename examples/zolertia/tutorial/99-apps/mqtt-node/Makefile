@@ -5,17 +5,16 @@ all: mqtt-client
 # Platform options: relayr, thingsio, bluemix, ubidots
 MQTT_PLATFORM ?= bluemix
 
-# Sensor options: fridge, agriculture, remote, irrigation, coldchain
+# Sensor options: fridge, agriculture, remote, watering, coldchain, coinbox
 MQTT_SENSORS  ?= remote
 
 # -----------------------------------------------------------------------------#
 # Don't touch anything below if you don't know what you are doing
 # -----------------------------------------------------------------------------#
-PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c mqtt-res.c
-
 CLOUD_RESOURCES_DIR = ./cloud
 DEVICE_RESOURCES_DIR = ./device
-PROJECTDIRS += $(CLOUD_RESOURCES_DIR) $(DEVICE_RESOURCES_DIR) 
+INTERNALS_RESOURCES_DIR = ./internals
+PROJECTDIRS += $(CLOUD_RESOURCES_DIR) $(DEVICE_RESOURCES_DIR) $(INTERNALS_RESOURCES_DIR)
 
 # Platform checks
 ifeq ($(MQTT_PLATFORM), bluemix)
@@ -56,10 +55,10 @@ ifeq ($(MQTT_SENSORS), agriculture)
   CFLAGS += -DDEFAULT_SENSORS_NUM=4
 endif
 
-ifeq ($(MQTT_SENSORS), irrigation)
-  PROJECT_SOURCEFILES += irrigation.c
-  CONTIKI_TARGET_SOURCEFILES += soil-humidity.c grove-relay.c
-  CFLAGS += -DMQTT_SENSORS="irrigation"
+ifeq ($(MQTT_SENSORS), watering)
+  PROJECT_SOURCEFILES += watering.c
+  CONTIKI_TARGET_SOURCEFILES += relay.c adc-sensors.c
+  CFLAGS += -DMQTT_SENSORS="watering"
   CFLAGS += -DDEFAULT_SENSORS_NUM=1
   CFLAGS += -DDEFAULT_COMMANDS_NUM=1
 endif
@@ -71,6 +70,13 @@ ifeq ($(MQTT_SENSORS), remote)
   CFLAGS += -DDEFAULT_SENSORS_NUM=5
 endif
 
+ifeq ($(MQTT_SENSORS), coinbox)
+  PROJECT_SOURCEFILES += coinbox.c
+  CONTIKI_TARGET_SOURCEFILES += mp3-wtv020sd.c led-strip.c
+  CFLAGS += -DMQTT_SENSORS="coinbox"
+  CFLAGS += -DDEFAULT_COMMANDS_NUM=1
+endif
+
 WITH_LLSEC ?= 1
 CFLAGS += -DWITH_LLSEC_ENABLED=$(WITH_LLSEC)
 
@@ -79,6 +85,17 @@ WITH_IP64 = 1
 CFLAGS += -DMQTT_PLATFORM=$(MQTT_PLATFORM)
 
 APPS += mqtt
+
+# MQTT internals
+PROJECT_SOURCEFILES += mqtt-sensors.c mqtt-res.c
+
+# Alternatively includes the webserver to configure credentials
+WITH_WEBSERVER ?= 1
+ifeq ($(WITH_WEBSERVER), 1)
+  PROJECT_SOURCEFILES += httpd-simple.c
+endif
+
+CFLAGS += -DWITH_WEBSERVER=$(WITH_WEBSERVER)
 
 CONTIKI = ../../../../..
 include $(CONTIKI)/Makefile.include
