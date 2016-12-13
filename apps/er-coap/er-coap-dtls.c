@@ -12,12 +12,12 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined DTLS_CONF_IDENTITY_HINT && defined DTLS_CONF_IDENTITY_HINT_LENGTH
-#define DTLS_IDENTITY_HINT DTLS_CONF_IDENTITY_HINT
-#define DTLS_IDENTITY_HINT_LENGTH DTLS_CONF_IDENTITY_HINT_LENGTH
+#if defined DTLS_CONF_IDENTITY && defined DTLS_CONF_IDENTITY_LENGTH
+#define DTLS_IDENTITY DTLS_CONF_IDENTITY
+#define DTLS_IDENTITY_LENGTH DTLS_CONF_IDENTITY_LENGTH
 #else
-#define DTLS_IDENTITY_HINT "Client_identity"
-#define DTLS_IDENTITY_HINT_LENGTH 15
+#define DTLS_IDENTITY "Client_identity"
+#define DTLS_IDENTITY_LENGTH 15
 #endif
 
 #if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
@@ -123,7 +123,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     unsigned char *key;
     size_t key_length;
   } psk[1] = {
-    { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
+    { (unsigned char *)DTLS_IDENTITY, DTLS_IDENTITY_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
   if(type == DTLS_PSK_IDENTITY) {
     if(id_len) {
