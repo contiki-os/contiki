@@ -241,7 +241,7 @@ enum {
   PACKETBUF_ATTR_TSCH_SLOTFRAME,
   PACKETBUF_ATTR_TSCH_TIMESLOT,
 #endif /* TSCH_WITH_LINK_SELECTOR */
-  
+
   /* Scope 1 attributes: used between two neighbors only. */
 #if PACKETBUF_WITH_PACKET_TYPE
   PACKETBUF_ATTR_PACKET_TYPE,
@@ -267,7 +267,7 @@ enum {
   PACKETBUF_ATTR_KEY_INDEX,
   PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-  
+
   /* Scope 2 attributes: used between end-to-end nodes. */
 #if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ATTR_HOPS,
@@ -343,9 +343,9 @@ int               packetbuf_holds_broadcast(void);
 void              packetbuf_attr_clear(void);
 
 void              packetbuf_attr_copyto(struct packetbuf_attr *attrs,
-				      struct packetbuf_addr *addrs);
+                                        struct packetbuf_addr *addrs);
 void              packetbuf_attr_copyfrom(struct packetbuf_attr *attrs,
-					struct packetbuf_addr *addrs);
+                                          struct packetbuf_addr *addrs);
 
 #define PACKETBUF_ATTRIBUTES(...) { __VA_ARGS__ PACKETBUF_ATTR_LAST }
 #define PACKETBUF_ATTR_LAST { PACKETBUF_ATTR_NONE, 0 }
