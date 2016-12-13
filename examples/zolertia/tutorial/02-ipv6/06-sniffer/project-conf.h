@@ -41,7 +41,7 @@
 #define PROJECT_CONF_H_
 
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID  0xABCD
+#define IEEE802154_CONF_PANID      0xABCD
 
 #if CONTIKI_TARGET_ZOUL
 
@@ -60,7 +60,7 @@
 
 /* The following are Z1 specific */
 #undef RF_CHANNEL
-#define RF_CHANNEL	               26
+#define RF_CHANNEL	           26
 
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL        26
@@ -79,6 +79,7 @@
 
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC          nullrdc_driver
-#endif
+
+#endif /* CONTIKI_TARGET_ZOUL */
 
 #endif /* PROJECT_CONF_H_ */

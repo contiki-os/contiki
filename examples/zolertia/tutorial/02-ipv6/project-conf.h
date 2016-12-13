@@ -28,8 +28,8 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef PROJECT_ROUTER_CONF_H_
-#define PROJECT_ROUTER_CONF_H_
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 /* Comment this out to use Radio Duty Cycle (RDC) and save energy */
 #undef NETSTACK_CONF_RDC
@@ -55,7 +55,7 @@
 
 /* The following are Z1 specific */
 #undef RF_CHANNEL
-#define RF_CHANNEL	               26
+#define RF_CHANNEL	           26
 
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL        26
@@ -66,4 +66,4 @@
 
 
 /*---------------------------------------------------------------------------*/
-#endif /* PROJECT_ROUTER_CONF_H_ */
+#endif /* PROJECT_CONF_H_ */
