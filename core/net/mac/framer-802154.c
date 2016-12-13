@@ -141,43 +141,41 @@ create_frame(int type, int do_create)
   }
 
   /* Complete the addressing fields. */
-  /**
-     \todo For phase 1 the addresses are all long. We'll need a mechanism
-     in the rime attributes to tell the mac to use long or short for phase 2.
-   */
-  if(LINKADDR_SIZE == 2) {
-    /* Use short address mode if linkaddr size is short. */
-    params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
+  if(packetbuf_attr(PACKETBUF_ATTR_MAC_NO_SRC_ADDR) == 1) {
+    params.fcf.src_addr_mode = FRAME802154_NOADDR;
   } else {
-    params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+    if(LINKADDR_SIZE == 2) {
+      /* Use short address mode if linkaddr size is short. */
+      params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
+    } else {
+      params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+    }
+    linkaddr_copy((linkaddr_t *)&params.src_addr,
+                  packetbuf_addr(PACKETBUF_ADDR_SENDER));
   }
+
   params.dest_pid = frame802154_get_pan_id();
 
-  if(packetbuf_holds_broadcast()) {
+  if(packetbuf_attr(PACKETBUF_ATTR_MAC_NO_DEST_ADDR) == 1) {
+    params.fcf.dest_addr_mode = FRAME802154_NOADDR;
+  } else if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     params.dest_addr[0] = 0xFF;
     params.dest_addr[1] = 0xFF;
   } else {
-    linkaddr_copy((linkaddr_t *)&params.dest_addr,
-                  packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     /* Use short address mode if linkaddr size is small */
     if(LINKADDR_SIZE == 2) {
       params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     } else {
       params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
     }
+    linkaddr_copy((linkaddr_t *)&params.dest_addr,
+                  packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   }
 
   /* Set the source PAN ID to the global variable. */
   params.src_pid = frame802154_get_pan_id();
-
-  /*
-   * Set up the source address using only the long address mode for
-   * phase 1.
-   */
-  linkaddr_copy((linkaddr_t *)&params.src_addr,
-                packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
