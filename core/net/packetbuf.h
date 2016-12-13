@@ -124,6 +124,13 @@ uint16_t packetbuf_datalen(void);
 uint16_t packetbuf_totlen(void);
 
 /**
+ * \brief      Get the total length of the remaining space in the packetbuf
+ * \return     Length of the remaining space in the packetbuf
+ *
+ */
+uint16_t packetbuf_remaininglen(void);
+
+/**
  * \brief      Set the length of the data in the packetbuf
  * \param len  The length of the data
  */

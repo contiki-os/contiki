@@ -184,6 +184,12 @@ packetbuf_totlen(void)
   return packetbuf_hdrlen() + packetbuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
+uint16_t
+packetbuf_remaininglen(void)
+{
+  return PACKETBUF_SIZE - packetbuf_totlen();
+}
+/*---------------------------------------------------------------------------*/
 void
 packetbuf_attr_clear(void)
 {
