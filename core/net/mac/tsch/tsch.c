@@ -749,7 +749,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
 #endif /* LLSEC802154_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
             &hdr_len, &tsch_sync_ie_offset);
-        if(eb_len != 0) {
+        if(eb_len > 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */

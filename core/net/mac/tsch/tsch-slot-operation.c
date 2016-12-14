@@ -861,22 +861,24 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
                   &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
 
+              if(ack_len > 0) {
 #if LLSEC802154_ENABLED
-              if(tsch_is_pan_secured) {
-                /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
-                ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
-              }
+                if(tsch_is_pan_secured) {
+                  /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
+                  ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
+                }
 #endif /* LLSEC802154_ENABLED */
 
-              /* Copy to radio buffer */
-              NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
+                /* Copy to radio buffer */
+                NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
-              /* Wait for time to ACK and transmit ACK */
-              TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
-                  packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
-              TSCH_DEBUG_RX_EVENT();
-              NETSTACK_RADIO.transmit(ack_len);
-              tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
+                /* Wait for time to ACK and transmit ACK */
+                TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
+                                        packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+                TSCH_DEBUG_RX_EVENT();
+                NETSTACK_RADIO.transmit(ack_len);
+                tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
+              }
             }
 
             /* If the sender is a time source, proceed to clock drift compensation */
