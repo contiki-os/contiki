@@ -160,7 +160,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 
   if(!frame.fcf.security_enabled) {
     /* Security is not enabled for this frame, we're done */
-    return 1;
+    return 0;
   }
 
   /* Read security key index */
