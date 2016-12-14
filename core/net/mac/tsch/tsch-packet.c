@@ -338,7 +338,7 @@ int
 tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 {
   struct ieee802154_ies ies;
-  ies.ie_asn = current_asn;
+  ies.ie_asn = tsch_current_asn;
   ies.ie_join_priority = tsch_join_priority;
   frame80215e_create_ie_tsch_synchronization(buf+tsch_sync_ie_offset, buf_size-tsch_sync_ie_offset, &ies);
   return 1;
