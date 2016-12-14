@@ -87,7 +87,7 @@ int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *d
 /* Stores data about an incoming packet */
 struct input_packet {
   uint8_t payload[TSCH_PACKET_MAX_LEN]; /* Packet payload */
-  struct asn_t rx_asn; /* ASN when the packet was received */
+  struct tsch_asn_t rx_asn; /* ASN when the packet was received */
   int len; /* Packet len */
   int16_t rssi; /* RSSI for this packet */
   uint8_t channel; /* Channel we received the packet on */
@@ -107,7 +107,7 @@ extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 /********** Functions *********/
 
 /* Returns a 802.15.4 channel from an ASN and channel offset */
-uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
+uint8_t tsch_calculate_channel(struct tsch_asn_t *asn, uint8_t channel_offset);
 /* Is TSCH locked? */
 int tsch_is_locked(void);
 /* Lock TSCH (no link operation) */
@@ -117,7 +117,7 @@ void tsch_release_lock(void);
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
 void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
-    struct asn_t *next_slot_asn);
+    struct tsch_asn_t *next_slot_asn);
 /* Start actual slot operation */
 void tsch_slot_operation_start(void);
 
