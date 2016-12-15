@@ -1,5 +1,7 @@
 package org.contikios.cooja.dialogs;
 
+import java.io.OutputStream;
+
 public interface MessageList {
 
     public static final int NORMAL = 0;
@@ -13,5 +15,7 @@ public interface MessageList {
     public void clearMessages();
 
     public void addMessage(String string);
+
+    public OutputStream getInputStream(int type);
 
 }
