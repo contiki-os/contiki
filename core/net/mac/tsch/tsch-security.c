@@ -125,7 +125,7 @@ tsch_security_check_level(const frame802154_t *frame)
           frame->aux_hdr.key_index == required_key_index);
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_mic_len(const frame802154_t *frame)
 {
   if(frame != NULL && frame->fcf.security_enabled) {
@@ -135,7 +135,7 @@ tsch_security_mic_len(const frame802154_t *frame)
   }
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                            int hdrlen, int datalen, struct asn_t *asn)
 {
@@ -198,7 +198,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   return mic_len;
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
                           const frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn)
 {
