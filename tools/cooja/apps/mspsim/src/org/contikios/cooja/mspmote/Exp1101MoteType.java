@@ -36,7 +36,7 @@ public class Exp1101MoteType extends Exp5438MoteType {
   throws MoteTypeCreationException {
 
     /* If visualized, show compile dialog and let user configure */
-    if (visAvailable) {
+    if (visAvailable && !simulation.isQuickSetup()) {
 
       /* Create unique identifier */
       if (getIdentifier() == null) {

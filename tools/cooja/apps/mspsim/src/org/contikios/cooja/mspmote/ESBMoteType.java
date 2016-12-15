@@ -114,7 +114,7 @@ public class ESBMoteType extends MspMoteType {
     }
 
     /* If visualized, show compile dialog and let user configure */
-    if (visAvailable) {
+    if (visAvailable && !simulation.isQuickSetup()) {
 
       /* Create unique identifier */
       if (getIdentifier() == null) {
