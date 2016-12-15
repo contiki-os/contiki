@@ -66,7 +66,7 @@ activate_electrovalve(int arg)
     PRINTF("Irrigation: electrovalve open\n");
     electrovalve_status = 1;
   }
-  
+  process_poll(&watering_sensors_process);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
