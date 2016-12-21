@@ -11,5 +11,5 @@ endif
 
 MODULES += core/net \
            core/net/mac core/net/mac/contikimac \
-           core/net/llsec \
+           core/net/llsec core/net/llsec/noncoresec \
            dev/cc2420
