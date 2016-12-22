@@ -112,6 +112,16 @@
 /* Configure NullRDC for when it is selected */
 #define NULLRDC_CONF_802154_AUTOACK_HW  1
 
+/* Configure ContikiMAC for when it's selected */
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+#define WITH_FAST_SLEEP                         1
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+#endif
+#define RDC_CONF_HARDWARE_ACK        1
+
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
