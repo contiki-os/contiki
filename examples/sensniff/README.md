@@ -11,6 +11,12 @@ Running
 * Run sensniff on your host
 * Fire up wireshark and enjoy.
 
+You can run sensniff manually, or you can simply run `make sniff` from within
+this directory. If you choose the latter option, you may have to specify the
+port where you device is connected by using the PORT variable. For example, if
+your device is connected to `/dev/ttyUSB1` then you should run
+`make PORT=/dev/ttyUSB1 sniff`.
+
 Make sure your device's UART baud rate matches the `-b` argument passed to
 sensniff. I strongly recommend using at least 460800. This comment does not
 apply if your device is using native USB.
@@ -44,7 +50,7 @@ The following radios have been tested:
 * CC2530/CC2531
 * CC1200
 
-One you have the radio sorted out, you also need to configure character I/O.
+Once you have the radio sorted out, you also need to configure character I/O.
 The firmware captures wireless frames and streams them over a serial line to
 the host where your device is connected. This can be achieved over UART or over
 CDC-ACM. The example makes zero assumptions about your hardware's capability,
@@ -78,6 +84,13 @@ you have provided those defines, then simple go back to your `target-conf.h`
 and:
 
         #define SENSNIFF_IO_DRIVER_H "header-with-my-own-defines.h"
+
+* The build system will also try to include `platform/Makefile.platform`. You
+can create this Makefile if you want to extend the build system e.g. by adding
+source files to the build, or by specifying Make variables. A common reason why
+you may wish to do so would be to specify your device's baudrate. In doing so,
+`make sniff` will pass the correct value as the argument to `-b`. You do not
+have to create this file if you don't need to do so.
 
 That should be it!
 
