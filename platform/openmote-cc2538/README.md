@@ -1,6 +1,6 @@
 OpenMote-CC2538 platform
 ========================
-The OpenMote-CC2538 is based on TI's CC2538 SoC (System on Chip), featuring an ARM Cortex-M3 running at 16/32 MHz and with 32 kbytes of RAM and 512 kbytes of FLASH. It has the following key features:
+The OpenMote-CC2538 is based on TI's CC2538 SoC (System on Chip), featuring an ARM Cortex-M3 running at 16/32 MHz and with 32 kbytes of RAM and 256/512 kbytes of FLASH. It has the following key features:
 
   * Standard Cortex M3 peripherals (NVIC, SCB, SysTick)
   * Sleep Timer (underpins rtimers)
@@ -24,7 +24,7 @@ Requirements
 ============
 To start using Contiki with the OpenMote-CC2538, the following is required:
 
- * An OpenMote-CC2538 board.
+ * An OpenMote-CC2538 board with a OpenUSB, OpenBase or OpenBattery carrier boards.
  * A toolchain to compile Contiki for the CC2538.
  * Drivers so that your OS can communicate with your hardware.
  * Software to upload images to the CC2538.
@@ -47,7 +47,7 @@ The OpenMote-CC2538 can be programmed via the jtag interface or via the serial b
 
 The OpenMote-CC2538 has a mini JTAG 10-pin male header, compatible with the `SmartRF06` development board, which can be used to flash and debug the platforms. Alternatively one could use the `JLink` programmer with a 20-to-10 pin converter like the following: <https://www.olimex.com/Products/ARM/JTAG/ARM-JTAG-20-10/>.
 
-The serial boot loader on the chip is exposed to the user via the USB interface. To activate the bootloader short the ON/SLEEP pin to GND and then press the reset button.
+The serial boot loader on the chip is exposed to the user via the USB interface of both the OpenUSB and the OpenBase carrier boards. The OpenUSB carrier board is capable to automatically detect the boot loader sequence and flash the CC2538 without user intervention. The OpenBase carrier board does not have such feature, so to activate the bootloader the user needs to short the ON/SLEEP pin to GND and then press the reset button. 
 
 Instructions to flash for different OS are given below.
 
@@ -87,6 +87,8 @@ Then you can just run `make` to compile an application, otherwise you will need 
 If you want to upload the compiled firmware to a node via the serial boot loader you need first to either manually enable the boot loader.
 
 Then use `make openmote-demo.upload`. 
+
+If you are compiling for the OpenMote-CC2538 Rev.A1 board (CC2538SF53, 256 KB Flash) you have to pass `BOARD_REVISION=REV_A1` in all your `make` commands to ensure that the linking stage configures the linker script with the appropriate parameters. If you are compiling for older OpenMote-CC2538 revisions (CC2538SF53, 512 KB Flash) you can skip this parameter since the default values are already correct.
 
 The `PORT` argument could be used to specify in which port the device is connected, in case we have multiple devices connected at the same time.
 
