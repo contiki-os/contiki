@@ -262,7 +262,7 @@ More Reading
 Maintainers
 ===========
 The Zoul and derived platforms (as well as the Z1 mote) are maintained by Zolertia.
-Main contributor: Antonio Lignan <alignan@zolertia.com>
+Main contributor: Antonio Lignan <alinan@zolertia.com> <antonio.lignan@gmail.com>
 
 [zolertia-site]: http://www.zolertia.io/products "Zolertia"
 [zolertia-wiki]: https://github.com/Zolertia/Resources/wiki "Zolertia Wiki"
