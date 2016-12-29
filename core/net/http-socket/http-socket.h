@@ -33,6 +33,18 @@
 
 #include "tcp-socket.h"
 
+#ifdef MAX_HTTP_SOCKET_CONF_PATHLEN
+#define MAX_PATHLEN MAX_HTTP_SOCKET_CONF_PATHLEN
+#else
+#define MAX_PATHLEN 80
+#endif
+
+#ifdef MAX_HTTP_SOCKET_CONF_HOSTLEN
+#define MAX_HOSTLEN MAX_HTTP_SOCKET_CONF_HOSTLEN
+#else
+#define MAX_HOSTLEN 40
+#endif
+
 struct http_socket;
 
 typedef enum {

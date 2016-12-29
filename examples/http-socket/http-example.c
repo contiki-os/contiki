@@ -1,15 +1,45 @@
 #include "contiki-net.h"
 #include "http-socket.h"
 #include "ip64-addr.h"
+#include "rpl.h"
 
 #include <stdio.h>
 
 static struct http_socket s;
 static int bytes_received = 0;
+static int restarts;
+static struct ctimer reconnect_timer;
+
+static void callback(struct http_socket *s, void *ptr,
+                     http_socket_event_t e,
+                     const uint8_t *data, uint16_t datalen);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(http_example_process, "HTTP Example");
 AUTOSTART_PROCESSES(&http_example_process);
+/*---------------------------------------------------------------------------*/
+static void
+reconnect(void *dummy)
+{
+  rpl_set_mode(RPL_MODE_MESH);
+  http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
+                  callback, NULL);
+}
+/*---------------------------------------------------------------------------*/
+static void
+restart(void)
+{
+  int scale;
+  restarts++;
+  printf("restart %d\n", restarts);
+
+  scale = restarts;
+  if(scale > 5) {
+    scale = 5;
+  }
+  ctimer_set(&reconnect_timer, random_rand() % ((CLOCK_SECOND * 10) << scale),
+              reconnect, NULL);
+}
 /*---------------------------------------------------------------------------*/
 static void
 callback(struct http_socket *s, void *ptr,
@@ -20,12 +50,16 @@ callback(struct http_socket *s, void *ptr,
     printf("HTTP socket error\n");
   } else if(e == HTTP_SOCKET_TIMEDOUT) {
     printf("HTTP socket error: timed out\n");
+    restart();
   } else if(e == HTTP_SOCKET_ABORTED) {
     printf("HTTP socket error: aborted\n");
+    restart();
   } else if(e == HTTP_SOCKET_HOSTNAME_NOT_FOUND) {
     printf("HTTP socket error: hostname not found\n");
+    restart();
   } else if(e == HTTP_SOCKET_CLOSED) {
     printf("HTTP socket closed, %d bytes received\n", bytes_received);
+    restart();
   } else if(e == HTTP_SOCKET_DATA) {
     bytes_received += datalen;
     printf("HTTP socket received %d bytes of data\n", datalen);
@@ -44,13 +78,13 @@ PROCESS_THREAD(http_example_process, ev, data)
   ip64_addr_4to6(&ip4addr, &ip6addr);
   uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
-  etimer_set(&et, CLOCK_SECOND * 60);
+  etimer_set(&et, CLOCK_SECOND * 20);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   http_socket_init(&s);
   http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
                   callback, NULL);
-
+  restarts = 0;
   etimer_set(&et, CLOCK_SECOND);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
