@@ -77,7 +77,7 @@ public class TyndallMoteType extends MspMoteType {
   throws MoteTypeCreationException {
 
     /* If visualized, show compile dialog and let user configure */
-    if (visAvailable) {
+    if (visAvailable && !simulation.isQuickSetup()) {
 
       /* Create unique identifier */
       if (getIdentifier() == null) {
