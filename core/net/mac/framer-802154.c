@@ -173,7 +173,8 @@ create_frame(int type, int do_create)
    * Set up the source address using only the long address mode for
    * phase 1.
    */
-  linkaddr_copy((linkaddr_t *)&params.src_addr, &linkaddr_node_addr);
+  linkaddr_copy((linkaddr_t *)&params.src_addr,
+                packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();

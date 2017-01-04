@@ -873,6 +873,10 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       if(next != NULL) {
         packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
       }
+#if !NETSTACK_CONF_BRIDGE_MODE
+      /* If NETSTACK_CONF_BRIDGE_MODE is set, assume PACKETBUF_ADDR_SENDER is already set. */
+      packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+#endif
       packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
       if(NETSTACK_FRAMER.create() < 0) {
         PRINTF("contikimac: framer failed\n");

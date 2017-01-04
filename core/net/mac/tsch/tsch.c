@@ -910,6 +910,15 @@ send_packet(mac_callback_t sent, void *ptr)
 
   packet_count_before = tsch_queue_packet_count(addr);
 
+#if !NETSTACK_CONF_BRIDGE_MODE
+  /*
+   * In the Contiki stack, the source address of a frame is set at the RDC
+   * layer. Since TSCH doesn't use any RDC protocol and bypasses the layer to
+   * transmit a frame, it should set the source address by itself.
+   */
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+#endif
+
   if((hdr_len = NETSTACK_FRAMER.create()) < 0) {
     PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
