@@ -525,6 +525,7 @@ public class ContikiMoteType implements MoteType {
     private final String[] mapFileData;
     protected int startAddr;
     protected int size;
+    protected Map<String, Symbol> variables;
 
     public SectionParser(String[] mapFileData) {
       this.mapFileData = mapFileData;
@@ -540,6 +541,10 @@ public class ContikiMoteType implements MoteType {
 
     public int getSize() {
       return size;
+    }
+
+    public Map<String, Symbol> getVariables(){
+      return variables;
     }
 
     protected abstract void parseStartAddr();
@@ -568,7 +573,7 @@ public class ContikiMoteType implements MoteType {
         return null;
       }
 
-      Map<String, Symbol> variables = parseSymbols(offset);
+      variables = parseSymbols(offset);
 
       logger.info(String.format("Parsed section at 0x%x ( %d == 0x%x bytes)",
                                 getStartAddr() + offset,
