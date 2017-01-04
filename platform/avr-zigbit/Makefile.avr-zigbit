@@ -7,7 +7,7 @@ CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c mmem.c \
 				contiki-avr-zigbit-main.c \
 				sicslowmac.c linkaddr.c queuebuf.c nullmac.c packetbuf.c \
-				frame802154.c framer-802154.c framer.c nullsec.c nbr-table.c
+				frame802154.c framer-802154.c nullsec.c nbr-table.c
 
 CONTIKIAVR = $(CONTIKI)/cpu/avr
 CONTIKIBOARD = .
@@ -18,3 +18,4 @@ MCU = atmega1281
 
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio
+MODULES += core/net
