@@ -32,6 +32,8 @@
 #ifndef ENC28J60_H
 #define ENC28J60_H
 
+#include <stdint.h>
+
 void enc28j60_init(const uint8_t *mac_addr);
 
 int enc28j60_send(const uint8_t *data, uint16_t datalen);
@@ -46,6 +48,5 @@ uint8_t enc28j60_arch_spi_write(uint8_t data);
 uint8_t enc28j60_arch_spi_read(void);
 void enc28j60_arch_spi_select(void);
 void enc28j60_arch_spi_deselect(void);
-
 
 #endif /* ENC28J60_H */
