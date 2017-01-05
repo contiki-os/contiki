@@ -72,17 +72,6 @@
  */
 #define SIXTOP_6P_INITIAL_SEQUENCE_NUMBER 0
 
-/**
- * \brief The maximum number of neighbor objects which 6P can have at the same
- * time.
- */
-#ifdef SIXTOP_CONF_6P_MAX_NEIGHBORS
-#define SIXTOP_6P_MAX_NEIGHBORS SIXTOP_CONF_6P_MAX_NEIGHBORS
-#else
-#include "net/nbr-table.h"
-#define SIXTOP_6P_MAX_NEIGHBORS NBR_TABLE_MAX_NEIGHBORS
-#endif
-
 #include "sixp.h"
 
 /**

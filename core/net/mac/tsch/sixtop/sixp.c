@@ -43,6 +43,7 @@
 
 #include "lib/assert.h"
 #include "net/packetbuf.h"
+#include "net/nbr-table.h"
 #include "net/mac/mac.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-queue.h"
@@ -170,8 +171,7 @@ static void confirmation_input(const sixtop_ie_t *ie,
 MEMB(trans_memb, sixp_trans_t, SIXTOP_6P_MAX_TRANSACTIONS);
 LIST(trans_list);
 
-MEMB(nbr_memb, sixp_nbr_t, SIXTOP_6P_MAX_NEIGHBORS);
-LIST(nbr_list);
+NBR_TABLE(sixp_nbr_t, sixp_nbrs);
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -206,17 +206,9 @@ print_msg_event_log(sixp_type_t type, sixp_code_t code,
 static sixp_nbr_t *
 find_nbr(const linkaddr_t *addr)
 {
-  sixp_nbr_t *nbr;
-
   assert(addr != NULL);
 
-  for(nbr = list_head(nbr_list); nbr != NULL; nbr = nbr->next) {
-    if(linkaddr_cmp(&nbr->addr, addr)) {
-      break;
-    }
-  }
-
-  return nbr;
+  return nbr_table_get_from_lladdr(sixp_nbrs, addr);
 }
 /*---------------------------------------------------------------------------*/
 static sixp_nbr_t *
@@ -231,7 +223,10 @@ alloc_nbr(const linkaddr_t *addr)
     return NULL;
   }
 
-  if((nbr = memb_alloc(&nbr_memb)) == NULL) {
+  if((nbr = (sixp_nbr_t *)nbr_table_add_lladdr(sixp_nbrs,
+                                               addr,
+                                               NBR_TABLE_REASON_SIXTOP,
+                                               NULL)) == NULL) {
     PRINTF("6top: cannot add nbr; no memory\n");
     return NULL;
   }
@@ -241,33 +236,8 @@ alloc_nbr(const linkaddr_t *addr)
   nbr->gtx = 0;
   nbr->grx = 0;
 
-  list_add(nbr_list, nbr);
-
   return nbr;
 }
-/*---------------------------------------------------------------------------*/
-#if 0
-static void
-free_nbr(sixp_nbr_t *nbr)
-{
-  assert(nbr != NULL);
-
-  list_remove(nbr_list, nbr);
-  memb_free(&nbr_memb, nbr);
-}
-/*---------------------------------------------------------------------------*/
-static void
-clear_all_nbr(void)
-{
-  sixp_nbr_t *nbr;
-  sixp_nbr_t *next_nbr;
-
-  for(nbr = list_head(nbr_list); nbr != NULL; nbr = next_nbr) {
-    next_nbr = nbr;
-    free_nbr(nbr);
-  }
-}
-#endif
 /*---------------------------------------------------------------------------*/
 static void
 handle_trans_timeout(void *ptr)
@@ -960,8 +930,7 @@ sixp_init(void)
   list_init(trans_list);
   memb_init(&trans_memb);
 
-  list_init(nbr_list);
-  memb_init(&nbr_memb);
+  nbr_table_register(sixp_nbrs, NULL);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
