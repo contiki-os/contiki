@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2016, Yasuyuki Tanaka.
  * Copyright (c) 2016, Centre for Development of Advanced Computing (C-DAC).
  * All rights reserved.
  *
