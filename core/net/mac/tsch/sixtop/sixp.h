@@ -119,96 +119,7 @@ typedef enum {
 } sixp_send_status_t;
 
 /**
- * \brief 6P Add Request Format
- */
-typedef struct {
-  uint16_t metadata;     /**< Metadata */
-  uint8_t cell_options;  /**< CellOptions */
-  uint8_t num_cells;     /**< NumCells */
-  uint32_t cell_list[0]; /**< CellList */
-} __attribute__((packed)) sixp_req_add_t;
-
-/**
- * \brief 6P Delete Request Format
- */
-typedef sixp_req_add_t sixp_req_delete_t;
-
-/**
- * \brief 6P Status Request Format
- */
-typedef struct {
-  uint16_t metadata;    /**< Metadata */
-  uint8_t cell_options; /**< CellOptions */
-} __attribute__((packed)) sixp_req_status_t;
-
-/**
- * \brief 6P List Request Format
- */
-typedef struct {
-  uint16_t metadata;      /**< Metadata */
-  uint8_t cell_options;   /**< CellOptions */
-  uint8_t reserved;       /**< Reserved */
-  uint16_t offset;        /**< Offset */
-  uint16_t max_num_cells; /**< MaxNumCells */
-} __attribute__((packed)) sixp_req_list_t;
-
-/**
- * \brief 6P Clear Request Format
- */
-typedef struct {
-  uint16_t metadata; /**< Metadata */
-} __attribute__((packed)) sixp_req_clear_t;
-
-/**
- * \brief 6P Response Format to Add Request
- */
-typedef struct {
-  uint32_t cell_list[0]; /**< CellList */
-} __attribute__((packed)) sixp_res_add_t;
-
-/**
- * \brief 6P Response Format to Delete Request
- */
-typedef sixp_res_add_t sixp_res_delete_t;
-
-/**
- * \brief 6P Response Format to Status Request
- */
-typedef struct {
-  uint8_t num_cells; /**< NumCells */
-} __attribute__((packed)) sixp_res_status_t;
-
-/**
- * \brief 6P Response Format to List Request
- */
-typedef sixp_res_add_t sixp_res_list_t;
-
-/**
- * \brief 6P Response Format to Clear Request
- */
-typedef struct {
-} __attribute__((packed)) sixp_res_clear_t;
-
-
-/**
- * \brief 6top IE Message Body
- */
-typedef union {
-  sixp_req_add_t add_req;       /**< Add Request */
-  sixp_req_delete_t delete_req; /**< Delete Request */
-  sixp_req_status_t status_req; /**< Status Request */
-  sixp_req_list_t list_req;     /**< List Request */
-  sixp_req_clear_t clear_req;   /**< Clear Request */
-
-  sixp_res_add_t add_res;       /**< Add Response */
-  sixp_res_delete_t delete_res; /**< Delete Response */
-  sixp_res_status_t status_res; /**< Status Response */
-  sixp_res_list_t list_res;     /**< List Response */
-  sixp_res_clear_t clear_res;   /**< Clear Response */
-} sixtop_ie_body_t;
-
-/**
- * \brief 6top IE Structure (not packed)
+ * \brief 6top IE Structure
  */
 typedef struct {
   sixp_type_t type;             /**< Type */
@@ -217,7 +128,7 @@ typedef struct {
   uint8_t seqno;                /**< SeqNum */
   uint8_t gab;                  /**< GAB */
   uint8_t gba;                  /**< GBA */
-  const sixtop_ie_body_t *body; /**< Other Fields... */
+  const uint8_t *body;          /**< Other Fields... */
   uint16_t body_len;            /**< Length of Other Fields */
 } sixtop_ie_t;
 
@@ -225,7 +136,7 @@ typedef struct {
  * \brief 6P Request Input Handler
  */
 typedef void (*sixp_request_input_t)(sixp_command_id_t cmd,
-                                     const sixtop_ie_body_t *body,
+                                     const uint8_t *body,
                                      uint16_t body_len,
                                      const linkaddr_t *peer_addr);
 /**
@@ -233,7 +144,7 @@ typedef void (*sixp_request_input_t)(sixp_command_id_t cmd,
  */
 typedef void (*sixp_response_input_t)(sixp_command_id_t cmd,
                                       sixp_return_code_t return_code,
-                                      const sixtop_ie_body_t *body,
+                                      const uint8_t *body,
                                       uint16_t body_len,
                                       const linkaddr_t *peer_addr);
 
@@ -264,7 +175,7 @@ typedef void (*sixp_sent_callback_t)(void *arg, uint16_t arg_len,
  * \return 0 on success, -1 on failure
  */
 int sixp_send(sixp_type_t type, sixp_code_t code, uint8_t sfid,
-              const sixtop_ie_body_t *body, uint16_t body_len,
+              const uint8_t *body, uint16_t body_len,
               const linkaddr_t *dest_addr,
               sixp_sent_callback_t func, void *arg, uint16_t arg_len);
 

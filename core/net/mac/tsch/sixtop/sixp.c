@@ -144,6 +144,7 @@ static int trans_state_is_invalid(sixp_type_t sending_msg_type,
                                   sixp_code_t code,
                                   const linkaddr_t *peer_addr);
 static sixp_trans_mode_t determine_trans_mode(sixp_command_id_t cmd,
+                                              const uint8_t *body,
                                               uint16_t body_len);
 
 static int schedule_generation_is_invalid(const sixtop_ie_t *sixtop_ie,
@@ -153,13 +154,13 @@ static int prepare_request(sixp_code_t code, uint8_t sfid,
                            const linkaddr_t *peer_addr, sixp_trans_mode_t mode);
 static int fill_sixtop_ie(sixp_type_t type, sixp_code_t code, uint8_t sfid,
                           uint8_t seqno,
-                          const sixtop_ie_body_t *body, uint16_t body_len,
+                          const uint8_t *body, uint16_t body_len,
                           const linkaddr_t *peer_addr,
                           sixtop_ie_t *ie);
 static void mac_callback(void *ptr, int status, int transmissions);
 static int send_6p_packet(sixp_type_t type, sixp_code_t code, uint8_t sfid,
                           uint8_t seqno,
-                          const sixtop_ie_body_t *body, uint16_t body_len,
+                          const uint8_t *body, uint16_t body_len,
                           const linkaddr_t *dest_addr);
 
 static void request_input(const sixtop_ie_t *ie, const linkaddr_t *peer_addr);
@@ -463,25 +464,34 @@ trans_state_is_invalid(sixp_type_t sending_msg_type, sixp_code_t code,
 }
 /*---------------------------------------------------------------------------*/
 static sixp_trans_mode_t
-determine_trans_mode(sixp_command_id_t cmd, uint16_t body_len)
+determine_trans_mode(sixp_command_id_t cmd,
+                     const uint8_t *body, uint16_t body_len)
 {
-  sixp_trans_mode_t mode;
+  uint16_t cell_list_len;
 
   /*
    * We consider a transaction as 3-step if and only if its request command is
    * either Add or Delete AND its cell_list is empty
    */
 
-  if((cmd == SIXP_CMD_ADD &&
-      body_len == offsetof(sixp_req_add_t, cell_list)) ||
-     (cmd == SIXP_CMD_DELETE &&
-      body_len == offsetof(sixp_req_delete_t, cell_list))) {
-    mode = SIXP_TRANS_MODE_3_STEP;
-  } else {
-    mode = SIXP_TRANS_MODE_2_STEP;
+  if(cmd != SIXP_CMD_ADD && cmd != SIXP_CMD_DELETE) {
+    return SIXP_TRANS_MODE_2_STEP;
   }
 
-  return mode;
+  if(sixp_packet_get_cell_list(SIXP_TYPE_REQUEST,
+                               (sixp_code_t)cmd,
+                               NULL, &cell_list_len,
+                               body, body_len) != 0) {
+    PRINTF("6top: unexpected parse error; cannot get cell_list\n");
+    /* We treat this transaction as a 2-step one for this unexpected error */
+    return SIXP_TRANS_MODE_2_STEP;
+  }
+
+  if(cell_list_len > 0) {
+    return SIXP_TRANS_MODE_2_STEP;
+  }
+
+  return SIXP_TRANS_MODE_3_STEP;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -574,7 +584,7 @@ prepare_request(sixp_code_t code, uint8_t sfid, const linkaddr_t *peer_addr,
 /*---------------------------------------------------------------------------*/
 static int
 fill_sixtop_ie(sixp_type_t type, sixp_code_t code, uint8_t sfid, uint8_t seqno,
-               const sixtop_ie_body_t *body, uint16_t body_len,
+               const uint8_t *body, uint16_t body_len,
                const linkaddr_t *peer_addr,
                sixtop_ie_t *ie)
 {
@@ -668,7 +678,7 @@ mac_callback(void *ptr, int status, int transmissions)
 /*---------------------------------------------------------------------------*/
 static int
 send_6p_packet(sixp_type_t type, sixp_code_t code, uint8_t sfid, uint8_t seqno,
-               const sixtop_ie_body_t *body, uint16_t body_len,
+               const uint8_t *body, uint16_t body_len,
                const linkaddr_t *dest_addr)
 {
   sixtop_ie_t ie;
@@ -701,18 +711,18 @@ request_input(const sixtop_ie_t *ie, const linkaddr_t *peer_addr)
     PRINTLLADDR((const uip_lladdr_t *)peer_addr);
     PRINTF(" seqno=%u] is in process\n", trans->seqno);
     send_6p_packet(SIXP_TYPE_RESPONSE,
-                   (sixp_code_t)(sixp_return_code_t)SIXP_RC_ERR_BUSY,
+                   (sixp_code_t)(uint8_t)SIXP_RC_ERR_BUSY,
                    ie->sfid, ie->seqno, NULL, 0, peer_addr);
     return;
   }
 
   if((trans = alloc_trans(ie->code, ie->sfid, ie->seqno,
                           peer_addr,
-                          determine_trans_mode(ie->code.value,
+                          determine_trans_mode(ie->code.value, ie->body,
                                                ie->body_len))) == NULL) {
     PRINTF("6top: no memory available for a new transaction\n");
     send_6p_packet(SIXP_TYPE_RESPONSE,
-                   (sixp_code_t)(sixp_return_code_t)SIXP_RC_ERR_NORES,
+                   (sixp_code_t)(uint8_t)SIXP_RC_ERR_NORES,
                    ie->sfid, ie->seqno, NULL, 0, peer_addr);
 
     return;
@@ -784,7 +794,7 @@ confirmation_input(const sixtop_ie_t *ie, const linkaddr_t *peer_addr)
 /*---------------------------------------------------------------------------*/
 int
 sixp_send(sixp_type_t type, sixp_code_t code, uint8_t sfid,
-          const sixtop_ie_body_t *body, uint16_t body_len,
+          const uint8_t *body, uint16_t body_len,
           const linkaddr_t *dest_addr,
           sixp_sent_callback_t func, void *arg, uint16_t arg_len)
 {
@@ -800,7 +810,7 @@ sixp_send(sixp_type_t type, sixp_code_t code, uint8_t sfid,
   if(type == SIXP_TYPE_REQUEST) {
     /* special process for the request case: allocate trans, sure to have nbr */
     if(prepare_request(code, sfid, dest_addr,
-                       determine_trans_mode(code.cmd, body_len)) < 0) {
+                       determine_trans_mode(code.cmd, body, body_len)) < 0) {
       PRINTF("6top: cannot send 6P request; prepare_request() failed\n");
       return -1;
     }
@@ -846,7 +856,7 @@ sixp_input(const uint8_t *buf, uint16_t len, const linkaddr_t *src_addr)
     PRINTF("6top: SF [sfid=%u] is unavailable\n",
            ie.sfid);
     send_6p_packet(SIXP_TYPE_RESPONSE,
-                   (sixp_code_t)(sixp_return_code_t)SIXP_RC_ERR_SFID,
+                   (sixp_code_t)(uint8_t)SIXP_RC_ERR_SFID,
                    ie.sfid, ie.seqno, NULL, 0, src_addr);
     return;
   }
@@ -854,7 +864,7 @@ sixp_input(const uint8_t *buf, uint16_t len, const linkaddr_t *src_addr)
   if(schedule_generation_is_invalid(&ie, src_addr)) {
     PRINTF("6top: invalid schedule generation\n");
     send_6p_packet(SIXP_TYPE_RESPONSE,
-                   (sixp_code_t)(sixp_return_code_t)SIXP_RC_ERR_GEN,
+                   (sixp_code_t)(uint8_t)SIXP_RC_ERR_GEN,
                    ie.sfid, ie.seqno, NULL, 0, src_addr);
     return;
   }
