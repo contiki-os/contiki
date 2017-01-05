@@ -46,6 +46,8 @@
 #ifndef _SIXTOP_H_
 #define _SIXTOP_H_
 
+#include "net/mac/mac.h"
+
 /**
  * \brief The maximum number of Scheduling Functions in the system.
  */
