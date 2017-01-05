@@ -363,9 +363,9 @@ uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n)
 }
 /*---------------------------------------------------------------------------*/
 UIP_ICMP6_HANDLER(echo_request_handler, ICMP6_ECHO_REQUEST,
-                  UIP_ICMP6_HANDLER_CODE_ANY, echo_request_input);
+                  UIP_ICMP6_HANDLER_CODE_ANY, &echo_request_input);
 UIP_ICMP6_HANDLER(echo_reply_handler, ICMP6_ECHO_REPLY,
-                  UIP_ICMP6_HANDLER_CODE_ANY, echo_reply_input);
+                  UIP_ICMP6_HANDLER_CODE_ANY, &echo_reply_input);
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_init()

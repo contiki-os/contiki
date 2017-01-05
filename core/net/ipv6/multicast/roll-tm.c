@@ -476,7 +476,7 @@ static void handle_timer(void *);
 /*---------------------------------------------------------------------------*/
 /* ROLL TM ICMPv6 handler declaration */
 UIP_ICMP6_HANDLER(roll_tm_icmp_handler, ICMP6_ROLL_TM,
-                  UIP_ICMP6_HANDLER_CODE_ANY, icmp_input);
+                  UIP_ICMP6_HANDLER_CODE_ANY, &icmp_input);
 /*---------------------------------------------------------------------------*/
 /* Return a random number in [I/2, I), for a timer with Imin when the timer's
  * current number of doublings is d */

@@ -1096,19 +1096,19 @@ discard:
 /* ICMPv6 input handlers */
 #if UIP_ND6_SEND_NA
 UIP_ICMP6_HANDLER(ns_input_handler, ICMP6_NS, UIP_ICMP6_HANDLER_CODE_ANY,
-                  ns_input);
+                  &ns_input);
 UIP_ICMP6_HANDLER(na_input_handler, ICMP6_NA, UIP_ICMP6_HANDLER_CODE_ANY,
-                  na_input);
+                  &na_input);
 #endif
 
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
 UIP_ICMP6_HANDLER(rs_input_handler, ICMP6_RS, UIP_ICMP6_HANDLER_CODE_ANY,
-                  rs_input);
+                  &rs_input);
 #endif
 
 #if !UIP_CONF_ROUTER
 UIP_ICMP6_HANDLER(ra_input_handler, ICMP6_RA, UIP_ICMP6_HANDLER_CODE_ANY,
-                  ra_input);
+                  &ra_input);
 #endif
 /*---------------------------------------------------------------------------*/
 void

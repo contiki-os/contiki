@@ -97,10 +97,10 @@ static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Initialise RPL ICMPv6 message handlers */
-UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
-UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
-UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
-UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
+UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, &dis_input);
+UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, &dio_input);
+UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, &dao_input);
+UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, &dao_ack_input);
 /*---------------------------------------------------------------------------*/
 
 #if RPL_WITH_DAO_ACK
