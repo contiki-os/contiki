@@ -103,7 +103,7 @@ sixp_packet_create(const sixtop_ie_t *ie)
   packetbuf_clear();
 
   /* put 6top SubIE Content into packetbuf */
-  if(create_6top_ie(ie) < 0){
+  if(create_6top_ie(ie) < 0) {
     PRINTF("6top: failed to create a 6top SubIE\n");
     return -1;
   }

@@ -13,13 +13,13 @@ This is a Contiki implementation of 6top, developed by:
 - Lijo Thomas, CDAC, lijo@cdac.in
 - Yasuyuki Tanaka
 
-It supports 6P of [draft-03](draft-ietf-6tisch-6top-protocol-03) except for
-concurrent 6P transactions described in [Section
+It supports 6P (6top Protocol) of [draft-03](draft-ietf-6tisch-6top-protocol-03)
+except for concurrent 6P transactions described in [Section
 4.3.3](https://tools.ietf.org/html/draft-ietf-6tisch-6top-protocol-03#section-4.3.3).
 
 ## Code Structure
 
-6P is implemented in:
+6top is implemented in:
 - `core/net/mac/tsch/sixtop/sixtop.[ch]`: provides 6top APIs
 - `core/net/mac/tsch/sixtop/sixp.[ch]`: has charge of 6P other than packet manipulation
 - `core/net/mac/tsch/sixtop/sixp-packet[ch]`: provides 6P packet creater and parser
@@ -44,8 +44,8 @@ neighbor state or schedule generation inconsistency.
 
 An example using 6top is provided under `examples/ipv6/rpl-tsch-sxitop/`.
 
-A simple Schedule Function (SF) is implemented in `sf-simple.[ch]`. This SF does
-not have bandwidth monitoring mechanism nor bandwidth adaptation
+A simple Scheduling Function (SF) is implemented in `sf-simple.[ch]`. This SF
+does not have bandwidth monitoring mechanism nor bandwidth adaptation
 mechanism. Instead, the SF provides APIs so that a user process can add or
 remove cells dynamically. A sample user process implementation using the SF is
 found in `node-sixtop.c`, which is tested with `rpl-tsch-sixtop-z1.csc`.
@@ -72,9 +72,9 @@ MODULES += core/net/mac/tsch/sixtop
 For now, the simple SF mentioned above is only one SF shipped in the code
 base. You may have to implement your own SF.
 
-## Implementing a Schedule Function
+## Implementing a Scheduling Function
 
-Schedule Function (SF) is represented with `sixtop_sf_t`, which defined in
+Scheduling Function (SF) is represented with `sixtop_sf_t`, which defined in
 `sixtop.h`. An SF can be added into 6top by `sixtop_add_sf()`. After the
 addition, a handler defined in `sixtop_sf_t` is invoked on a correspondent
 event, for example, reception of a 6P request or timeout of an ongoing

@@ -47,7 +47,7 @@
 #define _SIXTOP_H_
 
 /**
- * \brief The maximum number of Schedule Functions in the system.
+ * \brief The maximum number of Scheduling Functions in the system.
  */
 #ifdef SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
 #define SIXTOP_MAX_SCHEDULE_FUNCTIONS SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
@@ -84,7 +84,7 @@
 #include "sixp.h"
 
 /**
- * /brief Schedule Function Driver
+ * /brief Scheduling Function Driver
  */
 typedef struct {
   uint8_t sfid;                             /**< SFID */
@@ -104,8 +104,8 @@ typedef struct {
 
 
 /**
- * \brief Add a Schedule Function (SF) to 6top Sublayer
- * \param sf The pointer to a Schedule Function driver
+ * \brief Add a Scheduling Function (SF) to 6top Sublayer
+ * \param sf The pointer to a Scheduling Function driver
  * \return 0 on success, -1 on failure
  *
  * If a SF which has the same SFID as the specified one has already been added,
@@ -118,7 +118,7 @@ int sixtop_add_sf(const sixtop_sf_t *sf);
 
 /**
  * \brief Find a SF which has been added by SFID
- * \param sfid Schedule Function Identifier for the concerned SF
+ * \param sfid Scheduling Function Identifier for the concerned SF
  * \return The pointer to a SF having the specified SFID on success, NULL on
  *         failure (not found)
  */

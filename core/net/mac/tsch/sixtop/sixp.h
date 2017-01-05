@@ -254,7 +254,7 @@ typedef void (*sixp_sent_callback_t)(void *arg, uint16_t arg_len,
  * \brief Send a 6top IE
  * \param type Message Type
  * \param code Message Code; Command ID or Return Code
- * \param sfid Schedule Function Identifier
+ * \param sfid Scheduling Function Identifier
  * \param body 6top IE Message Body
  * \param body_len The length of Message Body
  * \param dest_addr Destination Address

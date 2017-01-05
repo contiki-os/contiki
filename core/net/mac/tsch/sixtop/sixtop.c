@@ -42,6 +42,7 @@
 
 #include "lib/assert.h"
 
+#include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
@@ -51,10 +52,6 @@
 
 #define DEBUG DEBUG_PRINT
 #include "net/net-debug.h"
-
-#if NETSTACK_MAC != tschmac_driver
-#error sixtop needs tschmac_driver to be set to NETSTACK_MAC
-#endif
 
 const sixtop_sf_t *schedule_functions[SIXTOP_MAX_SCHEDULE_FUNCTIONS];
 
@@ -113,6 +110,9 @@ sixtop_output(const linkaddr_t *dest_addr, mac_callback_t callback, void *arg)
 
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest_addr);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+
+  /* 6top assumes NETSTACK_MAC is set with tschmac_driver */
+  assert(&NETSTACK_MAC == &tschmac_driver);
   NETSTACK_MAC.send(callback, arg);
 }
 /*---------------------------------------------------------------------------*/
