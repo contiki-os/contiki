@@ -125,10 +125,6 @@ print_msg_event_log(sixp_type_t type, sixp_code_t code,
 
 static sixp_nbr_t *find_nbr(const linkaddr_t *addr);
 static sixp_nbr_t *alloc_nbr(const linkaddr_t *addr);
-#if 0
-static void free_nbr(sixp_nbr_t *nbr);
-static void clear_all_nbr(void);
-#endif
 
 static void handle_trans_timeout(void *ptr);
 static void process_trans(void *ptr);
