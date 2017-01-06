@@ -62,64 +62,101 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/net-debug.h"
 
+/*
+ * We use a local packetbuf_attr array to collect necessary frame settings to
+ * create an EACK because EACK is generated in the interrupt context where
+ * packetbuf and packetbuf_attrs[] may be in use for another purpose.
+ *
+ * We have accessors of eackbuf_attrs: tsch_packet_eackbuf_set_attr() and
+ * tsch_packet_eackbuf_attr(). For some platform, they might need to be
+ * implemented as inline functions. However, for now, we don't provide the
+ * inline option. Such an optimization is left to the compiler for a target
+ * platform.
+ */
+static struct packetbuf_attr eackbuf_attrs[PACKETBUF_NUM_ATTRS];
+
+/*---------------------------------------------------------------------------*/
+static int
+tsch_packet_eackbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
+{
+  eackbuf_attrs[type].val = val;
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+/* Return the value of a specified attribute */
+packetbuf_attr_t
+tsch_packet_eackbuf_attr(uint8_t type)
+{
+  return eackbuf_attrs[type].val;
+}
 /*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */
 int
-tsch_packet_create_eack(uint8_t *buf, int buf_size,
-    linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
+tsch_packet_create_eack(uint8_t *buf, uint16_t buf_len,
+                        const linkaddr_t *dest_addr, uint8_t seqno,
+                        int16_t drift, int nack)
 {
-  int ret;
-  uint8_t curr_len = 0;
-  frame802154_t p;
+  frame802154_t params;
   struct ieee802154_ies ies;
+  int hdr_len;
+  int ack_len;
 
-  memset(&p, 0, sizeof(p));
-  p.fcf.frame_type = FRAME802154_ACKFRAME;
-  p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
-  p.fcf.ie_list_present = 1;
-  /* Compression unset. According to IEEE802.15.4e-2012:
-   * - if no address is present: elide PAN ID
-   * - if at least one address is present: include exactly one PAN ID (dest by default) */
-  p.fcf.panid_compression = 0;
-  p.dest_pid = IEEE802154_PANID;
-  p.seq = seqno;
+  if(buf == NULL) {
+    return -1;
+  }
+
+  memset(eackbuf_attrs, 0, sizeof(eackbuf_attrs));
+
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_ACKFRAME);
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_METADATA, 1);
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno);
+
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_NO_DEST_ADDR, 1);
 #if TSCH_PACKET_EACK_WITH_DEST_ADDR
   if(dest_addr != NULL) {
-    p.fcf.dest_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;;
-    linkaddr_copy((linkaddr_t *)&p.dest_addr, dest_addr);
+    tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_NO_DEST_ADDR, 0);
+    linkaddr_copy((linkaddr_t *)&params.dest_addr, dest_addr);
   }
 #endif
+
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_NO_SRC_ADDR, 1);
 #if TSCH_PACKET_EACK_WITH_SRC_ADDR
-  p.fcf.src_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;;
-  p.src_pid = IEEE802154_PANID;
-  linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
+  tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_MAC_NO_SRC_ADDR, 0);
+  linkaddr_copy((linkaddr_t *)&params.src_addr, &linkaddr_node_addr);
 #endif
+
 #if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
-    p.fcf.security_enabled = 1;
-    p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
-    p.aux_hdr.security_control.key_id_mode = FRAME802154_1_BYTE_KEY_ID_MODE;
-    p.aux_hdr.security_control.frame_counter_suppression = 1;
-    p.aux_hdr.security_control.frame_counter_size = 1;
-    p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+    tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL,
+                                 TSCH_SECURITY_KEY_SEC_LEVEL_ACK);
+    tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE,
+                                 FRAME802154_1_BYTE_KEY_ID_MODE);
+    tsch_packet_eackbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX,
+                                 TSCH_SECURITY_KEY_INDEX_ACK);
   }
 #endif /* LLSEC802154_ENABLED */
 
-  if((curr_len = frame802154_create(&p, buf)) == 0) {
-    return 0;
-  }
+  framer_802154_setup_params(tsch_packet_eackbuf_attr, 0, &params);
+  hdr_len = frame802154_hdrlen(&params);
 
-  /* Append IE timesync */
+  memset(buf, 0, buf_len);
+
+  /* Setup IE timesync */
   memset(&ies, 0, sizeof(ies));
   ies.ie_time_correction = drift;
   ies.ie_is_nack = nack;
 
-  if((ret = frame80215e_create_ie_header_ack_nack_time_correction(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  ack_len =
+    frame80215e_create_ie_header_ack_nack_time_correction(buf + hdr_len,
+                                                          buf_len - hdr_len, &ies);
+  if(ack_len < 0) {
     return -1;
   }
-  curr_len += ret;
+  ack_len += hdr_len;
 
-  return curr_len;
+  frame802154_create(&params, buf);
+
+  return ack_len;
 }
 /*---------------------------------------------------------------------------*/
 /* Parse enhanced ACK packet, extract drift and nack */
