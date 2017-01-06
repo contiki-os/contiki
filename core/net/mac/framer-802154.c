@@ -64,7 +64,7 @@ static uint8_t initialized = 0;
 
 /*---------------------------------------------------------------------------*/
 static int
-create_frame(int type, int do_create)
+create_frame(int do_create)
 {
   frame802154_t params;
   int hdr_len;
@@ -223,13 +223,13 @@ framer_802154_setup_params(packetbuf_attr_t (*get_attr)(uint8_t type),
 static int
 hdr_length(void)
 {
-  return create_frame(FRAME802154_DATAFRAME, 0);
+  return create_frame(0);
 }
 /*---------------------------------------------------------------------------*/
 static int
 create(void)
 {
-  return create_frame(FRAME802154_DATAFRAME, 1);
+  return create_frame(1);
 }
 /*---------------------------------------------------------------------------*/
 static int
