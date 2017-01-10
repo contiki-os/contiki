@@ -73,7 +73,7 @@ static aes_key keys[] = {
 /*---------------------------------------------------------------------------*/
 static void
 tsch_security_init_nonce(uint8_t *nonce,
-                         const linkaddr_t *sender, struct asn_t *asn)
+                         const linkaddr_t *sender, struct tsch_asn_t *asn)
 {
   memcpy(nonce, sender, 8);
   nonce[8] = asn->ms1b;
@@ -137,7 +137,7 @@ tsch_security_mic_len(const frame802154_t *frame)
 /*---------------------------------------------------------------------------*/
 unsigned int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
-                           int hdrlen, int datalen, struct asn_t *asn)
+                           int hdrlen, int datalen, struct tsch_asn_t *asn)
 {
   frame802154_t frame;
   uint8_t key_index = 0;
@@ -160,7 +160,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 
   if(!frame.fcf.security_enabled) {
     /* Security is not enabled for this frame, we're done */
-    return 1;
+    return 0;
   }
 
   /* Read security key index */
@@ -200,7 +200,8 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 /*---------------------------------------------------------------------------*/
 unsigned int
 tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
-                          const frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn)
+                          const frame802154_t *frame, const linkaddr_t *sender,
+                          struct tsch_asn_t *asn)
 {
   uint8_t generated_mic[16];
   uint8_t key_index = 0;

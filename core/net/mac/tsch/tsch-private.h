@@ -80,12 +80,12 @@ extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */
 extern const linkaddr_t tsch_eb_address;
 /* The current Absolute Slot Number (ASN) */
-extern struct asn_t current_asn;
+extern struct tsch_asn_t tsch_current_asn;
 extern uint8_t tsch_join_priority;
 extern struct tsch_link *current_link;
 /* TSCH channel hopping sequence */
 extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
-extern struct asn_divisor_t tsch_hopping_sequence_length;
+extern struct tsch_asn_divisor_t tsch_hopping_sequence_length;
 /* TSCH timeslot timing (in rtimer ticks) */
 extern rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
