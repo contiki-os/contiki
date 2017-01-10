@@ -70,7 +70,7 @@ struct ieee802154_ies {
   uint16_t ie_mlme_len;
   /* Payload Short MLME IEs */
   uint8_t ie_tsch_synchronization_offset;
-  struct asn_t ie_asn;
+  struct tsch_asn_t ie_asn;
   uint8_t ie_join_priority;
   uint8_t ie_tsch_timeslot_id;
   uint16_t ie_tsch_timeslot[tsch_ts_elements_count];
