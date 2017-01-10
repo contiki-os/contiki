@@ -45,6 +45,7 @@
 #include "net/mac/tsch/tsch-private.h"
 
 #define FRAME802154E_IE_MAX_LINKS       4
+#define SIXTOP_IE_MAX_LINKS             3
 
 /* Structures used for the Slotframe and Links information element */
 struct tsch_slotframe_and_links_link {
@@ -58,6 +59,23 @@ struct tsch_slotframe_and_links {
   uint16_t slotframe_size;
   uint8_t num_links;
   struct tsch_slotframe_and_links_link links[FRAME802154E_IE_MAX_LINKS];
+};
+
+/* Structures used for the Sixtop information element */
+struct sixtop_link {
+  uint16_t timeslot;
+  uint16_t channel_offset;
+  uint8_t link_option;
+};
+struct sixtop {
+  /* Sixtop IEs */
+  uint8_t subIE_id;
+  uint8_t version_code;
+  uint8_t schedule_fn_id;
+  struct sixtop_link linkList[SIXTOP_IE_MAX_LINKS];
+  /* Link Request IE */
+  uint8_t num_links;
+  uint8_t frame_id;
 };
 
 /* The information elements that we currently support */
@@ -80,6 +98,8 @@ struct ieee802154_ies {
   /* We include and parse only the sequence len and list and omit unused fields */
   uint16_t ie_hopping_sequence_len;
   uint8_t ie_hopping_sequence_list[TSCH_HOPPING_SEQUENCE_MAX_LEN];
+  /* Payload Sixtop IE */
+  struct sixtop ie_sixtop;
 };
 
 /** Insert various Information Elements **/
@@ -96,6 +116,9 @@ int frame80215e_create_ie_header_list_termination_2(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 /* Payload IE. List termination */
 int frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+/* Payload IE. 6top. Used to nest sub-IEs */
+int frame80215e_create_ie_sixtop(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 /* Payload IE. MLME. Used to nest sub-IEs */
 int frame80215e_create_ie_mlme(uint8_t *buf, int len,

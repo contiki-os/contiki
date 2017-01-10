@@ -60,6 +60,7 @@ enum ieee802154e_header_ie_id {
 enum ieee802154e_payload_ie_id {
   PAYLOAD_IE_ESDU = 0,
   PAYLOAD_IE_MLME,
+  PAYLOAD_IE_SIXTOP,
   PAYLOAD_IE_LIST_TERMINATION = 0xf,
 };
 
@@ -186,6 +187,20 @@ frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
   int ie_len = 0;
   if(len >= 2 + ie_len && ies != NULL) {
     create_payload_ie_descriptor(buf, PAYLOAD_IE_LIST_TERMINATION, 0);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
+}
+
+/* Payload IE. 6top. Used to nest sub-IEs */
+int
+frame80215e_create_ie_sixtop(uint8_t *buf, int len,
+    struct ieee802154_ies *ies)
+{
+  int ie_len = 0;
+  if(len >= 2 + ie_len && ies != NULL) {
+    create_payload_ie_descriptor(buf, PAYLOAD_IE_SIXTOP, ies->ie_mlme_len);
     return 2 + ie_len;
   } else {
     return -1;
@@ -529,6 +544,11 @@ frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
             len = 0; /* Reset len as we want to read subIEs and not jump over them */
             PRINTF("frame802154e: entering MLME ie with len %u\n", nested_mlme_len);
             break;
+          case PAYLOAD_IE_SIXTOP:
+            PRINTF("frame802154e: entering Sixtop ie with len %u\n", len);
+            /* Sixtop IE detected, return success(0) 
+             * Further parsing of Sixtop IE is carried out at Sixtop layer */
+            return 0;     	            		    
           case PAYLOAD_IE_LIST_TERMINATION:
             PRINTF("frame802154e: payload ie list termination %u\n", len);
             return (len == 0) ? buf + len - start : -1;
