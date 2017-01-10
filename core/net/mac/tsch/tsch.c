@@ -733,30 +733,17 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
     if(tsch_is_associated && tsch_current_eb_period > 0) {
       /* Enqueue EB only if there isn't already one in queue */
       if(tsch_queue_packet_count(&tsch_eb_address) == 0) {
-        int eb_len;
         uint8_t hdr_len = 0;
         uint8_t tsch_sync_ie_offset;
         /* Prepare the EB packet and schedule it to be sent */
-        packetbuf_clear();
-        packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
-#if LLSEC802154_ENABLED
-        if(tsch_is_pan_secured) {
-          /* Set security level, key id and index */
-          packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
-          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
-          packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
-        }
-#endif /* LLSEC802154_ENABLED */
-        eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
-            &hdr_len, &tsch_sync_ie_offset);
-        if(eb_len != 0) {
+        if(tsch_packet_create_eb(&hdr_len, &tsch_sync_ie_offset) > 0) {
           struct tsch_packet *p;
-          packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */
           if(!(p = tsch_queue_add_packet(&tsch_eb_address, NULL, NULL))) {
             PRINTF("TSCH:! could not enqueue EB packet\n");
           } else {
-            PRINTF("TSCH: enqueue EB packet %u %u\n", eb_len, hdr_len);
+            PRINTF("TSCH: enqueue EB packet %u %u\n",
+                   packetbuf_totlen(), packetbuf_hdrlen());
             p->tsch_sync_ie_offset = tsch_sync_ie_offset;
             p->header_len = hdr_len;
           }

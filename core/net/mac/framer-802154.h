@@ -39,7 +39,13 @@
 #ifndef FRAMER_802154_H_
 #define FRAMER_802154_H_
 
+#include "net/packetbuf.h"
 #include "net/mac/framer.h"
+
+/* Setup frame802154_t with use of a specified get_attr */
+void framer_802154_setup_params(packetbuf_attr_t (*get_attr)(uint8_t type),
+                                uint8_t dest_is_broadcast,
+                                frame802154_t *params);
 
 extern const struct framer framer_802154;
 
