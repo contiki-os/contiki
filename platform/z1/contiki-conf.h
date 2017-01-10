@@ -241,4 +241,8 @@
 
 #define BOARD_STRING        "Zolertia Z1 platform"
 
+#ifndef AES_128_CONF
+#define AES_128_CONF cc2420_aes_128_driver
+#endif /* AES_128_CONF */
+
 #endif /* CONTIKI_CONF_H */
