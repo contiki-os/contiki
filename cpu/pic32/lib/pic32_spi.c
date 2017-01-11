@@ -138,6 +138,7 @@
       }                                                     \
       SPI##XX##STATCLR = _SPI##XX##STAT_SPIROV_MASK;        \
       dummy = SPI##XX##BUF;                                 \
+      (void)dummy;                                          \
     }                                                       \
                                                             \
     return SPI_NO_ERRORS;                                   \
