@@ -58,7 +58,7 @@ int ringbufindex_peek_put(const struct ringbufindex *r);
 /* Remove the first element and return its index */
 int ringbufindex_get(struct ringbufindex *r);
 /* Return the index of the first element
- * (which will be removed if calling ringbufindex_peek) */
+ * (which will be removed if calling ringbufindex_get) */
 int ringbufindex_peek_get(const struct ringbufindex *r);
 /* Return the ring buffer size */
 int ringbufindex_size(const struct ringbufindex *r);
