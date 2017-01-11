@@ -63,7 +63,7 @@
 
 #define CLOCK_SOURCE   8000000ul
 
-#define DEVCFG2        0xBFC02FF4 /* virtual address of the register */
+#define DEVCFG2_ADDRESS        0xBFC02FF4 /* virtual address of the register */
 
 #define PLLIDIV_MASK   0x7
 
@@ -83,7 +83,7 @@ pic32_clock_get_system_clock(void)
 {
   return CLOCK_SOURCE *
          PLLMULT[(uint32_t) OSCCONbits.PLLMULT] /
-         (FPPLIDIV[(*((uint32_t *) DEVCFG2)) & PLLIDIV_MASK] *
+         (FPPLIDIV[(*((uint32_t *) DEVCFG2_ADDRESS)) & PLLIDIV_MASK] *
          PLLODIV[(uint32_t) OSCCONbits.PLLODIV]);
 }
 /*---------------------------------------------------------------------------*/
