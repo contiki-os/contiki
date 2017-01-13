@@ -122,7 +122,7 @@ rpl_purge_routes(void)
   r = uip_ds6_route_head();
 
   while(r != NULL) {
-    if(r->state.lifetime >= 1) {
+    if(r->state.lifetime >= 1 && r->state.lifetime != RPL_ROUTE_INFINITE_LIFETIME) {
       /*
        * If a route is at lifetime == 1, set it to 0, scheduling it for
        * immediate removal below. This achieves the same as the original code,
