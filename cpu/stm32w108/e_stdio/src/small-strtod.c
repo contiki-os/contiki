@@ -691,11 +691,11 @@ dig_done:
 	      /* boundary case -- decrement exponent */
 #ifdef Sudden_Underflow
 	      L = word0 (rv) & Exp_mask;
-#ifdef IBM
-	      if (L < Exp_msk1)
-#else
-	      if (L <= Exp_msk1)
+	      int test_exp_msk = L < Exp_msk1;
+#ifndef IBM
+	      test_exp_msk = test_exp_msk || L == Exp_msk1;
 #endif
+	      if (test_exp_msk)
 		goto undfl;
 	      L -= Exp_msk1;
 #else
@@ -830,11 +830,11 @@ dig_done:
 	  		adj = aadj1 * small_ulp (rv.d);
 	  		#endif
 	      rv.d += adj;
-	#ifdef IBM
-	      if ((word0 (rv) & Exp_mask) < P * Exp_msk1)
-	#else
-	      if ((word0 (rv) & Exp_mask) <= P * Exp_msk1)
+	      int test_word_exp_mask = (word0 (rv) & Exp_mask) < P * Exp_msk1;
+	#ifndef IBM
+	      test_word_exp_mask = test_word_exp_mask || ((word0 (rv) & Exp_mask) == P * Exp_msk1);
 	#endif
+	      if (test_word_exp_mask)	
 		{
 		  if (word0 (rv0) == Tiny0
 		      && word1 (rv0) == Tiny1)
