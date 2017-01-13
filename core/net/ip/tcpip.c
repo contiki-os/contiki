@@ -592,10 +592,7 @@ tcpip_ipv6_output(void)
               uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
           if(uip_ext_len > 0) {
             extern void remove_ext_hdr(void);
-            uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
             remove_ext_hdr();
-            /* This should be copied from the ext header... */
-            UIP_IP_BUF->proto = proto;
           }
           /* Inform the other end that the destination is not reachable. If it's
            * not informed routes might get lost unexpectedly until there's a need

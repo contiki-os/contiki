@@ -536,6 +536,7 @@ uip_connect(const uip_ipaddr_t *ripaddr, uint16_t rport)
 void
 remove_ext_hdr(void)
 {
+  int last_uip_ext_len;
   /* Remove ext header before TCP/UDP processing. */
   if(uip_ext_len > 0) {
     PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
@@ -545,15 +546,17 @@ remove_ext_hdr(void)
       uip_clear_buf();
       return;
     }
-    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + uip_ext_len,
-            uip_len - UIP_IPH_LEN - uip_ext_len);
+    last_uip_ext_len = uip_ext_len;
+    uip_ext_len = 0;
+    UIP_IP_BUF->proto = UIP_EXT_BUF->next;
+    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + last_uip_ext_len,
+	    uip_len - UIP_IPH_LEN - last_uip_ext_len);
 
-    uip_len -= uip_ext_len;
+    uip_len -= last_uip_ext_len;
 
     /* Update the IP length. */
     UIP_IP_BUF->len[0] = (uip_len - UIP_IPH_LEN) >> 8;
     UIP_IP_BUF->len[1] = (uip_len - UIP_IPH_LEN) & 0xff;
-    uip_ext_len = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -1484,7 +1487,6 @@ uip_process(uint8_t flag)
   udp_input:
 
   remove_ext_hdr();
-  UIP_IP_BUF->proto = UIP_PROTO_UDP;
 
   PRINTF("Receiving UDP packet\n");
 
@@ -1595,7 +1597,6 @@ uip_process(uint8_t flag)
   tcp_input:
 
   remove_ext_hdr();
-  UIP_IP_BUF->proto = UIP_PROTO_TCP;
 
   UIP_STAT(++uip_stat.tcp.recv);
   PRINTF("Receiving TCP packet\n");
