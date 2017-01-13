@@ -865,7 +865,10 @@ best_parent(rpl_dag_t *dag, int fresh_only)
   for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
 
     /* Exclude parents from other DAGs or announcing an infinite rank */
-    if(p->dag != dag || p->rank == INFINITE_RANK) {
+    if(p->dag != dag || p->rank == INFINITE_RANK || p->rank < ROOT_RANK(dag->instance)) {
+      if(p->rank < ROOT_RANK(dag->instance)) {
+        PRINTF("RPL: Parent has invalid rank\n");
+      }
       continue;
     }
 
