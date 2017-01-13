@@ -825,12 +825,14 @@ reswitch:	switch (ch) {
 			/*FALLTHROUGH*/
 		case 'd':
 		case 'i':
-			_uquad = SARG();
+			int test_uquad;
+			_uquad = SARG();		
 #ifndef _NO_LONGLONG
-			if ((quad_t)_uquad < 0)
+			test_uquad = (quad_t)_uquad < 0;
 #else
-			if ((long) _uquad < 0)
+			test_uquad = (long) _uquad < 0;
 #endif
+			if (test_uquad)
 			{
 
 				_uquad = -_uquad;
