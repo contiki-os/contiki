@@ -148,8 +148,9 @@ publish_alarm(sensor_val_t *sensor)
       aux_res = 0;
     }
 
-    snprintf(app_buffer, APP_BUFFER_SIZE,
-             "[{\"meaning\":\"%s\",\"value\":%d.%02u}]",
+    snprintf(app_buffer, APP_BUFFER_SIZE, aux_res > 9 ?
+             "[{\"meaning\":\"%s\",\"value\":%d.%02u}]" :
+             "[{\"meaning\":\"%s\",\"value\":%d.%01u0}]",
              sensor->alarm_name, aux_int, aux_res);
 
     publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
@@ -199,7 +200,8 @@ publish_event(sensor_values_t *msg)
         aux_res = 0;
       }
 
-      snprintf(aux, sizeof(aux), "%d.%02u", aux_int, aux_res);
+      snprintf(aux, sizeof(aux), aux_res > 9 ? "%d.%02u" : "%d.%01u0",
+               aux_int, aux_res);
       len = add_pub_topic(remain, msg->sensor[i].sensor_name,
                           aux, PUB_TOPIC_RAW, 0, 1);
       remain =- len;
