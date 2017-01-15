@@ -40,7 +40,8 @@ typedef struct sensor_val {
   int16_t below_threshold;                  /* Threshold (below) */
   int16_t min;                              /* Minimum allowed value */
   int16_t max;                              /* Maximum allowed value */
-  uint16_t pres;                             /* Number of precision digits */
+  int16_t fail_value;                       /* Value to send if erroneous */
+  uint16_t pres;                            /* Number of precision digits */
   char sensor_name[SENSOR_NAME_STRING];     /* Sensor name (string) */
   char alarm_name[SENSOR_NAME_STRING];      /* Alarm name (string) */
   char sensor_config[SENSOR_NAME_STRING];   /* Configuration name (string) */

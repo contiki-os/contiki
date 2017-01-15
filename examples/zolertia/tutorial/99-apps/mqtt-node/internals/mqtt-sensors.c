@@ -68,7 +68,7 @@ mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
   }
 
   reg->num++;
-  reg->sensor[i].value = val;
+  reg->sensor[i].fail_value = val;
   reg->sensor[i].over_threshold = thresh;
   reg->sensor[i].below_threshold = thresl;
   reg->sensor[i].min = min;
@@ -97,11 +97,11 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
       PRINTF("  > MQTT sensors: %s value %d invalid: should be between %d and %d\n",
              reg->sensor[i].sensor_name, reg->sensor[i].value,
              reg->sensor[i].min, reg->sensor[i].max);
-      reg->sensor[i].value = reg->sensor[i].min;
+      reg->sensor[i].value = reg->sensor[i].fail_value;
     } else {
       if(strlen(reg->sensor[i].sensor_name)) {
         PRINTF("  > MQTT sensors: %s value %d\n", reg->sensor[i].sensor_name,
-                                              reg->sensor[i].value);
+                                                  reg->sensor[i].value);
       }
     }
 
