@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2017, Antonio Lignan - antonio.lignan@gmail.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
