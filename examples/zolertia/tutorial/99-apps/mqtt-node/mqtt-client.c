@@ -52,9 +52,6 @@
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
-#define PLATFORM_NAME_EXPAND(x, y) x##y
-#define PLATFORM_NAME(x, y) PLATFORM_NAME_EXPAND(x, y)
-/*---------------------------------------------------------------------------*/
 #if DEBUG_CLIENT
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -462,7 +459,8 @@ state_machine(void)
       if(state == STATE_CONNECTED) {
 
         /* Notiy the platforms we are connected and ready to the broker */
-        process_post(PROCESS_BROADCAST, mqtt_client_event_connected, NULL);
+        process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process),
+                     mqtt_client_event_connected, NULL);
 
         state = STATE_PUBLISHING;
       }
@@ -489,7 +487,8 @@ state_machine(void)
     PRINTF("Client: Disconnected\n");
 
     /* Notiy the platforms we are connected to the broker */
-    process_post(PROCESS_BROADCAST, mqtt_client_event_disconnected, NULL);
+    process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process),
+                 mqtt_client_event_disconnected, NULL);
 
     if(connect_attempt < RECONNECT_ATTEMPTS ||
        RECONNECT_ATTEMPTS == RETRY_FOREVER) {

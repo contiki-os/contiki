@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "mqtt-sensors.h"
+#include "../mqtt-client.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -45,6 +46,8 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #if DEFAULT_SENSORS_NUM
+PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
+/*---------------------------------------------------------------------------*/
 static void
 mqtt_sensor_strings(char *dest, char *topic)
 {
@@ -117,13 +120,13 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
       PRINTF("  > MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
                                                         reg->sensor[i].over_threshold,
                                                         reg->sensor[i].below_threshold);
-      process_post(PROCESS_BROADCAST, alarm, &reg->sensor[i]);
+      process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process), alarm, &reg->sensor[i]);
       return;
     }
   }
 
   /* Post a process notifying there's new sensor data available */
-  process_post(PROCESS_BROADCAST, data, reg);
+  process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process), data, reg);
 }
 #endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/

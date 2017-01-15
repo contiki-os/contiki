@@ -37,6 +37,7 @@
 #include "dev/button-sensor.h"
 #include "mqtt-res.h"
 #include "remote.h"
+#include "../mqtt-client.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,6 +49,9 @@
 #else
 #define PRINTF(...)
 #endif
+/*---------------------------------------------------------------------------*/
+/* We include here the platform process as we post alarms directly */
+PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
 /*---------------------------------------------------------------------------*/
 sensor_values_t remote_sensors;
 /*---------------------------------------------------------------------------*/
@@ -157,7 +161,8 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
         } else {
           PRINTF("RE-Mote: ...and button released!\n");
           remote_sensors.sensor[REMOTE_SENSOR_BUTN].value++;
-          process_post(PROCESS_BROADCAST, remote_sensors_alarm_event,
+          process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process),
+                       remote_sensors_alarm_event,
                        &remote_sensors.sensor[REMOTE_SENSOR_BUTN]);
         }
       }

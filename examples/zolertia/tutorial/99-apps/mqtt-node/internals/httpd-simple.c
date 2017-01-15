@@ -96,6 +96,7 @@ static int state;
 static struct httpd_state *lock;
 /*---------------------------------------------------------------------------*/
 PROCESS(httpd_simple_process, "MQTT client Web Server");
+PROCESS_NAME(mqtt_demo_process);
 /*---------------------------------------------------------------------------*/
 #define ISO_nl        0x0A
 #define ISO_space     0x20
@@ -768,7 +769,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
     /* If the flag is set, we had at least 1 configuration value accepted */
     if(config_ok) {
-      process_post(PROCESS_BROADCAST, httpd_simple_event_new_config, NULL);
+      process_post(&mqtt_demo_process, httpd_simple_event_new_config, NULL);
     }
     config_ok = 0;
 
