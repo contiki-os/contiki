@@ -662,7 +662,7 @@ tcpip_ipv6_output(void)
 
     nbr = uip_ds6_nbr_lookup(nexthop);
     if(nbr == NULL) {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) == NULL) {
         uip_clear_buf();
         PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
@@ -691,13 +691,13 @@ tcpip_ipv6_output(void)
         nbr->nscount = 1;
         /* Send the first NS try from here (multicast destination IP address). */
       }
-#else /* UIP_ND6_SEND_NA */
+#else /* UIP_ND6_SEND_NS */
       PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
       uip_len = 0;
       return;  
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
     } else {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
       if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -719,7 +719,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
 

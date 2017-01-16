@@ -88,14 +88,14 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                                             , reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
-#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
+#if UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
     nbr->isrouter = isrouter;
-#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+#endif /* UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
     nbr->state = state;
 #if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
     if(nbr->state == NBR_REACHABLE) {
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
     } else {
@@ -104,7 +104,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     }
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");
@@ -245,7 +245,7 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #endif /* UIP_DS6_LL_NUD */
 
 }
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
 /*---------------------------------------------------------------------------*/
 /** Periodic processing on neighbors */
 void
@@ -326,7 +326,6 @@ uip_ds6_neighbor_periodic(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#if UIP_ND6_SEND_NA
 void
 uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
 {
@@ -338,7 +337,6 @@ uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
     stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
   }
 }
-#endif /* UIP_ND6_SEND_NA */
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_get_least_lifetime_neighbor(void)
@@ -358,6 +356,6 @@ uip_ds6_get_least_lifetime_neighbor(void)
   }
   return nbr_expiring;
 }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 /*---------------------------------------------------------------------------*/
 /** @} */

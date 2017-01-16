@@ -109,7 +109,7 @@
 
 /* ND and Routing */
 #define UIP_CONF_ROUTER                      0 /**< BLE master role, which allows for routing, isn't supported. */
-#define UIP_CONF_ND6_SEND_NA                 1
+#define UIP_CONF_ND6_SEND_NS                 1
 #define UIP_CONF_IP_FORWARD                  0 /**< No packet forwarding. */
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

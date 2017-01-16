@@ -116,13 +116,16 @@ void uip_log(char *msg);
 #define UIP_ND6_OPT_RDNSS_BUF ((uip_nd6_opt_dns *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 /** @} */
 
-#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
 static uint8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
 static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
-static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
-#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
+static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
 
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
@@ -366,6 +369,7 @@ discard:
 
 
 /*------------------------------------------------------------------*/
+#if UIP_ND6_SEND_NS
 void
 uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
 {
@@ -428,7 +432,9 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
   PRINTF("\n");
   return;
 }
-#if UIP_ND6_SEND_NA
+#endif /* UIP_ND6_SEND_NS */
+
+#if UIP_ND6_SEND_NS
 /*------------------------------------------------------------------*/
 /**
  * Neighbor Advertisement Processing
@@ -603,7 +609,7 @@ discard:
   uip_clear_buf();
   return;
 }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
@@ -1097,6 +1103,8 @@ discard:
 #if UIP_ND6_SEND_NA
 UIP_ICMP6_HANDLER(ns_input_handler, ICMP6_NS, UIP_ICMP6_HANDLER_CODE_ANY,
                   ns_input);
+#endif
+#if UIP_ND6_SEND_NS
 UIP_ICMP6_HANDLER(na_input_handler, ICMP6_NA, UIP_ICMP6_HANDLER_CODE_ANY,
                   na_input);
 #endif
@@ -1114,19 +1122,16 @@ UIP_ICMP6_HANDLER(ra_input_handler, ICMP6_RA, UIP_ICMP6_HANDLER_CODE_ANY,
 void
 uip_nd6_init()
 {
-
 #if UIP_ND6_SEND_NA
   /* Only handle NSs if we are prepared to send out NAs */
   uip_icmp6_register_input_handler(&ns_input_handler);
-
-  /*
-   * Only handle NAs if we are prepared to send out NAs.
-   * This is perhaps logically incorrect, but this condition was present in
-   * uip_process and we keep it until proven wrong
-   */
-  uip_icmp6_register_input_handler(&na_input_handler);
 #endif
 
+#if UIP_ND6_SEND_NS
+  /*
+   * Only handle NAs if we are prepared to send out NSs. */
+  uip_icmp6_register_input_handler(&na_input_handler);
+#endif
 
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Only accept RS if we are a router and happy to send out RAs */
