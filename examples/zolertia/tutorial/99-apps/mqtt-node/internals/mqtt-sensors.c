@@ -46,6 +46,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #if DEFAULT_SENSORS_NUM
+PROCESS(mqtt_sensors_process, "mqtt_sensors_process");
 PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
 /*---------------------------------------------------------------------------*/
 static void
@@ -120,14 +121,45 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
       PRINTF("  > MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
                                                         reg->sensor[i].over_threshold,
                                                         reg->sensor[i].below_threshold);
-      process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process), alarm, &reg->sensor[i]);
+      process_post(&mqtt_sensors_process, alarm, &reg->sensor[i]);
       return;
     }
   }
 
   /* Post a process notifying there's new sensor data available */
-  process_post(&PLATFORM_NAME(MQTT_PLATFORM, _process), data, reg);
+  process_post(&mqtt_sensors_process, data, reg);
 }
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(mqtt_sensors_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  PRINTF("MQTT sensors process started\n");
+  static uint16_t seq_nr_value = 0;
+
+  while(1) {
+    PROCESS_YIELD();
+
+    /* Check for periodic publish events */
+    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
+      seq_nr_value++;
+
+      /* The `pub_interval_check` is an external struct defined in mqtt-client */
+      if(!(seq_nr_value % conf.pub_interval_check)) {
+        sensor_values_t *msgPtr = (sensor_values_t *) data;
+        publish_event(msgPtr);
+      }
+    }
+
+    /* Check for alarms */
+    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_alarm_event)) {
+      sensor_val_t *sensorPtr = (sensor_val_t *) data;
+      publish_alarm(sensorPtr);
+    }
+  }
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
 #endif /* DEFAULT_SENSORS_NUM */
 /*---------------------------------------------------------------------------*/
 /** @} */

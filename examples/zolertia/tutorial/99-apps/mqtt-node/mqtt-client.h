@@ -40,6 +40,9 @@
 #define PLATFORM_NAME_EXPAND(x, y) x##y
 #define PLATFORM_NAME(x, y) PLATFORM_NAME_EXPAND(x, y)
 /*---------------------------------------------------------------------------*/
+#define SENSORS_NAME_EXPAND(x, y) x##y
+#define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
+/*---------------------------------------------------------------------------*/
 /* Connection information, this is taken from the platform header file */
 #define MQTT_DEMO_BROKER_IP_ADDR      MQTT_DEMO_CONF_BROKER_IP_ADDR
 #define DEFAULT_BROKER_PORT           1883

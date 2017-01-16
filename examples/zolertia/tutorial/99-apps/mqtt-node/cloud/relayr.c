@@ -53,9 +53,6 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-#define SENSORS_NAME_EXPAND(x, y) x##y
-#define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
-/*---------------------------------------------------------------------------*/
 /* Pub topic types */
 enum {
   PUB_TOPIC_RAW,
@@ -77,10 +74,9 @@ PROCESS(relayr_process, "Relayr MQTT process");
 PROCESS_NAME(mqtt_res_process);
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
 #if DEFAULT_SENSORS_NUM
+PROCESS_NAME(mqtt_sensors_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
-/*---------------------------------------------------------------------------*/
-static uint16_t seq_nr_value;
 /*---------------------------------------------------------------------------*/
 static int
 add_pub_topic(uint16_t length, char *meaning, char *value,
@@ -127,7 +123,7 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
   return pos;
 }
 /*---------------------------------------------------------------------------*/
-static void
+void
 publish_alarm(sensor_val_t *sensor)
 {
   uint16_t aux_int, aux_res;
@@ -160,7 +156,7 @@ publish_alarm(sensor_val_t *sensor)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
+void
 publish_event(sensor_values_t *msg)
 {
   char aux[64];
@@ -458,9 +454,8 @@ PROCESS_THREAD(relayr_process, ev, data)
       /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
       subscribe(cmd_topic);
 
-#if DEFAULT_SENSORS_NUM
-      seq_nr_value = 0;
-#endif /* DEFAULT_SENSORS_NUM */
+      /* Start the mqtt-sensors process */
+      process_start(&mqtt_sensors_process, NULL);
 
       /* Enable the sensor */
       process_start(&SENSORS_NAME(MQTT_SENSORS, _sensors_process), NULL);
@@ -470,24 +465,6 @@ PROCESS_THREAD(relayr_process, ev, data)
       /* We are not connected, disable the sensors */
       process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
     }
-#if DEFAULT_SENSORS_NUM
-    /* Check for periodic publish events */
-    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
-      seq_nr_value++;
-
-      /* The `pub_interval_check` is an external struct defined in mqtt-client */
-      if(!(seq_nr_value % conf.pub_interval_check)) {
-        sensor_values_t *msgPtr = (sensor_values_t *) data;
-        publish_event(msgPtr);
-      }
-    }
-
-    /* Check for alarms */
-    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_alarm_event)) {
-      sensor_val_t *sensorPtr = (sensor_val_t *) data;
-      publish_alarm(sensorPtr);
-    }
-#endif /* DEFAULT_SENSORS_NUM */
   }
 
   PROCESS_END();

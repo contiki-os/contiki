@@ -108,10 +108,9 @@ static uint8_t state;
 #define STATE_CONFIG_ERROR         0xFE
 #define STATE_ERROR                0xFF
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(mqtt_demo_process);
-AUTOSTART_PROCESSES(&mqtt_demo_process);
-/*---------------------------------------------------------------------------*/
+PROCESS_NAME(mqtt_client_process);
 PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
+AUTOSTART_PROCESSES(&mqtt_client_process);
 /*---------------------------------------------------------------------------*/
 /* Maximum TCP segment size for outgoing segments of our socket */
 #define MAX_TCP_SEGMENT_SIZE    32
@@ -180,7 +179,7 @@ HTTPD_SIMPLE_POST_HANDLER(auth_user, auth_user_post_handler);
 HTTPD_SIMPLE_POST_HANDLER(auth_token, auth_token_post_handler);
 #endif /* WITH_WEBSERVER */
 /*---------------------------------------------------------------------------*/
-PROCESS(mqtt_demo_process, "Zolertia MQTT Client");
+PROCESS(mqtt_client_process, "Zolertia MQTT Client");
 /*---------------------------------------------------------------------------*/
 static void
 publish_led_off(void *d)
@@ -304,7 +303,7 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
     PRINTF("\nClient: MQTT Disconnect. Reason %u\n", *((mqtt_event_t *)data));
 
     state = STATE_DISCONNECTED;
-    process_poll(&mqtt_demo_process);
+    process_poll(&mqtt_client_process);
     break;
   }
   case MQTT_EVENT_PUBLISH: {
@@ -393,7 +392,7 @@ state_machine(void)
 {
   switch(state) {
   case STATE_INIT:
-    mqtt_register(&conn, &mqtt_demo_process, conf.client_id, mqtt_event,
+    mqtt_register(&conn, &mqtt_client_process, conf.client_id, mqtt_event,
                   MAX_TCP_SEGMENT_SIZE);
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
@@ -536,7 +535,7 @@ state_machine(void)
   etimer_set(&publish_periodic_timer, STATE_MACHINE_PERIODIC);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(mqtt_demo_process, ev, data)
+PROCESS_THREAD(mqtt_client_process, ev, data)
 {
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
