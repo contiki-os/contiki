@@ -116,9 +116,9 @@
 #define RPL_CONF_MAX_INSTANCES    1 /* default 1 */
 #define RPL_CONF_MAX_DAG_PER_INSTANCE 1 /* default 2 */
 
-/* No RA, No NA */
-#undef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA 0
+/* No RA, No NS */
+#undef UIP_CONF_ND6_SEND_NS
+#define UIP_CONF_ND6_SEND_NS 0
 
 #undef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA 0
