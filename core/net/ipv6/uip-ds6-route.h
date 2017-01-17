@@ -177,6 +177,7 @@ typedef struct uip_ds6_defrt {
 
 /** \name Default router list basic routines */
 /** @{ */
+uip_ds6_defrt_t *uip_ds6_defrt_head(void);
 uip_ds6_defrt_t *uip_ds6_defrt_add(uip_ipaddr_t *ipaddr,
                                    unsigned long interval);
 void uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt);
