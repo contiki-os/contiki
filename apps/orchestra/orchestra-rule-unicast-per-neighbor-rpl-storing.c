@@ -45,6 +45,14 @@
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/packetbuf.h"
 #include "net/rpl/rpl-conf.h"
+#include "net/rpl/rpl-private.h"
+
+/*
+ * The body of this rule should be compiled only when "nbr_routes" is available,
+ * otherwise a link error causes build failure. "nbr_routes" is compiled if
+ * UIP_CONF_MAX_ROUTES != 0. See uip-ds6-route.c.
+ */
+#if UIP_CONF_MAX_ROUTES != 0
 
 #if ORCHESTRA_UNICAST_SENDER_BASED && ORCHESTRA_COLLISION_FREE_HASH
 #define UNICAST_SLOT_SHARED_FLAG    ((ORCHESTRA_UNICAST_PERIOD < (ORCHESTRA_MAX_HASH + 1)) ? LINK_OPTION_SHARED : 0)
@@ -211,3 +219,5 @@ struct orchestra_rule unicast_per_neighbor_rpl_storing = {
   child_added,
   child_removed,
 };
+
+#endif /* UIP_MAX_ROUTES */
