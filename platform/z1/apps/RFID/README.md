@@ -6,10 +6,8 @@
 This is a implementation on Z1 platform to detect the RFID tag nearby and printout the UID of the tag. It is a much refined version, compared to the full RFID library on Arduino and more similar to the one on Actel. Thus, it is adapted from:
 
 
-- [ Actel boards implementation] (github.com/knksmith57/eecs373-actel-mfrc522-spi)  
-
-
-- [ Arduino boards implementation ] (github.com/miguelbalboa/rfid)  
+- [Actel boards implementation](https://github.com/knksmith57/eecs373-actel-mfrc522-spi)
+- [Arduino boards implementation](https://github.com/miguelbalboa/rfid)
 
 
 This implementation is only tested for MIFARE 1KB tags so far. Other tag types may need modifications in the code.
