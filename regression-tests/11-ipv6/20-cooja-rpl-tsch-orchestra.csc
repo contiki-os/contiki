@@ -281,9 +281,9 @@ WAIT_UNTIL(msg.startsWith("Orchestra:"));&#xD;
 log.log("Orchestra started\n");&#xD;
 &#xD;
 /* Wait until a node (can only be the DAGRoot) has&#xD;
- * 8 routing entries (i.e. can reach every node) */&#xD;
+ * 9 routing entries including one for the root (i.e. can reach every node) */&#xD;
 log.log("Waiting for routing tables to fill\n");&#xD;
-WAIT_UNTIL(msg.endsWith("Routing links (8 in total):"));&#xD;
+WAIT_UNTIL(msg.endsWith("Routing links (9 in total):"));&#xD;
 log.log("Root routing table ready\n");&#xD;
 &#xD;
 log.testOK(); /* Report test success and quit */</script>
