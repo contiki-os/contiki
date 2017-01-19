@@ -88,6 +88,7 @@
         CALLBACK(U##XX##RXREG);                                          \
       } else {                                                           \
         byte = U##XX##RXREG; /* NULL READ */                             \
+        (void)byte;                                                      \
       }                                                                  \
       IFS##YY##CLR = _IFS##YY##_U##XX##RXIF_MASK;                        \
     }                                                                    \
