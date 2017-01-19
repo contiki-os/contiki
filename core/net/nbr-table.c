@@ -359,15 +359,20 @@ nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr, nbr_table_rea
 
     /* Set link-layer address */
     linkaddr_copy(&key->lladdr, lladdr);
+
+    /* Get item in the current table */
+    item = item_from_index(table, index);
+
+    /* Initialize item data... */
+    memset(item, 0, table->item_size);
+    /* and set "used" bit */
+    nbr_set_bit(used_map, table, item, 1);
+  } else {
+    /* Get item in the current table */
+    item = item_from_index(table, index);
+    /* Set "used" bit */
+    nbr_set_bit(used_map, table, item, 1);
   }
-
-  /* Get item in the current table */
-  item = item_from_index(table, index);
-
-  /* Initialize item data and set "used" bit */
-  memset(item, 0, table->item_size);
-  nbr_set_bit(used_map, table, item, 1);
-
 #if DEBUG
   print_table();
 #endif

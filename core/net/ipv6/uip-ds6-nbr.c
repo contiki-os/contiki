@@ -87,9 +87,21 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
   uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
                                             , reason, data);
   if(nbr) {
-    uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
 #if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
-    nbr->isrouter = isrouter;
+    /*
+     * If default-router and some packets have the same lladdr but different
+     * IP addresses, then the default route is overwritten (and lost). This is
+     * hack to prevent the default route from being lost. Multiple IP addresses
+     * per lladdr are required.
+     */
+    if(!nbr->isrouter) {
+      nbr->isrouter = isrouter;
+      uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+    } else {
+      PRINTF("Neighbour not added because same lladdr as route.\n");
+    }
+#else
+    uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
     nbr->state = state;
 #if UIP_CONF_IPV6_QUEUE_PKT
