@@ -86,6 +86,11 @@
 #else
 #define UIP_ND6_SEND_RA UIP_CONF_ND6_SEND_RA
 #endif
+#ifndef UIP_CONF_ND6_SEND_NS
+#define UIP_ND6_SEND_NS                     1   /* enable/disable NS sending */
+#else
+#define UIP_ND6_SEND_NS UIP_CONF_ND6_SEND_NS
+#endif
 #ifndef UIP_CONF_ND6_SEND_NA
 #define UIP_ND6_SEND_NA                     1   /* enable/disable NA sending */
 #else
@@ -125,7 +130,7 @@
 #if UIP_CONF_LL_802154
 #define UIP_ND6_DEF_MAXDADNS 0
 #else /* UIP_CONF_LL_802154 */
-#define UIP_ND6_DEF_MAXDADNS UIP_ND6_SEND_NA
+#define UIP_ND6_DEF_MAXDADNS UIP_ND6_SEND_NS
 #endif /* UIP_CONF_LL_802154 */
 #else /* UIP_CONF_ND6_DEF_MAXDADNS */
 #define UIP_ND6_DEF_MAXDADNS UIP_CONF_ND6_DEF_MAXDADNS

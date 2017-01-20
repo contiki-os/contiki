@@ -69,11 +69,11 @@ typedef struct uip_ds6_nbr {
   uip_ipaddr_t ipaddr;
   uint8_t isrouter;
   uint8_t state;
-#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_RA
   struct stimer reachable;
   struct stimer sendns;
   uint8_t nscount;
-#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA */
 #if UIP_CONF_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
@@ -98,7 +98,7 @@ void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
 int uip_ds6_nbr_num(void);
 
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
 /**
  * \brief Refresh the reachable state of a neighbor. This function
  * may be called when a node receives an IPv6 message that confirms the
@@ -107,7 +107,7 @@ int uip_ds6_nbr_num(void);
  * should be refreshed.
  */
 void uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr);
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
 /**
  * \brief
