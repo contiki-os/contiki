@@ -40,6 +40,13 @@
 #include <string.h>
 #include <stdio.h>
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
 
 /*---------------------------------------------------------------------------*/
@@ -49,23 +56,32 @@ init(void)
   uint8_t eui64[8];
   uint8_t macaddr[6];
 
-  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
-  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
+#ifdef ENC28J60_MAC_ADDR_PROVIDER
+  if(ENC28J60_MAC_ADDR_PROVIDER(macaddr)) {
+    PRINTF("enc28j60-ip64: Got provided MAC address.\n");
+  } else
+#endif
 
-  /* Mangle the EUI64 into a 48-bit Ethernet address. */
-  memcpy(&macaddr[0], &eui64[0], 3);
-  memcpy(&macaddr[3], &eui64[5], 3);
+  {
+    PRINTF("enc28j60-ip64: Using link node address.\n");
+    /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
+    memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
+
+    /* Mangle the EUI64 into a 48-bit Ethernet address. */
+    memcpy(&macaddr[0], &eui64[0], 3);
+    memcpy(&macaddr[3], &eui64[5], 3);
+
+    /* Set the U/L bit, in order to create a locally administered MAC address. */
+    macaddr[0] = (macaddr[0] | 0x02);
+  }
 
   /* In case the OUI happens to contain a broadcast bit, we mask that
      out here. */
   macaddr[0] = (macaddr[0] & 0xfe);
 
-  /* Set the U/L bit, in order to create a locally administered MAC address */
-  macaddr[0] = (macaddr[0] | 0x02);
-
   memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
 
-  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
+  PRINTF("enc28j60-ip64: MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
          macaddr[0], macaddr[1], macaddr[2],
          macaddr[3], macaddr[4], macaddr[5]);
   enc28j60_init(macaddr);
