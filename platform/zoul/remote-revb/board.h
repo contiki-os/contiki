@@ -433,6 +433,7 @@
  * a microSD in the slot, or when connected to disable the microSD to save power
  * @{
  */
+#define USD_SPI_INSTANCE         1
 #define USD_CLK_PORT             SPI1_CLK_PORT
 #define USD_CLK_PIN              SPI1_CLK_PIN
 #define USD_MOSI_PORT            SPI1_TX_PORT
@@ -481,6 +482,7 @@
  * 
  * @{
  */
+#define PLATFORM_HAS_RTC            1
 #define RTC_SDA_PORT                I2C_SDA_PORT
 #define RTC_SDA_PIN                 I2C_SDA_PIN
 #define RTC_SCL_PORT                I2C_SCL_PORT

@@ -66,7 +66,7 @@
 /* Construct enhanced ACK packet and return ACK length */
 int
 tsch_packet_create_eack(uint8_t *buf, int buf_size,
-    linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
+                        const linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
 {
   int ret;
   uint8_t curr_len = 0;
@@ -125,7 +125,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 /* Parse enhanced ACK packet, extract drift and nack */
 int
 tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
-    uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
+                       uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
 {
   uint8_t curr_len = 0;
   int ret;
@@ -155,8 +155,8 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 
   /* Check destination address (if any) */
   if(frame802154_extract_linkaddr(frame, NULL, &dest) == 0 ||
-      (!linkaddr_cmp(&dest, &linkaddr_node_addr)
-          && !linkaddr_cmp(&dest, &linkaddr_null))) {
+     (!linkaddr_cmp(&dest, &linkaddr_node_addr)
+      && !linkaddr_cmp(&dest, &linkaddr_null))) {
     return 0;
   }
 
@@ -190,7 +190,7 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 /* Create an EB packet */
 int
 tsch_packet_create_eb(uint8_t *buf, int buf_size,
-    uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
+                      uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
 {
   int ret = 0;
   uint8_t curr_len = 0;
@@ -338,7 +338,7 @@ int
 tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 {
   struct ieee802154_ies ies;
-  ies.ie_asn = current_asn;
+  ies.ie_asn = tsch_current_asn;
   ies.ie_join_priority = tsch_join_priority;
   frame80215e_create_ie_tsch_synchronization(buf+tsch_sync_ie_offset, buf_size-tsch_sync_ie_offset, &ies);
   return 1;
@@ -347,7 +347,7 @@ tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
 tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
-    frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
+                     frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
 {
   uint8_t curr_len = 0;
   int ret;

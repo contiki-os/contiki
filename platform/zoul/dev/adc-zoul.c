@@ -162,7 +162,8 @@ configure(int type, int value)
     }
     adc_init();
     set_decimation_rate(SOC_ADC_ADCCON_DIV_512);
-    enabled_channels += value;
+    enabled_channels |= value;
+    PRINTF("ADC: enabled channels 0x%02X\n", enabled_channels);
     break;
 
   case ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE:

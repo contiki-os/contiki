@@ -215,13 +215,13 @@ rpl_parent_is_reachable(rpl_parent_t *p) {
   if(p == NULL || p->dag == NULL || p->dag->instance == NULL || p->dag->instance->of == NULL) {
     return 0;
   } else {
-#ifndef UIP_CONF_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
     uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
     /* Exclude links to a neighbor that is not reachable at a NUD level */
     if(nbr == NULL || nbr->state != NBR_REACHABLE) {
       return 0;
     }
-#endif /* UIP_CONF_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
     /* If we don't have fresh link information, assume the parent is reachable. */
     return !rpl_parent_is_fresh(p) || p->dag->instance->of->parent_has_usable_link(p);
   }
@@ -865,7 +865,10 @@ best_parent(rpl_dag_t *dag, int fresh_only)
   for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
 
     /* Exclude parents from other DAGs or announcing an infinite rank */
-    if(p->dag != dag || p->rank == INFINITE_RANK) {
+    if(p->dag != dag || p->rank == INFINITE_RANK || p->rank < ROOT_RANK(dag->instance)) {
+      if(p->rank < ROOT_RANK(dag->instance)) {
+        PRINTF("RPL: Parent has invalid rank\n");
+      }
       continue;
     }
 
@@ -874,7 +877,7 @@ best_parent(rpl_dag_t *dag, int fresh_only)
       continue;
     }
 
-#ifndef UIP_CONF_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
     {
     uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
     /* Exclude links to a neighbor that is not reachable at a NUD level */
@@ -882,7 +885,7 @@ best_parent(rpl_dag_t *dag, int fresh_only)
       continue;
     }
     }
-#endif /* UIP_CONF_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
     /* Now we have an acceptable parent, check if it is the new best */
     best = of->best_parent(best, p);
@@ -1542,7 +1545,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   /* The DIO comes from a valid DAG, we can refresh its lifetime */
-  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) / 1000;
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) * RPL_DAG_LIFETIME / 1000;
   PRINTF("Set dag ");
   PRINT6ADDR(&dag->dag_id);
   PRINTF(" lifetime to %ld\n", dag->lifetime);

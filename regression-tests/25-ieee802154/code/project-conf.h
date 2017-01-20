@@ -29,4 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _PROJECT_CONF_H_
+#define _PROJECT_CONF_H_
+
 #define UNIT_TEST_PRINT_FUNCTION test_print_report
+
+#if WITH_TSCH
+#include "project-tsch-conf.h"
+#endif
+
+#endif /* !_PROJECT_CONF_H_ */

@@ -5,7 +5,6 @@ CONTIKI_PROJECT += test-bmp085-bmp180 test-motion test-rotation-sensor
 CONTIKI_PROJECT += test-grove-light-sensor test-grove-loudness-sensor
 CONTIKI_PROJECT += test-weather-meter test-grove-gyro test-lcd test-iaq
 CONTIKI_PROJECT += test-pm10-sensor test-vac-sensor test-aac-sensor
-
 CONTIKI_PROJECT += test-zonik test-dht22 test-ac-dimmer
 CONTIKI_PROJECT += test-bme280 test-hp206c
 

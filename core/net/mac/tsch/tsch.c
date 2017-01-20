@@ -90,7 +90,7 @@ NBR_TABLE(struct eb_stat, eb_stats);
 
 /* TSCH channel hopping sequence */
 uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
-struct asn_divisor_t tsch_hopping_sequence_length;
+struct tsch_asn_divisor_t tsch_hopping_sequence_length;
 
 /* Default TSCH timeslot timing (in micro-second) */
 static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {
@@ -131,7 +131,7 @@ int tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
 int tsch_is_pan_secured = LLSEC802154_ENABLED;
 /* The current Absolute Slot Number (ASN) */
-struct asn_t current_asn;
+struct tsch_asn_t tsch_current_asn;
 /* Device rank or join priority:
  * For PAN coordinator: 0 -- lower is better */
 uint8_t tsch_join_priority;
@@ -202,7 +202,7 @@ tsch_reset(void)
   tsch_queue_update_time_source(NULL);
   /* Initialize global variables */
   tsch_join_priority = 0xff;
-  ASN_INIT(current_asn, 0, 0);
+  TSCH_ASN_INIT(tsch_current_asn, 0, 0);
   current_link = NULL;
   /* Reset timeslot timing to defaults */
   for(i = 0; i < tsch_ts_elements_count; i++) {
@@ -310,7 +310,7 @@ eb_input(struct input_packet *current_input)
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
-      int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
+      int32_t asn_diff = TSCH_ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
       if(asn_diff != 0) {
         /* We disagree with our time source's ASN -- leave the network */
         PRINTF("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
@@ -401,7 +401,7 @@ tsch_start_coordinator(void)
   frame802154_set_pan_id(IEEE802154_PANID);
   /* Initialize hopping sequence as default */
   memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-  ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+  TSCH_ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
 #if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
   tsch_schedule_create_minimal();
 #endif
@@ -410,10 +410,10 @@ tsch_start_coordinator(void)
   tsch_join_priority = 0;
 
   PRINTF("TSCH: starting as coordinator, PAN ID %x, asn-%x.%lx\n",
-      frame802154_get_pan_id(), current_asn.ms1b, current_asn.ls4b);
+      frame802154_get_pan_id(), tsch_current_asn.ms1b, tsch_current_asn.ls4b);
 
   /* Start slot operation */
-  tsch_slot_operation_sync(RTIMER_NOW(), &current_asn);
+  tsch_slot_operation_sync(RTIMER_NOW(), &tsch_current_asn);
 }
 /*---------------------------------------------------------------------------*/
 /* Leave the TSCH network */
@@ -442,7 +442,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 
-  current_asn = ies.ie_asn;
+  tsch_current_asn = ies.ie_asn;
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -455,7 +455,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 #if LLSEC802154_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
-      &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
+      &frame, (linkaddr_t*)&frame.src_addr, &tsch_current_asn)) {
     PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
@@ -494,11 +494,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   /* TSCH hopping sequence */
   if(ies.ie_channel_hopping_sequence_id == 0) {
     memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-    ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+    TSCH_ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
   } else {
     if(ies.ie_hopping_sequence_len <= sizeof(tsch_hopping_sequence)) {
       memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
-      ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
+      TSCH_ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
     } else {
       PRINTF("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
       return 0;
@@ -509,10 +509,10 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   /* Divide by 4k and multiply again to avoid integer overflow */
   uint32_t expected_asn = 4096 * TSCH_CLOCK_TO_SLOTS(clock_time() / 4096, tsch_timing_timeslot_length); /* Expected ASN based on our current time*/
   int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION * 60ul * TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
-  int32_t asn_diff = (int32_t)current_asn.ls4b - expected_asn;
+  int32_t asn_diff = (int32_t)tsch_current_asn.ls4b - expected_asn;
   if(asn_diff > asn_threshold) {
     PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
-           current_asn.ls4b, expected_asn, asn_diff);
+           tsch_current_asn.ls4b, expected_asn, asn_diff);
     return 0;
   }
 #endif
@@ -562,7 +562,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       frame802154_set_pan_id(frame.src_pid);
 
       /* Synchronize on EB */
-      tsch_slot_operation_sync(timestamp - tsch_timing[tsch_ts_tx_offset], &current_asn);
+      tsch_slot_operation_sync(timestamp - tsch_timing[tsch_ts_tx_offset], &tsch_current_asn);
 
       /* Update global flags */
       tsch_is_associated = 1;
@@ -578,7 +578,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       PRINTF("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from ",
              tsch_is_pan_secured,
              frame.src_pid,
-             current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
+             tsch_current_asn.ms1b, tsch_current_asn.ls4b, tsch_join_priority,
              ies.ie_tsch_timeslot_id,
              ies.ie_channel_hopping_sequence_id,
              ies.ie_tsch_slotframe_and_link.slotframe_size,
@@ -609,7 +609,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
   /* Time when we started scanning on current_channel */
   static clock_time_t current_channel_since;
 
-  ASN_INIT(current_asn, 0, 0);
+  TSCH_ASN_INIT(tsch_current_asn, 0, 0);
 
   etimer_set(&scan_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
   current_channel_since = clock_time();
@@ -749,7 +749,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
 #endif /* LLSEC802154_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
             &hdr_len, &tsch_sync_ie_offset);
-        if(eb_len != 0) {
+        if(eb_len > 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */
@@ -909,6 +909,15 @@ send_packet(mac_callback_t sent, void *ptr)
 #endif /* LLSEC802154_ENABLED */
 
   packet_count_before = tsch_queue_packet_count(addr);
+
+#if !NETSTACK_CONF_BRIDGE_MODE
+  /*
+   * In the Contiki stack, the source address of a frame is set at the RDC
+   * layer. Since TSCH doesn't use any RDC protocol and bypasses the layer to
+   * transmit a frame, it should set the source address by itself.
+   */
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+#endif
 
   if((hdr_len = NETSTACK_FRAMER.create()) < 0) {
     PRINTF("TSCH:! can't send packet due to framer error\n");

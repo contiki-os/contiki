@@ -47,6 +47,9 @@
 
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
+#define RTC_CONF_INIT           1
+#define RTC_CONF_SET_FROM_SYS   1
+
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
 /**
