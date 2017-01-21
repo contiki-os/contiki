@@ -78,10 +78,6 @@
 #define NETSTACK_CONF_RADIO   rf230_driver
 #endif
 
-#ifndef CHANNEL_802_15_4
-#define CHANNEL_802_15_4      26
-#endif
-
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #ifndef RF230_CONF_AUTOACK
 #define RF230_CONF_AUTOACK        1
