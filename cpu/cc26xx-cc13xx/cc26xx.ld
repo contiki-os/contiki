@@ -90,10 +90,14 @@ SECTIONS
         _ebss = .;
     } > SRAM
 
+    _end = .;  /* End of the .bss segment. */
+
     .ccfg :
     {
         KEEP(*(.ccfg))
     } > FLASH_CCFG
+
+    _stack = .;  /* This symbol is used by the stack check library. */
 
     /* User_heap_stack section, used to check that there is enough RAM left */
     ._user_heap_stack :
