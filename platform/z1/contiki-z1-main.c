@@ -45,6 +45,7 @@
 #include "net/mac/frame802154.h"
 #include "dev/adxl345.h"
 #include "sys/clock.h"
+#include "sys/stack-check.h"
 
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
@@ -211,6 +212,8 @@ main(int argc, char **argv)
   /*
    * Hardware initialization done!
    */
+
+  stack_check_init();
 
   /* Restore node id if such has been stored in external mem */
   node_id_restore();

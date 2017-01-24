@@ -60,6 +60,7 @@
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 #include "sys/node-id.h"
+#include "sys/stack-check.h"
 #include "lib/random.h"
 #include "lib/sensors.h"
 #include "button-sensor.h"
@@ -173,6 +174,8 @@ main(void)
   soc_rtc_init();
   clock_init();
   rtimer_init();
+
+  stack_check_init();
 
   watchdog_init();
   process_init();

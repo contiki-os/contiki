@@ -48,6 +48,7 @@
 #include "net/netstack.h"
 #include "net/rime/rime.h"
 #include "sys/autostart.h"
+#include "sys/stack-check.h"
 
 #include "sys/node-id.h"
 #include "lcd.h"
@@ -137,6 +138,8 @@ main(int argc, char **argv)
   /*
    * Hardware initialization done!
    */
+
+  stack_check_init();
   
   leds_on(LEDS_RED);
   /* Restore node id if such has been stored in external mem */

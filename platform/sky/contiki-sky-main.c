@@ -53,6 +53,7 @@
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
+#include "sys/stack-check.h"
 
 #if UIP_CONF_ROUTER
 
@@ -228,6 +229,8 @@ main(int argc, char **argv)
    */
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
+
+  stack_check_init();
   
 #if WITH_TINYOS_AUTO_IDS
   node_id = TOS_NODE_ID;

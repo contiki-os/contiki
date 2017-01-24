@@ -278,4 +278,7 @@ typedef unsigned long off_t;
 #define I2C_RX_WITH_INTERRUPT 1
 #endif /* I2C_CONF_RX_WITH_INTERRUPT */
 
+/* Platform-specific define for the end of the stack region */
+#define STACK_CONF_ORIGIN     ((void *)0x3100)
+
 #endif /* PLATFORM_CONF_H_ */
