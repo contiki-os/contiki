@@ -295,7 +295,9 @@ uip_ds6_neighbor_periodic(void)
         if(stimer_expired(&nbr->reachable)) {
           nbr->state = NBR_PROBE;
           nbr->nscount = 0;
-          PRINTF("DELAY: moving to PROBE\n");
+          PRINTF("DELAY: moving to PROBE (");
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
           stimer_set(&nbr->sendns, 0);
         }
         break;
@@ -311,7 +313,9 @@ uip_ds6_neighbor_periodic(void)
           uip_ds6_nbr_rm(nbr);
         } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
           nbr->nscount++;
-          PRINTF("PROBE: NS %u\n", nbr->nscount);
+          PRINTF("PROBE: NS %u (", nbr->nscount);
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
           uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
           stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
