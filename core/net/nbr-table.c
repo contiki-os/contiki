@@ -421,39 +421,6 @@ nbr_table_get_lladdr(nbr_table_t *table, const void *item)
   return key != NULL ? &key->lladdr : NULL;
 }
 /*---------------------------------------------------------------------------*/
-/* Update link-layer address of an item */
-int
-nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr,
-                        int remove_if_duplicate)
-{
-  int index;
-  int new_index;
-  nbr_table_key_t *key;
-  index = index_from_lladdr(old_addr);
-  if(index == -1) {
-    /* Failure to change since there is nothing to change. */
-    return 0;
-  }
-  if((new_index = index_from_lladdr(new_addr)) != -1) {
-    /* check if it is a change or not - do not remove / fail if same */
-    if(new_index == index) {
-      return 1;
-    }
-    /* This new entry already exists - failure! - remove if requested. */
-    if(remove_if_duplicate) {
-      remove_key(key_from_index(index));
-    }
-    return 0;
-  }
-  key = key_from_index(index);
-  /**
-   * Copy the new lladdr into the key - since we know that there is no
-   * conflicting entry.
-   */
-  memcpy(&key->lladdr, new_addr, sizeof(linkaddr_t));
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
 #if DEBUG
 static void
 print_table()
