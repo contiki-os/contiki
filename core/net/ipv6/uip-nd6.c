@@ -235,9 +235,8 @@ ns_input(void)
             if(lladdr == NULL) {
               goto discard;
             }
-            if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-                      lladdr, UIP_LLADDR_LEN) != 0) {
-              if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
+            if(memcmp(&lladdr_aligned, lladdr, UIP_LLADDR_LEN) != 0) {
+              if(uip_ds6_nbr_update_lladdr(&nbr, &lladdr_aligned) == 0) {
                 /* failed to update the lladdr */
                 goto discard;
               }
@@ -537,15 +536,11 @@ na_input(void)
       if(nd6_opt_llao == NULL || !extract_lladdr_from_llao_aligned(&lladdr_aligned)) {
         goto discard;
       }
-      if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
+      if(uip_ds6_nbr_update_lladdr(&nbr, &lladdr_aligned) == 0) {
         /* failed to update the lladdr */
         goto discard;
       }
 
-      /* Note: No need to refresh the state of the nbr here.
-       * It has already been refreshed upon receiving the unicast IPv6 ND packet.
-       * See: uip_ds6_nbr_refresh_reachable_state()
-       */
       if(!is_solicited) {
         nbr->state = NBR_STALE;
       } else {
@@ -567,7 +562,7 @@ na_input(void)
         if(is_override || !is_llchange || nd6_opt_llao == NULL) {
           if(nd6_opt_llao != NULL && is_llchange) {
             if(!extract_lladdr_from_llao_aligned(&lladdr_aligned) ||
-               nbr_table_update_lladdr((const linkaddr_t *) lladdr, (const linkaddr_t *) &lladdr_aligned, 1) == 0) {
+               uip_ds6_nbr_update_lladdr(&nbr, &lladdr_aligned) == 0) {
               /* failed to update the lladdr */
               goto discard;
             }
@@ -930,7 +925,8 @@ ra_input(void)
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
                     lladdr, UIP_LLADDR_LEN) != 0) {
             /* change of link layer address */
-            if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
+            if(uip_ds6_nbr_update_lladdr(&nbr,
+                                     &lladdr_aligned) == 0) {
               /* failed to update the lladdr */
               goto discard;
             }
