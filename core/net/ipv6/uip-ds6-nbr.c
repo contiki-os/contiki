@@ -84,8 +84,8 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state, nbr_table_reason_t reason,
                 void *data)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
-                                            , reason, data);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr,
+                                            reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
 #if UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
@@ -121,7 +121,6 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     return NULL;
   }
 }
-
 /*---------------------------------------------------------------------------*/
 int
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
@@ -135,14 +134,12 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   }
   return 0;
 }
-
 /*---------------------------------------------------------------------------*/
 const uip_ipaddr_t *
 uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr)
 {
   return (nbr != NULL) ? &nbr->ipaddr : NULL;
 }
-
 /*---------------------------------------------------------------------------*/
 const uip_lladdr_t *
 uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr)
@@ -254,73 +251,73 @@ uip_ds6_neighbor_periodic(void)
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {
-    case NBR_REACHABLE:
-      if(stimer_expired(&nbr->reachable)) {
+      case NBR_REACHABLE:
+        if(stimer_expired(&nbr->reachable)) {
 #if UIP_CONF_IPV6_RPL
-        /* when a neighbor leave its REACHABLE state and is a default router,
-           instead of going to STALE state it enters DELAY state in order to
-           force a NUD on it. Otherwise, if there is no upward traffic, the
-           node never knows if the default router is still reachable. This
-           mimics the 6LoWPAN-ND behavior.
-         */
-        if(uip_ds6_defrt_lookup(&nbr->ipaddr) != NULL) {
-          PRINTF("REACHABLE: defrt moving to DELAY (");
-          PRINT6ADDR(&nbr->ipaddr);
-          PRINTF(")\n");
-          nbr->state = NBR_DELAY;
-          stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
-          nbr->nscount = 0;
-        } else {
+          /* when a neighbor leave its REACHABLE state and is a default router,
+             instead of going to STALE state it enters DELAY state in order to
+             force a NUD on it. Otherwise, if there is no upward traffic, the
+             node never knows if the default router is still reachable. This
+             mimics the 6LoWPAN-ND behavior.
+          */
+          if(uip_ds6_defrt_lookup(&nbr->ipaddr) != NULL) {
+            PRINTF("REACHABLE: defrt moving to DELAY (");
+            PRINT6ADDR(&nbr->ipaddr);
+            PRINTF(")\n");
+            nbr->state = NBR_DELAY;
+            stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+            nbr->nscount = 0;
+          } else {
+            PRINTF("REACHABLE: moving to STALE (");
+            PRINT6ADDR(&nbr->ipaddr);
+            PRINTF(")\n");
+            nbr->state = NBR_STALE;
+          }
+#else /* UIP_CONF_IPV6_RPL */
           PRINTF("REACHABLE: moving to STALE (");
           PRINT6ADDR(&nbr->ipaddr);
           PRINTF(")\n");
           nbr->state = NBR_STALE;
-        }
-#else /* UIP_CONF_IPV6_RPL */
-        PRINTF("REACHABLE: moving to STALE (");
-        PRINT6ADDR(&nbr->ipaddr);
-        PRINTF(")\n");
-        nbr->state = NBR_STALE;
 #endif /* UIP_CONF_IPV6_RPL */
-      }
-      break;
-    case NBR_INCOMPLETE:
-      if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
-        uip_ds6_nbr_rm(nbr);
-      } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
-        nbr->nscount++;
-        PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
-        uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
-        stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
-      }
-      break;
-    case NBR_DELAY:
-      if(stimer_expired(&nbr->reachable)) {
-        nbr->state = NBR_PROBE;
-        nbr->nscount = 0;
-        PRINTF("DELAY: moving to PROBE\n");
-        stimer_set(&nbr->sendns, 0);
-      }
-      break;
-    case NBR_PROBE:
-      if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
-        uip_ds6_defrt_t *locdefrt;
-        PRINTF("PROBE END\n");
-        if((locdefrt = uip_ds6_defrt_lookup(&nbr->ipaddr)) != NULL) {
-          if (!locdefrt->isinfinite) {
-            uip_ds6_defrt_rm(locdefrt);
-          }
         }
-        uip_ds6_nbr_rm(nbr);
-      } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
-        nbr->nscount++;
-        PRINTF("PROBE: NS %u\n", nbr->nscount);
-        uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
-        stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
-      }
-      break;
-    default:
-      break;
+        break;
+      case NBR_INCOMPLETE:
+        if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
+          uip_ds6_nbr_rm(nbr);
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
+          uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+        break;
+      case NBR_DELAY:
+        if(stimer_expired(&nbr->reachable)) {
+          nbr->state = NBR_PROBE;
+          nbr->nscount = 0;
+          PRINTF("DELAY: moving to PROBE\n");
+          stimer_set(&nbr->sendns, 0);
+        }
+        break;
+      case NBR_PROBE:
+        if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+          uip_ds6_defrt_t *locdefrt;
+          PRINTF("PROBE END\n");
+          if((locdefrt = uip_ds6_defrt_lookup(&nbr->ipaddr)) != NULL) {
+            if (!locdefrt->isinfinite) {
+              uip_ds6_defrt_rm(locdefrt);
+            }
+          }
+          uip_ds6_nbr_rm(nbr);
+        } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+          nbr->nscount++;
+          PRINTF("PROBE: NS %u\n", nbr->nscount);
+          uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
+          stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+        }
+        break;
+      default:
+        break;
     }
     nbr = nbr_table_next(ds6_neighbors, nbr);
   }
