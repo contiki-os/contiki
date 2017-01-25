@@ -548,7 +548,10 @@ na_input(void)
        */
       if(!is_solicited) {
         nbr->state = NBR_STALE;
+      } else {
+        nbr->state = NBR_REACHABLE;
       }
+
       nbr->isrouter = is_router;
     } else { /* NBR is not INCOMPLETE */
       if(!is_override && is_llchange) {
