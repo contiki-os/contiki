@@ -34,7 +34,9 @@ function collect_results(str) {
         }
 
         if (msg.contains("post-ping")) {
-            if ((msg.contains("00:00:00:00:00:00:00:00") ||
+            /* RPL uses a "route" for ping to a global address */
+            if ((rpl_ping_sender.id != id || str.search(/global/) == -1) &&
+                (msg.contains("00:00:00:00:00:00:00:00") ||
                  msg.contains("null")) &&
                 success.indexOf(id) >= 0) {
                 success.splice(success.indexOf(id), 1);
@@ -146,5 +148,12 @@ tsch_ping_sender.send_ping(tsch_ping_receiver, "link local");
 rpl_ping_sender.send_ping(rpl_ping_receiver, "link local");
 
 collect_results("ping for link local address");
+
+csma_ping_sender.send_ping(csma_ping_receiver, "global");
+csma_ieee802154e_2012_ping_sender.send_ping(csma_ieee802154e_2012_ping_receiver, "global");
+tsch_ping_sender.send_ping(tsch_ping_receiver, "global");
+rpl_ping_sender.send_ping(rpl_ping_receiver, "global");
+
+collect_results("ping for global address");
 
 log.testOK();
