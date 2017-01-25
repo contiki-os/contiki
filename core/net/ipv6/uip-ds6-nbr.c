@@ -135,6 +135,54 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Update the link-layer address associated with a specified 'nbr'
+ * \retval 0 Failure
+ * \retval 1 Success
+ */
+int
+uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
+{
+  uip_ds6_nbr_t *new_nbr;
+  uip_ds6_nbr_t backup_nbr;
+
+  if(nbr == NULL || *nbr == NULL || new_ll_addr == NULL) {
+    return 0;
+  }
+
+  if(uip_ds6_nbr_ll_lookup(new_ll_addr) != NULL) {
+    /*
+     * It seems new_ll_addr is associated with another IPv6 address. Currently,
+     * we have a single 'nbr' entry per link-layer address; give up the update.
+     */
+    PRINTF("uip_ds6_nbr_update_lladdr(): ");
+    PRINTF("new_ll_addr is associated with another IPv6 address");
+    return 0;
+  }
+
+  /* make room for a newly allocated nbr first */
+  memcpy(&backup_nbr, *nbr, sizeof(uip_ds6_nbr_t));
+  if(uip_ds6_nbr_rm(*nbr) == 0) {
+    /* Unexpectedly failed to remove 'nbr'. */
+    return 0;
+  }
+
+  new_nbr = uip_ds6_nbr_add(&backup_nbr.ipaddr, new_ll_addr,
+                            backup_nbr.isrouter, backup_nbr.state,
+                            NBR_TABLE_REASON_IPV6_ND, NULL);
+  if(new_nbr == NULL) {
+    /* Failed to allocate a new 'nbr', and *nbr has already removed  */
+    PRINTF("uip_ds6_nbr_update_lladdr(): ");
+    PRINTF("failed to allocate a new 'nbr'");
+    *nbr = NULL;
+    return 0;
+  }
+  memcpy(new_nbr, &backup_nbr, sizeof(uip_ds6_nbr_t));
+  *nbr = new_nbr; /* make '*nbr' point to 'new_nbr' */
+
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 const uip_ipaddr_t *
 uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr)
 {
