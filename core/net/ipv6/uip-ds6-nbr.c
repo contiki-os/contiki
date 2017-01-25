@@ -331,7 +331,7 @@ uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr;
   nbr = uip_ds6_nbr_lookup(ipaddr);
-  if(nbr != NULL) {
+  if(nbr != NULL && nbr->state != NBR_INCOMPLETE) {
     nbr->state = NBR_REACHABLE;
     nbr->nscount = 0;
     stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
