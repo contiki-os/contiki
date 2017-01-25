@@ -557,21 +557,6 @@ rm_routelist_callback(nbr_table_item_t *ptr)
 }
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
 /*---------------------------------------------------------------------------*/
-void
-uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
-{
-#if (UIP_CONF_MAX_ROUTES != 0)
-  /* Get routing entry list of this neighbor */
-  const uip_lladdr_t *nexthop_lladdr;
-  struct uip_ds6_route_neighbor_routes *routes;
-
-  nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
-  routes = nbr_table_get_from_lladdr(nbr_routes,
-                                     (linkaddr_t *)nexthop_lladdr);
-  rm_routelist(routes);
-#endif /* (UIP_CONF_MAX_ROUTES != 0) */
-}
-/*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *
 uip_ds6_defrt_head(void)
 {
