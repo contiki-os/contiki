@@ -103,8 +103,9 @@
 #define IEEE_MODE_RSSI_THRESHOLD 0xA6
 #endif /* IEEE_MODE_CONF_RSSI_THRESHOLD */
 /*---------------------------------------------------------------------------*/
-#define STATUS_CRC_OK      0x80
-#define STATUS_CORRELATION 0x7f
+#define STATUS_CRC_FAIL     0x80 /* bit 7 */
+#define STATUS_REJECT_FRAME 0x40 /* bit 6 */
+#define STATUS_CORRELATION  0x3f /* bits 0-5 */
 /*---------------------------------------------------------------------------*/
 /* Data entry status field constants */
 #define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
@@ -1057,7 +1058,7 @@ read_frame(void *buf, unsigned short buf_len)
   memcpy(buf, (char *)&rx_read_entry[9], len);
 
   last_rssi = (int8_t)rx_read_entry[9 + len + 2];
-  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 2] & STATUS_CORRELATION;
+  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 3] & STATUS_CORRELATION;
 
   /* get the timestamp */
   memcpy(&rat_timestamp, (char *)rx_read_entry + 9 + len + 4, 4);
