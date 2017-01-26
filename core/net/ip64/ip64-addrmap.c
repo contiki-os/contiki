@@ -56,6 +56,13 @@ static uint16_t mapped_port = FIRST_MAPPED_PORT;
 #define printf(...)
 
 /*---------------------------------------------------------------------------*/
+static void
+increase_mapped_port(void)
+{
+  mapped_port = (random_rand() % (LAST_MAPPED_PORT - FIRST_MAPPED_PORT)) +
+    FIRST_MAPPED_PORT;
+}
+/*---------------------------------------------------------------------------*/
 struct ip64_addrmap_entry *
 ip64_addrmap_list(void)
 {
@@ -67,7 +74,7 @@ ip64_addrmap_init(void)
 {
   memb_init(&entrymemb);
   list_init(entrylist);
-  mapped_port = FIRST_MAPPED_PORT;
+  increase_mapped_port();       /* Randomize first used port. */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -127,23 +134,23 @@ recycle(void)
 /*---------------------------------------------------------------------------*/
 struct ip64_addrmap_entry *
 ip64_addrmap_lookup(const uip_ip6addr_t *ip6addr,
-		    uint16_t ip6port,
-		    const uip_ip4addr_t *ip4addr,
-		    uint16_t ip4port,
-		    uint8_t protocol)
+                    uint16_t ip6port,
+                    const uip_ip4addr_t *ip4addr,
+                    uint16_t ip4port,
+                    uint8_t protocol)
 {
   struct ip64_addrmap_entry *m;
 
   printf("lookup ip4port %d ip6port %d\n", uip_htons(ip4port),
-	 uip_htons(ip6port));
+         uip_htons(ip6port));
   check_age();
   for(m = list_head(entrylist); m != NULL; m = list_item_next(m)) {
     printf("protocol %d %d, ip4port %d %d, ip6port %d %d, ip4 %d ip6 %d\n",
-	   m->protocol, protocol,
-	   m->ip4port, ip4port,
-	   m->ip6port, ip6port,
-	   uip_ip4addr_cmp(&m->ip4addr, ip4addr),
-	   uip_ip6addr_cmp(&m->ip6addr, ip6addr));
+           m->protocol, protocol,
+           m->ip4port, ip4port,
+           m->ip6port, ip6port,
+           uip_ip4addr_cmp(&m->ip4addr, ip4addr),
+           uip_ip6addr_cmp(&m->ip6addr, ip6addr));
     if(m->protocol == protocol &&
        m->ip4port == ip4port &&
        m->ip6port == ip6port &&
@@ -164,8 +171,8 @@ ip64_addrmap_lookup_port(uint16_t mapped_port, uint8_t protocol)
   check_age();
   for(m = list_head(entrylist); m != NULL; m = list_item_next(m)) {
     printf("mapped port %d %d, protocol %d %d\n",
-	   m->mapped_port, mapped_port,
-	   m->protocol, protocol);
+           m->mapped_port, mapped_port,
+           m->protocol, protocol);
     if(m->mapped_port == mapped_port &&
        m->protocol == protocol) {
       m->ip4to6++;
@@ -175,19 +182,12 @@ ip64_addrmap_lookup_port(uint16_t mapped_port, uint8_t protocol)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
-static void
-increase_mapped_port(void)
-{
-  mapped_port = (random_rand() % (LAST_MAPPED_PORT - FIRST_MAPPED_PORT)) +
-    FIRST_MAPPED_PORT;
-}
-/*---------------------------------------------------------------------------*/
 struct ip64_addrmap_entry *
 ip64_addrmap_create(const uip_ip6addr_t *ip6addr,
-		    uint16_t ip6port,
-		    const uip_ip4addr_t *ip4addr,
-		    uint16_t ip4port,
-		    uint8_t protocol)
+                    uint16_t ip6port,
+                    const uip_ip4addr_t *ip4addr,
+                    uint16_t ip4port,
+                    uint8_t protocol)
 {
   struct ip64_addrmap_entry *m;
 
@@ -218,12 +218,12 @@ ip64_addrmap_create(const uip_ip6addr_t *ip6addr,
       struct ip64_addrmap_entry *n;
       n = list_head(entrylist);
       while(n != NULL) {
-	if(n->mapped_port == mapped_port) {
-	  increase_mapped_port();
-	  n = list_head(entrylist);
-	} else {
-	  n = list_item_next(m);
-	}
+        if(n->mapped_port == mapped_port) {
+          increase_mapped_port();
+          n = list_head(entrylist);
+        } else {
+          n = list_item_next(m);
+        }
       }
     }
     m->mapped_port = mapped_port;
