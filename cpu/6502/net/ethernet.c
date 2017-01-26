@@ -63,7 +63,7 @@ ethernet_init(struct ethernet_config *config)
 {
   static const char signature[4] = {0x65, 0x74, 0x68, 0x01};
 
-#ifndef ETHERNET
+#ifndef STATIC_DRIVER
 
   struct mod_ctrl module_control = {cfs_read};
   uint8_t byte;
@@ -91,13 +91,13 @@ ethernet_init(struct ethernet_config *config)
     }
   }
 
-#else /* !ETHERNET */
+#else /* !STATIC_DRIVER */
 
-  extern void ETHERNET;
+  extern void STATIC_DRIVER;
 
-  module = &ETHERNET;
+  module = &STATIC_DRIVER;
 
-#endif /* !ETHERNET */
+#endif /* !STATIC_DRIVER */
 
   module->buffer = uip_buf;
   module->buffer_size = UIP_BUFSIZE;
@@ -126,8 +126,8 @@ ethernet_exit(void)
 {
   module->exit();
 
-#ifndef ETHERNET
+#ifndef STATIC_DRIVER
   mod_free(module);
-#endif /* !ETHERNET */
+#endif /* !STATIC_DRIVER */
 }
 /*---------------------------------------------------------------------------*/
