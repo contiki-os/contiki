@@ -1,0 +1,68 @@
+# saker platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides)
+endif
+
+### IP64 specific stuff
+# We define WITH_IP64 to notify various software modules that we use IP64
+ifeq ($(WITH_IP64),1)
+  $(info Building with IP64 support ENABLED)
+	DEFINES += WITH_IP64=1
+else
+  $(info Building with IP64 support DISABLED)
+	DEFINES += WITH_IP64=0
+endif
+
+# We define WITH_SLIP to notify various software modules that we use SLIP
+ifeq ($(WITH_SLIP),1)
+  $(info Building with SLIP support ENABLED)
+    DEFINES += WITH_SLIP=1
+else
+  $(info Building with SLIP support DISABLED)
+    DEFINES += WITH_SLIP=0
+endif
+
+
+CONTIKI_TARGET_DIRS = . dev
+
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += platform-sensors.c button-sensor.c
+CONTIKI_TARGET_SOURCEFILES += cc1200-arch.c
+CONTIKI_TARGET_SOURCEFILES += i2c-eeprom.c
+CONTIKI_TARGET_SOURCEFILES += eui48.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.saker
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec \
+           dev/cc1200 
+
+ifeq ($(WITH_IP64),1)
+  MODULES += core/net/ip64\
+           dev/enc28j60 
+  CONTIKI_TARGET_SOURCEFILES += enc28j60-arch.c enc28j60-mac-addr-provider.c
+endif
+
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py -b 460800
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	python $(BSL) -e -w -v $<
+endif
