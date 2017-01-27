@@ -189,7 +189,6 @@ contiki-atari-1.atr: atarixl-makes
 	cp ../../examples/webbrowser/webbrowser.atarixl atr/webbrows.com
 	cp ../../examples/wget/wget.atarixl             atr/wget.com
 	cp ../atarixl/default.cfg                       atr/contiki.cfg
-	cp ../../cpu/6502/ethconfig/cs8900a.eth         atr/cs8900a.eth
 	cp $(CC65)/atarixl/drv/mou/atrxst.mou           atr/contiki.mou
 	cp $(CC65)/atarixl/drv/mou/atrxami.mou          atr/ami.mou
 	cp $(CC65)/atarixl/drv/mou/atrxjoy.mou          atr/joy.mou
@@ -205,7 +204,6 @@ contiki-atari-2.atr: atarixl-makes
 	cp ../../cpu/6502/ipconfig/ipconfig.atarixl atr/ipconfig.com
 	cp ../../examples/irc/irc-client.atarixl    atr/irc.com
 	cp ../atarixl/default.cfg                   atr/contiki.cfg
-	cp ../../cpu/6502/ethconfig/cs8900a.eth     atr/cs8900a.eth
 	cp $(CC65)/atarixl/drv/mou/atrxst.mou       atr/contiki.mou
 	cp $(CC65)/atarixl/drv/mou/atrxami.mou      atr/ami.mou
 	cp $(CC65)/atarixl/drv/mou/atrxjoy.mou      atr/joy.mou
@@ -222,7 +220,6 @@ contiki-atari-3.atr: atarixl-makes
 	cp ../../examples/webserver/webserver-example.atarixl atr/webserv.com
 	cp ../../examples/telnet-server/telnet-server.atarixl atr/telnetd.com
 	cp ../atarixl/default.cfg                             atr/contiki.cfg
-	cp ../../cpu/6502/ethconfig/cs8900a.eth               atr/cs8900a.eth
 	cp $(CC65)/atarixl/drv/mou/atrxst.mou                 atr/contiki.mou
 	cp $(CC65)/atarixl/drv/mou/atrxami.mou                atr/ami.mou
 	cp $(CC65)/atarixl/drv/mou/atrxjoy.mou                atr/joy.mou
@@ -246,7 +243,6 @@ contiki-atari.atr: atarixl-makes
 	cp ../../examples/webserver/webserver-example.atarixl atr/webserv.com
 	cp ../../examples/telnet-server/telnet-server.atarixl atr/telnetd.com
 	cp ../atarixl/default.cfg                             atr/contiki.cfg
-	cp ../../cpu/6502/ethconfig/cs8900a.eth               atr/cs8900a.eth
 	cp $(CC65)/atarixl/drv/mou/atrxst.mou                 atr/contiki.mou
 	cp $(CC65)/atarixl/drv/mou/atrxami.mou                atr/ami.mou
 	cp $(CC65)/atarixl/drv/mou/atrxjoy.mou                atr/joy.mou

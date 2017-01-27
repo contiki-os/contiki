@@ -40,9 +40,9 @@ high-level configuration macros may be set:
     - Default: 2
     - Purpose: Set the maximum number of concurrent TCP connections.
 
-- ETHERNET
+- STATIC_DRIVER
     - Default: N/A
-    - Purpose: Link Ethernet driver statically instead of loading it dynamically
+    - Purpose: Link device driver statically instead of loading it dynamically
       using the network configuration file.
 
 - WITH_LOGGING
