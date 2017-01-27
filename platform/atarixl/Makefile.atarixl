@@ -31,6 +31,8 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
+DEFINES += STATIC_DRIVER=cs8900a
+
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
@@ -53,7 +55,6 @@ disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/dos25/dup.sys atr/dup.sys
 	cp $(CONTIKI_PROJECT).$(TARGET)             atr/autorun.sys
 	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg    atr/contiki.cfg
-	cp cs8900a.eth                              atr/cs8900a.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
 	cp $(CC65_TARGET_DIR)/drv/mou/atrxst.mou    atr/contiki.mou
 endif
