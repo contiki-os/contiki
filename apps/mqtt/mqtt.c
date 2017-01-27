@@ -751,6 +751,8 @@ handle_connack(struct mqtt_connection *conn)
     call_event(conn,
                MQTT_EVENT_CONNECTION_REFUSED_ERROR,
                &conn->in_packet.payload[1]);
+    abort_connection(conn);
+    return;
   }
 
   conn->out_packet.qos_state = MQTT_QOS_STATE_GOT_ACK;
