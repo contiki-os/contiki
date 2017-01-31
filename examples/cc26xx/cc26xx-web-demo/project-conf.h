@@ -53,6 +53,9 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS          5
 #define UIP_CONF_MAX_ROUTES                   5
 #define UIP_CONF_TCP_MSS                    128
+/* Additionally disable phase optimization to save RAM */
+#undef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION   0
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

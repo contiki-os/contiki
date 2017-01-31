@@ -78,7 +78,12 @@
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
-#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+/* Phase optimization: enable, but increase the guard and max strobe time 2 times */
+#ifndef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 1
+#endif
+#define CONTIKIMAC_CONF_GUARD_TIME              2000
+#define CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME   2000
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
@@ -98,15 +103,21 @@
 #define PROP_MODE_CONF_RX_BUF_CNT        4
 #endif
 
+#if CPU_FAMILY_CC13XX
+
+/* Not tested on CC13xx */
+#undef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION   0
+
 /*
  * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
  * project has specified otherwise. Depending on the final mode, determine a
  * default channel (again, if unspecified) and configure RDC params
  */
-#if CPU_FAMILY_CC13XX
 #ifndef CC13XX_CONF_PROP_MODE
 #define CC13XX_CONF_PROP_MODE 1
 #endif /* CC13XX_CONF_PROP_MODE */
+
 #endif /* CPU_FAMILY_CC13XX */
 
 #if CC13XX_CONF_PROP_MODE
