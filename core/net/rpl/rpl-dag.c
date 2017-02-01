@@ -123,7 +123,7 @@ rpl_get_nbr(rpl_parent_t *parent)
 {
   const linkaddr_t *lladdr = rpl_get_parent_lladdr(parent);
   if(lladdr != NULL) {
-    return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
+    return uip_ds6_nbr_ll_lookup((const uip_lladdr_t *)lladdr);
   } else {
     return NULL;
   }
