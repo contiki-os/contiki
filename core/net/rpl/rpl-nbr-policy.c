@@ -112,7 +112,7 @@ update_nbr(void)
 
   nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
-    linkaddr_t *lladdr = nbr_table_get_lladdr(ds6_neighbors, nbr);
+    linkaddr_t *lladdr = (linkaddr_t *)uip_ds6_nbr_get_ll(nbr);
     is_used = 0;
 
     /*
