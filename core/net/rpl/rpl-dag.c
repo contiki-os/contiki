@@ -121,12 +121,19 @@ rpl_print_neighbor_list(void)
 uip_ds6_nbr_t *
 rpl_get_nbr(rpl_parent_t *parent)
 {
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  if(parent == NULL) {
+    return NULL;
+  }
+  return uip_ds6_nbr_lookup(&parent->ipaddr);
+#else
   const linkaddr_t *lladdr = rpl_get_parent_lladdr(parent);
   if(lladdr != NULL) {
     return uip_ds6_nbr_ll_lookup((const uip_lladdr_t *)lladdr);
   } else {
     return NULL;
   }
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -192,8 +199,15 @@ rpl_get_parent_lladdr(rpl_parent_t *p)
 uip_ipaddr_t *
 rpl_get_parent_ipaddr(rpl_parent_t *p)
 {
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  if(p == NULL) {
+    return NULL;
+  }
+  return &p->ipaddr;
+#else
   const linkaddr_t *lladdr = rpl_get_parent_lladdr(p);
   return uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)lladdr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 }
 /*---------------------------------------------------------------------------*/
 const struct link_stats *
@@ -694,6 +708,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+      uip_ipaddr_copy(&p->ipaddr, addr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
@@ -709,9 +726,27 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 static rpl_parent_t *
 find_parent_any_dag_any_instance(uip_ipaddr_t *addr)
 {
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  rpl_parent_t *p;
+
+  if(addr == NULL) {
+    return NULL;
+  }
+
+  for(p = nbr_table_head(rpl_parents);
+      p != NULL;
+      p = nbr_table_next(rpl_parents, p)) {
+    if(uip_ipaddr_cmp(&p->ipaddr, addr)) {
+      return p;
+    }
+  }
+
+  return NULL;
+#else /* #if UIP_DS6_NBR_MULTI_IPV6_ADDRS */
   uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
   const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
   return nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)lladdr);
+#endif /* #if UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *

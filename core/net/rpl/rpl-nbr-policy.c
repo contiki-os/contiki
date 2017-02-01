@@ -110,7 +110,11 @@ update_nbr(void)
   num_parents = 0;
   num_children = 0;
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  nbr = uip_ds6_nbr_list_head();
+#else
   nbr = nbr_table_head(ds6_neighbors);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
   while(nbr != NULL) {
     linkaddr_t *lladdr = (linkaddr_t *)uip_ds6_nbr_get_ll(nbr);
     is_used = 0;
@@ -157,11 +161,19 @@ update_nbr(void)
       PRINTF("\n");
     }
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+    nbr = uip_ds6_nbr_list_item_next(nbr);
+#else
     nbr = nbr_table_next(ds6_neighbors, nbr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
     num_used++;
   }
   /* how many more IP neighbors can be have? */
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  num_free = UIP_DS6_NBR_MAX_NB - num_used;
+#else
   num_free = NBR_TABLE_MAX_NEIGHBORS - num_used;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
   PRINTF("NBR-POLICY: Free: %d, Children: %d, Parents: %d Routes: %d\n",
 	 num_free, num_children, num_parents, uip_ds6_route_num_routes());
