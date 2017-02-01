@@ -44,326 +44,311 @@
 #include "dev/spi.h"
 #include "platform/z1/platform-conf.h"
 #include "sys/timer.h"
-/*-------------------------------------------------------------------*/
-#define	uchar	unsigned char
-#define	uint	unsigned int
 
-static struct timer rxtimer;
-
-//Chip Select(SDA) pin of the reader is connected to to P5.1 (JP1B, pin 28 of z1) as Output
-#define SDA_CS 1 
-//SDA is enabled when output is set to 0 (Active Low)
-#define SPI_CS_ENABLE()  (P5OUT &= ~BV(SDA_CS)) 
-//SDA is disabled when output is set to 1 
-#define SPI_CS_DISABLE() (P5OUT |= BV(SDA_CS)) 
-//Unlike in other adaptations, Reset pin of MFRC522 is not used throughout our code
-//Reset Pin of the reader is connected to a 3V power supply, so that hard reset is totally avoided
-
-//Pin layout of z1 and MFRC522 Reader is as follows:
-
-/*Signal         MFRC522 Reader Pin      Zolertia z1 pin
- *					  JP1B East Port
- *---------------------------------------------------------
- *RST/Reset	     RST		 Pin#22/Pin Name: D+3V
- *SPI CS/SS/SDA      SDA		 Pin#28/Pin Name: I2C.SDA
- *SPI MOSI	     MOSI		 Pin#36/Pin Name: SPI.SIMO
- *SPI MISO	     MISO		 Pin#38/Pin Name: SPI.SOMI
- *SPI SCK/CLK        SCK		 Pin#34/Pin Name: SPI.CLK
- *GROUND	     GND		 Pin#18/Pin Name: CPDGND
- *3.3V		     3.3V		 Pin#20/Pin Name: CPD+3.3V
+/* Chip Select(SDA) pin of the reader is connected to to P5.1 (JP1B, pin 28 of z1) as Output */
+#define SDA_CS 1
+/*SDA is enabled when output is set to 0 (Active Low) */
+#define SPI_CS_ENABLE()  (P5OUT &= ~BV(SDA_CS))
+/* SDA is disabled when output is set to 1 */
+#define SPI_CS_DISABLE() (P5OUT |= BV(SDA_CS))
+/*Unlike in other adaptations, Reset pin of MFRC522 is not used throughout our code
+   *Reset Pin of the reader is connected to a 3V power supply, so that hard reset is totally avoided
  */
 
-//Maximum length of the array for the Tag UID reading
+/*Pin layout of z1 and MFRC522 Reader is as follows:
+ *
+ **Signal         MFRC522 Reader Pin      Zolertia z1 pin
+ *					  JP1B East Port
+ **---------------------------------------------------------
+ **RST/Reset	     RST		 Pin#22/Pin Name: D+3V
+ **SPI CS/SS/SDA      SDA		 Pin#28/Pin Name: I2C.SDA
+ **SPI MOSI	     MOSI		 Pin#36/Pin Name: SPI.SIMO
+ **SPI MISO	     MISO		 Pin#38/Pin Name: SPI.SOMI
+ **SPI SCK/CLK        SCK		 Pin#34/Pin Name: SPI.CLK
+ **GROUND	     GND		 Pin#18/Pin Name: CPDGND
+ **3.3V		     3.3V		 Pin#20/Pin Name: CPD+3.3V
+ */
+
+/* Maximum length of the array for the Tag UID reading */
 #define MAX_LEN 16
 
-//MFRC522 Command word
-#define PCD_IDLE              0x00               //NO action; Cancel the current command
-#define PCD_RECEIVE           0x08               //Receive Data
-#define PCD_TRANSCEIVE        0x0C               //Transmit and receive data
-#define PCD_AUTHENT           0x0E               //Authentication Key
-#define PCD_RESETPHASE        0x0F               //Reset
+/* MFRC522 Command words */
+#define PCD_IDLE              0x00               /* No action; Cancel the current command */
+#define PCD_RECEIVE           0x08               /* Receive Data */
+#define PCD_TRANSCEIVE        0x0C               /* Transmit and receive data */
+#define PCD_AUTHENT           0x0E               /* Authentication Key */
+#define PCD_RESETPHASE        0x0F               /* Reset */
 
-//MFRC522 Register
+/* MFRC522 Registers */
 
-#define     VersionReg            0x37 << 1
-#define     TxControlReg          0x14 << 1
-#define     TModeReg              0x2A << 1
-#define     TPrescalerReg         0x2B << 1
-#define     TReloadRegH           0x2C << 1
-#define     TReloadRegL           0x2D << 1
-#define     ModeReg               0x11 << 1
-#define     TxAutoReg             0x15 << 1
-#define     CommandReg            0x01 << 1
-#define     CollReg               0x0E << 1
-#define     WaterLevelReg         0x0B << 1
-#define     BitFramingReg         0x0D << 1
-#define     CommIEnReg            0x02 << 1
-#define     CommIrqReg            0x04 << 1
-#define     FIFOLevelReg          0x0A << 1
-#define     FIFODataReg           0x09 << 1
-#define     ErrorReg              0x06 << 1
-#define     ControlReg            0x0C << 1
+#define     VERSIONREG            0x37 << 1
+#define     TXCONTROLREG          0x14 << 1
+#define     TMODEREG              0x2A << 1
+#define     TPRESCALERREG         0x2B << 1
+#define     TRELOADREGH           0x2C << 1
+#define     TRELOADREGL           0x2D << 1
+#define     MODEREG               0x11 << 1
+#define     TXAUTOREG             0x15 << 1
+#define     COMMANDREG            0x01 << 1
+#define     COLLREG               0x0E << 1
+#define     WATERLEVELREG         0x0B << 1
+#define     BITFRAMINGREG         0x0D << 1
+#define     COMMIENREG            0x02 << 1
+#define     COMMIRQREG            0x04 << 1
+#define     FIFOLEVELREG          0x0A << 1
+#define     FIFODATAREG           0x09 << 1
+#define     ERRORREG              0x06 << 1
+#define     CONTROLREG            0x0C << 1
 
-//MIFARE One card Command word
-#define PICC_REQALL          0x52        // find all the cards antenna area
-#define PICC_REQIDL          0x26        // find the antenna area doesn't enter hibernation
-#define PICC_ANTICOLL        0x93        // anti-collision
+/* MIFARE One card Command words */
+#define PICC_REQALL          0x52        /* find all the cards antenna area */
+#define PICC_REQIDL          0x26        /* find the antenna area doesn't enter hibernation */
+#define PICC_ANTICOLL        0x93        /* anti-collision */
 
-#define END_BYTE 0x00 << 1 // Stop command for SPI Write
+#define END_BYTE 0x00 << 1 /* Stop command for SPI Write */
 
-
-//And MF522 The error code is returned at the communication instance
+/* And MF522 The error code is returned at the communication instance */
 #define MI_OK                 0
 #define MI_NOTAGERR           1
 #define MI_ERR                2
+
+static struct timer rxtimer;
 /*-------------------------------------------------------------------*/
 
-//function definitions
-void MFRC522_Init();
-void Write_MFRC522(uchar addr, uchar val);
-void MFRC522_Reset();
-void AntennaOn();
-void SetBitMask(uchar reg, uchar mask);
-uchar Read_MFRC522(uchar);
-uchar MFRC522_Request(uchar reqMode, uchar *TagType);
-void ClearBitMask(uchar reg, uchar mask);  
- uchar MFRC522_ToCard(uchar command, uchar *sendData, uchar sendLen, uchar *backData, uint *backLen);
-uchar MFRC522_Anticoll(uchar *serNum);
+/* function definitions */
+void mfrc522_init();
+static void rfid_write(unsigned char addr, unsigned char val);
+static void rfid_reset();
+static void antenna_on();
+static void set_bit_mask(unsigned char reg, unsigned char mask);
+unsigned char mfrc522_read(unsigned char);
+unsigned char mfrc522_request(unsigned char req_mode, unsigned char *tag_type);
+static void clear_bit_mask(unsigned char reg, unsigned char mask);
+static unsigned char rfid_to_card(unsigned char command, unsigned char *send_data, unsigned char send_len, unsigned char *back_data, unsigned int *back_len);
+unsigned char mfrc522_anticoll(unsigned char *ser_num);
 /*-------------------------------------------------------------------*/
 
-void MFRC522_Init(void)
+void
+mfrc522_init(void)
 {
 
- 
- MFRC522_Reset();		
- Write_MFRC522(TModeReg, 0x80);		
- Write_MFRC522(TPrescalerReg, 0xA9); 			
- Write_MFRC522(TReloadRegH, 0x03);			
- Write_MFRC522(TReloadRegL, 0xE8);
- Write_MFRC522(TxAutoReg, 0x40);     
- Write_MFRC522(ModeReg, 0x3D);        
- AntennaOn();
-  	
+  rfid_reset();
+  rfid_write(TMODEREG, 0x80);
+  rfid_write(TPRESCALERREG, 0xA9);
+  rfid_write(TRELOADREGH, 0x03);
+  rfid_write(TRELOADREGL, 0xE8);
+  rfid_write(TXAUTOREG, 0x40);
+  rfid_write(MODEREG, 0x3D);
+  antenna_on();
 }
 /*-------------------------------------------------------------------*/
-void MFRC522_Reset(void)
+static void
+rfid_reset(void)
 {
-  Write_MFRC522(CommandReg, PCD_RESETPHASE);
-  timer_set(&rxtimer, CLOCK_SECOND/20);
-  while(!timer_expired(&rxtimer)){}
-  while(Read_MFRC522(CommandReg)&(1<<4)){}
-
+  rfid_write(COMMANDREG, PCD_RESETPHASE);
+  timer_set(&rxtimer, CLOCK_SECOND / 20);
+  while(!timer_expired(&rxtimer)) ;
+  while(mfrc522_read(COMMANDREG) & (1 << 4)) ;
 }
 /*-------------------------------------------------------------------*/
-void AntennaOn(void)
+static void
+antenna_on(void)
 {
-  uchar temp;
-  temp= Read_MFRC522(TxControlReg);
-  SetBitMask(TxControlReg, 0x03);
-  if((temp & 0x03)!=0x03){
-   Write_MFRC522(TxControlReg,temp|0x03);
+  unsigned char temp;
+  temp = mfrc522_read(TXCONTROLREG);
+  set_bit_mask(TXCONTROLREG, 0x03);
+  if((temp & 0x03) != 0x03) {
+    rfid_write(TXCONTROLREG, temp | 0x03);
   }
 }
 /*-------------------------------------------------------------------*/
 
-void Write_MFRC522(uchar addr, uchar val) 
+static void
+rfid_write(unsigned char addr, unsigned char val)
 {
-  spi_init();	
+  spi_init();
   P5SEL |= BV(SDA_CS);
-  P5DIR|=BV(SDA_CS);
-  SPI_CS_DISABLE();	
-  timer_restart(&rxtimer);
-  while(!timer_expired(&rxtimer)){}
-
-  SPI_CS_ENABLE();  
-  SPI_WRITE_FAST(((addr)&(0x7E)));	
-  SPI_WRITE_FAST(val);
-  SPI_WRITE_FAST(END_BYTE);
-  SPI_CS_DISABLE(); 
-}
-
-/*-------------------------------------------------------------------*/
-
-void SetBitMask(uchar reg, uchar mask)  
-{
-  uchar tmp;
-  tmp = Read_MFRC522(reg);
-  Write_MFRC522(reg, tmp | mask);  
-}
-
-/*-------------------------------------------------------------------*/
-
-uchar Read_MFRC522(uchar addr) 
-{
-  uchar *rx_bits;
-  
-  spi_init();	
-  P5SEL |= BV(SDA_CS);
-  P5DIR|=BV(SDA_CS);
+  P5DIR |= BV(SDA_CS);
   SPI_CS_DISABLE();
   timer_restart(&rxtimer);
-  while(!timer_expired(&rxtimer)){}
+  while(!timer_expired(&rxtimer)) ;
+
   SPI_CS_ENABLE();
-  SPI_WRITE_FAST((0x80)|((addr)&(0x7E)));	
+  SPI_WRITE_FAST(((addr) & (0x7E)));
+  SPI_WRITE_FAST(val);
+  SPI_WRITE_FAST(END_BYTE);
+  SPI_CS_DISABLE();
+}
+/*-------------------------------------------------------------------*/
+
+static void
+set_bit_mask(unsigned char reg, unsigned char mask)
+{
+  unsigned char tmp;
+  tmp = mfrc522_read(reg);
+  rfid_write(reg, tmp | mask);
+}
+/*-------------------------------------------------------------------*/
+
+unsigned char
+mfrc522_read(unsigned char addr)
+{
+  unsigned char *rx_bits;
+
+  spi_init();
+  P5SEL |= BV(SDA_CS);
+  P5DIR |= BV(SDA_CS);
+  SPI_CS_DISABLE();
+  timer_restart(&rxtimer);
+  while(!timer_expired(&rxtimer)) ;
+  SPI_CS_ENABLE();
+  SPI_WRITE_FAST((0x80) | ((addr) & (0x7E)));
   SPI_WRITE_FAST(END_BYTE);
   SPI_FLUSH();
   SPI_READ(rx_bits);
-  SPI_CS_DISABLE();  
-  
-  return (uchar) rx_bits; 
+  SPI_CS_DISABLE();
+
+  return (unsigned char)rx_bits;
 }
 /*-------------------------------------------------------------------*/
-uchar MFRC522_Request(uchar reqMode, uchar *TagType)
+unsigned char
+mfrc522_request(unsigned char req_mode, unsigned char *tag_type)
 {
-  uchar status;
-  uint backBits; 
-  Write_MFRC522(BitFramingReg, 0x07);   // TxLastBists = BitFramingReg[2..0]
-  TagType[0] = reqMode;
-  status = MFRC522_ToCard(PCD_TRANSCEIVE, TagType, 1, TagType, &backBits);
-  if ((status != MI_OK) || (backBits != 0x10)) {
+  unsigned char status;
+  unsigned int back_bits;
+  rfid_write(BITFRAMINGREG, 0x07);   /* TxLastBists = BitFramingReg[2..0] */
+  tag_type[0] = req_mode;
+  status = rfid_to_card(PCD_TRANSCEIVE, tag_type, 1, tag_type, &back_bits);
+  if((status != MI_OK) || (back_bits != 0x10)) {
     status = MI_ERR;
   }
 
   return status;
 }
 /*-------------------------------------------------------------------*/
- uchar MFRC522_ToCard(uchar command, uchar *sendData, uchar sendLen, uchar *backData, uint *backLen)
+static unsigned char
+rfid_to_card(unsigned char command, unsigned char *send_data, unsigned char send_len, unsigned char *back_data, unsigned int *back_len)
 {
-  uchar status = MI_ERR;
-  uchar irqEn = 0x00;
-  uchar waitIRq = 0x00;
-  uchar lastBits;
-  uchar n;
-  uint i;
+  unsigned char status = MI_ERR;
+  unsigned char irq_en = 0x00;
+  unsigned char wait_irq = 0x00;
+  unsigned char last_bits;
+  unsigned char n;
+  unsigned int i;
 
-  switch (command)
+  switch(command) {
+
+  case PCD_AUTHENT:       /* Certification cards close by */
   {
-    case PCD_AUTHENT:     // Certification cards close
-      {
-        irqEn = 0x12;
-        waitIRq = 0x10;
-        break;
-      }
-    case PCD_TRANSCEIVE:  // Transmit FIFO data
-      {
-        irqEn = 0x77;
-        waitIRq = 0x30;
-	break;
-      }
-    default:
-      break;
+    irq_en = 0x12;
+    wait_irq = 0x10;
+    break;
   }
- Write_MFRC522(CommIEnReg, irqEn|0x80);  // Interrupt request
- ClearBitMask(CommIrqReg, 0x80);         // Clear all interrupt request bit
- SetBitMask(FIFOLevelReg, 0x80);         // FlushBuffer=1, FIFO Initialization
- Write_MFRC522(CommandReg, PCD_IDLE);  
- // Writing data to the FIFO
- for (i=0; i<sendLen; i++)
- {
-  Write_MFRC522(FIFODataReg, sendData[i]);
- }
-
- // Execute the command
- Write_MFRC522(CommandReg, command);
- if (command == PCD_TRANSCEIVE)
- {
-  SetBitMask(BitFramingReg, 0x80);      // StartSend=1,transmission of data starts  
- }
-
- // Waiting to receive data to complete
- i=2000;
- do
- {
- // CommIrqReg[7..0]
- // Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
- n = Read_MFRC522(CommIrqReg);
- i--;
- }while ((i!=0) && !(n & (0x01)) && !(n&waitIRq));
-	
- if (i != 0)
+  case PCD_TRANSCEIVE:    /* Transmit FIFO data */
   {
-   	
-   if(!(Read_MFRC522(ErrorReg) & 0x13))  //Collerr CRCErr ProtecolErr
-    {
-     status = MI_OK;
-     if (n & irqEn & 0x01)
-      {
-       status = MI_NOTAGERR;             
-      }
-     if (command == PCD_TRANSCEIVE)
-      {
-        n = Read_MFRC522(FIFOLevelReg);
-        lastBits = Read_MFRC522(ControlReg) & 0x07;		
-        if (lastBits)
-         {
-           *backLen = (n-1)*8 + lastBits;
-       	 }
-       	else
-       	 {
-           *backLen = n*8;
-         }
+    irq_en = 0x77;
+    wait_irq = 0x30;
+    break;
+  }
+  default:
+    break;
+  }
+  rfid_write(COMMIENREG, irq_en | 0x80); /* Interrupt request */
+  clear_bit_mask(COMMIRQREG, 0x80);        /* Clear all interrupt request bit */
+  set_bit_mask(FIFOLEVELREG, 0x80);        /* FlushBuffer=1, FIFO Initialization */
+  rfid_write(COMMANDREG, PCD_IDLE);
+  /* Writing data to the FIFO */
+  for(i = 0; i < send_len; i++) {
+    rfid_write(FIFODATAREG, send_data[i]);
+  }
 
-       	if (n == 0)
-       	 {
-           n = 1;
-         }
-        if (n > MAX_LEN)
-         {
-           n = MAX_LEN;
-         }
-        // Reading the received data in FIFO
-        for (i=0; i<n; i++)
-         {
-           backData[i] = Read_MFRC522(FIFODataReg);
-         }
+  /* Execute the command */
+  rfid_write(COMMANDREG, command);
+  if(command == PCD_TRANSCEIVE) {
+    set_bit_mask(BITFRAMINGREG, 0x80);    /* StartSend=1,transmission of data starts */
+  }
+
+  /* Waiting to receive data to complete*/
+  i = 2000;
+  do {
+    /* CommIrqReg[7..0]
+     * Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
+     */
+    n = mfrc522_read(COMMIRQREG);
+    i--;
+  } while((i != 0) && !(n & (0x01)) && !(n & wait_irq));
+
+  if(i != 0) {
+
+    if(!(mfrc522_read(ERRORREG) & 0x13)) { /* Collerr CRCErr ProtecolErr */
+
+      status = MI_OK;
+      if(n & irq_en & 0x01) {
+        status = MI_NOTAGERR;
       }
-    }
-     
-   else 
-    {
-     printf("~~~ collerr, crcerr, or protecolerr\r\n");
-     status = MI_ERR;
+
+      if(command == PCD_TRANSCEIVE) {
+        n = mfrc522_read(FIFOLEVELREG);
+
+        last_bits = mfrc522_read(CONTROLREG) & 0x07;
+        if(last_bits) {
+          *back_len = (n - 1) * 8 + last_bits;
+        } else {
+          *back_len = n * 8;
+        }
+
+        if(n == 0) {
+          n = 1;
+        }
+        if(n > MAX_LEN) {
+          n = MAX_LEN;
+        }
+        /* Reading the received data in FIFO */
+        for(i = 0; i < n; i++) {
+          back_data[i] = mfrc522_read(FIFODATAREG);
+        }
+      }
+    } else {
+      printf("~~~ collerr, crcerr, or protecolerr\r\n");
+      status = MI_ERR;
     }
   }
   return status;
 }
-
 /*-------------------------------------------------------------------*/
 
-void ClearBitMask(uchar reg, uchar mask)  
+static void
+clear_bit_mask(unsigned char reg, unsigned char mask)
 {
-    uchar tmp;
-    tmp = Read_MFRC522(reg);
-    uchar invertmask=~mask;
-    Write_MFRC522(reg, tmp & invertmask);  // clear bit mask
-} 
+  unsigned char tmp;
+  unsigned char invertmask = ~mask;
+  tmp = mfrc522_read(reg);
+  rfid_write(reg, tmp & invertmask);    /* clear bit mask */
+}
 /*-------------------------------------------------------------------*/
-uchar MFRC522_Anticoll(uchar *serNum)
+unsigned char
+mfrc522_anticoll(unsigned char *ser_num)
 {
-  uchar status;
-  uchar i;
-  uchar serNumCheck=0;
-  uint unLen;
-  Write_MFRC522(BitFramingReg, 0x00);		//TxLastBists = BitFramingReg[2..0]
-  serNum[0] = PICC_ANTICOLL;
-  serNum[1] = 0x20;
-  status = MFRC522_ToCard(PCD_TRANSCEIVE, serNum, 2, serNum, &unLen);
+  unsigned char status;
+  unsigned char i;
+  unsigned char ser_num_check = 0;
+  unsigned int un_len;
+  rfid_write(BITFRAMINGREG, 0x00);    /* TxLastBists = BitFramingReg[2..0] */
+  ser_num[0] = PICC_ANTICOLL;
+  ser_num[1] = 0x20;
+  status = rfid_to_card(PCD_TRANSCEIVE, ser_num, 2, ser_num, &un_len);
 
-  if (status == MI_OK)
-  {
-    //Check card serial number
-    for (i=0; i<4; i++)
-    {   
-      serNumCheck ^= serNum[i];
+  if(status == MI_OK) {
+    /* Check card serial number */
+    for(i = 0; i < 4; i++) {
+      ser_num_check ^= ser_num[i];
     }
-	
-    if (serNumCheck != serNum[i])
-    {   
-      status = MI_ERR;    
+
+    if(ser_num_check != ser_num[i]) {
+      status = MI_ERR;
     }
-    
-   }
+  }
 
   return status;
-} 
+}
 /*-------------------------------------------------------------------*/

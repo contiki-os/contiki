@@ -13,10 +13,6 @@ This is a implementation on Z1 platform to detect the RFID tag nearby and printo
 This implementation is only tested for MIFARE 1KB tags so far. Other tag types may need modifications in the code.
 
 
-The mfrc522.c driver file shall be under contiki/examples/platform/z1/dev directory
-The main and make files are located under contiki/platform/z1/apps/RFID 
-
-
 The JP1B East port of Z1 is used to connect to the RFID module with jumper wires. No additional circuitry is required. It is highly recommended to solder a female header connector onto JP1B port of Z1 module and a male pin header connector onto RFID module to avoid any conduction related problems.
 
 
