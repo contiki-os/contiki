@@ -530,7 +530,7 @@ void
 tcpip_ipv6_output(void)
 {
   uip_ds6_nbr_t *nbr = NULL;
-  uip_ipaddr_t *nexthop = NULL;
+  const uip_ipaddr_t *nexthop = NULL;
 
   if(uip_len == 0) {
     return;

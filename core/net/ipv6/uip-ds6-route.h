@@ -66,8 +66,8 @@ void uip_ds6_route_init(void);
 #define UIP_DS6_NOTIFICATION_ROUTE_RM  3
 
 typedef void (* uip_ds6_notification_callback)(int event,
-                                               uip_ipaddr_t *route,
-                                               uip_ipaddr_t *nexthop,
+                                               const uip_ipaddr_t *route,
+                                               const uip_ipaddr_t *nexthop,
                                                int num_routes);
 struct uip_ds6_notification {
   struct uip_ds6_notification *next;
@@ -190,12 +190,12 @@ void uip_ds6_defrt_periodic(void);
 
 /** \name Routing Table basic routines */
 /** @{ */
-uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
-uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                   uip_ipaddr_t *next_hop);
+uip_ds6_route_t *uip_ds6_route_lookup(const uip_ipaddr_t *destipaddr);
+uip_ds6_route_t *uip_ds6_route_add(const uip_ipaddr_t *ipaddr, uint8_t length,
+                                   const uip_ipaddr_t *next_hop);
 void uip_ds6_route_rm(uip_ds6_route_t *route);
 
-uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
+const uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
 int uip_ds6_route_num_routes(void);
 uip_ds6_route_t *uip_ds6_route_head(void);
 uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
