@@ -11,6 +11,6 @@ CONTIKI_SOURCEFILES += mfrc522.c
 APPS=serial-shell
 
 all: $(CONTIKI_PROJECT)
-CONTIKI = ../../../..
+CONTIKI = ../../
 CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include
