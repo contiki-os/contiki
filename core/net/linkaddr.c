@@ -52,6 +52,9 @@ const linkaddr_t linkaddr_null = { { 0, 0 } };
 #if LINKADDR_SIZE == 8
 const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
 #endif /*LINKADDR_SIZE == 8*/
+#if LINKADDR_SIZE == 6
+const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
+#endif /*LINKADDR_SIZE == 6*/
 #endif /*LINKADDR_SIZE == 2*/
 
 

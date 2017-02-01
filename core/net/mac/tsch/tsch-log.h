@@ -81,7 +81,7 @@ struct tsch_log_t {
          tsch_log_rx,
          tsch_log_message
   } type;
-  struct asn_t asn;
+  struct tsch_asn_t asn;
   struct tsch_link *link;
   union {
     char message[48];

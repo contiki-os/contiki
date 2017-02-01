@@ -93,6 +93,11 @@
 #define RF_CORE_CONF_CHANNEL             RF_CHANNEL
 #endif
 
+/* Number of Prop Mode RX buffers */
+#ifndef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_CONF_RX_BUF_CNT        4
+#endif
+
 /*
  * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
  * project has specified otherwise. Depending on the final mode, determine a

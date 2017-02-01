@@ -286,14 +286,14 @@
 GENERATE_MSG(0000000, "add-sink-2");&#xD;
 GENERATE_MSG(0000000, "remove-sink-3");&#xD;
 &#xD;
-GENERATE_MSG(2000000, "remove-sink-1");&#xD;
-GENERATE_MSG(4000000, "remove-sink-2");&#xD;
-GENERATE_MSG(4000000, "add-sink-3");&#xD;
+GENERATE_MSG(6000000, "remove-sink-1");&#xD;
+GENERATE_MSG(12000000, "remove-sink-2");&#xD;
+GENERATE_MSG(12000000, "add-sink-3");&#xD;
 &#xD;
 lostMsgs = 0;&#xD;
 newDagOk = 0;&#xD;
 &#xD;
-TIMEOUT(6000000, if(newDagOk == 2) { log.testOK(); } );&#xD;
+TIMEOUT(18000000, if(newDagOk == 2) { log.testOK(); } );&#xD;
 &#xD;
 lastMsg = -1;&#xD;
 newSink = 0;&#xD;

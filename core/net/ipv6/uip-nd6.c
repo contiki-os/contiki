@@ -116,13 +116,16 @@ void uip_log(char *msg);
 #define UIP_ND6_OPT_RDNSS_BUF ((uip_nd6_opt_dns *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 /** @} */
 
-#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
 static uint8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
 static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
-static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
-#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
+static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
 
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
@@ -157,7 +160,27 @@ create_llao(uint8_t *llao, uint8_t type) {
 }
 
 /*------------------------------------------------------------------*/
-
+ /**
+ * Neighbor Solicitation Processing
+ *
+ * The NS can be received in 3 cases (procedures):
+ * - sender is performing DAD (ip src = unspecified, no SLLAO option)
+ * - sender is performing NUD (ip dst = unicast)
+ * - sender is performing address resolution (ip dest = solicited node mcast
+ * address)
+ *
+ * We do:
+ * - if the tgt belongs to me, reply, otherwise ignore
+ * - if i was performing DAD for the same address, two cases:
+ * -- I already sent a NS, hence I win
+ * -- I did not send a NS yet, hence I lose
+ *
+ * If we need to send a NA in response (i.e. the NS was done for NUD, or
+ * address resolution, or DAD and there is a conflict), we do it in this
+ * function: set src, dst, tgt address in the three cases, then for all cases
+ * set the rest, including  SLLAO
+ *
+ */
 #if UIP_ND6_SEND_NA
 static void
 ns_input(void)
@@ -238,9 +261,9 @@ ns_input(void)
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
-#if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
+#if UIP_ND6_DEF_MAXDADNS > 0
 #if UIP_CONF_IPV6_CHECKS
       if(!uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
         PRINTF("NS received is bad\n");
@@ -258,9 +281,7 @@ ns_input(void)
         goto discard;
       }
 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
-    if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
-      /* DAD CASE */
-      goto discard;
+      goto discard;  /* DAD CASE */
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
 #if UIP_CONF_IPV6_CHECKS
@@ -348,6 +369,7 @@ discard:
 
 
 /*------------------------------------------------------------------*/
+#if UIP_ND6_SEND_NS
 void
 uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
 {
@@ -410,7 +432,9 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
   PRINTF("\n");
   return;
 }
-#if UIP_ND6_SEND_NA
+#endif /* UIP_ND6_SEND_NS */
+
+#if UIP_ND6_SEND_NS
 /*------------------------------------------------------------------*/
 /**
  * Neighbor Advertisement Processing
@@ -585,7 +609,7 @@ discard:
   uip_clear_buf();
   return;
 }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
@@ -1079,6 +1103,8 @@ discard:
 #if UIP_ND6_SEND_NA
 UIP_ICMP6_HANDLER(ns_input_handler, ICMP6_NS, UIP_ICMP6_HANDLER_CODE_ANY,
                   ns_input);
+#endif
+#if UIP_ND6_SEND_NS
 UIP_ICMP6_HANDLER(na_input_handler, ICMP6_NA, UIP_ICMP6_HANDLER_CODE_ANY,
                   na_input);
 #endif
@@ -1096,19 +1122,16 @@ UIP_ICMP6_HANDLER(ra_input_handler, ICMP6_RA, UIP_ICMP6_HANDLER_CODE_ANY,
 void
 uip_nd6_init()
 {
-
 #if UIP_ND6_SEND_NA
   /* Only handle NSs if we are prepared to send out NAs */
   uip_icmp6_register_input_handler(&ns_input_handler);
-
-  /*
-   * Only handle NAs if we are prepared to send out NAs.
-   * This is perhaps logically incorrect, but this condition was present in
-   * uip_process and we keep it until proven wrong
-   */
-  uip_icmp6_register_input_handler(&na_input_handler);
 #endif
 
+#if UIP_ND6_SEND_NS
+  /*
+   * Only handle NAs if we are prepared to send out NSs. */
+  uip_icmp6_register_input_handler(&na_input_handler);
+#endif
 
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Only accept RS if we are a router and happy to send out RAs */

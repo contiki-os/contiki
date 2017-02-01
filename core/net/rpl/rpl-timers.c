@@ -238,7 +238,7 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
 
   /* Set up another DAO within half the expiration time, if such a
      time has been configured */
-  if(instance->lifetime_unit != 0xffff && instance->default_lifetime != 0xff) {
+  if(instance->default_lifetime != RPL_INFINITE_LIFETIME) {
     clock_time_t expiration_time;
     expiration_time = (clock_time_t)instance->default_lifetime *
       (clock_time_t)instance->lifetime_unit *

@@ -145,8 +145,14 @@
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
 
+/* Special value indicating infinite lifetime. */
+#define RPL_INFINITE_LIFETIME           0xFF
+
+#define RPL_ROUTE_INFINITE_LIFETIME           0xFFFFFFFF
+
 #define RPL_LIFETIME(instance, lifetime) \
-          ((unsigned long)(instance)->lifetime_unit * (lifetime))
+          (((lifetime) == RPL_INFINITE_LIFETIME) ? RPL_ROUTE_INFINITE_LIFETIME : (unsigned long)(instance)->lifetime_unit * (lifetime))
+
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
 /* RFC6550 defines the default MIN_HOPRANKINC as 256.
