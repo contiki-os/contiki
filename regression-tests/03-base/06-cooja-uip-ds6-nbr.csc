@@ -25,9 +25,9 @@
       org.contikios.cooja.contikimote.ContikiMoteType
       <identifier>mtype50</identifier>
       <description>Cooja Mote Type #1</description>
-      <source>[CONTIKI_DIR]/regression-tests/03-base/code/test-uip-ds6-route.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/03-base/code/test-uip-ds6-nbr.c</source>
       <commands>make TARGET=cooja clean
-      make test-uip-ds6-route.cooja TARGET=cooja</commands>
+      make test-uip-ds6-nbr.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
       <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -51,9 +51,9 @@
       org.contikios.cooja.contikimote.ContikiMoteType
       <identifier>mtype461</identifier>
       <description>Cooja Mote Type #2</description>
-      <source>[CONTIKI_DIR]/regression-tests/03-base/code/test-uip-ds6-route.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/03-base/code/test-uip-ds6-nbr.c</source>
       <commands>make TARGET=cooja clean
-      make test-uip-ds6-route.cooja WITH_MULTI_IPV6_ADDRS=1 TARGET=cooja</commands>
+      make test-uip-ds6-nbr.cooja WITH_MULTI_IPV6_ADDRS=1 TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
       <moteinterface>org.contikios.cooja.contikimote.interfaces.ContikiVib</moteinterface>

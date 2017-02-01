@@ -1,8 +1,9 @@
 TIMEOUT(10000, log.testFailed());
 
 var failed = false;
+var done = 0;
 
-while(true) {
+while(done < sim.getMotes().length) {
     YIELD();
 
     log.log(time + " " + "node-" + id + " "+ msg + "\n");
@@ -16,7 +17,7 @@ while(true) {
     }
 
     if(msg.contains("DONE")) {
-        break;
+        done++;
     }
 }
 if(failed) {

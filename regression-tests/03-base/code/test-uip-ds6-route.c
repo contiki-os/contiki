@@ -35,21 +35,13 @@
 #include "contiki-net.h"
 #include "contiki-lib.h"
 #include "lib/assert.h"
-
-#include "lib/simEnvChange.h"
-#include "sys/cooja_mt.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 
 #include "unit-test.h"
+#include "common.h"
 
 PROCESS(test_process, "uip-ds6-route.c test");
 AUTOSTART_PROCESSES(&test_process);
-
-static enum {
-  NOT_INVOKED,
-  ADDED_INVOKED,
-  REMOVED_INVOKED,
-} callback_is_invoked;
-static linkaddr_t addr_in_callback;
 
 static uip_ipaddr_t dest1;
 static uip_ipaddr_t dest2;
@@ -60,42 +52,6 @@ static uip_ipaddr_t next_hop3;
 static uip_lladdr_t next_hop1_lladdr;
 static uip_lladdr_t next_hop2_lladdr;
 static uip_lladdr_t next_hop3_lladdr;
-
-static void
-test_print_report(const unit_test_t *utp)
-{
-  printf("=check-me= ");
-  if(utp->result == unit_test_failure) {
-    printf("FAILED   - %s: exit at L%u\n", utp->descr, utp->exit_line);
-  } else {
-    printf("SUCCEEDED - %s\n", utp->descr);
-  }
-
-  /* give up the CPU so that the mote can output messages in the serial buffer */
-  simProcessRunValue = 1;
-  cooja_mt_yield();
-}
-
-void
-test_added_callback(const linkaddr_t *addr)
-{
-  callback_is_invoked = ADDED_INVOKED;
-  linkaddr_copy(&addr_in_callback, addr);
-}
-
-void
-test_removed_callback(const linkaddr_t *addr)
-{
-  callback_is_invoked = REMOVED_INVOKED;
-  linkaddr_copy(&addr_in_callback, addr);
-}
-
-static void
-reset_callback_status(void)
-{
-  callback_is_invoked = NOT_INVOKED;
-  memset(&addr_in_callback, 0, sizeof(addr_in_callback));
-}
 
 static void
 setup(void)
@@ -171,29 +127,29 @@ UNIT_TEST(test_add)
   UNIT_TEST_ASSERT(ret != NULL);
   UNIT_TEST_ASSERT(nbr_table_is_locked((const linkaddr_t *)&next_hop1_lladdr)
                    == 1);
-  UNIT_TEST_ASSERT(callback_is_invoked == ADDED_INVOKED);
-  UNIT_TEST_ASSERT(linkaddr_cmp(&addr_in_callback,
+  UNIT_TEST_ASSERT(test_callback_state == ADDED_INVOKED);
+  UNIT_TEST_ASSERT(linkaddr_cmp(&test_addr_in_callback,
                                 (const linkaddr_t *)&next_hop1_lladdr));
 
   /* add the same route as before; should succeed */
   reset_callback_status();
   ret = uip_ds6_route_add(&dest1, 128, &next_hop1);
   UNIT_TEST_ASSERT(ret != NULL);
-  UNIT_TEST_ASSERT(callback_is_invoked == NOT_INVOKED);
+  UNIT_TEST_ASSERT(test_callback_state == NOT_INVOKED);
 
   /* add another route */
   reset_callback_status();
   ret = uip_ds6_route_add(&dest2, 128, &next_hop2);
   UNIT_TEST_ASSERT(ret != NULL);
-  UNIT_TEST_ASSERT(callback_is_invoked == ADDED_INVOKED);
-  UNIT_TEST_ASSERT(linkaddr_cmp(&addr_in_callback,
+  UNIT_TEST_ASSERT(test_callback_state == ADDED_INVOKED);
+  UNIT_TEST_ASSERT(linkaddr_cmp(&test_addr_in_callback,
                                 (const linkaddr_t *)&next_hop2_lladdr));
 
   /* this addition should fail because of no memory */
   reset_callback_status();
   ret = uip_ds6_route_add(&dest3, 128, &next_hop3);
   UNIT_TEST_ASSERT(ret == NULL);
-  UNIT_TEST_ASSERT(callback_is_invoked == NOT_INVOKED);
+  UNIT_TEST_ASSERT(test_callback_state == NOT_INVOKED);
 
   UNIT_TEST_END();
 }
@@ -217,8 +173,8 @@ UNIT_TEST(test_add_ex)
   UNIT_TEST_ASSERT(ret != NULL);
   UNIT_TEST_ASSERT(nbr_table_is_locked((const linkaddr_t *)&next_hop1_lladdr)
                    == 1);
-  UNIT_TEST_ASSERT(callback_is_invoked == ADDED_INVOKED);
-  UNIT_TEST_ASSERT(linkaddr_cmp(&addr_in_callback,
+  UNIT_TEST_ASSERT(test_callback_state == ADDED_INVOKED);
+  UNIT_TEST_ASSERT(linkaddr_cmp(&test_addr_in_callback,
                                 (const linkaddr_t *)&next_hop1_lladdr));
 
 
@@ -228,13 +184,13 @@ UNIT_TEST(test_add_ex)
   UNIT_TEST_ASSERT(ret != NULL);
   ret = uip_ds6_route_lookup(&dest1);
   UNIT_TEST_ASSERT(ret != NULL);
-  UNIT_TEST_ASSERT(callback_is_invoked == NOT_INVOKED);
+  UNIT_TEST_ASSERT(test_callback_state == NOT_INVOKED);
 
   /* this addition should fail because of lack of memory */
   reset_callback_status();
   ret = uip_ds6_route_add(&dest3, 128, &next_hop3);
   UNIT_TEST_ASSERT(ret == NULL);
-  UNIT_TEST_ASSERT(callback_is_invoked == NOT_INVOKED);
+  UNIT_TEST_ASSERT(test_callback_state == NOT_INVOKED);
 
   UNIT_TEST_END();
 }
@@ -258,8 +214,8 @@ UNIT_TEST(test_rm)
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 1);
   uip_ds6_route_rm(route);
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 0);
-  UNIT_TEST_ASSERT(callback_is_invoked == REMOVED_INVOKED);
-  UNIT_TEST_ASSERT(linkaddr_cmp(&addr_in_callback,
+  UNIT_TEST_ASSERT(test_callback_state == REMOVED_INVOKED);
+  UNIT_TEST_ASSERT(linkaddr_cmp(&test_addr_in_callback,
                                 (const linkaddr_t *)&next_hop1_lladdr));
 
   UNIT_TEST_END();
@@ -285,15 +241,15 @@ UNIT_TEST(test_rm_ex)
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 2);
   uip_ds6_route_rm(route1);
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 1);
-  UNIT_TEST_ASSERT(callback_is_invoked == NOT_INVOKED);
+  UNIT_TEST_ASSERT(test_callback_state == NOT_INVOKED);
 
   /* remove the second route */
   reset_callback_status();
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 1);
   uip_ds6_route_rm(route2);
   UNIT_TEST_ASSERT(uip_ds6_route_num_routes() == 0);
-  UNIT_TEST_ASSERT(callback_is_invoked == REMOVED_INVOKED);
-  UNIT_TEST_ASSERT(linkaddr_cmp(&addr_in_callback,
+  UNIT_TEST_ASSERT(test_callback_state == REMOVED_INVOKED);
+  UNIT_TEST_ASSERT(linkaddr_cmp(&test_addr_in_callback,
                                 (const linkaddr_t *)&next_hop1_lladdr));
 
   UNIT_TEST_END();
@@ -384,6 +340,12 @@ UNIT_TEST(test_nexthop)
 PROCESS_THREAD(test_process, ev, data)
 {
   PROCESS_BEGIN();
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  printf("UIP_DS6_NBR_MULTI_IPV6_ADDRS is enabled\n");
+#else
+  printf("UIP_DS6_NBR_MULTI_IPV6_ADDRS is disabled\n");
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
   printf("Run unit-test\n");
   printf("---\n");

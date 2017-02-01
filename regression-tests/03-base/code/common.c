@@ -29,18 +29,52 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _PROJECT_CONF_H_
-#define _PROJECT_CONF_H_
+#include <stdio.h>
+#include <string.h>
 
-#define UNIT_TEST_PRINT_FUNCTION test_print_report
+#include "net/linkaddr.h"
 
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES      2
+#include "unit-test.h"
+#include "common.h"
 
-#undef UIP_DS6_NBR_CONF_MAX_NB
-#define UIP_DS6_NBR_CONF_MAX_NB  2
+#include "lib/simEnvChange.h"
+#include "sys/cooja_mt.h"
 
-#define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK test_added_callback
-#define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK test_removed_callback
+test_callback_state_t test_callback_state;
+linkaddr_t test_addr_in_callback;
 
-#endif /* !_PROJECT_CONF_H_ */
+void
+test_print_report(const unit_test_t *utp)
+{
+  printf("=check-me= ");
+  if(utp->result == unit_test_failure) {
+    printf("FAILED   - %s: exit at L%u\n", utp->descr, utp->exit_line);
+  } else {
+    printf("SUCCEEDED - %s\n", utp->descr);
+  }
+
+  /* give up the CPU so that the mote can output messages in the serial buffer */
+  simProcessRunValue = 1;
+  cooja_mt_yield();
+}
+
+void
+test_added_callback(const linkaddr_t *addr)
+{
+  test_callback_state = ADDED_INVOKED;
+  linkaddr_copy(&test_addr_in_callback, addr);
+}
+
+void
+test_removed_callback(const linkaddr_t *addr)
+{
+  test_callback_state = REMOVED_INVOKED;
+  linkaddr_copy(&test_addr_in_callback, addr);
+}
+
+void
+reset_callback_status(void)
+{
+  test_callback_state = NOT_INVOKED;
+  memset(&test_addr_in_callback, 0, sizeof(test_addr_in_callback));
+}

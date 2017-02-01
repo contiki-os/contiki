@@ -29,18 +29,25 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _PROJECT_CONF_H_
-#define _PROJECT_CONF_H_
+#ifndef _COMMON_H
+#define _COMMON_H
 
-#define UNIT_TEST_PRINT_FUNCTION test_print_report
+#include "net/linkaddr.h"
+#include "unit-test.h"
 
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES      2
+typedef enum {
+  NOT_INVOKED,
+  ADDED_INVOKED,
+  REMOVED_INVOKED,
+} test_callback_state_t;
 
-#undef UIP_DS6_NBR_CONF_MAX_NB
-#define UIP_DS6_NBR_CONF_MAX_NB  2
+extern test_callback_state_t test_callback_state;
+extern linkaddr_t test_addr_in_callback;
 
-#define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK test_added_callback
-#define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK test_removed_callback
+void test_print_report(const unit_test_t *utp);
 
-#endif /* !_PROJECT_CONF_H_ */
+void test_added_callback(const linkaddr_t *addr);
+void test_removed_callback(const linkaddr_t *addr);
+void reset_callback_status(void);
+
+#endif /* !_COMMON_H */
