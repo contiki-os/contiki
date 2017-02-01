@@ -66,16 +66,16 @@ void uip_ds6_route_init(void);
 #define UIP_DS6_NOTIFICATION_ROUTE_RM  3
 
 typedef void (* uip_ds6_notification_callback)(int event,
-					       uip_ipaddr_t *route,
-					       uip_ipaddr_t *nexthop,
-					       int num_routes);
+                                               uip_ipaddr_t *route,
+                                               uip_ipaddr_t *nexthop,
+                                               int num_routes);
 struct uip_ds6_notification {
   struct uip_ds6_notification *next;
   uip_ds6_notification_callback callback;
 };
 
 void uip_ds6_notification_add(struct uip_ds6_notification *n,
-			      uip_ds6_notification_callback c);
+                              uip_ds6_notification_callback c);
 
 void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 /*--------------------------------------------------*/
@@ -102,8 +102,8 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #define RPL_ROUTE_SET_NOPATH_RECEIVED(route) do {                       \
     (route)->state.state_flags |= RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
   } while(0)
-#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                       \
-    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
+#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                     \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;     \
   } while(0)
 
 #define RPL_ROUTE_IS_DAO_PENDING(route)                                 \
