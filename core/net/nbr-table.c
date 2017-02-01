@@ -413,6 +413,20 @@ nbr_table_unlock(nbr_table_t *table, void *item)
   return nbr_set_bit(locked_map, table, item, 0);
 }
 /*---------------------------------------------------------------------------*/
+/* Return whether a neighbor is locked */
+int
+nbr_table_is_locked(const linkaddr_t *lladdr)
+{
+  int index;
+  int locked;
+  if((index = index_from_lladdr(lladdr)) != -1) {
+    locked = locked_map[index];
+  } else {
+    locked = 0;
+  }
+  return locked != 0;
+}
+/*---------------------------------------------------------------------------*/
 /* Get link-layer address of an item */
 linkaddr_t *
 nbr_table_get_lladdr(nbr_table_t *table, const void *item)
