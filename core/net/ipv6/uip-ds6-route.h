@@ -42,6 +42,7 @@
 
 #include "net/ip/uip.h"
 #include "net/nbr-table.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 #include "sys/stimer.h"
 #include "lib/list.h"
 
@@ -138,6 +139,24 @@ typedef struct rpl_route_entry {
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+/** \brief An entry in the routing table */
+struct uip_ds6_nbr;
+typedef struct uip_ds6_route {
+  struct uip_ds6_route *next;
+  /*
+   * Each route entry belongs to a specific neighbor. That neighbor holds a list
+   * of all routing entries that go through it. The "nexthop_nbr" field points
+   * to the neighbor cache entry that this routing table entry uses.
+   */
+  struct uip_ds6_nbr *nexthop_nbr;
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+  UIP_DS6_ROUTE_STATE_TYPE state;
+#endif
+  uip_ipaddr_t ipaddr;
+  uint8_t length;
+} uip_ds6_route_t;
+#else /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 /** \brief The neighbor routes hold a list of routing table entries
     that are attached to a specific neihbor. */
 struct uip_ds6_route_neighbor_routes {
@@ -159,6 +178,7 @@ typedef struct uip_ds6_route {
 #endif
   uint8_t length;
 } uip_ds6_route_t;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
 /** \brief A neighbor route list entry, used on the
     uip_ds6_route->neighbor_routes->route_list list. */

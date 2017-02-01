@@ -53,6 +53,7 @@
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
+#include "lib/list.h"
 
 /*--------------------------------------------------*/
 /** \brief Possible states for the nbr cache entries */
@@ -78,6 +79,9 @@ typedef struct uip_ds6_nbr {
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
 #endif                          /*UIP_CONF_QUEUE_PKT */
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+  LIST_STRUCT(route_list);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
 } uip_ds6_nbr_t;
 
 void uip_ds6_neighbors_init(void);
@@ -121,6 +125,31 @@ void uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr);
  *    table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+struct uip_ds6_route;
+/**
+ * \brief Associate a route with a neighbor cache
+ */
+void uip_ds6_nbr_add_route(uip_ds6_nbr_t *nbr, struct uip_ds6_route *route);
+
+/**
+ * \brief Remove a route from a nbr
+ */
+void uip_ds6_nbr_rm_route(uip_ds6_nbr_t *nbr, struct uip_ds6_route *route);
+
+/**
+ * \brief Return whether the nbr has routes
+ * \retval 0 It doesn't have.
+ * \retval 1 It has at least one route.
+ */
+int uip_ds6_nbr_has_routes(uip_ds6_nbr_t *nbr);
+
+/**
+ * \brief Remove all the routes associated with a nbr
+ */
+void uip_ds6_nbr_rm_all_routes(uip_ds6_nbr_t *nbr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
 
 #endif /* UIP_DS6_NEIGHBOR_H_ */
 /** @} */

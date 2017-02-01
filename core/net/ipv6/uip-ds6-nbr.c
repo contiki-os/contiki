@@ -69,6 +69,18 @@ void LINK_NEIGHBOR_CALLBACK(const linkaddr_t *addr, int status, int numtx);
 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
 #endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+/* A configurable function called after adding a new neighbor as next hop */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(const linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK */
+
+/* A configurable function called after removing a next hop neighbor */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(const linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
+
 NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 
 /*---------------------------------------------------------------------------*/
@@ -105,6 +117,9 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
 #endif /* UIP_ND6_SEND_NS */
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+    LIST_STRUCT_INIT(nbr, route_list);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");
@@ -130,6 +145,15 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
     NEIGHBOR_STATE_CHANGED(nbr);
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+    if(nbr->route_list != NULL && list_length(nbr->route_list) > 0) {
+      NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(
+        (const linkaddr_t *)uip_ds6_nbr_get_ll(nbr));
+    }
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
+    uip_ds6_nbr_rm_all_routes(nbr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
     return nbr_table_remove(ds6_neighbors, nbr);
   }
   return 0;
@@ -179,6 +203,19 @@ uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr, const uip_lladdr_t *new_ll_addr)
   }
   memcpy(new_nbr, &backup_nbr, sizeof(uip_ds6_nbr_t));
   *nbr = new_nbr; /* make '*nbr' point to 'new_nbr' */
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  if(list_length((*nbr)->route_list) > 0) {
+    nbr_table_lock(ds6_neighbors, *nbr);
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+    if(linkaddr_cmp((const linkaddr_t *)uip_ds6_nbr_get_ll(*nbr),
+                    (const linkaddr_t *)&linkaddr_null) == 0) {
+      NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(
+        (const linkaddr_t *)uip_ds6_nbr_get_ll(*nbr));
+    }
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK */
+  }
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
   return 1;
 }
@@ -407,4 +444,73 @@ uip_ds6_get_least_lifetime_neighbor(void)
 }
 #endif /* UIP_ND6_SEND_NS */
 /*---------------------------------------------------------------------------*/
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+void
+uip_ds6_nbr_add_route(uip_ds6_nbr_t *nbr, uip_ds6_route_t *route)
+{
+  if(nbr == NULL || route == NULL) {
+    return;
+  }
+  list_push(nbr->route_list, route);
+  if(list_length(nbr->route_list) == 1) {
+    /*
+     * This is the first time to add a route to this nbr. We're going to lock
+     * this nbr so that the nbr is not removed as long as it has some route.
+     */
+    nbr_table_lock(ds6_neighbors, nbr);
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+    if(linkaddr_cmp((const linkaddr_t *)uip_ds6_nbr_get_ll(nbr),
+                    (const linkaddr_t *)&linkaddr_null) == 0) {
+      NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(
+        (const linkaddr_t *)uip_ds6_nbr_get_ll(nbr));
+    }
+#endif
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_nbr_rm_route(uip_ds6_nbr_t *nbr, uip_ds6_route_t *route)
+{
+  if(nbr == NULL || route == NULL) {
+    return;
+  }
+  list_remove(nbr->route_list, route);
+  if(list_length(nbr->route_list) == 0) {
+    /* no route is associated with the nbr; unlock it */
+    nbr_table_unlock(ds6_neighbors, nbr);
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+    if(linkaddr_cmp((const linkaddr_t *)uip_ds6_nbr_get_ll(nbr),
+                    (const linkaddr_t *)&linkaddr_null) == 0) {
+      NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(
+        (const linkaddr_t *)uip_ds6_nbr_get_ll(nbr));
+    }
+#endif
+  }
+}
+/*---------------------------------------------------------------------------*/
+int
+uip_ds6_nbr_has_routes(uip_ds6_nbr_t *nbr)
+{
+  if(nbr == NULL) {
+    return 0;
+  }
+
+  return list_length(nbr->route_list) > 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_nbr_rm_all_routes(uip_ds6_nbr_t *nbr)
+{
+  uip_ds6_route_t *route;
+  uip_ds6_route_t *next_route;
+  if(nbr == NULL || nbr->route_list == NULL) {
+    return;
+  }
+  for(route = list_head(nbr->route_list);
+      route != NULL; route = next_route) {
+    next_route = list_item_next(route);
+    uip_ds6_route_rm(route);
+  }
+}
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
 /** @} */
