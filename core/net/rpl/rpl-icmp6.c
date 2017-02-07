@@ -748,6 +748,11 @@ dao_input_storing(void)
 
 #if RPL_WITH_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
+    /*
+     * "rep" is used for a unicast route which we don't need now; so set NULL so
+     * that operations on "rep" will be skipped.
+     */
+    rep = NULL;
     mcast_group = uip_mcast6_route_add(&prefix);
     if(mcast_group) {
       mcast_group->dag = dag;
@@ -844,29 +849,33 @@ fwd_dao:
     int should_ack = 0;
 
     if(flags & RPL_DAO_K_FLAG) {
-      /*
-       * check if this route is already installed and we can ack now!
-       * not pending - and same seq-no means that we can ack.
-       * (e.g. the route is installed already so it will not take any
-       * more room that it already takes - so should be ok!)
-       */
-      if((!RPL_ROUTE_IS_DAO_PENDING(rep) &&
-          rep->state.dao_seqno_in == sequence) ||
-         dag->rank == ROOT_RANK(instance)) {
-        should_ack = 1;
+      if(rep != NULL) {
+        /*
+         * check if this route is already installed and we can ack now!
+         * not pending - and same seq-no means that we can ack.
+         * (e.g. the route is installed already so it will not take any
+         * more room that it already takes - so should be ok!)
+         */
+        if((!RPL_ROUTE_IS_DAO_PENDING(rep) &&
+            rep->state.dao_seqno_in == sequence) ||
+           dag->rank == ROOT_RANK(instance)) {
+          should_ack = 1;
+        }
       }
     }
 
     if(dag->preferred_parent != NULL &&
        rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
       uint8_t out_seq = 0;
-      /* if this is pending and we get the same seq no it is a retrans */
-      if(RPL_ROUTE_IS_DAO_PENDING(rep) &&
-         rep->state.dao_seqno_in == sequence) {
-        /* keep the same seq-no as before for parent also */
-        out_seq = rep->state.dao_seqno_out;
-      } else {
-        out_seq = prepare_for_dao_fwd(sequence, rep);
+      if(rep != NULL) {
+        /* if this is pending and we get the same seq no it is a retrans */
+        if(RPL_ROUTE_IS_DAO_PENDING(rep) &&
+           rep->state.dao_seqno_in == sequence) {
+          /* keep the same seq-no as before for parent also */
+          out_seq = rep->state.dao_seqno_out;
+        } else {
+          out_seq = prepare_for_dao_fwd(sequence, rep);
+        }
       }
 
       PRINTF("RPL: Forwarding DAO to parent ");
