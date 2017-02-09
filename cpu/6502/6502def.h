@@ -74,6 +74,12 @@ typedef unsigned short uip_stats_t;
 
 #define LOADER_CONF_ARCH "lib/unload.h"
 
+#ifdef HAVE_LOGSCR
+void logscr(const void *msg, unsigned len);
+#else
+#define logscr(msg, len) write(STDERR_FILENO, msg, len)
+#endif
+
 #if MTU_SIZE
 #define UIP_CONF_BUFFER_SIZE (UIP_LLH_LEN + MTU_SIZE)
 #else /* MTU_SIZE */

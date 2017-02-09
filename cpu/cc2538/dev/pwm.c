@@ -90,7 +90,8 @@ permit_pm1(void)
 }
 /*---------------------------------------------------------------------------*/
 int8_t
-pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
+pwm_enable(uint32_t freq, uint8_t duty, uint32_t count, uint8_t timer,
+           uint8_t ab)
 {
   uint8_t offset = 0;
   uint32_t interval_load, duty_count, copy;
@@ -109,7 +110,7 @@ pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
     return PWM_ERROR;
   }
 
-  PRINTF("PWM: F%08luHz: %u%% on GPT%u-%u\n", freq, duty, timer, ab);
+  PRINTF("PWM: F%08luHz: %u%%/%lu on GPT%u-%u\n", freq, duty, count, timer, ab);
 
   lpm_register_peripheral(permit_pm1);
 
@@ -147,14 +148,21 @@ pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
 
   /* If the duty cycle is zero, leave the GPTIMER configured as PWM to pass a next
    * configured check, but do nothing else */
-  if(!duty) {
+  if((!duty) && (!count)) {
     REG(gpt_base + GPTIMER_CTL) |= (copy | gpt_dir);
     return PWM_SUCCESS;
   }
 
-  /* Get the peripheral clock and equivalent deassert count */
+  /* Get the peripheral clock and equivalent deassert count, depending on the
+   * value given by the user, either use the count number of the duty cycle in
+   * percentage
+   */
   interval_load = sys_ctrl_get_sys_clock() / freq;
-  duty_count = ((interval_load * duty) + 1) / 100;
+  if(duty) {
+    duty_count = ((interval_load * duty) + 1) / 100;
+  } else {
+    duty_count = count;
+  }
 
   PRINTF("PWM: sys %luHz: %lu %lu\n", sys_ctrl_get_sys_clock(),
          interval_load, duty_count);

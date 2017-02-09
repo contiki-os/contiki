@@ -42,6 +42,10 @@ struct ethernet_config {
 
 PROCESS_NAME(ethernet_process);
 
+#if NETSTACK_CONF_WITH_IPV6
+uint8_t ethernet_output(const uip_lladdr_t *);
+#else
 uint8_t ethernet_output(void);
+#endif
 
 #endif /* ETHERNET_DRV_H_ */

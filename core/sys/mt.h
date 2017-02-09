@@ -84,9 +84,8 @@
 
 #include "contiki.h"
 
-#define MT_STATE_READY   1
-#define MT_STATE_RUNNING 2
-#define MT_STATE_EXITED  5
+#define MT_STATE_STARTED 1
+#define MT_STATE_EXITED  2
 
 /**
  * An opaque structure that is used for holding the state of a thread.
@@ -183,17 +182,8 @@ void mtarch_pstop(void);
 
 struct mt_thread {
   int state;
-  process_event_t *evptr;
-  process_data_t *dataptr;
   struct mtarch_thread thread;
 };
-
-/**
- * No error.
- *
- * \hideinitializer
- */
-#define MT_OK 1
 
 /**
  * Initializes the multithreading library.

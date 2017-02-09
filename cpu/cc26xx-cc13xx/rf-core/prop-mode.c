@@ -107,16 +107,6 @@
 #define PROP_MODE_USE_CRC16 0
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_SNIFFER PROP_MODE_CONF_SNIFFER
-#else
-#define PROP_MODE_SNIFFER 0
-#endif
-
-#if PROP_MODE_SNIFFER
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };
-#endif
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -229,14 +219,23 @@ const output_config_t *tx_power_current = &output_power[1];
 #define PROP_MODE_LO_DIVIDER   0x05
 #endif
 /*---------------------------------------------------------------------------*/
+#ifdef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_RX_BUF_CNT PROP_MODE_CONF_RX_BUF_CNT
+#else
+#define PROP_MODE_RX_BUF_CNT 4
+#endif
+/*---------------------------------------------------------------------------*/
 #define DATA_ENTRY_LENSZ_NONE 0
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
+/*
+ * RX buffers.
+ * PROP_MODE_RX_BUF_CNT buffers of RX_BUF_SIZE bytes each. The start of each
+ * buffer must be 4-byte aligned, therefore RX_BUF_SIZE must divide by 4
+ */
 #define RX_BUF_SIZE 140
-/* Receive buffers: 1 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf[PROP_MODE_RX_BUF_CNT][RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -437,6 +436,24 @@ rf_cmd_prop_rx()
   return ret;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init_rx_buffers(void)
+{
+  rfc_dataEntry_t *entry;
+  int i;
+
+  for(i = 0; i < PROP_MODE_RX_BUF_CNT; i++) {
+    entry = (rfc_dataEntry_t *)rx_buf[i];
+    entry->status = DATA_ENTRY_STATUS_PENDING;
+    entry->config.type = DATA_ENTRY_TYPE_GEN;
+    entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
+    entry->length = RX_BUF_SIZE - 8;
+    entry->pNextEntry = rx_buf[i + 1];
+  }
+
+  ((rfc_dataEntry_t *)rx_buf[PROP_MODE_RX_BUF_CNT - 1])->pNextEntry = rx_buf[0];
+}
+/*---------------------------------------------------------------------------*/
 static int
 rx_on_prop(void)
 {
@@ -574,8 +591,6 @@ static const rf_core_primary_mode_t mode_prop = {
 static int
 init(void)
 {
-  rfc_dataEntry_t *entry;
-
   lpm_register_module(&prop_lpm_module);
 
   if(ti_lib_chipinfo_chip_family_is_cc13xx() == false) {
@@ -585,29 +600,14 @@ init(void)
   rf_core_set_modesel();
 
   /* Initialise RX buffers */
-  memset(rx_buf_0, 0, RX_BUF_SIZE);
-  memset(rx_buf_1, 0, RX_BUF_SIZE);
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_1;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_0;
+  memset(rx_buf, 0, sizeof(rx_buf));
 
   /* Set of RF Core data queue. Circular buffer, no last entry */
-  rx_data_queue.pCurrEntry = rx_buf_0;
+  rx_data_queue.pCurrEntry = rx_buf[0];
   rx_data_queue.pLastEntry = NULL;
 
   /* Initialize current read pointer to first element (used in ISR) */
-  rx_read_entry = rx_buf_0;
+  rx_read_entry = rx_buf[0];
 
   smartrf_settings_cmd_prop_rx_adv.pQueue = &rx_data_queue;
   smartrf_settings_cmd_prop_rx_adv.pOutput = (uint8_t *)&rx_stats;
@@ -634,7 +634,7 @@ prepare(const void *payload, unsigned short payload_len)
   int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
 
   memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
-  return RF_CORE_CMD_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -683,7 +683,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en(false);
+  rf_core_cmd_done_en(false, false);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -728,7 +728,7 @@ transmit(unsigned short transmit_len)
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
    * except when we are transmitting
    */
-  rf_core_cmd_done_dis();
+  rf_core_cmd_done_dis(false);
 
   /* Workaround. Set status to IDLE */
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
@@ -773,28 +773,7 @@ read_frame(void *buf, unsigned short buf_len)
       }
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
-
-#if PROP_MODE_SNIFFER
-      {
-        int i;
-
-        cc26xx_uart_write_byte(magic[0]);
-        cc26xx_uart_write_byte(magic[1]);
-        cc26xx_uart_write_byte(magic[2]);
-        cc26xx_uart_write_byte(magic[3]);
-
-        cc26xx_uart_write_byte(len + 2);
-
-        for(i = 0; i < len; ++i) {
-          cc26xx_uart_write_byte(((uint8_t *)(buf))[i]);
-        }
-
-        cc26xx_uart_write_byte((uint8_t)rx_stats.lastRssi);
-        cc26xx_uart_write_byte(0x80);
-
-        while(cc26xx_uart_busy() == UART_BUSY);
-      }
-#endif
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
     }
 
     /* Move read entry pointer to next entry */
@@ -933,7 +912,9 @@ on(void)
     }
   }
 
-  rf_core_setup_interrupts();
+  rf_core_setup_interrupts(false);
+
+  init_rx_buffers();
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
@@ -958,8 +939,6 @@ on(void)
 static int
 off(void)
 {
-  rfc_dataEntry_t *entry;
-
   /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
    * from within an interrupt context. Abort, but pretend everything is OK.
@@ -978,12 +957,6 @@ off(void)
 
   /* We pulled the plug, so we need to restore the status manually */
   smartrf_settings_cmd_prop_rx_adv.status = RF_CORE_RADIO_OP_STATUS_IDLE;
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
 
   return RF_CORE_CMD_OK;
 }
@@ -1083,6 +1056,8 @@ set_value(radio_param_t param, radio_value_t value)
     }
 
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
     rssi_threshold = (int8_t)value;
     break;
@@ -1104,7 +1079,7 @@ set_value(radio_param_t param, radio_value_t value)
     rv = RADIO_RESULT_ERROR;
   }
 
-  if(rx_on_prop() != RF_CORE_CMD_OK) {
+  if(soft_on_prop() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on_prop() failed\n");
     rv = RADIO_RESULT_ERROR;
   }

@@ -30,6 +30,10 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+#ifndef WITH_NON_STORING
+#define WITH_NON_STORING 0 /* Set this to run with non-storing mode */
+#endif /* WITH_NON_STORING */
+
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #undef UIP_CONF_MAX_ROUTES
 
@@ -56,4 +60,13 @@
 
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
 
-#endif /* PROJECT_CONF_H_ */
+#if WITH_NON_STORING
+#undef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM 40 /* Number of links maintained at the root. Can be set to 0 at non-root nodes. */
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES 0 /* No need for routes */
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_NON_STORING /* Mode of operation*/
+#endif /* WITH_NON_STORING */
+
+#endif

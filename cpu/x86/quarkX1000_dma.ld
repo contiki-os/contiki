@@ -30,22 +30,18 @@
 
 SECTIONS {
 
-    /*
-       It would be more natural to use a 1K alignment for this entire section.
-       However, the UEFI GenFw program ratchets up its alignment
-       granularity to the maximum granularity discovered in its input file.
-       Using 1K-alignment perturbs the symbols, hindering debugging.  Thus,
-       this section is simply padded out to the desired alignment and
-       declared to have a section alignment of only 32 bytes.
-    */
-    .bss.dma ALIGN (32) (NOLOAD) :
+    .bss.dma (NOLOAD) : AT(_ebss_pre_dma_addr) ALIGN (32)
     {
-        /* The IMR feature operates at 1K granularity. */
-        . = ALIGN(1K);
-        _sbss_dma_addr = .;
+        /* IMRs are used to restrict DMA, and they require 1K physical address alignment. */
+        . += ALIGN(_ebss_pre_dma_addr, 1K) - ALIGN(_ebss_pre_dma_addr, 32);
         *(.dma_bss)
-        . = ALIGN(1K);
-        _ebss_dma_addr = .;
     }
+
+    _sbss_dma_addr = LOADADDR(.bss.dma) + ALIGN(_ebss_pre_dma_addr, 1K) - ALIGN(_ebss_pre_dma_addr, 32);
+    /*
+       Effectively pointing beyond the end of .bss.dma is acceptable, since
+       .bss.dma is the last section in memory.
+    */
+    _ebss_dma_addr = ALIGN(LOADADDR(.bss.dma) + SIZEOF(.bss.dma), 1K);
 
 }

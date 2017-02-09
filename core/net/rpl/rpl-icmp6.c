@@ -51,6 +51,7 @@
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "random.h"
@@ -91,9 +92,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
-extern rpl_of_t RPL_OF;
-
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
@@ -121,6 +120,7 @@ find_route_entry_by_dao_ack(uint8_t seq)
 }
 #endif /* RPL_WITH_DAO_ACK */
 
+#if RPL_WITH_STORING
 /* prepare for forwarding of DAO */
 static uint8_t
 prepare_for_dao_fwd(uint8_t sequence, uip_ds6_route_t *rep)
@@ -134,6 +134,7 @@ prepare_for_dao_fwd(uint8_t sequence, uip_ds6_route_t *rep)
   RPL_ROUTE_SET_DAO_PENDING(rep);
   return dao_sequence;
 }
+#endif /* RPL_WITH_STORING */
 /*---------------------------------------------------------------------------*/
 static int
 get_global_addr(uip_ipaddr_t *addr)
@@ -200,14 +201,6 @@ rpl_icmp6_update_nbr_table(uip_ipaddr_t *from, nbr_table_reason_t reason, void *
     }
   }
 
-  if(nbr != NULL) {
-#if UIP_ND6_SEND_NA
-    /* set reachable timer if we added or found the nbr entry - and update
-       neighbor entry to reachable to avoid sending NS/NA, etc.  */
-    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-    nbr->state = NBR_REACHABLE;
-#endif /* UIP_ND6_SEND_NA */
-  }
   return nbr;
  }
 /*---------------------------------------------------------------------------*/
@@ -302,7 +295,7 @@ dio_input(void)
   dio.dag_redund = RPL_DIO_REDUNDANCY;
   dio.dag_min_hoprankinc = RPL_MIN_HOPRANKINC;
   dio.dag_max_rankinc = RPL_MAX_RANKINC;
-  dio.ocp = RPL_OF.ocp;
+  dio.ocp = RPL_OF_OCP;
   dio.default_lifetime = RPL_DEFAULT_LIFETIME;
   dio.lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
 
@@ -478,6 +471,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 {
   unsigned char *buffer;
   int pos;
+  int is_root;
   rpl_dag_t *dag = instance->current_dag;
 #if !RPL_LEAF_ONLY
   uip_ipaddr_t addr;
@@ -498,6 +492,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[pos++] = instance->instance_id;
   buffer[pos++] = dag->version;
+  is_root = (dag->rank == ROOT_RANK(instance));
 
 #if RPL_LEAF_ONLY
   PRINTF("RPL: LEAF ONLY DIO rank set to INFINITE_RANK\n");
@@ -518,7 +513,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if(RPL_DIO_REFRESH_DAO_ROUTES && uc_addr == NULL) {
+  if(RPL_DIO_REFRESH_DAO_ROUTES && is_root && uc_addr == NULL) {
     /* Request new DAO to refresh route. We do not do this for unicast DIO
      * in order to avoid DAO messages after a DIS-DIO update,
      * or upon unicast DIO probing. */
@@ -628,8 +623,9 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-dao_input(void)
+dao_input_storing(void)
 {
+#if RPL_WITH_STORING
   uip_ipaddr_t dao_sender_addr;
   rpl_dag_t *dag;
   rpl_instance_t *instance;
@@ -667,11 +663,6 @@ dao_input(void)
   instance_id = buffer[pos++];
 
   instance = rpl_get_instance(instance_id);
-  if(instance == NULL) {
-    PRINTF("RPL: Ignoring a DAO for an unknown RPL instance(%u)\n",
-           instance_id);
-    goto discard;
-  }
 
   lifetime = instance->default_lifetime;
 
@@ -687,7 +678,7 @@ dao_input(void)
   if(flags & RPL_DAO_D_FLAG) {
     if(memcmp(&dag->dag_id, &buffer[pos], sizeof(dag->dag_id))) {
       PRINTF("RPL: Ignoring a DAO for a DAG different from ours\n");
-      goto discard;
+      return;
     }
     pos += 16;
   }
@@ -712,7 +703,7 @@ dao_input(void)
           DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
-      goto discard;
+      return;
     }
 
     /* If we get the DAO from our parent, we also have a loop. */
@@ -720,7 +711,7 @@ dao_input(void)
       PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
-      goto discard;
+      return;
     }
   }
 
@@ -756,7 +747,7 @@ dao_input(void)
   PRINT6ADDR(&prefix);
   PRINTF("\n");
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
     mcast_group = uip_mcast6_route_add(&prefix);
     if(mcast_group) {
@@ -800,14 +791,15 @@ dao_input(void)
         uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                        ICMP6_RPL, RPL_CODE_DAO, buffer_length);
       }
-    } 
+    }
     /* independent if we remove or not - ACK the request */
     if(flags & RPL_DAO_K_FLAG) {
       /* indicate that we accepted the no-path DAO */
+      uip_clear_buf();
       dao_ack_output(instance, &dao_sender_addr, sequence,
                      RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
-    goto discard;
+    return;
   }
 
   PRINTF("RPL: Adding DAO route\n");
@@ -825,7 +817,7 @@ dao_input(void)
 		     is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
 		     RPL_DAO_ACK_UNABLE_TO_ACCEPT);
     }
-    goto discard;
+    return;
   }
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
@@ -838,14 +830,14 @@ dao_input(void)
 		     is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
 		     RPL_DAO_ACK_UNABLE_TO_ACCEPT);
     }
-    goto discard;
+    return;
   }
 
   /* set lifetime and clear NOPATH bit */
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
 fwd_dao:
 #endif
 
@@ -887,12 +879,143 @@ fwd_dao:
       uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
-
     if(should_ack) {
       PRINTF("RPL: Sending DAO ACK\n");
+      uip_clear_buf();
       dao_ack_output(instance, &dao_sender_addr, sequence,
                      RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
+  }
+#endif /* RPL_WITH_STORING */
+}
+/*---------------------------------------------------------------------------*/
+static void
+dao_input_nonstoring(void)
+{
+#if RPL_WITH_NON_STORING
+  uip_ipaddr_t dao_sender_addr;
+  uip_ipaddr_t dao_parent_addr;
+  rpl_dag_t *dag;
+  rpl_instance_t *instance;
+  unsigned char *buffer;
+  uint16_t sequence;
+  uint8_t instance_id;
+  uint8_t lifetime;
+  uint8_t prefixlen;
+  uint8_t flags;
+  uint8_t subopt_type;
+  uip_ipaddr_t prefix;
+  uint8_t buffer_length;
+  int pos;
+  int len;
+  int i;
+
+  prefixlen = 0;
+
+  uip_ipaddr_copy(&dao_sender_addr, &UIP_IP_BUF->srcipaddr);
+  memset(&dao_parent_addr, 0, 16);
+
+  buffer = UIP_ICMP_PAYLOAD;
+  buffer_length = uip_len - uip_l3_icmp_hdr_len;
+
+  pos = 0;
+  instance_id = buffer[pos++];
+  instance = rpl_get_instance(instance_id);
+  lifetime = instance->default_lifetime;
+
+  flags = buffer[pos++];
+  /* reserved */
+  pos++;
+  sequence = buffer[pos++];
+
+  dag = instance->current_dag;
+  /* Is the DAG ID present? */
+  if(flags & RPL_DAO_D_FLAG) {
+    if(memcmp(&dag->dag_id, &buffer[pos], sizeof(dag->dag_id))) {
+      PRINTF("RPL: Ignoring a DAO for a DAG different from ours\n");
+      return;
+    }
+    pos += 16;
+  }
+
+  /* Check if there are any RPL options present. */
+  for(i = pos; i < buffer_length; i += len) {
+    subopt_type = buffer[i];
+    if(subopt_type == RPL_OPTION_PAD1) {
+      len = 1;
+    } else {
+      /* The option consists of a two-byte header and a payload. */
+      len = 2 + buffer[i + 1];
+    }
+
+    switch(subopt_type) {
+    case RPL_OPTION_TARGET:
+      /* Handle the target option. */
+      prefixlen = buffer[i + 3];
+      memset(&prefix, 0, sizeof(prefix));
+      memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
+      break;
+    case RPL_OPTION_TRANSIT:
+      /* The path sequence and control are ignored. */
+      /*      pathcontrol = buffer[i + 3];
+              pathsequence = buffer[i + 4];*/
+      lifetime = buffer[i + 5];
+      if(len >= 20) {
+        memcpy(&dao_parent_addr, buffer + i + 6, 16);
+      }
+      break;
+    }
+  }
+
+  PRINTF("RPL: DAO lifetime: %u, prefix length: %u prefix: ",
+          (unsigned)lifetime, (unsigned)prefixlen);
+  PRINT6ADDR(&prefix);
+  PRINTF(", parent: ");
+  PRINT6ADDR(&dao_parent_addr);
+  PRINTF(" \n");
+
+  if(lifetime == RPL_ZERO_LIFETIME) {
+    PRINTF("RPL: No-Path DAO received\n");
+    rpl_ns_expire_parent(dag, &prefix, &dao_parent_addr);
+  } else {
+    if(rpl_ns_update_node(dag, &prefix, &dao_parent_addr, RPL_LIFETIME(instance, lifetime)) == NULL) {
+      PRINTF("RPL: failed to add link\n");
+      return;
+    }
+  }
+
+  if(flags & RPL_DAO_K_FLAG) {
+    PRINTF("RPL: Sending DAO ACK\n");
+    uip_clear_buf();
+    dao_ack_output(instance, &dao_sender_addr, sequence,
+        RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
+  }
+#endif /* RPL_WITH_NON_STORING */
+}
+/*---------------------------------------------------------------------------*/
+static void
+dao_input(void)
+{
+  rpl_instance_t *instance;
+  uint8_t instance_id;
+
+  /* Destination Advertisement Object */
+  PRINTF("RPL: Received a DAO from ");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF("\n");
+
+  instance_id = UIP_ICMP_PAYLOAD[0];
+  instance = rpl_get_instance(instance_id);
+  if(instance == NULL) {
+    PRINTF("RPL: Ignoring a DAO for an unknown RPL instance(%u)\n",
+           instance_id);
+    goto discard;
+  }
+
+  if(RPL_IS_STORING(instance)) {
+    dao_input_storing();
+  } else if(RPL_IS_NON_STORING(instance)) {
+    dao_input_nonstoring();
   }
 
  discard:
@@ -926,7 +1049,7 @@ handle_dao_retransmission(void *ptr)
       return;
     }
 
-    if(instance->of->dao_ack_callback) {
+    if(RPL_IS_STORING(instance) && instance->of->dao_ack_callback) {
       /* Inform the objective function about the timeout. */
       instance->of->dao_ack_callback(parent, RPL_DAO_ACK_TIMEOUT);
     }
@@ -1008,6 +1131,8 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
   unsigned char *buffer;
   uint8_t prefixlen;
   int pos;
+  uip_ipaddr_t *parent_ipaddr = NULL;
+  uip_ipaddr_t *dest_ipaddr = NULL;
 
   /* Destination Advertisement Object */
 
@@ -1018,6 +1143,12 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 
   if(parent == NULL) {
     PRINTF("RPL dao_output_target error parent NULL\n");
+    return;
+  }
+
+  parent_ipaddr = rpl_get_parent_ipaddr(parent);
+  if(parent_ipaddr == NULL) {
+    PRINTF("RPL dao_output_target error parent IP address NULL\n");
     return;
   }
 
@@ -1073,21 +1204,37 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 
   /* Create a transit information sub-option. */
   buffer[pos++] = RPL_OPTION_TRANSIT;
-  buffer[pos++] = 4;
+  buffer[pos++] = (instance->mop != RPL_MOP_NON_STORING) ? 4 : 20;
   buffer[pos++] = 0; /* flags - ignored */
   buffer[pos++] = 0; /* path control - ignored */
   buffer[pos++] = 0; /* path seq - ignored */
   buffer[pos++] = lifetime;
 
+  if(instance->mop != RPL_MOP_NON_STORING) {
+    /* Send DAO to parent */
+    dest_ipaddr = parent_ipaddr;
+  } else {
+    /* Include parent global IP address */
+    memcpy(buffer + pos, &parent->dag->dag_id, 8); /* Prefix */
+    pos += 8;
+    memcpy(buffer + pos, ((const unsigned char *)parent_ipaddr) + 8, 8); /* Interface identifier */
+    pos += 8;
+    /* Send DAO to root */
+    dest_ipaddr = &parent->dag->dag_id;
+  }
+
   PRINTF("RPL: Sending a %sDAO with sequence number %u, lifetime %u, prefix ",
       lifetime == RPL_ZERO_LIFETIME ? "No-Path " : "", seq_no, lifetime);
+
   PRINT6ADDR(prefix);
   PRINTF(" to ");
-  PRINT6ADDR(rpl_get_parent_ipaddr(parent));
+  PRINT6ADDR(dest_ipaddr);
+  PRINTF(" , parent ");
+  PRINT6ADDR(parent_ipaddr);
   PRINTF("\n");
 
-  if(rpl_get_parent_ipaddr(parent) != NULL) {
-    uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
+  if(dest_ipaddr != NULL) {
+    uip_icmp6_send(dest_ipaddr, ICMP6_RPL, RPL_CODE_DAO, pos);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -1115,11 +1262,15 @@ dao_ack_input(void)
     return;
   }
 
-  parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
-  if(parent == NULL) {
-    /* not a known instance - drop the packet and ignore */
-    uip_clear_buf();
-    return;
+  if(RPL_IS_STORING(instance)) {
+    parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
+    if(parent == NULL) {
+      /* not a known instance - drop the packet and ignore */
+      uip_clear_buf();
+      return;
+    }
+  } else {
+    parent = NULL;
   }
 
   PRINTF("RPL: Received a DAO %s with sequence number %d (%d) and status %d from ",
@@ -1135,7 +1286,7 @@ dao_ack_input(void)
     ctimer_stop(&instance->dao_retransmit_timer);
 
     /* Inform objective function on status of the DAO ACK */
-    if(instance->of->dao_ack_callback) {
+    if(RPL_IS_STORING(instance) && instance->of->dao_ack_callback) {
       instance->of->dao_ack_callback(parent, status);
     }
 
@@ -1149,7 +1300,7 @@ dao_ack_input(void)
     }
 #endif
 
-  } else {
+  } else if(RPL_IS_STORING(instance)) {
     /* this DAO ACK should be forwarded to another recently registered route */
     uip_ds6_route_t *re;
     uip_ipaddr_t *nexthop;

@@ -146,36 +146,45 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
   }
 
   if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
-    if(!fcf->panid_compression) {
-      /* Compressed PAN ID == no PAN ID at all */
-      if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
-        /* No address or both addresses: include destination PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->dest_addr_mode) {
-        /* Only dest address, include dest PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->src_addr_mode) {
-        /* Only src address, include src PAN ID */
-        src_pan_id = 1;
-      }
+    /*
+     * IEEE 802.15.4-2015
+     * Table 7-2, PAN ID Compression value for frame version 0b10
+     */
+    if((fcf->dest_addr_mode == FRAME802154_NOADDR &&
+        fcf->src_addr_mode == FRAME802154_NOADDR &&
+        fcf->panid_compression == 1) ||
+       (fcf->dest_addr_mode != FRAME802154_NOADDR &&
+        fcf->src_addr_mode == FRAME802154_NOADDR &&
+        fcf->panid_compression == 0) ||
+       (fcf->dest_addr_mode == FRAME802154_LONGADDRMODE &&
+        fcf->src_addr_mode == FRAME802154_LONGADDRMODE &&
+        fcf->panid_compression == 0) ||
+       ((fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
+         fcf->src_addr_mode != FRAME802154_NOADDR) ||
+        (fcf->dest_addr_mode != FRAME802154_NOADDR &&
+         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE)) ){
+      dest_pan_id = 1;
     }
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 1) {
-      /* No address included, include dest PAN ID conditionally */
-      if(!fcf->panid_compression) {
-        dest_pan_id = 1;
-      }
+
+    if(fcf->panid_compression == 0 &&
+       ((fcf->dest_addr_mode == FRAME802154_NOADDR &&
+         fcf->src_addr_mode == FRAME802154_LONGADDRMODE) ||
+        (fcf->dest_addr_mode == FRAME802154_NOADDR &&
+         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE) ||
+        (fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
+         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE) ||
+        (fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
+         fcf->src_addr_mode == FRAME802154_LONGADDRMODE) ||
+        (fcf->dest_addr_mode == FRAME802154_LONGADDRMODE &&
+         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE))) {
+      src_pan_id = 1;
     }
-    /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
-      /* Not meaningful, we include a PAN ID iff the compress flag is set, but
-       * this is what the standard currently stipulates */
-      dest_pan_id = fcf->panid_compression;
-    }
+
   } else {
     /* No PAN ID in ACK */
     if(fcf->frame_type != FRAME802154_ACKFRAME) {
       if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
-        /* If compressed, don't inclue source PAN ID */
+        /* If compressed, don't include source PAN ID */
         src_pan_id = 1;
       }
       if(fcf->dest_addr_mode & 3) {

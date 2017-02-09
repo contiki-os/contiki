@@ -125,8 +125,8 @@
 #define UIP_CONF_ROUTER                 0
 
 /* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS    5
-#define UIP_CONF_MAX_ROUTES             5
+#define NBR_TABLE_CONF_MAX_NEIGHBORS    4
+#define UIP_CONF_MAX_ROUTES             4
 
 #define RPL_CONF_MAX_PARENTS            4
 #define RPL_CONF_MAX_DAG_PER_INSTANCE   1
@@ -179,7 +179,9 @@
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  48
+#endif
 #define UIP_CONF_TCP_MSS         48
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8

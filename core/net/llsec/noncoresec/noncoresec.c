@@ -195,7 +195,7 @@ parse(void)
   packetbuf_set_datalen(packetbuf_datalen() - MIC_LEN);
   
   if(!aead(result, 0)) {
-    PRINTF("noncoresec: received unauthentic frame %"PRIu32"\n",
+    PRINTF("noncoresec: received unauthentic frame %lu\n",
         anti_replay_get_counter());
     return FRAMER_FAILED;
   }
@@ -228,7 +228,7 @@ parse(void)
     anti_replay_init_info(info);
   } else {
     if(anti_replay_was_replayed(info)) {
-       PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
+       PRINTF("noncoresec: received replayed frame %lu\n",
            anti_replay_get_counter());
        return FRAMER_FAILED;
     }

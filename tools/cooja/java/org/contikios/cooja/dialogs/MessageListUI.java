@@ -33,6 +33,7 @@ package org.contikios.cooja.dialogs;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -81,6 +82,9 @@ public class MessageListUI extends JList implements MessageList {
   private int max = -1;
   
   public MessageListUI() {
+    if (GraphicsEnvironment.isHeadless()) {
+        throw new RuntimeException("Can not use UI version of message list in Headless mode");
+    }
     super.setModel(new MessageModel());
     setCellRenderer(new MessageRenderer());
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

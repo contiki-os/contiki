@@ -71,5 +71,5 @@ MODULES+=core/net/mac core/net/mac/sicslowmac \
          core/net/llsec
 else
 vpath %.c $(CONTIKI)/core/net/ipv6
-CONTIKI_SOURCEFILES += sicslowpan.c linkaddr.c
+CONTIKI_SOURCEFILES += sicslowpan.c linkaddr.c link-stats.c nbr-table.c
 endif

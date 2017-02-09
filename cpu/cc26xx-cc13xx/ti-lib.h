@@ -52,6 +52,9 @@
 #ifndef TI_LIB_H_
 #define TI_LIB_H_
 /*---------------------------------------------------------------------------*/
+/* Include ROM API */
+#include "ti-lib-rom.h"
+/*---------------------------------------------------------------------------*/
 /* aon_batmon.h */
 #include "driverlib/aon_batmon.h"
 
@@ -139,6 +142,26 @@
 #define ti_lib_aon_wuc_osc_config(...)                AONWUCOscConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_jtag_power_off(...)            AONWUCJtagPowerOff(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
+/* aux_adc.h */
+#include "driverlib/aux_adc.h"
+
+#define ti_lib_aux_adc_disable(...)                            AUXADCDisable(__VA_ARGS__)
+#define ti_lib_aux_adc_enable_async(...)                       AUXADCEnableAsync(__VA_ARGS__)
+#define ti_lib_aux_adc_enable_sync(...)                        AUXADCEnableSync(__VA_ARGS__)
+#define ti_lib_aux_adc_disable_input_scaling(...)              AUXADCDisableInputScaling(__VA_ARGS__)
+#define ti_lib_aux_adc_flush_fifo(...)                         AUXADCFlushFifo(__VA_ARGS__)
+#define ti_lib_aux_adc_gen_manual_trigger(...)                 AUXADCGenManualTrigger(__VA_ARGS__)
+#define ti_lib_aux_adc_get_fifo_status(...)                    AUXADCGetFifoStatus(__VA_ARGS__)
+#define ti_lib_aux_adc_read_fifo(...)                          AUXADCReadFifo(__VA_ARGS__)
+#define ti_lib_aux_adc_pop_fifo(...)                           AUXADCPopFifo(__VA_ARGS__)
+#define ti_lib_aux_adc_select_input(...)                       AUXADCSelectInput(__VA_ARGS__)
+#define ti_lib_aux_adc_get_adjustment_gain(...)                AUXADCGetAdjustmentGain(__VA_ARGS__)
+#define ti_lib_aux_adc_get_adjustment_offset(...)              AUXADCGetAdjustmentOffset(__VA_ARGS__)
+#define ti_lib_aux_adc_value_to_microvolts(...)                AUXADCValueToMicrovolts(__VA_ARGS__)
+#define ti_lib_aux_adc_microvolts_to_value(...)                AUXADCMicrovoltsToValue(__VA_ARGS__)
+#define ti_lib_aux_adc_adjust_value_for_gain_and_offset(...)   AUXADCAdjustValueForGainAndOffset(__VA_ARGS__)
+#define ti_lib_aux_adc_unadjust_value_for_gain_and_offset(...) AUXADCUnadjustValueForGainAndOffset(__VA_ARGS__)
+/*---------------------------------------------------------------------------*/
 /* aux_wuc.h */
 #include "driverlib/aux_wuc.h"
 
@@ -175,6 +198,7 @@
 #define ti_lib_chipinfo_package_type_is_5x5(...)       ChipInfo_PackageTypeIs5x5(__VA_ARGS__)
 #define ti_lib_chipinfo_package_type_is_7x7(...)       ChipInfo_PackageTypeIs7x7(__VA_ARGS__)
 #define ti_lib_chipinfo_get_device_id_hw_rev_code(...) ChipInfo_GetDeviceIdHwRevCode(__VA_ARGS__)
+#define ti_lib_chipinfo_get_chip_type(...)             ChipInfo_GetChipType(__VA_ARGS__)
 #define ti_lib_chipinfo_get_chip_family(...)           ChipInfo_GetChipFamily(__VA_ARGS__)
 #define ti_lib_chipinfo_chip_family_is_cc26xx(...)     ChipInfo_ChipFamilyIsCC26xx(__VA_ARGS__)
 #define ti_lib_chipinfo_chip_family_is_cc13xx(...)     ChipInfo_ChipFamilyIsCC13xx(__VA_ARGS__)
@@ -205,14 +229,24 @@
 /* gpio.h */
 #include "driverlib/gpio.h"
 
-#define ti_lib_gpio_dir_mode_set(...) GPIODirModeSet(__VA_ARGS__)
-#define ti_lib_gpio_dir_mode_get(...) GPIODirModeGet(__VA_ARGS__)
-#define ti_lib_gpio_pin_write(...)    GPIOPinWrite(__VA_ARGS__)
-#define ti_lib_gpio_pin_read(...)     GPIOPinRead(__VA_ARGS__)
-#define ti_lib_gpio_pin_clear(...)    GPIOPinClear(__VA_ARGS__)
-#define ti_lib_gpio_pin_toggle(...)   GPIOPinToggle(__VA_ARGS__)
-#define ti_lib_gpio_event_get(...)    GPIOEventGet(__VA_ARGS__)
-#define ti_lib_gpio_event_clear(...)  GPIOEventClear(__VA_ARGS__)
+#define ti_lib_gpio_read_dio(...)                    GPIO_readDio(__VA_ARGS__)
+#define ti_lib_gpio_read_multi_dio(...)              GPIO_readMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_write_dio(...)                   GPIO_writeDio(__VA_ARGS__)
+#define ti_lib_gpio_write_multi_dio(...)             GPIO_writeMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_set_dio(...)                     GPIO_setDio(__VA_ARGS__)
+#define ti_lib_gpio_set_multi_dio(...)               GPIO_setMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_dio(...)                   GPIO_clearDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_multi_dio(...)             GPIO_clearMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_toggle_dio(...)                  GPIO_toggleDio(__VA_ARGS__)
+#define ti_lib_gpio_toggle_multi_dio(...)            GPIO_toggleMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_get_output_enable_dio(...)       GPIO_getOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_get_output_enable_multi_dio(...) GPIO_getOutputEnableMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_set_output_enable_dio(...)       GPIO_setOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_set_output_enable_multi_dio(...) GPIO_setOutputEnableMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_get_event_dio(...)               GPIO_getEventDio(__VA_ARGS__)
+#define ti_lib_gpio_get_event_multi_dio(...)         GPIO_getEventMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_event_dio(...)             GPIO_clearEventDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_event_multi_dio(...)       GPIO_clearEventMultiDio(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* i2c.h */
 #include "driverlib/i2c.h"
@@ -297,15 +331,22 @@
 #include "driverlib/osc.h"
 
 #define ti_lib_osc_xhf_power_mode_set(...)                OSCXHfPowerModeSet(__VA_ARGS__)
+#define ti_lib_osc_clock_loss_event_enable(...)           OSCClockLossEventEnable(__VA_ARGS__)
+#define ti_lib_osc_clock_loss_event_disable(...)          OSCClockLossEventDisable(__VA_ARGS__)
 #define ti_lib_osc_clock_source_set(...)                  OSCClockSourceSet(__VA_ARGS__)
 #define ti_lib_osc_clock_source_get(...)                  OSCClockSourceGet(__VA_ARGS__)
 #define ti_lib_osc_hf_source_ready(...)                   OSCHfSourceReady(__VA_ARGS__)
 #define ti_lib_osc_hf_source_switch(...)                  OSCHfSourceSwitch(__VA_ARGS__)
-#define ti_lib_osc_interface_enable(...)                  OSCInterfaceEnable(__VA_ARGS__)
-#define ti_lib_osc_interface_disable(...)                 OSCInterfaceDisable(__VA_ARGS__)
 #define ti_lib_osc_hf_get_startup_time(...)               OSCHF_GetStartupTime(__VA_ARGS__)
 #define ti_lib_osc_hf_turn_on_xosc(...)                   OSCHF_TurnOnXosc(__VA_ARGS__)
 #define ti_lib_osc_hf_attempt_to_switch_to_xosc(...)      OSCHF_AttemptToSwitchToXosc(__VA_ARGS__)
+#define ti_lib_osc_hf_debug_get_crystal_amplitude(...)    OSCHF_DebugGetCrystalAmplitude(__VA_ARGS__)
+#define ti_lib_osc_hf_debug_get_expected_average_crystal_amplitude(...) \
+                                                          OSCHF_DebugGetExpectedAverageCrystalAmplitude(__VA_ARGS__)
+#define ti_lib_osc_hposc_relative_frequency_offset_get(...) \
+                                                          OSC_HPOSCRelativeFrequencyOffsetGet(__VA_ARGS__)
+#define ti_lib_osc_hposc_relative_frequency_offset_to_rf_core_format_convert(...) \
+                                                          OSC_HPOSCRelativeFrequencyOffsetToRFCoreFormatConvert(__VA_ARGS__)
 #define ti_lib_osc_hf_switch_to_rc_osc_turn_off_xosc(...) OSCHF_SwitchToRcOscTurnOffXosc(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* prcm.h */
@@ -349,192 +390,6 @@
 #define ti_lib_pwr_ctrl_reset_source_clear(...) PowerCtrlResetSourceClear(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_io_freeze_enable(...)   PowerCtrlIOFreezeEnable(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_io_freeze_disable(...)  PowerCtrlIOFreezeDisable(__VA_ARGS__)
-/*---------------------------------------------------------------------------*/
-/* rom.h */
-#include "driverlib/rom.h"
-
-/* AON API */
-#define ti_lib_rom_aon_event_mcu_wake_up_set          ROM_AONEventMcuWakeUpSet
-#define ti_lib_rom_aon_event_mcu_wake_up_get          ROM_AONEventMcuWakeUpGet
-#define ti_lib_rom_aon_event_aux_wake_up_set          ROM_AONEventAuxWakeUpSet
-#define ti_lib_rom_aon_event_aux_wake_up_get          ROM_AONEventAuxWakeUpGet
-#define ti_lib_rom_aon_event_mcu_set                  ROM_AONEventMcuSet
-#define ti_lib_rom_aon_event_mcu_get                  ROM_AONEventMcuGet
-
-/* AON_IOC API */
-#define ti_lib_rom_aon_ioc_drive_strength_set         ROM_AONIOCDriveStrengthSet
-#define ti_lib_rom_aon_ioc_drive_strength_get         ROM_AONIOCDriveStrengthGet
-
-/* AON_RTC API */
-#define ti_lib_rom_aon_rtc_status                     ROM_AONRTCStatus
-#define ti_lib_rom_aon_rtc_event_clear                ROM_AONRTCEventClear
-#define ti_lib_rom_aon_rtc_event_get                  ROM_AONRTCEventGet
-#define ti_lib_rom_aon_rtc_mode_ch1_set               ROM_AONRTCModeCh1Set
-#define ti_lib_rom_aon_rtc_mode_ch1_get               ROM_AONRTCModeCh1Get
-#define ti_lib_rom_aon_rtc_mode_ch2_set               ROM_AONRTCModeCh2Set
-#define ti_lib_rom_aon_rtc_mode_ch2_get               ROM_AONRTCModeCh2Get
-#define ti_lib_rom_aon_rtc_channel_enable             ROM_AONRTCChannelEnable
-#define ti_lib_rom_aon_rtc_channel_disable            ROM_AONRTCChannelDisable
-#define ti_lib_rom_aon_rtc_compare_value_set          ROM_AONRTCCompareValueSet
-#define ti_lib_rom_aon_rtc_compare_value_get          ROM_AONRTCCompareValueGet
-#define ti_lib_rom_aon_rtc_current_compare_value_get  ROM_AONRTCCurrentCompareValueGet
-
-/* AON_WUC API */
-#define ti_lib_rom_aon_wuc_aux_s_ram_config           ROM_AONWUCAuxSRamConfig
-#define ti_lib_rom_aon_wuc_aux_wakeup_event           ROM_AONWUCAuxWakeupEvent
-#define ti_lib_rom_aon_wuc_aux_reset                  ROM_AONWUCAuxReset
-#define ti_lib_rom_aon_wuc_recharge_ctrl_config_set   ROM_AONWUCRechargeCtrlConfigSet
-#define ti_lib_rom_aon_wuc_osc_config                 ROM_AONWUCOscConfig
-
-/* AUX_TDC API */
-#define ti_lib_rom_aux_tdc_config_set                 ROM_AUXTDCConfigSet
-#define ti_lib_rom_aux_tdc_measurement_done           ROM_AUXTDCMeasurementDone
-
-/* AUX_TIMER API */
-#define ti_lib_rom_aux_timer_configure                ROM_AUXTimerConfigure
-#define ti_lib_rom_aux_timer_start                    ROM_AUXTimerStart
-#define ti_lib_rom_aux_timer_stop                     ROM_AUXTimerStop
-#define ti_lib_rom_aux_timer_prescale_set             ROM_AUXTimerPrescaleSet
-#define ti_lib_rom_aux_timer_prescale_get             ROM_AUXTimerPrescaleGet
-
-/* AUX_WUC API */
-#define ti_lib_rom_aux_wuc_clock_enable               ROM_AUXWUCClockEnable
-#define ti_lib_rom_aux_wuc_clock_disable              ROM_AUXWUCClockDisable
-#define ti_lib_rom_aux_wuc_clock_status               ROM_AUXWUCClockStatus
-#define ti_lib_rom_aux_wuc_power_ctrl                 ROM_AUXWUCPowerCtrl
-
-/* FLASH API */
-#define ti_lib_rom_flash_power_mode_get               ROM_FlashPowerModeGet
-#define ti_lib_rom_flash_protection_set               ROM_FlashProtectionSet
-#define ti_lib_rom_flash_protection_get               ROM_FlashProtectionGet
-#define ti_lib_rom_flash_protection_save              ROM_FlashProtectionSave
-#define ti_lib_rom_flash_efuse_read_row               ROM_FlashEfuseReadRow
-#define ti_lib_rom_flash_disable_sectors_for_write    ROM_FlashDisableSectorsForWrite
-
-/* I2C API */
-#define ti_lib_rom_i2c_master_init_exp_clk            ROM_I2CMasterInitExpClk
-#define ti_lib_rom_i2c_master_err                     ROM_I2CMasterErr
-
-/* INTERRUPT API */
-#define ti_lib_rom_int_priority_grouping_set          ROM_IntPriorityGroupingSet
-#define ti_lib_rom_int_priority_grouping_get          ROM_IntPriorityGroupingGet
-#define ti_lib_rom_int_priority_set                   ROM_IntPrioritySet
-#define ti_lib_rom_int_priority_get                   ROM_IntPriorityGet
-#define ti_lib_rom_int_enable                         ROM_IntEnable
-#define ti_lib_rom_int_disable                        ROM_IntDisable
-#define ti_lib_rom_int_pend_set                       ROM_IntPendSet
-#define ti_lib_rom_int_pend_get                       ROM_IntPendGet
-#define ti_lib_rom_int_pend_clear                     ROM_IntPendClear
-
-/* IOC API */
-#define ti_lib_rom_ioc_port_configure_set             ROM_IOCPortConfigureSet
-#define ti_lib_rom_ioc_port_configure_get             ROM_IOCPortConfigureGet
-#define ti_lib_rom_ioc_io_shutdown_set                ROM_IOCIOShutdownSet
-#define ti_lib_rom_ioc_io_jtag_set                    ROM_IOCIOJTagSet
-#define ti_lib_rom_ioc_io_mode_set                    ROM_IOCIOModeSet
-#define ti_lib_rom_ioc_io_int_set                     ROM_IOCIOIntSet
-#define ti_lib_rom_ioc_io_port_pull_set               ROM_IOCIOPortPullSet
-#define ti_lib_rom_ioc_io_hyst_set                    ROM_IOCIOHystSet
-#define ti_lib_rom_ioc_io_input_set                   ROM_IOCIOInputSet
-#define ti_lib_rom_ioc_io_slew_ctrl_set               ROM_IOCIOSlewCtrlSet
-#define ti_lib_rom_ioc_io_drv_strength_set            ROM_IOCIODrvStrengthSet
-#define ti_lib_rom_ioc_io_port_id_set                 ROM_IOCIOPortIdSet
-#define ti_lib_rom_ioc_int_enable                     ROM_IOCIntEnable
-#define ti_lib_rom_ioc_int_disable                    ROM_IOCIntDisable
-#define ti_lib_rom_ioc_pin_type_gpio_input            ROM_IOCPinTypeGpioInput
-#define ti_lib_rom_ioc_pin_type_gpio_output           ROM_IOCPinTypeGpioOutput
-#define ti_lib_rom_ioc_pin_type_uart                  ROM_IOCPinTypeUart
-#define ti_lib_rom_ioc_pin_type_ssi_master            ROM_IOCPinTypeSsiMaster
-#define ti_lib_rom_ioc_pin_type_ssi_slave             ROM_IOCPinTypeSsiSlave
-#define ti_lib_rom_ioc_pin_type_i2c                   ROM_IOCPinTypeI2c
-#define ti_lib_rom_ioc_pin_type_spis                  ROM_IOCPinTypeSpis
-#define ti_lib_rom_ioc_pin_type_aux                   ROM_IOCPinTypeAux
-
-/* PRCM API */
-#define ti_lib_rom_prcm_inf_clock_configure_set       ROM_PRCMInfClockConfigureSet
-#define ti_lib_rom_prcm_inf_clock_configure_get       ROM_PRCMInfClockConfigureGet
-#define ti_lib_rom_prcm_audio_clock_config_set        ROM_PRCMAudioClockConfigSet
-#define ti_lib_rom_prcm_power_domain_on               ROM_PRCMPowerDomainOn
-#define ti_lib_rom_prcm_power_domain_off              ROM_PRCMPowerDomainOff
-#define ti_lib_rom_prcm_peripheral_run_enable         ROM_PRCMPeripheralRunEnable
-#define ti_lib_rom_prcm_peripheral_run_disable        ROM_PRCMPeripheralRunDisable
-#define ti_lib_rom_prcm_peripheral_sleep_enable       ROM_PRCMPeripheralSleepEnable
-#define ti_lib_rom_prcm_peripheral_sleep_disable      ROM_PRCMPeripheralSleepDisable
-#define ti_lib_rom_prcm_peripheral_deep_sleep_enable  ROM_PRCMPeripheralDeepSleepEnable
-#define ti_lib_rom_prcm_peripheral_deep_sleep_disable ROM_PRCMPeripheralDeepSleepDisable
-#define ti_lib_rom_prcm_power_domain_status           ROM_PRCMPowerDomainStatus
-#define ti_lib_rom_prcm_deep_sleep                    ROM_PRCMDeepSleep
-
-/* SMPH API */
-#define ti_lib_rom_smph_acquire                       ROM_SMPHAcquire
-
-/* SPIS API */
-#define ti_lib_rom_spis_data_put                      ROM_SPISDataPut
-#define ti_lib_rom_spis_tx_get_value                  ROM_SPISTxGetValue
-#define ti_lib_rom_spis_data_get                      ROM_SPISDataGet
-#define ti_lib_rom_spis_rx_get_value                  ROM_SPISRxGetValue
-#define ti_lib_rom_spis_int_status                    ROM_SPISIntStatus
-
-/* SSI API */
-#define ti_lib_rom_ssi_config_set_exp_clk             ROM_SSIConfigSetExpClk
-#define ti_lib_rom_ssi_data_put                       ROM_SSIDataPut
-#define ti_lib_rom_ssi_data_put_non_blocking          ROM_SSIDataPutNonBlocking
-#define ti_lib_rom_ssi_data_get                       ROM_SSIDataGet
-#define ti_lib_rom_ssi_data_get_non_blocking          ROM_SSIDataGetNonBlocking
-
-/* TIMER API */
-#define ti_lib_rom_timer_configure                    ROM_TimerConfigure
-#define ti_lib_rom_timer_level_control                ROM_TimerLevelControl
-#define ti_lib_rom_timer_trigger_control              ROM_TimerTriggerControl
-#define ti_lib_rom_timer_stall_control                ROM_TimerStallControl
-#define ti_lib_rom_timer_wait_on_trigger_control      ROM_TimerWaitOnTriggerControl
-
-/* TRNG API */
-#define ti_lib_rom_trng_configure                     ROM_TRNGConfigure
-#define ti_lib_rom_trng_number_get                    ROM_TRNGNumberGet
-
-/* UART API */
-#define ti_lib_rom_uart_fifo_level_get                ROM_UARTFIFOLevelGet
-#define ti_lib_rom_uart_config_set_exp_clk            ROM_UARTConfigSetExpClk
-#define ti_lib_rom_uart_config_get_exp_clk            ROM_UARTConfigGetExpClk
-#define ti_lib_rom_uart_disable                       ROM_UARTDisable
-#define ti_lib_rom_uart_char_get_non_blocking         ROM_UARTCharGetNonBlocking
-#define ti_lib_rom_uart_char_get                      ROM_UARTCharGet
-#define ti_lib_rom_uart_char_put_non_blocking         ROM_UARTCharPutNonBlocking
-#define ti_lib_rom_uart_char_put                      ROM_UARTCharPut
-
-/* UDMA API */
-#define ti_lib_rom_udma_channel_attribute_enable      ROM_uDMAChannelAttributeEnable
-#define ti_lib_rom_udma_channel_attribute_disable     ROM_uDMAChannelAttributeDisable
-#define ti_lib_rom_udma_channel_attribute_get         ROM_uDMAChannelAttributeGet
-#define ti_lib_rom_udma_channel_control_set           ROM_uDMAChannelControlSet
-#define ti_lib_rom_udma_channel_transfer_set          ROM_uDMAChannelTransferSet
-#define ti_lib_rom_udma_channel_scatter_gather_set    ROM_uDMAChannelScatterGatherSet
-#define ti_lib_rom_udma_channel_size_get              ROM_uDMAChannelSizeGet
-#define ti_lib_rom_udma_channel_mode_get              ROM_uDMAChannelModeGet
-
-/* VIMS API */
-#define ti_lib_rom_vims_configure                     ROM_VIMSConfigure
-#define ti_lib_rom_vims_mode_set                      ROM_VIMSModeSet
-#define ti_lib_rom_vims_mode_get                      ROM_VIMSModeGet
-
-/* HAPI */
-#define ti_lib_hapi_crc32(a, b, c)              HapiCrc32(a, b, c)
-#define ti_lib_hapi_get_chip_id()               HapiGetChipId()
-#define ti_lib_hapi_reset_device()              HapiResetDevice()
-#define ti_lib_hapi_fletcher32(a, b, c)         HapiFletcher32(a, b, c)
-#define ti_lib_hapi_min_value(a, b)             HapiMinValue(a,b)
-#define ti_lib_hapi_max_value(a, b)             HapiMaxValue(a,b)
-#define ti_lib_hapi_mean_value(a, b)            HapiMeanValue(a,b)
-#define ti_lib_hapi_stand_deviation_value(a, b) HapiStandDeviationValue(a,b)
-#define ti_lib_hapi_hf_source_safe_switch()     HapiHFSourceSafeSwitch()
-#define ti_lib_hapi_select_comp_a_input(a)      HapiSelectCompAInput(a)
-#define ti_lib_hapi_select_comp_a_ref(a)        HapiSelectCompARef(a)
-#define ti_lib_hapi_select_adc_comp_b_input(a)  HapiSelectADCCompBInput(a)
-#define ti_lib_hapi_select_comp_b_ref(a)        HapiSelectCompBRef(a)
-#define ti_lib_hapi_get_flash_size()            HapiGetFlashSize()
-#define ti_lib_hapi_sector_erase(a)             HapiSectorErase(a)
-#define ti_lib_hapi_program_flash(a, b, c)      HapiProgramFlash(a, b, c)
 /*---------------------------------------------------------------------------*/
 /* sys_ctrl.h */
 #include "driverlib/sys_ctrl.h"
@@ -618,6 +473,22 @@
 #define ti_lib_timer_ccp_combine_disable(...)     TimerCcpCombineDisable(__VA_ARGS__)
 #define ti_lib_timer_match_update_mode(...)       TimerMatchUpdateMode(__VA_ARGS__)
 #define ti_lib_timer_interval_load_mode(...)      TimerIntervalLoadMode(__VA_ARGS__)
+/*---------------------------------------------------------------------------*/
+/* trng.h */
+#include "driverlib/trng.h"
+
+#define ti_lib_trng_configure(...)      TRNGConfigure(__VA_ARGS__)
+#define ti_lib_trng_enable(...)         TRNGEnable(__VA_ARGS__)
+#define ti_lib_trng_disable(...)        TRNGDisable(__VA_ARGS__)
+#define ti_lib_trng_number_get(...)     TRNGNumberGet(__VA_ARGS__)
+#define ti_lib_trng_status_get(...)     TRNGStatusGet(__VA_ARGS__)
+#define ti_lib_trng_reset(...)          TRNGReset(__VA_ARGS__)
+#define ti_lib_trng_int_enable(...)     TRNGIntEnable(__VA_ARGS__)
+#define ti_lib_trng_int_disable(...)    TRNGIntDisable(__VA_ARGS__)
+#define ti_lib_trng_int_status(...)     TRNGIntStatus(__VA_ARGS__)
+#define ti_lib_trng_int_clear(...)      TRNGIntClear(__VA_ARGS__)
+#define ti_lib_trng_int_register(...)   TRNGIntRegister(__VA_ARGS__)
+#define ti_lib_trng_int_unregister(...) TRNGIntUnregister(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* uart.h */
 #include "driverlib/uart.h"

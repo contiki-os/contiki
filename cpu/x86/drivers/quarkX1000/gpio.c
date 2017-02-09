@@ -30,8 +30,11 @@
 
 #include "gpio.h"
 
+#include <stdbool.h>
 #include "helpers.h"
+#include "paging.h"
 #include "shared-isr.h"
+#include "syscalls.h"
 
 /* GPIO Controler Registers */
 #define SWPORTA_DR    0x00
@@ -51,25 +54,63 @@
 
 #define GPIO_IRQ 9
 
+#define HIGHEST_REG   LS_SYNC
+
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
+#define MMIO_SZ       MIN_PAGE_SIZE
+#else
+#define MMIO_SZ       (HIGHEST_REG + 4)
+#endif
+
+PROT_DOMAINS_ALLOC(pci_driver_t, drv);
+
 struct gpio_internal_data {
-  pci_driver_t pci;
   quarkX1000_gpio_callback callback;
 };
 
 static struct gpio_internal_data data;
 
+void quarkX1000_gpio_mmin(uint32_t offset, uint32_t *res);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_gpio_mmin, drv,
+                          uint32_t offset, uint32_t *res)
+{
+  uint32_t *loc_res;
+
+  PROT_DOMAINS_VALIDATE_PTR(loc_res, res, sizeof(*res));
+  if(HIGHEST_REG < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_READL(drv, *loc_res, offset);
+  prot_domains_disable_mmio();
+}
+
 static inline uint32_t
 read(uint32_t offset)
 {
   uint32_t res;
-  PCI_MMIO_READL(data.pci, res, offset);
+  quarkX1000_gpio_mmin(offset, &res);
   return res;
+}
+
+void quarkX1000_gpio_mmout(uint32_t offset, uint32_t val);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_gpio_mmout, drv,
+                          uint32_t offset, uint32_t val)
+{
+  if(HIGHEST_REG < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_WRITEL(drv, offset, val);
+  prot_domains_disable_mmio();
 }
 
 static inline void
 write(uint32_t offset, uint32_t val)
 {
-  PCI_MMIO_WRITEL(data.pci, offset, val);
+  quarkX1000_gpio_mmout(offset, val);
 }
 
 /* value must be 0x0 or 0x1 */
@@ -231,7 +272,12 @@ quarkX1000_gpio_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
-  pci_init(&data.pci, pci_addr, 0);
+  PROT_DOMAINS_INIT_ID(drv);
+  pci_init(&drv, pci_addr, MMIO_SZ, 0, 0);
+  SYSCALLS_INIT(quarkX1000_gpio_mmin);
+  SYSCALLS_AUTHZ(quarkX1000_gpio_mmin, drv);
+  SYSCALLS_INIT(quarkX1000_gpio_mmout);
+  SYSCALLS_AUTHZ(quarkX1000_gpio_mmout, drv);
 
   data.callback = 0;
 

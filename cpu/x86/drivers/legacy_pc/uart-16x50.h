@@ -35,9 +35,11 @@
 
 typedef pci_driver_t uart_16x50_driver_t;
 
-void uart_16x50_init(uart_16x50_driver_t *c_this,
-                     pci_config_addr_t pci_addr,
-                     uint16_t dl);
+void uart_16x50_init(void);
+
+void uart_16x50_init_port(uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *c_this,
+                          pci_config_addr_t pci_addr,
+                          uint16_t dl);
 
 void uart_16x50_tx(uart_16x50_driver_t c_this, uint8_t c);
 

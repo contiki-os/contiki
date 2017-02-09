@@ -35,7 +35,12 @@
 
 void start(void);
 
-EFI_STATUS EFIAPI
+/* The section attribute below is copied from ATTR_BOOT_CODE in prot-domains.h.
+ * prot-domains.h includes stdlib.h which defines NULL.  The UEFI headers also
+ * define NULL, which induces a warning when the compiler detects the conflict.
+ * To avoid that, we avoid including prot-domains.h from this file.
+ */
+EFI_STATUS EFIAPI __attribute__((section(".boot_text")))
 uefi_start(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
 {
   EFI_MEMORY_DESCRIPTOR mem_map[MAX_MEM_DESC];

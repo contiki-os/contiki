@@ -32,7 +32,9 @@
 #include "i2c.h"
 
 #include "i2c-registers.h"
+#include "paging.h"
 #include "shared-isr.h"
+#include "syscalls.h"
 
 #define I2C_CLOCK_SPEED 25 /* kHz */
 #define I2C_FIFO_DEPTH  16
@@ -49,10 +51,18 @@
 
 #define I2C_IRQ 9
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
+#define MMIO_SZ MIN_PAGE_SIZE
+#else
+#define MMIO_SZ (QUARKX1000_IC_HIGHEST + 4)
+#endif
+
 typedef enum {
   I2C_DIRECTION_READ,
   I2C_DIRECTION_WRITE
 } I2C_DIRECTION;
+
+PROT_DOMAINS_ALLOC(pci_driver_t, drv);
 
 struct quarkX1000_i2c_config {
   QUARKX1000_I2C_SPEED speed;
@@ -65,8 +75,6 @@ struct quarkX1000_i2c_config {
 
 struct i2c_internal_data {
   struct quarkX1000_i2c_config config;
-
-  pci_driver_t pci;
 
   I2C_DIRECTION direction;
 
@@ -82,18 +90,50 @@ struct i2c_internal_data {
 
 static struct i2c_internal_data device;
 
-static uint32_t
+static int inited = 0;
+
+void quarkX1000_i2c_mmin(uint32_t offset, uint32_t *res);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmin, drv,
+                          uint32_t offset, uint32_t *res)
+{
+  uint32_t *loc_res;
+
+  PROT_DOMAINS_VALIDATE_PTR(loc_res, res, sizeof(*res));
+  if(QUARKX1000_IC_HIGHEST < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_READL(drv, *loc_res, offset);
+  prot_domains_disable_mmio();
+}
+
+static inline uint32_t
 read(uint32_t offset)
 {
   uint32_t res;
-  PCI_MMIO_READL(device.pci, res, offset);
+  quarkX1000_i2c_mmin(offset, &res);
+
   return res;
 }
 
-static void
+void quarkX1000_i2c_mmout(uint32_t offset, uint32_t val);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmout, drv,
+                          uint32_t offset, uint32_t val)
+{
+  if(QUARKX1000_IC_HIGHEST < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_WRITEL(drv, offset, val);
+  prot_domains_disable_mmio();
+}
+
+static inline void
 write(uint32_t offset, uint32_t val)
 {
-  PCI_MMIO_WRITEL(device.pci, offset, val);
+  quarkX1000_i2c_mmout(offset, val);
 }
 
 static uint32_t
@@ -504,7 +544,7 @@ quarkX1000_i2c_polling_read(uint8_t *buf, uint8_t len, uint16_t addr)
 int
 quarkX1000_i2c_is_available(void)
 {
-  return device.pci.mmio ? 1 : 0;
+  return inited;
 }
 
 DEFINE_SHARED_IRQ(I2C_IRQ, IRQAGENT3, INTC, PIRQC, i2c_isr);
@@ -522,7 +562,14 @@ quarkX1000_i2c_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
-  pci_init(&device.pci, pci_addr, 0);
+  PROT_DOMAINS_INIT_ID(drv);
+  pci_init(&drv, pci_addr, MMIO_SZ, 0, 0);
+  SYSCALLS_INIT(quarkX1000_i2c_mmin);
+  SYSCALLS_AUTHZ(quarkX1000_i2c_mmin, drv);
+  SYSCALLS_INIT(quarkX1000_i2c_mmout);
+  SYSCALLS_AUTHZ(quarkX1000_i2c_mmout, drv);
+
+  inited = 1;
 
   return 0;
 }

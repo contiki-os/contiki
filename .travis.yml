@@ -1,3 +1,7 @@
+# Workaround for the issue found in the stable image promoted on Dec 1, 2016.
+# See https://github.com/travis-ci/travis-ci/issues/6928#issuecomment-264227708
+group: deprecated
+
 notifications:
   email: false
 language: c #NOTE: this will set CC=gcc which might cause trouble
@@ -74,7 +78,6 @@ before_script:
       git clone https://github.com/cc65/cc65 /tmp/cc65 &&
       make -C /tmp/cc65 bin apple2enh atarixl c64 c128 &&
       sudo make -C /tmp/cc65 avail &&
-      export CC65_HOME=/tmp/cc65/ &&
       cc65 --version ;
     fi
 
@@ -136,6 +139,7 @@ env:
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'
   - BUILD_TYPE='rpl'
+  - BUILD_TYPE='rpl-non-storing'
   - BUILD_TYPE='large-rpl'
   - BUILD_TYPE='rime'
   - BUILD_TYPE='ipv6'
@@ -158,3 +162,4 @@ env:
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
   - BUILD_TYPE='compile-avr' BUILD_CATEGORY='compile' BUILD_ARCH='avr-rss2'
+  - BUILD_TYPE='ieee802154'

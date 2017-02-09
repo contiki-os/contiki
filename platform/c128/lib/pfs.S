@@ -36,7 +36,7 @@
 
 	.constructor	init_pfs
 	.destructor	done_pfs
-	.importzp	sp, ptr1, ptr2, ptr3
+	.importzp	sp, ptr1, ptr2, ptr3, tmp1
 	.import		curunit, __filetype, popax, addysp, subysp
 	.export		pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
 .if	F_IDE64
@@ -46,6 +46,7 @@
 	.export		pfs_makename, pfs_scratch
 
 	.export		_pfs_open, _pfs_read, _pfs_close
+
 ;---------------------------------------------------------------------
 MAXLEN	=	80		;maximum filename length
 
@@ -107,7 +108,14 @@ _pfs_open:
 	lda	FNL
 	beq	error		;must have a filename
 
-	lda	#2 - 1		;file number
+	; A directory listing needs a special secondary address
+	ldy	tmp1
+	bne	open1		;branch if not directory
+	lda	#2 - 1
+	dey			;.Y = 0 - 1
+	bne	open2		;branch always
+
+open1:	lda	#2 - 1		;file number
 	tay			;secondary address
 open2:	sta	ptr2
 	sty	ptr2 + 1
@@ -118,10 +126,6 @@ next:	inc	ptr2		;next file number
 	bcs	error		;no more files
 	lda	flags - 1,x
 	bne	next		;already used
-	lda	ptr2 + 1
-	bne	nextsa
-	inx
-	stx	ptr2 + 1
 nextsa:	inc	ptr2 + 1	;next channel
 retr:	lda	ptr2		;file number
 	ldx	curunit
@@ -209,7 +213,7 @@ pfs_makename:
 
 	; Validate the name; and, find its length
 	ldy	#<-1
-	sty	ptr3
+	sty	ptr3		;init. the count of retries
 	sty	ptr1
 @L10:	iny
 	cpy	#MAXLEN
@@ -227,9 +231,17 @@ pfs_makename:
 	bne	@L10
 	cpy	#0
 	beq	badchr		;no name
+	sty	FNL		;save original length
 
 	tay			;zero index reg.
-	lda	#'0'		;drive 0 or current partition
+	lda	(FN),y
+	sta	tmp1		;preset not-directory flag to true
+	cmp	#'$'
+	bne	@L9
+	sty	tmp1		;set not-directory flag to false
+	rts
+
+@L9:	lda	#'0'		;drive 0 or current partition
 	sta	(sp),y
 	iny
 	inc	ptr1

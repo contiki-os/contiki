@@ -68,11 +68,12 @@ CONTIKI_CPU_DIRS += ../arm/common/dbg-io
 
 ### CPU-dependent source files
 CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c soc-rtc.c uart.c
-CONTIKI_CPU_SOURCEFILES += contiki-watchdog.c
-CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c
+CONTIKI_CPU_SOURCEFILES += contiki-watchdog.c aux-ctrl.c
+CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c adc-sensor.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
 CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
 CONTIKI_CPU_SOURCEFILES += rf-core.c rf-ble.c ieee-mode.c
+CONTIKI_CPU_SOURCEFILES += random.c soc-trng.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
@@ -99,6 +100,12 @@ FORCE:
 $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
+
+### Always re-build ccfg.c so changes to ccfg-conf.h will apply without having
+### to make clean first
+$(OBJECTDIR)/ccfg.o: ccfg.c FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -include "contiki-conf.h" -c $< -o $@
 
 ### Compilation rules
 CUSTOM_RULE_LINK=1

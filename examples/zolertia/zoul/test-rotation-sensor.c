@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Phidget analog rotation sensor example using the ADC sensor wrapper
+ *         Phidget analog rotation sensor example using the ADC sensor wrapper
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>

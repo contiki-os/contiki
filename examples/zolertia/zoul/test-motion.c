@@ -40,7 +40,7 @@
  * @{
  *
  * \file
- *  Test application for the digital motion/presence sensor
+ *         Test application for the digital motion/presence sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -100,3 +100,4 @@ PROCESS_THREAD(test_presence_sensor, ev, data)
  * @}
  * @}
  */
+

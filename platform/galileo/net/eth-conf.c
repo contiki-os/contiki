@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,9 +29,10 @@
  */
 
 #include "eth-conf.h"
-#include "eth.h"
+#include <stdio.h>
 #include "net/eth-proc.h"
 #include "contiki-net.h"
+#include "net/ip/dhcpc.h"
 #include "net/linkaddr.h"
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -43,8 +44,10 @@ const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
 #define HOST_IP         SUBNET_IP, 2
 #define GATEWAY_IP      SUBNET_IP, 1
 #define NAMESERVER_IP   GATEWAY_IP
+PROCESS(dhcp_process, "DHCP");
 #endif
 
+/*---------------------------------------------------------------------------*/
 void
 eth_init(void)
 {
@@ -69,7 +72,57 @@ eth_init(void)
 #endif
 #endif
 
-  quarkX1000_eth_init();
-
   process_start(&eth_process, NULL);
+#if !NETSTACK_CONF_WITH_IPV6
+  /* Comment out the following line to disable DHCP and simply use the static
+   * IP configuration setup above.
+   */
+  process_start(&dhcp_process, NULL);
+#endif
 }
+#if !NETSTACK_CONF_WITH_IPV6
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(dhcp_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  dhcpc_init(uip_lladdr.addr, sizeof(uip_lladdr.addr));
+
+  printf("Requesting DHCP configuration...\n");
+  dhcpc_request();
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+
+    if(ev == tcpip_event || ev == PROCESS_EVENT_TIMER) {
+      dhcpc_appcall(ev, data);
+    } else if(ev == PROCESS_EVENT_EXIT) {
+      process_exit(&dhcp_process);
+    }
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+dhcpc_configured(const struct dhcpc_state *s)
+{
+  uip_sethostaddr(&s->ipaddr);
+  uip_setnetmask(&s->netmask);
+  uip_setdraddr(&s->default_router);
+  uip_nameserver_update(&s->dnsaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
+  printf("DHCP configured:\n");
+  printf(" - Host IP:        %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s->ipaddr));
+  printf(" - Netmask:        %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s->netmask));
+  printf(" - Default router: %d.%d.%d.%d\n",
+         uip_ipaddr_to_quad(&s->default_router));
+  printf(" - DNS server:     %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s->dnsaddr));
+}
+/*---------------------------------------------------------------------------*/
+void
+dhcpc_unconfigured(const struct dhcpc_state *s)
+{
+  printf("DHCP unconfigured.\n");
+}
+/*---------------------------------------------------------------------------*/
+#endif

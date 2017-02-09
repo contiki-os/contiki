@@ -74,7 +74,7 @@ reed_interrupt_handler(uint8_t ioid)
 static int
 value(int type)
 {
-  return (int)ti_lib_gpio_pin_read(1 << BOARD_IOID_REED_RELAY);
+  return (int)ti_lib_gpio_read_dio(BOARD_IOID_REED_RELAY);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -91,7 +91,7 @@ configure(int type, int value)
   switch(type) {
   case SENSORS_HW_INIT:
     ti_lib_ioc_int_disable(BOARD_IOID_REED_RELAY);
-    ti_lib_gpio_event_clear(1 << BOARD_IOID_REED_RELAY);
+    ti_lib_gpio_clear_event_dio(BOARD_IOID_REED_RELAY);
 
     /* Enable the GPIO clock when the CM3 is running */
     ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);

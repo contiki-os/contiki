@@ -44,6 +44,8 @@
  * the message bus.
  */
 
+void quarkX1000_msg_bus_init(void);
+void quarkX1000_msg_bus_lock(void);
 void quarkX1000_msg_bus_read(uint8_t port, uint32_t reg_off, uint32_t *val);
 void quarkX1000_msg_bus_write(uint8_t port, uint32_t reg_off, uint32_t val);
 

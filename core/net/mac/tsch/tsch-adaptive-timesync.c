@@ -38,8 +38,10 @@
  *
  */
 
-#include "tsch-adaptive-timesync.h"
-#include "tsch-log.h"
+#include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-conf.h"
+#include "net/mac/tsch/tsch-adaptive-timesync.h"
+#include "net/mac/tsch/tsch-log.h"
 #include <stdio.h>
 
 #if TSCH_ADAPTIVE_TIMESYNC
@@ -72,6 +74,10 @@ timesync_entry_add(int32_t val, uint32_t time_delta)
   buffer[pos] = val;
   if(timesync_entry_count < NUM_TIMESYNC_ENTRIES) {
     timesync_entry_count++;
+  } else {
+    /* We now have accurate drift compensation.
+     * Increase keep-alive timeout. */
+    tsch_set_ka_timeout(TSCH_MAX_KEEPALIVE_TIMEOUT);
   }
   pos = (pos + 1) % NUM_TIMESYNC_ENTRIES;
 
@@ -86,12 +92,16 @@ timesync_entry_add(int32_t val, uint32_t time_delta)
 static void
 timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
 {
-  /* should fit in 32-bit unsigned integer */
-  uint32_t time_delta_ticks = time_delta_asn * tsch_timing[tsch_ts_timeslot_length];
+  /* should fit in a 32-bit integer */
+  int32_t time_delta_ticks = time_delta_asn * tsch_timing[tsch_ts_timeslot_length];
   int32_t real_drift_ticks = drift_ticks + compensated_ticks;
   int32_t last_drift_ppm = (int32_t)((int64_t)real_drift_ticks * TSCH_DRIFT_UNIT / time_delta_ticks);
 
   drift_ppm = timesync_entry_add(last_drift_ppm, time_delta_ticks);
+
+  TSCH_LOG_ADD(tsch_log_message,
+      snprintf(log->message, sizeof(log->message),
+          "drift %ld", drift_ppm / 256));
 }
 /*---------------------------------------------------------------------------*/
 /* Either reset or update the neighbor's drift */

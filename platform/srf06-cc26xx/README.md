@@ -13,7 +13,8 @@ platform supports two different boards:
 The CPU code, common for both platforms, can be found under `$(CONTIKI)/cpu/cc26xx-cc13xx`.
 The port was developed and tested with CC2650s, but the intention is for it to
 work with the CC2630 as well. Thus, bug reports are welcome for both chips.
-Bear in mind that the CC2630 does not have BLE capability.
+Bear in mind that the CC2630 does not have BLE capability. Similar rules apply
+in terms of CC13xx chips.
 
 This port is only meant to work with 7x7mm chips
 
@@ -107,22 +108,30 @@ If the `BOARD` variable is unspecified, an image for the Srf06 CC26XXEM will be 
 If you want to switch between building for one platform to the other, make certain to `make clean` before building for the new one, or you will get linker
 errors.
 
-If you want to upload the compiled firmware to a node via the serial boot loader you need to manually enable the boot loader and then use `make cc26xx-demo.upload`. On the SmartRF06 board you enable the boot loader by resetting the board (EM RESET button) while holding the `select` button. (The boot loader backdoor needs to be enabled on the chip, and the chip needs to be configured correctly, for this to work. See README in the `tools/cc2538-bsl` directory for more info). The serial uploader script will automatically pick the first available serial port. If this is not the port where your node is connected, you can force the script to use a specific port by defining the `PORT` argument eg. `make cc26xx-demo.upload PORT=/dev/tty.usbserial`
-
-The serial bootloader can also be used with the LaunchPad and the changes required to achieve this are the same as those required for the SmartRF. The only difference is that you will need to map `BL_PIN_NUMBER` to either the left or right user button (values to be used for `BL_PIN_NUMBER` in `ccfg.c` are `0x0D` and `0x0E` respectively).
-
-Note that uploading over serial doesn't work for the Sensortag, you can use TI's SmartRF Flash Programmer in this case.
-
 For the `cc26xx-demo`, the included readme describes in detail what the example does.
 
 To generate an assembly listing of the compiled firmware, run `make cc26xx-demo.lst`. This may be useful for debugging or optimizing your application code. To intersperse the C source code within the assembly listing, you must instruct the compiler to include debugging information by adding `CFLAGS += -g` to the project Makefile and rebuild by running `make clean cc26xx-demo.lst`.
+
+How to Program your Device
+--------------------------
+To program your device on Windows, use TI's [SmartRF Flash Programmer][smart-rf-flashprog] (FLASH-PROGRAMMER-2).
+
+On Linux and OS X, you can program your device via the chip's serial ROM boot loader. In order for this to work, the following conditions need to be met:
+
+* The board can support the bootloader. This is the case for SmartRF06EB with CC26xx/CC13xx EMs and it is also the case for LaunchPads. Note that uploading over serial does not (and will not) work for the Sensortag.
+* The chip is not programmed with a valid image, or the image has the bootloader backdoor unlocked. To enable the bootloader backdoor in your image, define `ROM_BOOTLOADER_ENABLE` to 1 in `contiki-conf.h`.
+
+You will then need to manually enter the boot loader and use the `.upload` make target (e.g. `make cc26xx-demo.upload` for the `cc26xx-demo`). On the SmartRF06, you enter the boot loader by resetting the EM (EM RESET button) while holding the `select` button. For the LaunchPad, you enter the bootloader by resetting the chip while holding `BTN_1`. It is possible to change the pin and its corresponding level (High/Low) that will trigger bootloader mode by changing `SET_CCFG_BL_CONFIG_BL_LEVEL` and `SET_CCFG_BL_CONFIG_BL_PIN_NUMBER` in `board.h`.
+
+The serial uploader script will automatically pick the first available serial port. If this is not the port where your node is connected, you can force the script to use a specific port by defining the `PORT` argument eg. `make cc26xx-demo.upload PORT=/dev/tty.usbserial`.
+
+For more information on the serial bootloader, see its README under the `tools/cc2538-bsl` directory.
 
 CC13xx/CC26xx Border Router over UART
 =====================================
 The platform code can be used as a border router (SLIP over UART) by using the
 example under `examples/ipv6/rpl-border-router`. This example defines the
 following:
-
 
     #ifndef UIP_CONF_BUFFER_SIZE
     #define UIP_CONF_BUFFER_SIZE    140
@@ -177,6 +186,15 @@ then to modify `board.h` in order to cross the RX and TX DIO mappings. (TX to
 the jumper configuration on P408 as discussed in
 [this thread](https://e2e.ti.com/support/wireless_connectivity/f/158/p/411992/1483824#1483824)
 on E2E. For this to work, you need to set `BOARD_CONF_DEBUGGER_DEVPACK` to 0.
+
+IEEE vs Sub-GHz operation
+=========================
+The platform supports both modes of operation, provided the chip also has the
+respective capability. If you specify nothing, the platform will default to
+Sub-GHz mode for CC13xx devices, IEEE mode otherwise. To force IEEE mode, you
+need to add this line to your `project-conf.h`.
+
+    #define CC13XX_CONF_PROP_MODE 0
 
 Low Power Operation
 ===================
@@ -234,3 +252,5 @@ The chip will come out of low power mode by one of the following events:
   is an AON RTC Channel 2 compare interrupt.
 * Rtimer triggers, as part of ContikiMAC's sleep/wake-up cycles. The rtimer
   sits on the AON RTC channel 0.
+
+[smart-rf-flashprog]: http://www.ti.com/tool/flash-programmer "SmartRF Flash Programmer"

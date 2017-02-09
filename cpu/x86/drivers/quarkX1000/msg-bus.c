@@ -30,6 +30,9 @@
 
 #include "msg-bus.h"
 #include "pci.h"
+#include "syscalls.h"
+
+PROT_DOMAINS_ALLOC(dom_client_data_t, quarkX1000_msg_bus);
 
 /** Message bus control register */
 #define MCR_PCI_REG_ADDR 0xD0
@@ -83,15 +86,21 @@ request_op(uint8_t port, uint32_t reg_off, uint8_t opcode)
  * \param reg_off Register/offset identifier of message bus register to read.
  * \param val     Storage location for value that has been read.
  */
-void
-quarkX1000_msg_bus_read(uint8_t port, uint32_t reg_off, uint32_t *val)
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_msg_bus_read,
+                          quarkX1000_msg_bus,
+                          uint8_t port,
+                          uint32_t reg_off,
+                          uint32_t *val)
 {
+  uint32_t *loc_val;
   pci_config_addr_t pci_addr = { .raw = 0 };
+
+  PROT_DOMAINS_VALIDATE_PTR(loc_val, val, sizeof(*val));
 
   request_op(port, reg_off, 0x10);
 
   pci_addr.reg_off = MDR_PCI_REG_ADDR;
-  *val = pci_config_read(pci_addr);
+  *loc_val = pci_config_read(pci_addr);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -100,8 +109,11 @@ quarkX1000_msg_bus_read(uint8_t port, uint32_t reg_off, uint32_t *val)
  * \param reg_off Register/offset identifier of message bus register to write.
  * \param val     Value to write.
  */
-void
-quarkX1000_msg_bus_write(uint8_t port, uint32_t reg_off, uint32_t val)
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_msg_bus_write,
+                          quarkX1000_msg_bus,
+                          uint8_t port,
+                          uint32_t reg_off,
+                          uint32_t val)
 {
   pci_config_addr_t pci_addr = { .raw = 0 };
 
@@ -109,5 +121,23 @@ quarkX1000_msg_bus_write(uint8_t port, uint32_t reg_off, uint32_t val)
   pci_config_write(pci_addr, val);
 
   request_op(port, reg_off, 0x11);
+}
+/*---------------------------------------------------------------------------*/
+void
+quarkX1000_msg_bus_init(void)
+{
+  PROT_DOMAINS_INIT_ID(quarkX1000_msg_bus);
+  prot_domains_reg(&quarkX1000_msg_bus, 0, 0, 0, 0, true);
+  SYSCALLS_INIT(quarkX1000_msg_bus_read);
+  SYSCALLS_AUTHZ(quarkX1000_msg_bus_read, quarkX1000_msg_bus);
+  SYSCALLS_INIT(quarkX1000_msg_bus_write);
+  SYSCALLS_AUTHZ(quarkX1000_msg_bus_write, quarkX1000_msg_bus);
+}
+/*---------------------------------------------------------------------------*/
+void
+quarkX1000_msg_bus_lock(void)
+{
+  SYSCALLS_DEAUTHZ(quarkX1000_msg_bus_read, quarkX1000_msg_bus);
+  SYSCALLS_DEAUTHZ(quarkX1000_msg_bus_write, quarkX1000_msg_bus);
 }
 /*---------------------------------------------------------------------------*/

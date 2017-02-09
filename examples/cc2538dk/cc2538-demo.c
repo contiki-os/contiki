@@ -152,7 +152,7 @@ PROCESS_THREAD(cc2538_demo_process, ev, data)
       } else if(data == &button_left_sensor || data == &button_right_sensor) {
         leds_toggle(LEDS_BUTTON);
       } else if(data == &button_down_sensor) {
-        cpu_cpsid();
+        INTERRUPTS_DISABLE();
         leds_on(LEDS_REBOOT);
         watchdog_reboot();
       } else if(data == &button_up_sensor) {

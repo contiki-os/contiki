@@ -38,7 +38,8 @@ typedef enum {
   QUARK_X1000_UART_1
 } quarkX1000_uart_dev_t;
 
-void quarkX1000_uart_init(quarkX1000_uart_dev_t dev);
+void quarkX1000_uart_init(void);
+void quarkX1000_uart_init_port(quarkX1000_uart_dev_t dev, unsigned baud);
 void quarkX1000_uart_tx(quarkX1000_uart_dev_t dev, uint8_t c);
 
 #endif /* CPU_X86_DRIVERS_QUARKX1000_UART_H_ */

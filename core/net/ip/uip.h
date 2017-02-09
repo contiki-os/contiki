@@ -1801,6 +1801,13 @@ typedef struct uip_routing_hdr {
   uint8_t seg_left;
 } uip_routing_hdr;
 
+/* RPL Source Routing Header */
+typedef struct uip_rpl_srh_hdr {
+  uint8_t cmpr; /* CmprI and CmprE */
+  uint8_t pad;
+  uint8_t reserved[2];
+} uip_rpl_srh_hdr;
+
 /* fragmentation header */
 typedef struct uip_frag_hdr {
   uint8_t next;
@@ -2005,7 +2012,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[15]) == 0x02))
 
 /**
- * \brief is addr (a) a link local unicast address, see RFC3513
+ * \brief is addr (a) a link local unicast address, see RFC 4291
  *  i.e. is (a) on prefix FE80::/10
  *  a is of type uip_ipaddr_t*
  */
@@ -2029,7 +2036,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
   } while(0)
 
 /**
- * \brief  is addr (a) a solicited node multicast address, see RFC3513
+ * \brief  is addr (a) a solicited node multicast address, see RFC 4291
  *  a is of type uip_ipaddr_t*
  */
 #define uip_is_addr_solicited_node(a)          \
@@ -2090,7 +2097,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
 #endif /*UIP_CONF_LL_802154*/
 
 /**
- * \brief is address a multicast address, see RFC 3513
+ * \brief is address a multicast address, see RFC 4291
  * a is of type uip_ipaddr_t*
  * */
 #define uip_is_addr_mcast(a)                    \

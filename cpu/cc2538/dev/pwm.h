@@ -116,11 +116,13 @@
 /** \brief Configures the general purpose timer in PWM mode
  * \param freq  PWM frequency (in Hz)
  * \param duty  PWM duty cycle (percentage in integers)
+ * \param count PWM duty cycle (count number)
  * \param timer General purpose timer to use [0-3]
  * \param ab    Select which timer to use (Timer A or B)
  * \return \c   PWM_SUCCESS if successful, else \c PWM_ERROR
  */
-int8_t pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab);
+int8_t pwm_enable(uint32_t freq, uint8_t duty, uint32_t count, uint8_t timer,
+                  uint8_t ab);
 /*---------------------------------------------------------------------------*/
 /** \brief Disables a previously PWM configured GPTn
  * \param timer General purpose timer to disable [0-3]
