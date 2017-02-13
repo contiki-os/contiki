@@ -107,9 +107,6 @@ slip_send(void)
 
   ptr = &uip_buf[UIP_LLH_LEN];
   for(i = 0; i < uip_len; ++i) {
-    if(i == UIP_TCPIP_HLEN) {
-      ptr = (uint8_t *)uip_appdata;
-    }
     c = *ptr++;
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);
@@ -161,6 +158,7 @@ rxbuf_init(void)
 static uint16_t
 slip_poll_handler(uint8_t *outbuf, uint16_t blen)
 {
+#ifdef SLIP_CONF_MICROSOFT_CHAT
   /* This is a hack and won't work across buffer edge! */
   if(rxbuf[begin] == 'C') {
     int i;
@@ -177,6 +175,8 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       return 0;
     }
   }
+#endif /* SLIP_CONF_MICROSOFT_CHAT */
+
 #ifdef SLIP_CONF_ANSWER_MAC_REQUEST
   else if(rxbuf[begin] == '?') { 
     /* Used by tapslip6 to request mac for auto configure */
