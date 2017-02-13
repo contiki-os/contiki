@@ -120,10 +120,6 @@ uint16_t uip_ipchksum(void);
  * The TCP checksum is the Internet checksum of data contents of the
  * TCP segment, and a pseudo-header as defined in RFC793.
  *
- * \note The uip_appdata pointer that points to the packet data may
- * point anywhere in memory, so it is not possible to simply calculate
- * the Internet checksum of the contents of the uip_buf buffer.
- *
  * \return The TCP checksum of the TCP segment in uip_buf and pointed
  * to by uip_appdata.
  */
