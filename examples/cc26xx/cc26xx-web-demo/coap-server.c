@@ -50,6 +50,7 @@ extern resource_t res_leds;
 
 extern resource_t res_batmon_temp;
 extern resource_t res_batmon_volt;
+extern resource_t res_adc_dio23;
 
 extern resource_t res_device_sw;
 extern resource_t res_device_hw;
@@ -133,6 +134,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
 
   rest_activate_resource(&res_batmon_temp, "sen/batmon/temp");
   rest_activate_resource(&res_batmon_volt, "sen/batmon/voltage");
+  rest_activate_resource(&res_adc_dio23, "sen/adc/dio23");
 
   rest_activate_resource(&res_device_hw, "dev/mdl/hw");
   rest_activate_resource(&res_device_sw, "dev/mdl/sw");
