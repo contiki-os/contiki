@@ -39,7 +39,24 @@
 #include "cfs/cfs.h"
 #include "sys/log.h"
 #include "lib/error.h"
-#include "net/ethernet-drv.h"
+
+#include "lib/config.h"
+
+struct {
+  uip_ipaddr_t hostaddr;
+  uip_ipaddr_t netmask;
+  uip_ipaddr_t draddr;
+  uip_ipaddr_t resolvaddr;
+  union {
+    struct {
+      uint16_t addr;
+#ifndef STATIC_DRIVER
+      char     name[12+1];
+#endif /* !STATIC_DRIVER */
+    }          ethernet;
+    uint8_t    slip[5];
+  };
+} config;
 
 /*-----------------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED
@@ -59,16 +76,9 @@ ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 }
 #endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/
-struct ethernet_config *
+void
 config_read(char *filename)
 {
-  static struct {
-    uip_ipaddr_t           hostaddr;
-    uip_ipaddr_t           netmask;
-    uip_ipaddr_t           draddr;
-    uip_ipaddr_t           resolvaddr;
-    struct ethernet_config ethernetcfg;
-  } config;
   int file;
 
   file = cfs_open(filename, CFS_READ);
@@ -77,29 +87,35 @@ config_read(char *filename)
     error_exit();
   }
 
-  if(cfs_read(file, &config, sizeof(config)) < sizeof(config)
-                                             - sizeof(config.ethernetcfg.name)) {
+  if(cfs_read(file, &config, sizeof(config)) < sizeof(uip_ipaddr_t) * 4
+                                             + sizeof(uint16_t)) {
     log_message(filename, ": No config file");
     error_exit();
   }
 
   cfs_close(file);
 
-  log_message("IP Address:  ",  ipaddrtoa(&config.hostaddr, uip_buf));
-  log_message("Subnet Mask: ",  ipaddrtoa(&config.netmask, uip_buf));
-  log_message("Def. Router: ",  ipaddrtoa(&config.draddr, uip_buf));
-  log_message("DNS Server:  ",  ipaddrtoa(&config.resolvaddr, uip_buf));
+  log_message("IP Address:  ", ipaddrtoa(&config.hostaddr, uip_buf));
+  log_message("Subnet Mask: ", ipaddrtoa(&config.netmask, uip_buf));
+  log_message("Def. Router: ", ipaddrtoa(&config.draddr, uip_buf));
+  log_message("DNS Server:  ", ipaddrtoa(&config.resolvaddr, uip_buf));
 
-#ifndef STATIC_DRIVER
-  log_message("Eth. Driver: ",  config.ethernetcfg.name);
-#else /* !STATIC_DRIVER */
+#ifdef STATIC_DRIVER
   #define _stringize(arg) #arg
   #define  stringize(arg) _stringize(arg)
-  log_message("Eth. Driver: ",  stringize(ETHERNET));
+#if WITH_SLIP
+  log_message("SLIP Driver: ", stringize(STATIC_DRIVER));
+#else /* WITH_SLIP */
+  log_message("Eth. Driver: ", stringize(STATIC_DRIVER));
+#endif /* WITH_SLIP */
   #undef  _stringize
   #undef   stringize
-#endif /* !STATIC_DRIVER */
-  log_message("Driver Port: $", utoa(config.ethernetcfg.addr, uip_buf, 16));
+#else /* STATIC_DRIVER */
+  log_message("Eth. Driver: ", config.ethernet.name);
+#endif /* STATIC_DRIVER */
+#if !WITH_SLIP
+  log_message("Driver Port: $", utoa(config.ethernet.addr, uip_buf, 16));
+#endif /* !WITH_SLIP */
 
   uip_sethostaddr(&config.hostaddr);
   uip_setnetmask(&config.netmask);
@@ -107,7 +123,5 @@ config_read(char *filename)
 #if WITH_DNS
   uip_nameserver_update(&config.resolvaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
 #endif /* WITH_DNS */
-
-  return &config.ethernetcfg;
 }
 /*-----------------------------------------------------------------------------------*/

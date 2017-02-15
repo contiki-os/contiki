@@ -36,7 +36,18 @@
 #include "ctk/ctk.h"
 #include "sys/log.h"
 #include "lib/config.h"
+#include "dev/slip.h"
 #include "net/ethernet-drv.h"
+
+#if WITH_SLIP
+#define DRIVER_PROCESS &slip_process,
+#define SLIP_INIT      slip_arch_init(0);
+#define SLIP_POLL      slip_arch_poll();
+#else /* WITH_SLIP */
+#define DRIVER_PROCESS &ethernet_process,
+#define SLIP_INIT
+#define SLIP_POLL
+#endif /* WITH_SLIP */
 
 #if WITH_GUI
 #define CTK_PROCESS &ctk_process,
@@ -52,12 +63,12 @@
 
 PROCINIT(&etimer_process,
          CTK_PROCESS
+         DRIVER_PROCESS
          &tcpip_process
          RESOLV_PROCESS);
 
-static struct ethernet_config *ethernet_config;
-
 void clock_update(void);
+void slip_arch_poll(void);
 
 /*-----------------------------------------------------------------------------------*/
 #if WITH_ARGS
@@ -87,35 +98,12 @@ main(void)
   videomode(VIDEOMODE_80COL);
 #endif /* WITH_80COL */
 
+  config_read("contiki.cfg");
+
+  SLIP_INIT
+
   process_init();
-
-#if 1
-  ethernet_config = config_read("contiki.cfg");
-#else
-  {
-    static struct ethernet_config config = {0xC0B0, "cs8900a.eth"};
-    uip_ipaddr_t addr;
-
-    uip_ipaddr(&addr, 192,168,0,128);
-    uip_sethostaddr(&addr);
-
-    uip_ipaddr(&addr, 255,255,255,0);
-    uip_setnetmask(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_setdraddr(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-
-    ethernet_config = &config;
-  }
-#endif
-
   procinit_init();
-
-  process_start((struct process *)&ethernet_process, (void *)ethernet_config);
-
   autostart_start(autostart_processes);
 
   log_message("Contiki up and running ...", "");
@@ -125,6 +113,8 @@ main(void)
     process_run();
 
     etimer_request_poll();
+
+    SLIP_POLL
 
     clock_update();
   }

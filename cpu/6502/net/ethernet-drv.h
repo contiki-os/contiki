@@ -35,11 +35,6 @@
 
 #include "contiki.h"
 
-struct ethernet_config {
-  uint16_t addr;
-  char  name[12+1];
-};
-
 PROCESS_NAME(ethernet_process);
 
 #if NETSTACK_CONF_WITH_IPV6

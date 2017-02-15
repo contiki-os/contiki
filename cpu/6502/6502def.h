@@ -68,7 +68,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
 
-#define UIP_CONF_LLH_LEN                      14
 #define RESOLV_CONF_SUPPORTS_MDNS              0
 #define RESOLV_CONF_SUPPORTS_RECORD_EXPIRATION 0
 
@@ -79,6 +78,12 @@ void logscr(const void *msg, unsigned len);
 #else
 #define logscr(msg, len) write(STDERR_FILENO, msg, len)
 #endif
+
+#if WITH_SLIP
+#define UIP_CONF_LLH_LEN  0
+#else /* WITH_SLIP */
+#define UIP_CONF_LLH_LEN 14
+#endif /* WITH_SLIP */
 
 #if MTU_SIZE
 #define UIP_CONF_BUFFER_SIZE (UIP_LLH_LEN + MTU_SIZE)
