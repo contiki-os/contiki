@@ -42,6 +42,7 @@ choose(uint8_t max)
     exit(0);
   }
 
+  putchar('\n');
   return val - '0';
 }
 /*-----------------------------------------------------------------------------------*/
@@ -65,13 +66,13 @@ main(void)
   d = choose(d) - 1;
 
 #ifdef __APPLE2__
-  printf("\nSlot (1-7)\n");
+  printf("Slot (1-7)\n");
   drivers[d].address += choose(7) * 0x10;
 #endif
 
   f = cfs_open("contiki.cfg", CFS_WRITE);
   if(f == -1) {
-    printf("\nSaving Config - Error\n");
+    printf("Saving Config - Error\n");
     return;
   }
   cfs_write(f, ipcfg, sizeof(ipcfg));
@@ -79,6 +80,6 @@ main(void)
   cfs_write(f, drivers[d].driver, strlen(drivers[d].driver));
   cfs_close(f);
 
-  printf("\nSaving Config - Done\n");
+  printf("Saving Config - Done\n");
 }
 /*-----------------------------------------------------------------------------------*/
