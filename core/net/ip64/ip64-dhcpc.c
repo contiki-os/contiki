@@ -163,7 +163,6 @@ create_msg(CC_REGISTER_ARG struct dhcp_msg *m)
   memset(&m->chaddr[s.mac_len], 0, sizeof(m->chaddr) - s.mac_len);
 
   memset(m->sname, 0, sizeof(m->sname));
-  strcpy((char *)m->sname, "Thingsquare");
   memset(m->file, 0, sizeof(m->file));
 
 
