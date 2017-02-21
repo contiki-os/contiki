@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#ifndef UUID_H_
+#define UUID_H_
+#include <stdint.h>
+#include "util.h"
+/*---------------------------------------------------------------------------*/
+typedef struct {
+  uint8_t data[16];
+} uint128_t;
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
-
-#include "ble-hal.h"
-#include "sys/process.h"
-
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+typedef struct {
+  enum {
+    BT_SIZE8 = 1,
+    BT_SIZE16 = 2,
+    BT_SIZE32 = 4,
+    BT_CHARACTERISTIC = 5,
+    BT_SIZE64 = 8,
+    BT_SIZEMPU = 12,
+    BT_SIZE128 = 16,
+    BT_SIZE_STR = 30,
+  } type;
+  union {
+    uint8_t u8;
+    uint16_t u16;
+    uint32_t u32;
+    uint64_t u64;
+    uint128_t u128;
+    char str[30];
+  } value;
+} bt_size_t;
+/*---------------------------------------------------------------------------*/
+uint128_t uuid_16_to_128(uint16_t uuid_16);
+uint16_t uuid_128_to_16(const uint128_t uuid_128);
+uint8_t uuid_128_compare(const uint128_t u1, const uint128_t u2);
+uint128_t swap128(const uint128_t *input);
+#endif

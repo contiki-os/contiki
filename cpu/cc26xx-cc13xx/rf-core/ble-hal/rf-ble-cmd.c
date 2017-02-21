@@ -33,10 +33,16 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 
-#include "rf-core/api/ble_cmd.h"
+#include "rf_ble_cmd.h"
 #include "rf-core/rf-core.h"
 #include "rf-core/ble-hal/rf-ble-cmd.h"
 
+typedef struct {
+  uint16_t IB:6;                    //!<        Value to write to the PA power control field at 25 &deg;C
+  uint16_t GC:2;                    //!<        Value to write to the gain control of the 1st stage of the PA
+  uint16_t boost:1;                 //!<        Value of boost bit in synth
+  uint16_t tempCoeff:7;             //!<        Temperature coefficient for IB. 0: No temperature compensation
+} txPower_t;
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -200,9 +206,10 @@ rf_ble_cmd_setup_ble_mode(void)
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  cmd.txPower.IB = tx_power.register_ib;
-  cmd.txPower.GC = tx_power.register_gc;
-  cmd.txPower.tempCoeff = tx_power.temp_coeff;
+  txPower_t *txPower = &cmd.txPower;
+  txPower->IB = tx_power.register_ib;
+  txPower->GC = tx_power.register_gc;
+  txPower->tempCoeff = tx_power.temp_coeff;
   cmd.pRegOverride = ble_overrides;
   cmd.mode = 0;
 

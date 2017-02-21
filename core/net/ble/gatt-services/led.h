@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#ifndef LED_H_
+#define LED_H_
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
-
-#include "ble-hal.h"
-#include "sys/process.h"
-
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+#include "net/ble/att-database.h"
+/*---------------------------------------------------------------------------*/
+uint8_t set_status_leds(const bt_size_t *new_value);
+uint8_t get_status_leds(bt_size_t *database);
+/*---------------------------------------------------------------------------*/
+#endif  /* LED_H_ */

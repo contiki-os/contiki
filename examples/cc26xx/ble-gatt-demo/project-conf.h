@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
+/*---------------------------------------------------------------------------*/
+/* Disable button shutdown functionality */
+#define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN    0
+/*---------------------------------------------------------------------------*/
+/* Change to match your configuration */
+#define BOARD_CONF_DEBUGGER_DEVPACK           1
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+#define STARTUP_CONF_VERBOSE 1
+/*---------------------------------------------------------------------------*/
+/* network stack settings */
+#define PACKETBUF_CONF_SIZE                  1280
+#define QUEUEBUF_CONF_NUM                       1
+#define UIP_CONF_BUFFER_SIZE                 1280
 
-#include "ble-hal.h"
-#include "sys/process.h"
+/* radio settings */
+#define NETSTACK_CONF_RADIO             ble_mode_driver
 
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
+/* RDC settings */
+#define NETSTACK_CONF_RDC               nullrdc_noframer_driver
 
-#endif /* BLE_HAL_CC26XX_H_ */
+/* MAC settings */
+#define NETSTACK_CONF_MAC               ble_mac_driver
+
+/* Network driver */
+#define NETSTACK_CONF_NETWORK           gatt_driver
+/*---------------------------------------------------------------------------*/
+#endif /* PROJECT_CONF_H_ */
+/*---------------------------------------------------------------------------*/

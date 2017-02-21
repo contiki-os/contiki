@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
-/*---------------------------------------------------------------------------*/
+#ifndef NOTIFY_H_
+#define NOTIFY_H_
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+#include "board-peripherals.h"
+#include "sensors.h"
+#include "gatt.h"
 
-#include "ble-hal.h"
-#include "sys/process.h"
+void send_notify();
+void prepare_notification(uint16_t handle_to_notify, bt_size_t *sensor_value);
+void prepare_error_resp_notif(uint16_t error_handle, uint8_t error);
+int is_values_equals(bt_size_t *v1, bt_size_t *v2);
 
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+#endif /* NOTIFY_H_ */

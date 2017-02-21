@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#ifndef REED_RELAY_H_
+#define REED_RELAY_H_
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
-
-#include "ble-hal.h"
-#include "sys/process.h"
-
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+#include "net/ble/att-database.h"
+#include "process.h"
+/*---------------------------------------------------------------------------*/
+uint8_t get_value_reed_relay(bt_size_t *value);
+uint8_t set_status_reed_relay_sensor(const bt_size_t *new_value);
+uint8_t get_status_reed_relay_sensor(bt_size_t *database);
+/* notification functions */
+uint8_t set_period_reed_relay(const bt_size_t *new_period);
+uint8_t get_period_reed_relay(bt_size_t *period_to_send);
+uint8_t set_status_reed_relay_notify(const bt_size_t *new_value);
+uint8_t get_status_reed_relay_notify(bt_size_t *database);
+/* notify process */
+PROCESS_NAME(reed_relay_notify_process);
+PROCESS_NAME(reed_relay_disconnect_process);
+/*---------------------------------------------------------------------------*/
+#endif  /* REED_RELAY_H_ */

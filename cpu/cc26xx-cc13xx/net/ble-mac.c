@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 
 #include "ble-hal.h"
+#include "net/ble/ble-att.h"
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "net/ip/uip.h"
@@ -44,8 +45,10 @@
 
 #include <string.h>
 
+
+
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -70,8 +73,9 @@
 #define L2CAP_NODE_FRAG_LEN     255
 #define L2CAP_NODE_INIT_CREDITS   8
 #define L2CAP_CREDIT_THRESHOLD    2
+#define L2CAP_ATT_CHANNEL         4
 
-#define L2CAP_FIRST_HEADER_SIZE         6
+#define L2CAP_FIRST_HEADER_SIZE         4
 #define L2CAP_FIRST_FRAGMENT_SIZE   (L2CAP_NODE_FRAG_LEN - L2CAP_FIRST_HEADER_SIZE)
 #define L2CAP_SUBSEQ_HEADER_SIZE        4
 #define L2CAP_SUBSEQ_FRAGMENT_SIZE  (L2CAP_NODE_FRAG_LEN - L2CAP_SUBSEQ_HEADER_SIZE)
@@ -95,10 +99,13 @@ typedef struct {
   uint16_t sdu_length;
   /* index of the first byte not sent yet */
   uint16_t current_index;
+  /* SDU CID */
+  uint16_t cid;
 } l2cap_buffer_t;
 
 static l2cap_buffer_t tx_buffer;
 static l2cap_buffer_t rx_buffer;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(ble_mac_process, "BLE MAC process");
 /*---------------------------------------------------------------------------*/
@@ -125,17 +132,6 @@ init_adv_data(char *adv_data)
   adv_data[adv_data_len++] = 2;
   adv_data[adv_data_len++] = 0x0A;
   adv_data[adv_data_len++] = 0;        /* 0 dBm */
-  /* service UUIDs (16-bit identifiers) */
-  adv_data[adv_data_len++] = 3;
-  adv_data[adv_data_len++] = 0x03;
-  adv_data[adv_data_len++] = 0x20;
-  adv_data[adv_data_len++] = 0x18;     /* only IP support service exposed */
-  /* service UUIDs (32-bit identifiers) */
-  adv_data[adv_data_len++] = 1;
-  adv_data[adv_data_len++] = 0x05;     /* empty list */
-  /* service UUIDs (128-bit identifiers) */
-  adv_data[adv_data_len++] = 1;
-  adv_data[adv_data_len++] = 0x07;     /* empty list */
   return adv_data_len;
 }
 /*---------------------------------------------------------------------------*/
@@ -186,10 +182,10 @@ init(void)
   PRINTADDR(ble_addr);
 
   /* set the advertisement parameter */
-  NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_INTERVAL, 0x0800);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_INTERVAL, 0x0400);
   NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_TYPE, BLE_ADV_DIR_IND_LDC);
   NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_OWN_ADDR_TYPE, BLE_ADDR_TYPE_PUBLIC);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_CHANNEL_MAP, 0x01);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_CHANNEL_MAP, 0x02);
 
   adv_data_len = init_adv_data(adv_data);
   scan_resp_data_len = init_scan_resp_data(scan_resp_data);
@@ -200,7 +196,6 @@ init(void)
 
   /* enable advertisement */
   NETSTACK_RADIO.set_value(RADIO_PARAM_BLE_ADV_ENABLE, 1);
-
   NETSTACK_MAC.on();
 }
 /*---------------------------------------------------------------------------*/
@@ -224,7 +219,9 @@ send(mac_callback_t sent_callback, void *ptr)
   PRINTF("ble_mac send() sending %d bytes\n", data_len);
 
   tx_buffer.sdu_length = data_len;
+  tx_buffer.cid = (uint16_t) packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
   memcpy(tx_buffer.sdu, packetbuf_dataptr(), data_len);
+
   mac_call_sent_callback(sent_callback, ptr, MAC_TX_DEFERRED, 1);
   process_poll(&ble_mac_process);
 }
@@ -281,7 +278,10 @@ l2cap_conn_req(uint8_t *data)
   memset(&resp_data[16], 0x00, 2);
 
   packetbuf_copyfrom((void *)resp_data, 18);
-  NETSTACK_RDC.send(NULL, NULL);
+  tx_buffer.cid = 0x05;
+  tx_buffer.sdu_length = 14;
+  memcpy(tx_buffer.sdu, resp_data + 4, 14);
+  NETSTACK_MAC.send(NULL, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -291,7 +291,7 @@ l2cap_credit(uint8_t *data)
   uint16_t cid;
   uint16_t credits;
 
-/*  uint8_t  identifier = data[0]; */
+  /*  uint8_t  identifier = data[0]; */
   memcpy(&len, &data[1], 2);
 
   if(len != 4) {
@@ -393,6 +393,22 @@ send_l2cap_credit()
 }
 /*---------------------------------------------------------------------------*/
 static void
+l2cap_frame_att_channel(uint8_t* data, uint8_t data_len)
+{
+  if(data_len < 4) {
+    PRINTF("l2cap_frame: illegal L2CAP frame data_len: %d\n", data_len);
+    /* a L2CAP frame has a minimum length of 4 */
+    return;
+  }
+  /* Prepare packetbuffer with ATT datas */
+  memcpy(packetbuf_dataptr(), &data[4], data_len-4);
+  packetbuf_set_datalen(data_len-4);
+
+  packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, L2CAP_ATT_CHANNEL);
+  NETSTACK_LLSEC.input();
+}
+
+static void
 input(void)
 {
   uint8_t *data = (uint8_t *)packetbuf_dataptr();
@@ -400,7 +416,9 @@ input(void)
   uint16_t channel_id;
 
   memcpy(&channel_id, &data[2], 2);
-
+  // for(int i = 0;i<=len;i++){
+  //   printf("DATA : 0x%x\n",*data++);
+  // }
   PRINTF("ble-mac input: %d bytes\n", len);
 
   if(len > 0) {
@@ -414,9 +432,12 @@ input(void)
         send_l2cap_credit();
         l2cap_node.credits += L2CAP_NODE_INIT_CREDITS;
       }
-    } else {
-      PRINTF("ble-mac input: unknown L2CAP channel: %x\n", channel_id);
-      return;
+    }else if (channel_id == L2CAP_ATT_CHANNEL) {
+      l2cap_frame_att_channel(data, len);
+
+    }else {
+     PRINTF("ble-mac input: unknown L2CAP channel: %x\n", channel_id);
+     return;
     }
   }
 }
@@ -446,7 +467,6 @@ const struct mac_driver ble_mac_driver = {
   off,
   NULL,
 };
-
 static struct etimer l2cap_timer;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ble_mac_process, ev, data)
@@ -464,6 +484,7 @@ PROCESS_THREAD(ble_mac_process, ev, data)
       if(tx_buffer.sdu_length > 0) {
         NETSTACK_RADIO.get_value(RADIO_CONST_BLE_BUFFER_AMOUNT,
                                  (radio_value_t *)&num_buffer);
+
         if(num_buffer > 0) {
           /* transmit data */
           packetbuf_clear();
@@ -472,11 +493,13 @@ PROCESS_THREAD(ble_mac_process, ev, data)
           packetbuf_hdralloc(L2CAP_FIRST_HEADER_SIZE);
           /* length of the payload transmitted by this fragment */
           data_len = MIN(tx_buffer.sdu_length, L2CAP_FIRST_FRAGMENT_SIZE);
-          frame_len = data_len + 2;
+          frame_len = data_len;
 
+          /* Copy len */
           memcpy(packetbuf_hdrptr(), &frame_len, 2);
-          memcpy(packetbuf_hdrptr() + 2, &l2cap_router.cid, 2);
-          memcpy(packetbuf_hdrptr() + 4, &tx_buffer.sdu_length, 2);
+
+          /* Service CID */
+          memcpy(packetbuf_hdrptr() + 2, &tx_buffer.cid, 2);
 
           /* copy payload */
           memcpy(packetbuf_dataptr(), tx_buffer.sdu, data_len);
@@ -486,7 +509,7 @@ PROCESS_THREAD(ble_mac_process, ev, data)
           /* send L2CAP fragment */
           NETSTACK_RDC.send(NULL, NULL);
           /* decrement the packets available at the router by 1 */
-          l2cap_router.credits--;
+          //l2cap_router.credits--;
 
           if(tx_buffer.current_index == tx_buffer.sdu_length) {
             tx_buffer.current_index = 0;

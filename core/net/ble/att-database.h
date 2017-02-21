@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#ifndef ATT_DATABASE_H_
+#define ATT_DATABASE_H_
+#include "uuid.h"
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+typedef const struct attribute_s{
+    uint8_t (*get_action)(bt_size_t* value);
+    uint8_t (*set_action)(const bt_size_t* value);
+    uint8_t att_value_len;
+    uint128_t att_uuid;
+    union{
+      struct{
+        uint8_t broadcast:1;
+        uint8_t read:1;
+        uint8_t write_without_response:1;
+        uint8_t write:1;
+        uint8_t notify:1;
+        uint8_t indicate:1;
+        uint8_t authenticated_signed_writes:1;
+        uint8_t extended_properties:1;
+      };
+      uint8_t raw;
+    }properties;
+  	uint16_t att_handle;
 
-#include "ble-hal.h"
-#include "sys/process.h"
-
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+} attribute_t;
+#endif

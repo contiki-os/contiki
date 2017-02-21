@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
-/*---------------------------------------------------------------------------*/
-
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
-
-#include "ble-hal.h"
-#include "sys/process.h"
-
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+/* Comment in order to innactive GATT sensors -> not working until todo in gatt-table.h is not fixed*/
+#ifndef GATT_CONFIG_H_
+#define GATT_CONFIG_H_
+#define SOURCE_LL_DISCONNECT_EVENT "ble-hal-cc26xx.h"
+// #define GATT_SENSORS_TEMP1 tmp_007_sensor
+// #define GATT_SENSORS_HUM hdc_1000_sensor
+// #define GATT_SENSORS_BAROMETER bmp_280_sensor
+// #define GATT_SENSORS_LUXOMETER opt_3001_sensor
+// #define GATT_SENSORS_MPU mpu_9250_sensor
+// #define GATT_LEDS
+// #define GATT_SENSORS_BATTERY batmon_sensor
+// #define GATT_SENSORS_BUTTONS
+// #define GATT_SENSORS_BUTTONS_LEFT button_left_sensor
+// #define GATT_SENSORS_BUTTONS_RIGHT button_right_sensor
+// #define GATT_SENSORS_REED_RELAY reed_relay_sensor
+#endif //GATT_CONFIG_H_

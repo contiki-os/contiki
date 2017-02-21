@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,54 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#include "gatt_config.h"
+#ifdef GATT_LEDS
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+#define MASK_LED_RED    0x01
+#define MASK_LED_GREEN  0x02
 
-#include "ble-hal.h"
-#include "sys/process.h"
+#include "../ble-att.h"
+#include "led.h"
+#include "leds.h"
 
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
-
-#endif /* BLE_HAL_CC26XX_H_ */
+/*---------------------------------------------------------------------------*/
+uint8_t
+set_status_leds(const bt_size_t *new_value)
+{
+#ifdef LEDS_RED
+  if(new_value->value.u8 & MASK_LED_RED) {
+    leds_on(LEDS_RED);
+  } else {
+    leds_off(LEDS_RED);
+  }
+#endif
+#ifdef LEDS_GREEN
+  if(new_value->value.u8 & MASK_LED_GREEN) {
+    leds_on(LEDS_GREEN);
+  } else {
+    leds_off(LEDS_GREEN);
+  }
+#endif
+  return SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+get_status_leds(bt_size_t *database)
+{
+  database->type = BT_SIZE8;
+  database->value.u8 = (uint8_t)leds_get();
+  PRINTF("status get leds : 0x%X\n", leds_get());
+  return SUCCESS;
+}
+#endif

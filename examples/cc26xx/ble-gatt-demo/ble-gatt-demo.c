@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017,Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
 /*---------------------------------------------------------------------------*/
+#include "contiki.h"
+#include "contiki-net.h"
+#include "dev/leds.h"
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+#include <stdio.h>
+/*---------------------------------------------------------------------------*/
+#define ECHO_INTERVAL   (1 * CLOCK_SECOND)
+/*---------------------------------------------------------------------------*/
+static struct etimer timer;
 
-#include "ble-hal.h"
-#include "sys/process.h"
+PROCESS(ble_gatt_demo_process, "BLE gatt demo process");
+AUTOSTART_PROCESSES(&ble_gatt_demo_process);
 
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
+PROCESS_THREAD(ble_gatt_demo_process, ev, data)
+{
+  PROCESS_BEGIN();
+  printf("BLE gatt demo process started\n");
+  leds_on(LEDS_GREEN);
 
-#endif /* BLE_HAL_CC26XX_H_ */
+  do {
+    etimer_set(&timer, ECHO_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+  } while(1);
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/

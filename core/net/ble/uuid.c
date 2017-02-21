@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Arthur Courtel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,65 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
+ * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
-/*---------------------------------------------------------------------------*/
 
-#ifndef BLE_HAL_CC26XX_H_
-#define BLE_HAL_CC26XX_H_
+#include "uuid.h"
+#include <string.h>
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
-#include "ble-hal.h"
-#include "sys/process.h"
+#define BASE_UUID16_OFFSET  2
 
-extern process_event_t ll_disconnect_event;
-extern const struct ble_hal_driver ble_hal;
+static uint128_t bluetooth_base_uuid = {
+  .data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+            0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB }
+};
 
-#endif /* BLE_HAL_CC26XX_H_ */
+inline uint128_t
+uuid_16_to_128(uint16_t uuid_16)
+{
+  uint128_t result;
+  /* Set base uuid */
+  result = bluetooth_base_uuid;
+  uuid_16 = swap16(uuid_16);
+
+  memcpy(&result.data[BASE_UUID16_OFFSET], &uuid_16, sizeof(uuid_16));
+
+  return result;
+}
+inline uint16_t
+uuid_128_to_16(const uint128_t uuid_128)
+{
+  uint16_t result;
+
+  memcpy(&result, &uuid_128.data[BASE_UUID16_OFFSET], sizeof(result));
+
+  result = swap16(result);
+  return result;
+}
+inline uint8_t
+uuid_128_compare(const uint128_t u1, const uint128_t u2)
+{
+  for(uint8_t i = 0; i < sizeof(uint128_t); i++) {
+    if(u1.data[i] != u2.data[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+inline uint128_t
+swap128(const uint128_t *input)
+{
+  uint128_t output;
+  for(uint8_t i = 0; i < sizeof(uint128_t); i++) {
+    output.data[i] = input->data[sizeof(uint128_t) - i - 1];
+  }
+  return output;
+}
