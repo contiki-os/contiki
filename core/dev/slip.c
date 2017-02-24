@@ -425,11 +425,13 @@ slip_input_byte(unsigned char c)
   }
   rxbuf[cur_end] = c;
 
+#ifdef SLIP_CONF_MICROSOFT_CHAT
   /* There could be a separate poll routine for this. */
   if(c == 'T' && rxbuf[begin] == 'C') {
     process_poll(&slip_process);
     return 1;
   }
+#endif /* SLIP_CONF_MICROSOFT_CHAT */
 
   if(c == SLIP_END) {
     /*
