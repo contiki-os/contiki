@@ -258,6 +258,10 @@ initialize(void)
 /* rtimers needed for radio cycling */
   rtimer_init();
 
+/* after the timer intitialisation we start the cpu measurement */
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+
+
   /* Initialize process subsystem */
   process_init();
 
@@ -458,6 +462,11 @@ main(void)
 #if NETSTACK_CONF_WITH_IPV6
   uip_ds6_nbr_t *nbr;
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+
+/* we can initialize the energest here, before the hardware */
+  energest_init();
+ 
+
   initialize();
 
   while(1) {
