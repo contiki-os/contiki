@@ -10,12 +10,12 @@
 PROCESS(router_node_process, "Router node");
 AUTOSTART_PROCESSES(&router_node_process);
 /*---------------------------------------------------------------------------*/
-uip_lladdr_t * uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route);
+const uip_lladdr_t * uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route);
 
 
 PROCESS_THREAD(router_node_process, ev, data)
 {
-  uip_ipaddr_t *nexthop = NULL;
+  const uip_ipaddr_t *nexthop = NULL;
   uip_ds6_defrt_t *defrt;
   uip_ipaddr_t *ipaddr;
   uip_ds6_route_t *r;

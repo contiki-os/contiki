@@ -105,12 +105,12 @@ nbr_table_item_t *nbr_table_get_from_lladdr(nbr_table_t *table, const linkaddr_t
 int nbr_table_remove(nbr_table_t *table, nbr_table_item_t *item);
 int nbr_table_lock(nbr_table_t *table, nbr_table_item_t *item);
 int nbr_table_unlock(nbr_table_t *table, nbr_table_item_t *item);
+int nbr_table_is_locked(const linkaddr_t *lladdr);
 /** @} */
 
 /** \name Neighbor tables: address manipulation */
 /** @{ */
 linkaddr_t *nbr_table_get_lladdr(nbr_table_t *table, const nbr_table_item_t *item);
-int nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr, int remove_if_duplicate);
 /** @} */
 
 #endif /* NBR_TABLE_H_ */

@@ -42,6 +42,7 @@
 
 #include "net/ip/uip.h"
 #include "net/nbr-table.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 #include "sys/stimer.h"
 #include "lib/list.h"
 
@@ -66,16 +67,16 @@ void uip_ds6_route_init(void);
 #define UIP_DS6_NOTIFICATION_ROUTE_RM  3
 
 typedef void (* uip_ds6_notification_callback)(int event,
-					       uip_ipaddr_t *route,
-					       uip_ipaddr_t *nexthop,
-					       int num_routes);
+                                               const uip_ipaddr_t *route,
+                                               const uip_ipaddr_t *nexthop,
+                                               int num_routes);
 struct uip_ds6_notification {
   struct uip_ds6_notification *next;
   uip_ds6_notification_callback callback;
 };
 
 void uip_ds6_notification_add(struct uip_ds6_notification *n,
-			      uip_ds6_notification_callback c);
+                              uip_ds6_notification_callback c);
 
 void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 /*--------------------------------------------------*/
@@ -102,8 +103,8 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #define RPL_ROUTE_SET_NOPATH_RECEIVED(route) do {                       \
     (route)->state.state_flags |= RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
   } while(0)
-#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                       \
-    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
+#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                     \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;     \
   } while(0)
 
 #define RPL_ROUTE_IS_DAO_PENDING(route)                                 \
@@ -138,6 +139,24 @@ typedef struct rpl_route_entry {
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+/** \brief An entry in the routing table */
+struct uip_ds6_nbr;
+typedef struct uip_ds6_route {
+  struct uip_ds6_route *next;
+  /*
+   * Each route entry belongs to a specific neighbor. That neighbor holds a list
+   * of all routing entries that go through it. The "nexthop_nbr" field points
+   * to the neighbor cache entry that this routing table entry uses.
+   */
+  struct uip_ds6_nbr *nexthop_nbr;
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+  UIP_DS6_ROUTE_STATE_TYPE state;
+#endif
+  uip_ipaddr_t ipaddr;
+  uint8_t length;
+} uip_ds6_route_t;
+#else /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 /** \brief The neighbor routes hold a list of routing table entries
     that are attached to a specific neihbor. */
 struct uip_ds6_route_neighbor_routes {
@@ -159,6 +178,7 @@ typedef struct uip_ds6_route {
 #endif
   uint8_t length;
 } uip_ds6_route_t;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
 /** \brief A neighbor route list entry, used on the
     uip_ds6_route->neighbor_routes->route_list list. */
@@ -190,13 +210,12 @@ void uip_ds6_defrt_periodic(void);
 
 /** \name Routing Table basic routines */
 /** @{ */
-uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
-uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                   uip_ipaddr_t *next_hop);
+uip_ds6_route_t *uip_ds6_route_lookup(const uip_ipaddr_t *destipaddr);
+uip_ds6_route_t *uip_ds6_route_add(const uip_ipaddr_t *ipaddr, uint8_t length,
+                                   const uip_ipaddr_t *next_hop);
 void uip_ds6_route_rm(uip_ds6_route_t *route);
-void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 
-uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
+const uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
 int uip_ds6_route_num_routes(void);
 uip_ds6_route_t *uip_ds6_route_head(void);
 uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);

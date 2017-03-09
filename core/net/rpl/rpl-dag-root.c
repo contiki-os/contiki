@@ -126,8 +126,8 @@ create_dag_callback(void *ptr)
 #if (UIP_CONF_MAX_ROUTES != 0)
 /*---------------------------------------------------------------------------*/
 static void
-route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr,
-               int numroutes)
+route_callback(int event, const uip_ipaddr_t *route,
+               const uip_ipaddr_t *ipaddr, int numroutes)
 {
   if(event == UIP_DS6_NOTIFICATION_DEFRT_ADD) {
     if(route != NULL && ipaddr != NULL &&

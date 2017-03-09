@@ -47,6 +47,7 @@
 
 #include <string.h>
 
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 /* A configurable function called after adding a new neighbor as next hop */
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
 void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(const linkaddr_t *addr);
@@ -56,8 +57,10 @@ void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(const linkaddr_t *addr);
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
 void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(const linkaddr_t *addr);
 #endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0 */
 
 #if (UIP_CONF_MAX_ROUTES != 0)
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 /* The nbr_routes holds a neighbor table to be able to maintain
    information about what routes go through what neighbor. This
    neighbor table is registered with the central nbr-table repository
@@ -65,6 +68,7 @@ void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(const linkaddr_t *addr);
    tables in the system. */
 NBR_TABLE_GLOBAL(struct uip_ds6_route_neighbor_routes, nbr_routes);
 MEMB(neighborroutememb, struct uip_ds6_route_neighbor_route, UIP_DS6_ROUTE_NB);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0 */
 
 /* Each route is repressented by a uip_ds6_route_t structure and
    memory for each route is allocated from the routememb memory
@@ -73,7 +77,9 @@ LIST(routelist);
 MEMB(routememb, uip_ds6_route_t, UIP_DS6_ROUTE_NB);
 
 static int num_routes = 0;
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 static void rm_routelist_callback(nbr_table_item_t *ptr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0*/
 
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
 
@@ -121,8 +127,8 @@ assert_nbr_routes_list_sane(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_DS6_NOTIFICATIONS
 static void
-call_route_callback(int event, uip_ipaddr_t *route,
-		    uip_ipaddr_t *nexthop)
+call_route_callback(int event, const uip_ipaddr_t *route,
+                    const uip_ipaddr_t *nexthop)
 {
   int num;
   struct uip_ds6_notification *n;
@@ -141,7 +147,7 @@ call_route_callback(int event, uip_ipaddr_t *route,
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_notification_add(struct uip_ds6_notification *n,
-			 uip_ds6_notification_callback c)
+                         uip_ds6_notification_callback c)
 {
   if(n != NULL && c != NULL) {
     n->callback = c;
@@ -162,8 +168,10 @@ uip_ds6_route_init(void)
 #if (UIP_CONF_MAX_ROUTES != 0)
   memb_init(&routememb);
   list_init(routelist);
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
   nbr_table_register(nbr_routes,
                      (nbr_table_callback *)rm_routelist_callback);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0 */
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
 
   memb_init(&defaultroutermemb);
@@ -174,6 +182,7 @@ uip_ds6_route_init(void)
 #endif
 }
 #if (UIP_CONF_MAX_ROUTES != 0)
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 /*---------------------------------------------------------------------------*/
 static uip_lladdr_t *
 uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route)
@@ -185,17 +194,26 @@ uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route)
     return NULL;
   }
 }
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0 */
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
 /*---------------------------------------------------------------------------*/
-uip_ipaddr_t *
+const uip_ipaddr_t *
 uip_ds6_route_nexthop(uip_ds6_route_t *route)
 {
 #if (UIP_CONF_MAX_ROUTES != 0)
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  if(route != NULL && route->nexthop_nbr) {
+    return uip_ds6_nbr_get_ipaddr(route->nexthop_nbr);
+  } else {
+    return NULL;
+  }
+#else /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
   if(route != NULL) {
     return uip_ds6_nbr_ipaddr_from_lladdr(uip_ds6_route_nexthop_lladdr(route));
   } else {
     return NULL;
   }
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 #else /* (UIP_CONF_MAX_ROUTES != 0) */
   return NULL;
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
@@ -227,6 +245,20 @@ int
 uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr)
 {
 #if (UIP_CONF_MAX_ROUTES != 0)
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  uip_ds6_nbr_t *nbr;
+
+  if(ipaddr == NULL) {
+    return 0;
+  }
+
+  if((nbr = uip_ds6_nbr_lookup(ipaddr)) == NULL ||
+     uip_ds6_nbr_has_routes(nbr) == 0) {
+    return 0;
+  }
+
+  return 1;
+#else /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
   const uip_lladdr_t *lladdr;
   lladdr = uip_ds6_nbr_lladdr_from_ipaddr(ipaddr);
 
@@ -235,6 +267,7 @@ uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr)
   }
 
   return nbr_table_get_from_lladdr(nbr_routes, (linkaddr_t *)lladdr) != NULL;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 #else /* (UIP_CONF_MAX_ROUTES != 0) */
   return 0;
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
@@ -251,7 +284,7 @@ uip_ds6_route_num_routes(void)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
-uip_ds6_route_lookup(uip_ipaddr_t *addr)
+uip_ds6_route_lookup(const uip_ipaddr_t *addr)
 {
 #if (UIP_CONF_MAX_ROUTES != 0)
   uip_ds6_route_t *r;
@@ -274,7 +307,7 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
       found_route = r;
       /* check if total match - e.g. all 128 bits do match */
       if(longestmatch == 128) {
-	break;
+        break;
       }
     }
   }
@@ -305,9 +338,176 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
 uip_ds6_route_t *
-uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-		  uip_ipaddr_t *nexthop)
+uip_ds6_route_add(const uip_ipaddr_t *ipaddr, uint8_t length,
+                  const uip_ipaddr_t *nexthop)
+{
+#if (UIP_CONF_MAX_ROUTES != 0)
+  uip_ds6_route_t *r;
+  uip_ds6_nbr_t *nbr;
+  uip_ds6_route_t *oldest;
+
+#if DEBUG != DEBUG_NONE
+  assert_nbr_routes_list_sane();
+#endif /* DEBUG != DEBUG_NONE */
+
+  /*
+   * First make sure that we don't add a route twice. If we find an existing
+   * route for our destination which has a different next-hop neighbor from
+   * "nexthop", we'll delete the old one first.
+   */
+  r = uip_ds6_route_lookup(ipaddr);
+  if(r != NULL) {
+    if(r->nexthop_nbr != NULL &&
+       uip_ipaddr_cmp(uip_ds6_nbr_get_ipaddr(r->nexthop_nbr), nexthop)) {
+      /* We've already have the route for "ipaddr" and "nexthop" */
+      return r;
+    } else {
+      /* We're going to remove the old route; then add a new one. */
+      PRINTF("uip_ds6_route_add: old route for ");
+      PRINT6ADDR(ipaddr);
+      PRINTF(" found, deleting it\n");
+      uip_ds6_route_rm(r);
+    }
+  }
+
+  /*
+   * We first need to check if we have room for this route. If not, we remove
+   * the least recently used one we have.
+   */
+  if(uip_ds6_route_num_routes() == UIP_DS6_ROUTE_NB) {
+    oldest = NULL;
+#if UIP_DS6_ROUTE_REMOVE_LEAST_RECENTLY_USED
+    /* Removing the oldest route entry from the route table. The
+       least recently used route is the first route on the list. */
+    oldest = list_tail(routelist);
+#endif
+    if(oldest == NULL) {
+      /* No room to add a new one */
+      return NULL;
+    }
+    PRINTF("uip_ds6_route_add: dropping route to ");
+    PRINT6ADDR(&oldest->ipaddr);
+    PRINTF("\n");
+    uip_ds6_route_rm(oldest);
+  }
+
+  /*
+   * Every neighbor cache or "nbr", an uip_ds6_nbr_t instance, holds a list of
+   * routes that go through the neighbor. We add our route entry to this
+   * "nbr".
+   */
+  nbr = uip_ds6_nbr_lookup(nexthop);
+  if(nbr == NULL) {
+    /*
+     * Create a neighbor cache which is going to hold a list including the
+     * route.
+     */
+    nbr = uip_ds6_nbr_add(nexthop, NULL, 1,
+                          NBR_INCOMPLETE, NBR_TABLE_REASON_ROUTE, NULL);
+
+    if(nbr == NULL) {
+      PRINTF("uip_ds6_route_add: cannot allocate nbr for the route\n");
+      return NULL;
+    }
+  }
+
+  /* Allocate a routing entry and populate it. */
+  r = memb_alloc(&routememb);
+  if(r == NULL) {
+    /* This should not happen, as we explicitly deallocated one
+       route table entry above. */
+    PRINTF("uip_ds6_route_add: could not allocate route\n");
+    return NULL;
+  }
+
+  /* Initialize the attributes */
+  r->nexthop_nbr = nbr;
+  uip_ipaddr_copy(&(r->ipaddr), ipaddr);
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+  memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+#endif
+  r->length = length;
+
+  /* Add the newly created route to the "nbr" */
+  uip_ds6_nbr_add_route(nbr, r);
+
+  /* Add the newly created route to routelist */
+  list_push(routelist, r);
+  num_routes++;
+
+  PRINTF("uip_ds6_route_add num %d\n", num_routes);
+
+  PRINTF("uip_ds6_route_add: adding route: ");
+  PRINT6ADDR(ipaddr);
+  PRINTF(" via ");
+  PRINT6ADDR(nexthop);
+  PRINTF("\n");
+  ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+
+#if UIP_DS6_NOTIFICATIONS
+  call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_ADD, ipaddr, nexthop);
+#endif
+
+#if DEBUG != DEBUG_NONE
+  assert_nbr_routes_list_sane();
+#endif /* DEBUG != DEBUG_NONE */
+  return r;
+
+#else /* (UIP_CONF_MAX_ROUTES != 0) */
+  return NULL;
+#endif /* (UIP_CONF_MAX_ROUTES != 0) */
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_route_rm(uip_ds6_route_t *route)
+{
+#if (UIP_CONF_MAX_ROUTES != 0)
+#if DEBUG != DEBUG_NONE
+  assert_nbr_routes_list_sane();
+#endif /* DEBUG != DEBUG_NONE */
+  if(route != NULL) {
+
+    PRINTF("uip_ds6_route_rm: removing route: ");
+    PRINT6ADDR(&route->ipaddr);
+    PRINTF("\n");
+
+    /* Remove the route from the route list */
+    list_remove(routelist, route);
+
+    if(route->nexthop_nbr != NULL) {
+      uip_ds6_nbr_rm_route(route->nexthop_nbr, route);
+    }
+#if (DEBUG) & DEBUG_ANNOTATE
+    uip_ipaddr_t *nexthop = uip_ds6_route_nexthop(route);
+    if(nexthop != NULL) {
+      ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+    }
+#endif /* (DEBUG) & DEBUG_ANNOTATE */
+    memb_free(&routememb, route);
+    num_routes--;
+
+    PRINTF("uip_ds6_route_rm num %d\n", num_routes);
+
+#if UIP_DS6_NOTIFICATIONS
+    call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
+                        &route->ipaddr, uip_ds6_route_nexthop(route));
+#endif
+  }
+
+#if DEBUG != DEBUG_NONE
+  assert_nbr_routes_list_sane();
+#endif /* DEBUG != DEBUG_NONE */
+
+#endif /* (UIP_CONF_MAX_ROUTES != 0) */
+  return;
+}
+#else /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
+/*---------------------------------------------------------------------------*/
+uip_ds6_route_t *
+uip_ds6_route_add(const uip_ipaddr_t *ipaddr, uint8_t length,
+                  const uip_ipaddr_t *nexthop)
 {
 #if (UIP_CONF_MAX_ROUTES != 0)
   uip_ds6_route_t *r;
@@ -331,7 +531,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
      one first. */
   r = uip_ds6_route_lookup(ipaddr);
   if(r != NULL) {
-    uip_ipaddr_t *current_nexthop;
+    const uip_ipaddr_t *current_nexthop;
     current_nexthop = uip_ds6_route_nexthop(r);
     if(current_nexthop != NULL && uip_ipaddr_cmp(nexthop, current_nexthop)) {
       /* no need to update route - already correct! */
@@ -504,7 +704,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
       nbr_table_remove(nbr_routes, route->neighbor_routes->route_list);
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
       NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(
-          (const linkaddr_t *)nbr_table_get_lladdr(nbr_routes, route->neighbor_routes->route_list));
+        (const linkaddr_t *)nbr_table_get_lladdr(nbr_routes, route->neighbor_routes->route_list));
 #endif
     }
     memb_free(&routememb, route);
@@ -516,7 +716,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
 
 #if UIP_DS6_NOTIFICATIONS
     call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
-        &route->ipaddr, uip_ds6_route_nexthop(route));
+                        &route->ipaddr, uip_ds6_route_nexthop(route));
 #endif
   }
 
@@ -556,21 +756,7 @@ rm_routelist_callback(nbr_table_item_t *ptr)
   rm_routelist((struct uip_ds6_route_neighbor_routes *)ptr);
 }
 #endif /* (UIP_CONF_MAX_ROUTES != 0) */
-/*---------------------------------------------------------------------------*/
-void
-uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
-{
-#if (UIP_CONF_MAX_ROUTES != 0)
-  /* Get routing entry list of this neighbor */
-  const uip_lladdr_t *nexthop_lladdr;
-  struct uip_ds6_route_neighbor_routes *routes;
-
-  nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
-  routes = nbr_table_get_from_lladdr(nbr_routes,
-                                     (linkaddr_t *)nexthop_lladdr);
-  rm_routelist(routes);
-#endif /* (UIP_CONF_MAX_ROUTES != 0) */
-}
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 /*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *
 uip_ds6_defrt_head(void)
@@ -646,7 +832,7 @@ uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt)
       ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
 #if UIP_DS6_NOTIFICATIONS
       call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_RM,
-			  &defrt->ipaddr, &defrt->ipaddr);
+                          &defrt->ipaddr, &defrt->ipaddr);
 #endif
       return;
     }

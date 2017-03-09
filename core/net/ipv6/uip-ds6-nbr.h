@@ -53,6 +53,7 @@
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
+#include "lib/list.h"
 
 /*--------------------------------------------------*/
 /** \brief Possible states for the nbr cache entries */
@@ -62,10 +63,34 @@
 #define  NBR_DELAY 3
 #define  NBR_PROBE 4
 
+#ifdef UIP_DS6_NBR_CONF_MULTI_IPV6_ADDRS
+#define UIP_DS6_NBR_MULTI_IPV6_ADDRS UIP_DS6_NBR_CONF_MULTI_IPV6_ADDRS
+#else
+#define UIP_DS6_NBR_MULTI_IPV6_ADDRS 0
+#endif /* UIP_DS6_NBR_CONF_MULTI_IPV6_ADDRS */
+
+#ifdef UIP_DS6_NBR_CONF_MAX_NB
+#define UIP_DS6_NBR_MAX_NB UIP_DS6_NBR_CONF_MAX_NB
+#else
+#define UIP_DS6_NBR_MAX_NB NBR_TABLE_MAX_NEIGHBORS
+#endif /* UIP_DS6_NBR_CONF_MAX_NB */
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 NBR_TABLE_DECLARE(ds6_neighbors);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0*/
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+typedef struct {
+  LIST_STRUCT(nbr_list);
+} uip_ds6_nbr_entry_t;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  struct uip_ds6_nbr *next;
+  uip_ds6_nbr_entry_t *nbr_entry;
+#endif
   uip_ipaddr_t ipaddr;
   uint8_t isrouter;
   uint8_t state;
@@ -78,6 +103,9 @@ typedef struct uip_ds6_nbr {
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
 #endif                          /*UIP_CONF_QUEUE_PKT */
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+  LIST_STRUCT(route_list);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
 } uip_ds6_nbr_t;
 
 void uip_ds6_neighbors_init(void);
@@ -88,11 +116,15 @@ uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr,
                                uint8_t isrouter, uint8_t state,
                                nbr_table_reason_t reason, void *data);
 int uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+int uip_ds6_nbr_update_lladdr(uip_ds6_nbr_t **nbr,
+                              const uip_lladdr_t *new_addr);
 const uip_lladdr_t *uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr);
 const uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr);
 uip_ds6_nbr_t *uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr);
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0
 uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(const uip_lladdr_t *lladdr);
 uip_ipaddr_t *uip_ds6_nbr_ipaddr_from_lladdr(const uip_lladdr_t *lladdr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS == 0 */
 const uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr);
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
@@ -119,6 +151,43 @@ void uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr);
  *    table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0
+struct uip_ds6_route;
+/**
+ * \brief Associate a route with a neighbor cache
+ */
+void uip_ds6_nbr_add_route(uip_ds6_nbr_t *nbr, struct uip_ds6_route *route);
+
+/**
+ * \brief Remove a route from a nbr
+ */
+void uip_ds6_nbr_rm_route(uip_ds6_nbr_t *nbr, struct uip_ds6_route *route);
+
+/**
+ * \brief Return whether the nbr has routes
+ * \retval 0 It doesn't have.
+ * \retval 1 It has at least one route.
+ */
+int uip_ds6_nbr_has_routes(uip_ds6_nbr_t *nbr);
+
+/**
+ * \brief Remove all the routes associated with a nbr
+ */
+void uip_ds6_nbr_rm_all_routes(uip_ds6_nbr_t *nbr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS && UIP_CONF_MAX_ROUTES != 0 */
+
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+/**
+ * \brief Get the first nbr in nbr_list
+ */
+uip_ds6_nbr_t * uip_ds6_nbr_list_head(void);
+
+/**
+ * \brief Get a nbr next to the specified nbr in nbr_list
+ */
+uip_ds6_nbr_t * uip_ds6_nbr_list_item_next(uip_ds6_nbr_t *nbr);
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 
 #endif /* UIP_DS6_NEIGHBOR_H_ */
 /** @} */

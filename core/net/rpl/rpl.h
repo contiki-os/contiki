@@ -113,6 +113,9 @@ struct rpl_dag;
 
 struct rpl_parent {
   struct rpl_dag *dag;
+#if UIP_DS6_NBR_MULTI_IPV6_ADDRS
+  uip_ipaddr_t ipaddr;
+#endif /* UIP_DS6_NBR_MULTI_IPV6_ADDRS */
 #if RPL_WITH_MC
   rpl_metric_container_t mc;
 #endif /* RPL_WITH_MC */

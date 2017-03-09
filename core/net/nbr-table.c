@@ -413,45 +413,26 @@ nbr_table_unlock(nbr_table_t *table, void *item)
   return nbr_set_bit(locked_map, table, item, 0);
 }
 /*---------------------------------------------------------------------------*/
+/* Return whether a neighbor is locked */
+int
+nbr_table_is_locked(const linkaddr_t *lladdr)
+{
+  int index;
+  int locked;
+  if((index = index_from_lladdr(lladdr)) != -1) {
+    locked = locked_map[index];
+  } else {
+    locked = 0;
+  }
+  return locked != 0;
+}
+/*---------------------------------------------------------------------------*/
 /* Get link-layer address of an item */
 linkaddr_t *
 nbr_table_get_lladdr(nbr_table_t *table, const void *item)
 {
   nbr_table_key_t *key = key_from_item(table, item);
   return key != NULL ? &key->lladdr : NULL;
-}
-/*---------------------------------------------------------------------------*/
-/* Update link-layer address of an item */
-int
-nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr,
-                        int remove_if_duplicate)
-{
-  int index;
-  int new_index;
-  nbr_table_key_t *key;
-  index = index_from_lladdr(old_addr);
-  if(index == -1) {
-    /* Failure to change since there is nothing to change. */
-    return 0;
-  }
-  if((new_index = index_from_lladdr(new_addr)) != -1) {
-    /* check if it is a change or not - do not remove / fail if same */
-    if(new_index == index) {
-      return 1;
-    }
-    /* This new entry already exists - failure! - remove if requested. */
-    if(remove_if_duplicate) {
-      remove_key(key_from_index(index));
-    }
-    return 0;
-  }
-  key = key_from_index(index);
-  /**
-   * Copy the new lladdr into the key - since we know that there is no
-   * conflicting entry.
-   */
-  memcpy(&key->lladdr, new_addr, sizeof(linkaddr_t));
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #if DEBUG
