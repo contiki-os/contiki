@@ -40,8 +40,8 @@
 #include "lib/sensors.h"
 #include "tmp-007-sensor.h"
 #include "sys/ctimer.h"
-#include "board-i2c.h"
 #include "sensor-common.h"
+#include "common/i2c.h"
 #include "ti-lib.h"
 
 #include <stdint.h>
@@ -88,7 +88,9 @@
 
 #define SWAP(v) ((LO_UINT16(v) << 8) | HI_UINT16(v))
 /*---------------------------------------------------------------------------*/
-#define SELECT() board_i2c_select(BOARD_I2C_INTERFACE_0, SENSOR_I2C_ADDRESS)
+#define SELECT() i2c_select(BOARD_IOID_SDA, BOARD_IOID_SCL, \
+                            SENSOR_I2C_ADDRESS, I2C_SPEED_FAST, \
+                            I2C_PULL_DOWN)
 /*---------------------------------------------------------------------------*/
 static uint8_t buf[DATA_SIZE];
 static uint16_t val;

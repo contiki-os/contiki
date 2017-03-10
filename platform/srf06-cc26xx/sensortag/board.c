@@ -42,8 +42,7 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "board-peripherals.h"
-#include "board-i2c.h"
-
+#include "common/i2c.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -79,7 +78,7 @@ shutdown_handler(uint8_t mode)
   }
 
   /* In all cases, stop the I2C */
-  board_i2c_shutdown();
+  i2c_shutdown();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -141,7 +140,7 @@ board_init()
   while(!ti_lib_prcm_load_get());
 
   /* I2C controller */
-  board_i2c_wakeup();
+  i2c_wakeup();
 
   buzzer_init();
 

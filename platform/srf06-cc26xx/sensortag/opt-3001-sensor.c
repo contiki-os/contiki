@@ -41,8 +41,8 @@
 #include "opt-3001-sensor.h"
 #include "sys/ctimer.h"
 #include "ti-lib.h"
-#include "board-i2c.h"
 #include "sensor-common.h"
+#include "common/i2c.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -135,7 +135,8 @@ static void
 select_on_bus(void)
 {
   /* Select slave and set clock rate */
-  board_i2c_select(BOARD_I2C_INTERFACE_0, OPT3001_I2C_ADDRESS);
+  i2c_select(BOARD_IOID_SDA, BOARD_IOID_SCL, OPT3001_I2C_ADDRESS,
+             I2C_SPEED_FAST, I2C_PULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -151,7 +152,6 @@ notify_ready(void *not_used)
   select_on_bus();
 
   sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
-
   if(val & CONFIG_CRF) {
     sensors_changed(&opt_3001_sensor);
     state = SENSOR_STATE_DATA_READY;
@@ -183,7 +183,6 @@ enable_sensor(bool enable)
     /* Writing CONFIG_DISABLE to M bits will not clear CRF bits */
     state = SENSOR_STATE_SLEEPING | had_data_ready;
   }
-
   sensor_common_write_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
 }
 /*---------------------------------------------------------------------------*/
