@@ -419,8 +419,7 @@ rf_core_restart_rat(void)
 {
   if(rf_core_stop_rat() != RF_CORE_CMD_OK) {
     PRINTF("rf_core_restart_rat: rf_core_stop_rat() failed\n");
-
-    return RF_CORE_CMD_ERROR;
+    /* Don't bail out here, still try to start it */
   }
 
   if(rf_core_start_rat() != RF_CORE_CMD_OK) {
