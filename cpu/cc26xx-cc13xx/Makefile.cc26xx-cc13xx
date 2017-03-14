@@ -27,7 +27,20 @@ CFLAGS += -I$(TI_XXWARE) -I$(CONTIKI)/$(TI_XXWARE_SRC)
 CFLAGS += -I$(TI_XXWARE)/inc
 MODULES += $(TI_XXWARE_SRC)
 
-LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
+
+###	If the OTA flag is set, we will generate a linker script at compile-time
+###	reflecting the OTA_IMAGE_OFFSET and OTA_IMAGE_LENGTH values defined in the
+###	target project's Makefile.
+ifeq ($(OTA),1)
+	OTA_IMAGE_OFFSET=0x2000		#	Starts on flash page 2
+	OTA_IMAGE_LENGTH=0x19000 	# 25 flash pages long
+	OTADEFINES = -DOTA_IMAGE_OFFSET=$(OTA_IMAGE_OFFSET) -DOTA_IMAGE_LENGTH=$(OTA_IMAGE_LENGTH) -DOTA_METADATA_SPACE=0x100 -DOTA=1
+	CFLAGS += $(OTADEFINES)
+	GENERATE_LDSCRIPT = $(Q)$(LD) -P -E $(OTADEFINES) $(CONTIKI_CPU)/cc26xx-ota.c -o $(CONTIKI_CPU)/cc26xx-ota.ld
+	LDSCRIPT = $(CONTIKI_CPU)/cc26xx-ota.ld
+else
+	LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
+endif
 
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
@@ -47,14 +60,14 @@ endif
 
 ### Are we building with code size optimisations?
 ifeq ($(SMALL),1)
-  CFLAGS += -Os
+	CFLAGS += -Os
 else
-  CFLAGS += -O2
+	CFLAGS += -O2
 endif
 
 ### If the user-specified a Node ID, pass a define
 ifdef NODEID
-  CFLAGS += -DIEEE_ADDR_NODE_ID=$(NODEID)
+	CFLAGS += -DIEEE_ADDR_NODE_ID=$(NODEID)
 endif
 
 ### CPU-dependent cleanup files
@@ -109,6 +122,10 @@ $(OBJECTDIR)/ccfg.o: ccfg.c FORCE | $(OBJECTDIR)
 
 ### Compilation rules
 CUSTOM_RULE_LINK=1
+
+#	Nothing special is executed here unless OTA=1
+$(LDSCRIPT): FORCE
+	$(GENERATE_LDSCRIPT)
 
 %.elf: $(TARGET_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
 	$(TRACE_LD)

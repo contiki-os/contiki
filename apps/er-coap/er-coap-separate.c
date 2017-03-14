@@ -100,7 +100,7 @@ coap_separate_accept(void *request, coap_separate_t *separate_store)
       /* ACK with empty code (0) */
       coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
       /* serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct */
-      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+      coap_send_message(t->ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
                         (uip_appdata), coap_serialize_message(ack,
                                                               uip_appdata));
     }
@@ -108,6 +108,7 @@ coap_separate_accept(void *request, coap_separate_t *separate_store)
     /* store remote address */
     uip_ipaddr_copy(&separate_store->addr, &t->addr);
     separate_store->port = t->port;
+    separate_store->ctx = t->ctx;
 
     /* store correct response type */
     separate_store->type =

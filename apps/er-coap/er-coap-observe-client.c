@@ -191,7 +191,7 @@ coap_obs_remove_observee_by_url(uip_ipaddr_t *addr, uint16_t port,
 }
 /*----------------------------------------------------------------------------*/
 static void
-simple_reply(coap_message_type_t type, uip_ip6addr_t *addr, uint16_t port,
+simple_reply(coap_message_type_t type, context_t *ctx, uip_ip6addr_t *addr, uint16_t port,
              coap_packet_t *notification)
 {
   static coap_packet_t response[1];
@@ -199,7 +199,7 @@ simple_reply(coap_message_type_t type, uip_ip6addr_t *addr, uint16_t port,
 
   coap_init_message(response, type, NO_ERROR, notification->mid);
   len = coap_serialize_message(response, uip_appdata);
-  coap_send_message(addr, port, uip_appdata, len);
+  coap_send_message(ctx, addr, port, uip_appdata, len);
 }
 /*----------------------------------------------------------------------------*/
 static coap_notification_flag_t
@@ -228,7 +228,7 @@ classify_notification(void *response, int first)
 }
 /*----------------------------------------------------------------------------*/
 void
-coap_handle_notification(uip_ipaddr_t *addr, uint16_t port,
+coap_handle_notification(context_t *ctx, uip_ipaddr_t *addr, uint16_t port,
                          coap_packet_t *notification)
 {
   coap_packet_t *pkt;
@@ -252,11 +252,11 @@ coap_handle_notification(uip_ipaddr_t *addr, uint16_t port,
   if(NULL == obs) {
     PRINTF("Error while handling coap observe notification: "
            "no matching token found\n");
-    simple_reply(COAP_TYPE_RST, addr, port, notification);
+    simple_reply(COAP_TYPE_RST, ctx, addr, port, notification);
     return;
   }
   if(notification->type == COAP_TYPE_CON) {
-    simple_reply(COAP_TYPE_ACK, addr, port, notification);
+    simple_reply(COAP_TYPE_ACK, ctx, addr, port, notification);
   }
   if(obs->notification_callback != NULL) {
     flag = classify_notification(notification, 0);

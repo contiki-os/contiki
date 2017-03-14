@@ -52,6 +52,9 @@ typedef coap_packet_t rest_request_t;
 typedef coap_packet_t rest_response_t;
 
 void coap_init_engine(void);
+int coap_receive(context_t * ctx);
+
+extern context_t * coap_default_context;
 
 /*---------------------------------------------------------------------------*/
 /*- Client Part -------------------------------------------------------------*/
@@ -62,13 +65,14 @@ struct request_state_t {
   coap_transaction_t *transaction;
   coap_packet_t *response;
   uint32_t block_num;
+  uint32_t status;
 };
 
 typedef void (*blocking_response_handler)(void *response);
 
 PT_THREAD(coap_blocking_request
             (struct request_state_t *state, process_event_t ev,
-            uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
+            context_t *ctx, uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
             coap_packet_t *request,
             blocking_response_handler request_callback));
 
@@ -77,7 +81,17 @@ PT_THREAD(coap_blocking_request
     static struct request_state_t request_state; \
     PT_SPAWN(process_pt, &request_state.pt, \
              coap_blocking_request(&request_state, ev, \
-                                   server_addr, server_port, \
+                                   coap_default_context, server_addr, server_port, \
+                                   request, chunk_handler) \
+             ); \
+  }
+
+#define COAP_BLOCKING_REQUEST_CONTEXT(ctx, server_addr, server_port, request, chunk_handler) \
+  { \
+    static struct request_state_t request_state; \
+    PT_SPAWN(process_pt, &request_state.pt, \
+             coap_blocking_request(&request_state, ev, \
+                                   ctx, server_addr, server_port, \
                                    request, chunk_handler) \
              ); \
   }
