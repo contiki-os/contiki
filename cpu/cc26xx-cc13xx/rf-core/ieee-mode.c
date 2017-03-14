@@ -163,6 +163,18 @@ static uint8_t rf_stats[16] = { 0 };
 
 /* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
 #define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+/* How long to wait for the RF to react on CMD_ABORT: around 1 msec */
+#define RF_TURN_OFF_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+#define LIMITED_BUSYWAIT(cond, timeout) do {                         \
+    rtimer_clock_t end_time = RTIMER_NOW() + timeout;                \
+    while(cond) {                                                    \
+      if(!RTIMER_CLOCK_LT(RTIMER_NOW(), end_time)) {                 \
+        break;                                                       \
+      }                                                              \
+    }                                                                \
+  } while(0)
 /*---------------------------------------------------------------------------*/
 /* TX Power dBm lookup table - values from SmartRF Studio */
 typedef struct output_config {
@@ -511,7 +523,6 @@ static uint8_t
 rf_cmd_ieee_rx()
 {
   uint32_t cmd_status;
-  rtimer_clock_t t0;
   int ret;
 
   ret = rf_core_send_cmd((uint32_t)cmd_ieee_rx_buf, &cmd_status);
@@ -522,10 +533,8 @@ rf_cmd_ieee_rx()
     return RF_CORE_CMD_ERROR;
   }
 
-  t0 = RTIMER_NOW();
-
-  while(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE &&
-        (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ENTER_RX_WAIT_TIMEOUT)));
+  LIMITED_BUSYWAIT(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE,
+                   ENTER_RX_WAIT_TIMEOUT);
 
   /* Wait to enter RX */
   if(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE) {
@@ -688,7 +697,7 @@ rx_off(void)
     /* Continue nonetheless */
   }
 
-  while(rf_is_on());
+  LIMITED_BUSYWAIT(rf_is_on(), RF_TURN_OFF_WAIT_TIMEOUT);
 
   if(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_STOPPED ||
      RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_ABORT) {
@@ -739,8 +748,8 @@ soft_off(void)
     return;
   }
 
-  while((cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS) ==
-        RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING);
+  LIMITED_BUSYWAIT((cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS) ==
+                   RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING, RF_TURN_OFF_WAIT_TIMEOUT);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
