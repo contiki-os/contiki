@@ -162,7 +162,7 @@ struct uip_mcast6_driver {
 #define UIP_MCAST6             smrf_driver
 
 #elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_ESMRF
-#define RPL_CONF_MULTICAST     1
+#define RPL_WITH_MULTICAST     1
 #define UIP_MCAST6             esmrf_driver
 
 #else
