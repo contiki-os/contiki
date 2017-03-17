@@ -270,6 +270,7 @@ get_rssi(void)
 {
   uint32_t cmd_status;
   int8_t rssi;
+  uint8_t attempts = 0;
   uint8_t was_off = 0;
   rfc_CMD_GET_RSSI_t cmd;
 
@@ -282,14 +283,19 @@ get_rssi(void)
     }
   }
 
-  memset(&cmd, 0x00, sizeof(cmd));
-  cmd.commandNo = CMD_GET_RSSI;
-
   rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
 
-  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-    /* Current RSSI in bits 23:16 of cmd_status */
-    rssi = (cmd_status >> 16) & 0xFF;
+  while((rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) && ++attempts < 10) {
+    memset(&cmd, 0x00, sizeof(cmd));
+    cmd.commandNo = CMD_GET_RSSI;
+
+    if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+      PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
+      break;
+    } else {
+      /* Current RSSI in bits 23:16 of cmd_status */
+      rssi = (cmd_status >> 16) & 0xFF;
+    }
   }
 
   /* If we were off, turn back off */
