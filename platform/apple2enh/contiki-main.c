@@ -41,12 +41,12 @@
 
 #if WITH_SLIP
 #define DRIVER_PROCESS &slip_process,
-#define SLIP_INIT      slip_arch_init(0);
-#define SLIP_POLL      slip_arch_poll();
+#define SLIP_INIT() slip_arch_init(0)
+#define SLIP_POLL() slip_arch_poll()
 #else /* WITH_SLIP */
 #define DRIVER_PROCESS &ethernet_process,
-#define SLIP_INIT
-#define SLIP_POLL
+#define SLIP_INIT()
+#define SLIP_POLL()
 #endif /* WITH_SLIP */
 
 #if WITH_GUI
@@ -100,7 +100,7 @@ main(void)
 
   config_read("contiki.cfg");
 
-  SLIP_INIT
+  SLIP_INIT();
 
   process_init();
   procinit_init();
@@ -114,7 +114,7 @@ main(void)
 
     etimer_request_poll();
 
-    SLIP_POLL
+    SLIP_POLL();
 
     clock_update();
   }
