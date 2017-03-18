@@ -61,7 +61,6 @@
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(cetic_6lbr_client_process);
 PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
-PROCESS(adc_process, "ADC process");
 /*---------------------------------------------------------------------------*/
 /*
  * Update sensor readings in a staggered fashion every SENSOR_READING_PERIOD
@@ -88,9 +87,13 @@ static struct uip_icmp6_echo_reply_notification echo_reply_notification;
 static struct etimer echo_request_timer;
 int def_rt_rssi = 0;
 #endif
+/*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
+PROCESS(adc_process, "ADC process");
 
 static uint16_t single_adc_sample;
-
+static struct etimer et_adc;
+#endif
 /*---------------------------------------------------------------------------*/
 process_event_t cc26xx_web_demo_publish_event;
 process_event_t cc26xx_web_demo_config_loaded_event;
@@ -117,9 +120,12 @@ DEMO_SENSOR(batmon_temp, CC26XX_WEB_DEMO_SENSOR_BATMON_TEMP,
 DEMO_SENSOR(batmon_volt, CC26XX_WEB_DEMO_SENSOR_BATMON_VOLT,
             "Battery Volt", "battery-volt", "batmon_volt",
             CC26XX_WEB_DEMO_UNIT_VOLT);
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
 DEMO_SENSOR(adc_dio23, CC26XX_WEB_DEMO_SENSOR_ADC_DIO23,
             "ADC DIO23", "adc-dio23", "adc_dio23",
             CC26XX_WEB_DEMO_UNIT_VOLT);
+#endif
 
 /* Sensortag sensors */
 #if BOARD_SENSORTAG
@@ -477,6 +483,7 @@ get_batmon_reading(void *data)
   ctimer_set(&batmon_timer, next, get_batmon_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
 static void
 get_adc_reading(void *data)
 {
@@ -490,6 +497,7 @@ get_adc_reading(void *data)
     snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d", (value * 4300) >> 12);
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 #if BOARD_SENSORTAG
 /*---------------------------------------------------------------------------*/
@@ -849,7 +857,11 @@ init_sensors(void)
 
   list_add(sensor_list, &batmon_temp_reading);
   list_add(sensor_list, &batmon_volt_reading);
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
   list_add(sensor_list, &adc_dio23_reading);
+#endif
+
   SENSORS_ACTIVATE(batmon_sensor);
 
 #if BOARD_SENSORTAG
@@ -997,10 +1009,10 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   PROCESS_END();
 }
 
+#if CC26XX_WEB_DEMO_ADC_DEMO
 PROCESS_THREAD(adc_process, ev, data)
 {
   PROCESS_BEGIN();
-  static struct etimer et_adc;
   etimer_set(&et_adc, CLOCK_SECOND * 5);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et_adc));
@@ -1037,6 +1049,7 @@ PROCESS_THREAD(adc_process, ev, data)
   }
   PROCESS_END();
 }
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * @}

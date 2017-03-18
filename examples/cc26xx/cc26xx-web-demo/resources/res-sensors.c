@@ -111,6 +111,14 @@ res_get_handler_batmon_volt(void *request, void *response, uint8_t *buffer,
                       buffer, preferred_size, offset);
 }
 /*---------------------------------------------------------------------------*/
+RESOURCE(res_batmon_temp, "title=\"Battery Temp\";rt=\"C\"",
+         res_get_handler_batmon_temp, NULL, NULL, NULL);
+/*---------------------------------------------------------------------------*/
+RESOURCE(res_batmon_volt, "title=\"Battery Voltage\";rt=\"mV\"",
+         res_get_handler_batmon_volt, NULL, NULL, NULL);
+/*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
+/*---------------------------------------------------------------------------*/
 static void
 res_get_handler_adc_dio23(void *request, void *response, uint8_t *buffer,
                           uint16_t preferred_size, int32_t *offset)
@@ -119,15 +127,10 @@ res_get_handler_adc_dio23(void *request, void *response, uint8_t *buffer,
                       buffer, preferred_size, offset);
 }
 /*---------------------------------------------------------------------------*/
-RESOURCE(res_batmon_temp, "title=\"Battery Temp\";rt=\"C\"",
-         res_get_handler_batmon_temp, NULL, NULL, NULL);
-/*---------------------------------------------------------------------------*/
-RESOURCE(res_batmon_volt, "title=\"Battery Voltage\";rt=\"mV\"",
-         res_get_handler_batmon_volt, NULL, NULL, NULL);
-/*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
 RESOURCE(res_adc_dio23, "title=\"ADC DIO23\";rt=\"mV\"",
          res_get_handler_adc_dio23, NULL, NULL, NULL);
+/*---------------------------------------------------------------------------*/
+#endif
 /*---------------------------------------------------------------------------*/
 #if BOARD_SENSORTAG
 /*---------------------------------------------------------------------------*/
