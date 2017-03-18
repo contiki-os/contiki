@@ -40,6 +40,7 @@
 #include "rest-engine.h"
 #include "board-peripherals.h"
 #include "rf-core/rf-ble.h"
+#include "cc26xx-web-demo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +51,6 @@ extern resource_t res_leds;
 
 extern resource_t res_batmon_temp;
 extern resource_t res_batmon_volt;
-extern resource_t res_adc_dio23;
 
 extern resource_t res_device_sw;
 extern resource_t res_device_hw;
@@ -85,6 +85,10 @@ extern resource_t res_mpu_gyro_z;
 #else
 extern resource_t res_toggle_orange;
 extern resource_t res_toggle_yellow;
+#endif
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
+extern resource_t res_adc_dio23;
 #endif
 /*---------------------------------------------------------------------------*/
 const char *coap_server_not_found_msg = "Resource not found";
@@ -134,7 +138,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
 
   rest_activate_resource(&res_batmon_temp, "sen/batmon/temp");
   rest_activate_resource(&res_batmon_volt, "sen/batmon/voltage");
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
   rest_activate_resource(&res_adc_dio23, "sen/adc/dio23");
+#endif
 
   rest_activate_resource(&res_device_hw, "dev/mdl/hw");
   rest_activate_resource(&res_device_sw, "dev/mdl/sw");
