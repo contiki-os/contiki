@@ -49,6 +49,15 @@ static uint8_t okay;
 void
 ctk_mouse_init(void)
 {
+#ifdef STATIC_MOUSE
+
+  okay = mouse_install(&mouse_def_callbacks, &STATIC_MOUSE) == MOUSE_ERR_OK;
+  if(okay) {
+    atexit((void (*)(void))mouse_uninstall);
+  }
+
+#else /* STATIC_MOUSE */
+
   struct mod_ctrl module_control = {cfs_read};
 
   module_control.callerdata = cfs_open("contiki.mou", CFS_READ);
@@ -65,6 +74,8 @@ ctk_mouse_init(void)
     }
     cfs_close(module_control.callerdata);
   }
+
+#endif /* STATIC_MOUSE */
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned short
