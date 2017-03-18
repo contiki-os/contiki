@@ -252,8 +252,9 @@ extern uip_ds6_netif_t uip_ds6_if;
 static unsigned short
 make_addresses(void *p)
 {
-uint8_t j=0;
-uint16_t numprinted;
+  uint8_t i, j = 0;
+  uint16_t numprinted;
+
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
