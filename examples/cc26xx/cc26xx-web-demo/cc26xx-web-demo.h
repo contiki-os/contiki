@@ -85,7 +85,6 @@
 #else
 #define CC26XX_WEB_DEMO_ADC_DEMO 0
 #endif
-
 /*---------------------------------------------------------------------------*/
 /* Active probing of RSSI from our preferred parent */
 #if (CC26XX_WEB_DEMO_COAP_SERVER || CC26XX_WEB_DEMO_MQTT_CLIENT)

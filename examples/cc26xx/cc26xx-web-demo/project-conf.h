@@ -41,13 +41,13 @@
 #define CC26XX_WEB_DEMO_CONF_6LBR_CLIENT      1
 #define CC26XX_WEB_DEMO_CONF_COAP_SERVER      1
 #define CC26XX_WEB_DEMO_CONF_NET_UART         1
+
 /*
  * ADC sensor functionality. To test this, an external voltage source should be
  * connected to DIO23
  * Enable/Disable DIO23 ADC reading by setting CC26XX_WEB_DEMO_CONF_ADC_DEMO
  */
 #define CC26XX_WEB_DEMO_CONF_ADC_DEMO         0
-
 /*---------------------------------------------------------------------------*/
 /* Enable the ROM bootloader */
 #define ROM_BOOTLOADER_ENABLE                 1
