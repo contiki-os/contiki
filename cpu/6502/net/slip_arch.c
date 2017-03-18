@@ -42,15 +42,14 @@
 
 #include "dev/slip.h"
 
+#if WITH_SLIP
 /*---------------------------------------------------------------------------*/
 void
 slip_arch_init(unsigned long ubr)
 {
   unsigned err;
 
-#if WITH_SLIP
   err = ser_install(STATIC_DRIVER);
-#endif /* WITH_SLIP */
   if(err == SER_ERR_OK) {
     err = ser_open((struct ser_params *)config.slip);
     if(err == SER_ERR_OK)
@@ -82,3 +81,4 @@ slip_arch_poll(void)
     slip_input_byte(c);
 }
 /*---------------------------------------------------------------------------*/
+#endif /* WITH_SLIP */
