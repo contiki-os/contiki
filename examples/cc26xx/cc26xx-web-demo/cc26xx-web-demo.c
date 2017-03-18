@@ -57,7 +57,6 @@
 #include <string.h>
 
 #include "ti-lib.h"
-
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(cetic_6lbr_client_process);
 PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
@@ -1008,45 +1007,53 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 
   PROCESS_END();
 }
-
+/*---------------------------------------------------------------------------*/
 #if CC26XX_WEB_DEMO_ADC_DEMO
 PROCESS_THREAD(adc_process, ev, data)
 {
   PROCESS_BEGIN();
+
   etimer_set(&et_adc, CLOCK_SECOND * 5);
+
   while(1) {
+
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et_adc));
+
     /* intialisation of ADC */
     ti_lib_aon_wuc_aux_wakeup_event(AONWUC_AUX_WAKEUP);
-    while(!(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON)) {
-    }
+    while(!(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON));
 
-    /* Enable clock for ADC digital and analog interface (not currently enabled in driver) */
-    /* Enable clocks */
-    ti_lib_aux_wuc_clock_enable(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK | AUX_WUC_SMPH_CLOCK);
-    while(ti_lib_aux_wuc_clock_status(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK | AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY) {
-    }
+    /*
+     * Enable clock for ADC digital and analog interface (not currently enabled
+     * in driver)
+     */
+    ti_lib_aux_wuc_clock_enable(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK |
+                                AUX_WUC_SMPH_CLOCK);
+    while(ti_lib_aux_wuc_clock_status(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK |
+                                      AUX_WUC_SMPH_CLOCK)
+          != AUX_WUC_CLOCK_READY);
 
     /* Connect AUX IO7 (DIO23, but also DP2 on XDS110) as analog input. */
     ti_lib_aux_adc_select_input(ADC_COMPB_IN_AUXIO7);
 
-    /* Set up ADC range */
-    /* AUXADC_REF_FIXED = nominally 4.3 V */
-    ti_lib_aux_adc_enable_sync(AUXADC_REF_FIXED, AUXADC_SAMPLE_TIME_2P7_US, AUXADC_TRIGGER_MANUAL);
+    /* Set up ADC range, AUXADC_REF_FIXED = nominally 4.3 V */
+    ti_lib_aux_adc_enable_sync(AUXADC_REF_FIXED, AUXADC_SAMPLE_TIME_2P7_US,
+                               AUXADC_TRIGGER_MANUAL);
 
     /* Trigger ADC converting */
     ti_lib_aux_adc_gen_manual_trigger();
 
-    /* reading adc value */
+    /* Read value */
     single_adc_sample = ti_lib_aux_adc_read_fifo();
 
-    /* shut the adc down */
+    /* Shut the adc down */
     ti_lib_aux_adc_disable();
 
     get_adc_reading(NULL);
 
     etimer_reset(&et_adc);
   }
+
   PROCESS_END();
 }
 #endif
