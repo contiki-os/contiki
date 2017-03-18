@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2017, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,80 +28,57 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * Author: Oliver Schmidt <ol.sc@web.de>
+ *
  */
 
-#include <stdio.h>
+#include <serial.h>
+#include <stdlib.h>
 
 #include "contiki-net.h"
-#include "net/ethernet.h"
-#include "net/ip/tcpip.h"
-#include "net/ipv4/uip-neighbor.h"
+#include "sys/log.h"
+#include "lib/error.h"
+#include "lib/config.h"
 
-#include "net/ethernet-drv.h"
+#include "dev/slip.h"
 
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
-PROCESS(ethernet_process, "Ethernet driver");
-
+#if WITH_SLIP
 /*---------------------------------------------------------------------------*/
-uint8_t
-#if NETSTACK_CONF_WITH_IPV6
-ethernet_output(const uip_lladdr_t *)
-#else
-ethernet_output(void)
-#endif
+void
+slip_arch_init(unsigned long ubr)
 {
-  uip_arp_out();
-  ethernet_send();
-  
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-pollhandler(void)
-{
-  process_poll(&ethernet_process);
-  uip_len = ethernet_poll();
+  unsigned err;
 
-  if(uip_len > 0) {
-#if NETSTACK_CONF_WITH_IPV6
-    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
-      uip_neighbor_add(&IPBUF->srcipaddr, (struct uip_neighbor_addr *)&BUF->src);
-      tcpip_input();
-    } else
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
-      uip_len -= sizeof(struct uip_eth_hdr);
-      tcpip_input();
-    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
-      uip_arp_arpin();
-      /* If the above function invocation resulted in data that
-         should be sent out on the network, the global variable
-         uip_len is set to a value > 0. */
-      if(uip_len > 0) {
-        ethernet_send();
-      }
-    }
+  err = ser_install(STATIC_DRIVER);
+  if(err == SER_ERR_OK) {
+    err = ser_open((struct ser_params *)config.slip);
+    if(err == SER_ERR_OK)
+      atexit((void (*)(void))ser_close);
   }
+  if(err != SER_ERR_OK) {
+    err += '0';
+    /* High byte of err serves as string termination. */
+    log_message("Serial init error code: ", (char *)&err);
+    error_exit();
+  }
+
+  tcpip_set_outputfunc(slip_send);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ethernet_process, ev, data)
+void
+slip_arch_writeb(unsigned char c)
 {
-  PROCESS_POLLHANDLER(pollhandler());
-
-  PROCESS_BEGIN();
-
-  ethernet_init();
-
-  tcpip_set_outputfunc(ethernet_output);
-
-  process_poll(&ethernet_process);
-
-  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
-
-  ethernet_exit();
-
-  PROCESS_END();
+  while(ser_put(c) == SER_ERR_OVERFLOW)
+    ;
 }
 /*---------------------------------------------------------------------------*/
+void
+slip_arch_poll(void)
+{
+  static unsigned char c;
+
+  while(ser_get(&c) != SER_ERR_NO_DATA)
+    slip_input_byte(c);
+}
+/*---------------------------------------------------------------------------*/
+#endif /* WITH_SLIP */

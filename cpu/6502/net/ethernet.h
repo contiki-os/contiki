@@ -35,7 +35,7 @@
 #ifndef ETHERNET_H_
 #define ETHERNET_H_
 
-void ethernet_init(struct ethernet_config *config);
+void ethernet_init(void);
 uint16_t ethernet_poll(void);
 void ethernet_send(void);
 void ethernet_exit(void);
