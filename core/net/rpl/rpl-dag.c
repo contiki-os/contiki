@@ -1451,6 +1451,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+#ifdef RPL_CONF_ACCEPT_DEFAULT_INSTANCE_ONLY
+  if(dio->instance_id != RPL_DEFAULT_INSTANCE) {
+    PRINTF("RPL: Ignoring a DIO with unsupported instance_id: %u\n", dio->instance_id);
+    return;
+  }
+#endif
+
   dag = get_dag(dio->instance_id, &dio->dag_id);
   instance = rpl_get_instance(dio->instance_id);
 
