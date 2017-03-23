@@ -12,46 +12,16 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined DTLS_CONF_IDENTITY && defined DTLS_CONF_IDENTITY_LENGTH
-#define DTLS_IDENTITY DTLS_CONF_IDENTITY
-#define DTLS_IDENTITY_LENGTH DTLS_CONF_IDENTITY_LENGTH
-#else
-#define DTLS_IDENTITY "Client_identity"
-#define DTLS_IDENTITY_LENGTH 15
-#endif
-
-#if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
-#define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
-#define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
-#else
-#warning "DTLS: Using default secret key !"
-#define DTLS_PSK_KEY_VALUE "secretPSK"
-#define DTLS_PSK_KEY_VALUE_LENGTH 9
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 static struct dtls_context_t *dtls_ctx = NULL;
 
-static int
-send_to_peer(struct dtls_context_t *ctx,
-             session_t *session, uint8 *data, size_t len);
-
-static int
-read_from_peer(struct dtls_context_t *ctx,
-               session_t *session, uint8 *data, size_t len);
-static int
-get_psk_info(struct dtls_context_t *ctx, const session_t *session,
-             dtls_credentials_type_t type,
-             const unsigned char *id, size_t id_len,
-             unsigned char *result, size_t result_length);
-
-static dtls_handler_t dtls_cb = {
-  .write = send_to_peer,
-  .read = read_from_peer,
+static dtls_handler_t coap_dtls_callback = {
+  .write = coap_dtls_send_to_peer,
+  .read = coap_dtls_read_from_peer,
   .event = NULL,
 #ifdef DTLS_PSK
-  .get_psk_info = get_psk_info,
+  .get_psk_info = coap_dtls_get_psk_info,
 #endif
 #ifdef DTLS_ECC
   .get_ecdsa_key = NULL,
@@ -73,14 +43,15 @@ coap_init_communication_layer(uint16_t port)
 
   dtls_ctx = dtls_new_context(udp_conn);
   if(dtls_ctx) {
-    dtls_set_handler(dtls_ctx, &dtls_cb);
+    dtls_set_handler(dtls_ctx, &COAP_DTLS_CALLBACK);
   }
   /* new connection with remote host */
   printf("COAP-DTLS listening on port %u\n", uip_ntohs(udp_conn->lport));
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
+coap_send_message(uip_ipaddr_t *addr, uint16_t port,
+                  uint8_t *data, uint16_t length)
 {
   session_t session;
 
@@ -110,11 +81,11 @@ coap_handle_receive()
 /* This function is the "key store" for tinyDTLS. It is called to
  * retrieve a key for the given identiy within this particular
  * session. */
-static int
-get_psk_info(struct dtls_context_t *ctx, const session_t *session,
-             dtls_credentials_type_t type,
-             const unsigned char *id, size_t id_len,
-             unsigned char *result, size_t result_length)
+int
+coap_dtls_get_psk_info(struct dtls_context_t *ctx, const session_t *session,
+                       dtls_credentials_type_t type,
+                       const unsigned char *id, size_t id_len,
+                       unsigned char *result, size_t result_length)
 {
 
   struct keymap_t {
@@ -160,9 +131,9 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
 }
 #endif
 /*-----------------------------------------------------------------------------------*/
-static int
-send_to_peer(struct dtls_context_t *ctx,
-             session_t *session, uint8 *data, size_t len)
+int
+coap_dtls_send_to_peer(struct dtls_context_t *ctx,
+                       session_t *session, uint8 *data, size_t len)
 {
 
   struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
@@ -179,9 +150,9 @@ send_to_peer(struct dtls_context_t *ctx,
   return len;
 }
 /*-----------------------------------------------------------------------------------*/
-static int
-read_from_peer(struct dtls_context_t *ctx,
-               session_t *session, uint8 *data, size_t len)
+int
+coap_dtls_read_from_peer(struct dtls_context_t *ctx,
+                         session_t *session, uint8 *data, size_t len)
 {
   uip_len = len;
   memmove(uip_appdata, data, len);
