@@ -41,6 +41,120 @@
  * Registers can be read with a macro, but the args for subregisters don't expand properly so the actual address
  * is used with explicit _SFR_MEM8 in the subregister read/write routines.
  */
+
+
+/* Symbol Counter */
+#define RG_SCCNTHH  (0xE4)   /* SCCNTHH7-0 */
+#define RG_SCCNTHL  (0xE3)   /* SCCNTHL7-0 */
+#define RG_SCCNTLH  (0xE2)   /* SCCNTLH7-0 */
+#define RG_SCCNTLL  (0xE1)   /* SCCNTLL7-0 */
+
+/* Counter control register 0 */
+#define RG_SCCR0   (0xdc)
+#define SR_SCCR0            0xdc,  0xff, 0
+#define SR_SCCR0_SCRES      0xdc,  0x80, 7 /*  Counter Sync. */
+#define SR_SCCR0_SCMBTS     0xdc,  0x40, 6 /*  Manual Beacon timestamp */
+#define SR_SCCR0_SCEN       0xdc,  0x20, 5 /*  Counter enable */
+#define SR_SCCR0_SCCKSEL    0xdc,  0x10, 4 /*  Counter clock source */
+#define SR_SCCR0_SCTSE      0xdc,  0x08, 3 /*  Auto timstamp Beacon, SFD */
+#define SR_SCCR0_SCMP3      0xdc,  0x04, 2 /*  Compare 3 counter mode sel. */
+#define SR_SCCR0_SCMP2      0xdc,  0x02, 1 /*  Compare 2 counter mode sel. */
+#define SR_SCCR0_SCMP1      0xdc,  0x01, 0 /*  Compare 1 counter mode sel. */
+
+/* Counter control register 1 */
+#define RG_SCCR1   (0xdd)
+#define SR_SCCR1            0xdd,  0xff, 0
+#define SR_SCCR1_SCBTSM     0xdd,  0x20, 5 /*  Disable beacon timestamp */
+#define SR_SCCR1_CLKDIV     0xdd,  0x1c, 2 /*  CLKDIV */
+#define SR_SCCR1_CLK0       0xdd,  0x10, 4 /*  CLK0 */
+#define SR_SCCR1_CLK1       0xdd,  0x08, 3 /*  CLK1 */
+#define SR_SCCR1_CLK2       0xdd,  0x04, 2 /*  CLK2 */
+#define SR_SCCR1_EECLK      0xdd,  0x02, 1 /*  */
+#define SR_SCCR1_SCENBO     0xdd,  0x01, 0 /*  Backoff Slot Counter Enable */
+
+/* Prescaler for symbol counter */
+#define SCCKDIV_62_5k 0
+#define SCCKDIV_125k  1
+#define SCCKDIV_250k  2
+#define SCCKDIV_500k  3
+#define SCCKDIV_1M    4
+#define SCCKDIV_2M    5
+#define SCCKDIV_4M    6
+
+/* Counter status register 1 */
+#define RG_SCSR      (0xde)
+#define SR_SCSR             0xde,  0xff, 0
+#define SR_SCBSY            0xde,  0x01, 0 /*  Symbol counter busy */
+
+/* Counter ISR  */
+#define RG_SCIRQS   (0xe0)
+#define SR_SCIRQS            0xe0,  0xff, 0
+#define SR_SCIRQS_IRQSB0     0xe0,  0x10, 4 /*  Backoff */
+#define SR_SCIRQS_IRQSOF     0xe0,  0x08, 3 /*  Counter overflow */
+#define SR_SCIRQS_IRQSCP3    0xe0,  0x04, 2 /*  Compare 3 counter */
+#define SR_SCIRQS_IRQSCP2    0xe0,  0x02, 1 /*  Compare 2 counter */
+#define SR_SCIRQS_IRQSCP1    0xe0,  0x01, 0 /*  Compare 1 counter */
+
+/* Counter IRQ mask  */
+#define RG_SCIRQM   (0xdf)
+#define SR_SCIRQM            0xdf,  0xff, 0
+#define SR_SCIRQM_IRQMB0     0xdf,  0x10, 4 /*  Backoff mask */
+#define SR_SCIRQM_IRQMOF     0xdf,  0x08, 3 /*  Counter overflow mask */
+#define SR_SCIRQM_IRQMCP3    0xdf,  0x04, 2 /*  Compare 3 counter mask */
+#define SR_SCIRQM_IRQMCP2    0xdf,  0x02, 1 /*  Compare 2 counter mask */
+#define SR_SCIRQM_IRQMCP1    0xdf,  0x01, 0 /*  Compare 1 counter mask */
+
+/* Timestamp SFD */
+#define RG_SCTSRHH  0xFC   /* SCTSRHH7-0 */
+#define RG_SCTSRHL  0xFB   /* SCTSRHL7-0 */
+#define RG_SCTSRLH  0xFA   /* SCTSRLH7-0 */
+#define RG_SCTSRLL  0xF9   /* SCTSRLL7-0 */
+
+/* Beacon Timestamp */
+#define RG_SCBTSRHH (0xE8)  /* SCBTSRHH7-0 */
+#define RG_SCBTSRHL (0xE7)  /* SCBTSRHL7-0 */
+#define RG_SCBTSRLH (0xE6)  /* SCBTSRLH7-0 */
+#define RG_SCBTSRLL (0xE5)  /* SCBTSRLL7-0 */
+
+/* Output Compare 1 */
+#define RG_SCOCR1HH (0xF8)  /* SCOCR1HH7-0 */
+#define RG_SCOCR1HL (0xF7)  /* SCOCR1HL7-0 */
+#define RG_SCOCR1LH (0xF6)  /* SCOCR1LH7-0 */
+#define RG_SCOCR1LL (0xF5)  /* SCOCR1LL7-0 */
+
+/* Output Compare 2 */
+#define RG_SCOCR2HH (0xF4)  /* SCOCR2HH7-0 */
+#define RG_SCOCR2HL (0xF3)  /* SCOCR2HL7-0 */
+#define RG_SCOCR2LH (0xF2)  /* SCOCR2LH7-0 */
+#define RG_SCOCR2LL (0xF1)  /* SCOCR2LL7-0 */
+
+/* Output Compare 3 */
+#define RG_SCOCR3HH (0xF0)  /* SCOCR3HH7-0 */
+#define RG_SCOCR3HL (0xEF)  /* SCOCR3HL7-0 */
+#define RG_SCOCR3LH (0xEE)  /* SCOCR3LH7-0 */
+#define RG_SCOCR3LL (0xED)  /* SCOCR3LL7-0 */
+
+/* Transmit Frame Timestamp */
+#define RG_SCTSTRHH (0xFC)  /* SCTSTRHH7-0 */
+#define RG_SCTSTRHL (0xFB)  /* SCTSTRHL7-0 */
+#define RG_SCTSTRLH (0xFA)  /* SCTSTRLH7-0 */
+#define RG_SCTSTRLL (0xF9)  /* SCTSTRLL7-0 */
+
+/* 
+Interrupt Status
+#define RG_SCIRQS (0xE0)  Res2 Res1 Res0 IRQSBO IRQSOF IRQSCP3 IRQSCP2 IRQSCP1 page 173
+Interrupt Mask
+#define RG_SCIRQM (0xDF)  Res2 Res1 Res0 IRQMBO IRQMOF IRQMCP3 IRQMCP2 IRQMCP1 page 174
+Counter status
+#define RG_SCSR   (0xDE)  Res6 Res5 Res4 Res3 Res2 Res1 Res0 SCBSY page 173
+Counter Control 1
+#define RG_SCCR1  (0xDD)  Res6 Res5 SCBTSM SCCKDIV2 SCCKDIV1 SCCKDIV0 SCEECLK SCENBO page 172
+Counter Control 0
+#define RG_SCCR0  (0xDC)  SCRES SCMBTS SCEN SCCKSEL SCTSE SCCMP3 SCCMP2 SCCMP1 page 171
+Counter Compare Source
+#define RG_SCCSR  (0xDB)  Res1 Res0 SCCS31 SCCS30 SCCS21 SCCS20 SCCS11 SCCS10 page 161
+*/
+
 #define RG_TRX_STATUS         TRX_STATUS
 #define SR_TRX_STATUS         0x141, 0x1f, 0
 #define SR_TRX_CMD            0x142, 0x1f, 0
@@ -48,9 +162,35 @@
 #define SR_TX_PWR             0x145, 0x0f, 0
 #define RG_VERSION_NUM        VERSION_NUM
 #define RG_MAN_ID_0           MAN_ID_0
-#define RG_IRQ_MASK           IRQ_MASK
+#define RG_IRQ_MASK           (0x14e)
+/** Access parameters for sub-register IRQ_MASK in register @ref RG_IRQ_MASK */
+#define SR_IRQ_MASK                  0x14e, 0xff, 0
+/** Offset for register IRQ_STATUS */
+#define RG_IRQ_STATUS              (0x14f)
+#define SR_IRQ_STATUS               0x14f, 0xff, 0
+/** Awake Interrupt Status */
+#define SR_IRQ_AWAKE                0x14f, 0x80, 7
+/** TX_END Interrupt Status */
+#define SR_IRQ_TX_END               0x14f, 0x40, 6
+/** Address Match */
+#define SR_IRQ_AMI                  0x14f, 0x20, 5
+/** End of ED Measurement Interrupt Status */
+#define SR_CCA_ED_DONE              0x14f, 0x10, 4
+/** Access parameters for sub-register IRQ_3_TRX_END in register @ref RG_IRQ_STATUS */
+#define SR_IRQ_3_TRX_END             0x14f, 0x08, 3
+/** Access parameters for sub-register IRQ_2_RX_START in register @ref RG_IRQ_STATUS */
+#define SR_IRQ_2_RX_START            0x14f, 0x04, 2
+/** Access parameters for sub-register IRQ_1_PLL_UNLOCK in register @ref RG_IRQ_STATUS */
+#define SR_IRQ_1_PLL_UNLOCK          0x14f, 0x02, 1
+/** Access parameters for sub-register IRQ_0_PLL_LOCK in register @ref RG_IRQ_STATUS */
+#define RG_XAH_CTRL_1         (0x157)
+#define SR_AACK_PROM_MODE     0x157, 0x02, 1
+
+
+#define SR_IRQ_0_PLL_LOCK            0x14f, 0x01, 0
 #define SR_MAX_FRAME_RETRIES  0x16C, 0xf0, 4
 #define SR_TX_AUTO_CRC_ON     0x144, 0x20, 5
+#define SR_PLL_FLT            0x144, 0x10, 4
 #define SR_TRAC_STATUS        0x142, 0xe0, 5
 #define SR_CHANNEL            0x148, 0x1f, 0
 #define SR_CCA_MODE           0x148, 0x60, 5
@@ -67,7 +207,7 @@
 #define RG_IEEE_ADDR_5        IEEE_ADDR_5
 #define RG_IEEE_ADDR_6        IEEE_ADDR_6
 #define RG_IEEE_ADDR_7        IEEE_ADDR_7
-//#define SR_ED_LEVEL           0x147, 0xff, 0
+/* #define SR_ED_LEVEL           0x147, 0xff, 0 */
 #define RG_PHY_ED_LEVEL       PHY_ED_LEVEL
 #define RG_RX_SYN             RX_SYN
 #define SR_RSSI               0x146, 0x1f, 0
@@ -81,12 +221,13 @@
 #define RG_CSMA_BE            CSMA_BE
 #define RG_CSMA_SEED_0        CSMA_SEED_0
 #define RG_PHY_RSSI           PHY_RSSI
-//#define SR_CCA_CS_THRES       0x149, 0xf0, 4
+#define SR_CCA_CS_THRES       0x149, 0xf0, 4
 #define SR_CCA_ED_THRES        0x149, 0x0f, 0
 #define SR_CCA_DONE            0x141, 0x80, 7
 #define SR_CCA_STATUS          0x141, 0x40, 6
 #define SR_AACK_SET_PD         0x16e, 0x20, 5
-#define SR_CSMA_SEED_1         0x16e, 0x10, 4
+#define SR_CSMA_SEED_1         0x16e, 0x03, 0
+#define SR_AACK_DIS_ACK        0x16e, 0x10, 4
 
 /* RF230 register assignments, for reference */
 #if 1
@@ -216,27 +357,6 @@
 ///** Access parameters for sub-register CCA_ED_THRES in register @ref RG_CCA_THRES */
 //#define SR_CCA_ED_THRES              0x09, 0x0f, 0
 ///** Offset for register IRQ_MASK */
-//#define RG_IRQ_MASK                      (0x0e)
-///** Access parameters for sub-register IRQ_MASK in register @ref RG_IRQ_MASK */
-//#define SR_IRQ_MASK                  0x0e, 0xff, 0
-///** Offset for register IRQ_STATUS */
-//#define RG_IRQ_STATUS                    (0x0f)
-///** Access parameters for sub-register IRQ_7_BAT_LOW in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_7_BAT_LOW             0x0f, 0x80, 7
-///** Access parameters for sub-register IRQ_6_TRX_UR in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_6_TRX_UR              0x0f, 0x40, 6
-///** Access parameters for sub-register IRQ_5 in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_5                     0x0f, 0x20, 5
-///** Access parameters for sub-register IRQ_4 in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_4                     0x0f, 0x10, 4
-///** Access parameters for sub-register IRQ_3_TRX_END in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_3_TRX_END             0x0f, 0x08, 3
-///** Access parameters for sub-register IRQ_2_RX_START in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_2_RX_START            0x0f, 0x04, 2
-///** Access parameters for sub-register IRQ_1_PLL_UNLOCK in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_1_PLL_UNLOCK          0x0f, 0x02, 1
-///** Access parameters for sub-register IRQ_0_PLL_LOCK in register @ref RG_IRQ_STATUS */
-//#define SR_IRQ_0_PLL_LOCK            0x0f, 0x01, 0
 ///** Offset for register VREG_CTRL */
 //#define RG_VREG_CTRL                     (0x10)
 ///** Access parameters for sub-register AVREG_EXT in register @ref RG_VREG_CTRL */
