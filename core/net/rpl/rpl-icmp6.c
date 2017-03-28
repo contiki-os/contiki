@@ -120,7 +120,11 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 #if RPL_SECURITY
 static uint8_t rpl_key[16] = RPL_SECURITY_K;
-static uint32_t rpl_sec_counter = 0;
+/* Secure counter starts from 1, since a node in the network with 
+ * CC messages implemented could send a CC message for counter resynch
+ * See RFC 6550 Sec. 10.7 
+ */
+static uint32_t rpl_sec_counter = 1;
 static rpl_sec_section_t rpl_last_dis;
 #endif /* RPL_SECURITY */
 
@@ -462,7 +466,21 @@ dis_input(void)
  *  Flags must be zero
  */
 
-  if((timestamp == 1) || (kim != 0) || (lvl > 3)) {
+  if(timestamp == 1) {
+    PRINTF("RPL: Timestamp in Security Section not accepted, discard\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	
+  if(kim != 0) {
+    PRINTF("RPL: Packet secured with an unknown key\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	  
+  if(lvl > 3) {
+    PRINTF("RPL: Invalid security level\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
     goto discard;
   }
 
@@ -581,8 +599,13 @@ dis_output(uip_ipaddr_t *addr)
   set_ip_icmp_fields(addr, RPL_CODE_SEC_DIS);
 
   set_ccm_nonce(ccm_nonce, rpl_sec_counter, RPL_SEC_LVL_1);
-
-  rpl_sec_counter++;
+  
+  if(rpl_sec_counter + 1 < UINT32_MAX) {
+    rpl_sec_counter++;
+  } 
+  else {
+    rpl_sec_counter = 1;
+  }
 
   mic_len = sec_aead(ccm_nonce, pos - sec_len, sec_len, RPL_SEC_LVL_1, RPL_ENCRYPT);
 
@@ -654,7 +677,21 @@ dio_input(void)
  *  Discard unassigned security levels
  */
 
-  if((timestamp == 1) || (kim != 0) || (lvl > 3)) {
+  if(timestamp == 1) {
+    PRINTF("RPL: Timestamp in Security Section not accepted, discard\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	
+  if(kim != 0) {
+    PRINTF("RPL: Packet secured with an unknown key\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	  
+  if(lvl > 3) {
+    PRINTF("RPL: Invalid security level\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
     goto discard;
   }
 
@@ -1021,7 +1058,12 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   set_ccm_nonce(ccm_nonce, rpl_sec_counter, sec_lvl);
 
-  rpl_sec_counter++;
+  if(rpl_sec_counter + 1 < UINT32_MAX) {
+    rpl_sec_counter++;
+  } 
+  else {
+    rpl_sec_counter = 1;
+  }
 
   mic_len = sec_aead(ccm_nonce, pos - sec_len, sec_len, sec_lvl, RPL_ENCRYPT);
 
@@ -1216,7 +1258,12 @@ dao_input_storing(int sec_len, uint8_t mic_len, void *sec_section)
                            RPL_CODE_SEC_DAO);
         set_ccm_nonce(ccm_nonce, rpl_sec_counter, p->lvl);
 
-        rpl_sec_counter++;
+	if(rpl_sec_counter + 1 < UINT32_MAX) {
+	  rpl_sec_counter++;
+	} 
+	else {
+	  rpl_sec_counter = 1;
+	}
 
         sec_aead(ccm_nonce, buffer_length, sec_len, p->lvl, RPL_ENCRYPT);
         uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
@@ -1319,7 +1366,12 @@ fwd_dao:
                          RPL_CODE_SEC_DAO);
       set_ccm_nonce(ccm_nonce, rpl_sec_counter, p->lvl);
 
-      rpl_sec_counter++;
+      if(rpl_sec_counter + 1 < UINT32_MAX) {
+        rpl_sec_counter++;
+      } 
+      else {
+	rpl_sec_counter = 1;
+      }
 
       sec_aead(ccm_nonce, buffer_length, sec_len, p->lvl, RPL_ENCRYPT);
       uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
@@ -1498,7 +1550,21 @@ dao_input(void)
  *  Discard unassigned security levels
  */
 
-  if((timestamp == 1) || (kim != 0) || (lvl > 3)) {
+  if(timestamp == 1) {
+    PRINTF("RPL: Timestamp in Security Section not accepted, discard\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	
+  if(kim != 0) {
+    PRINTF("RPL: Packet secured with an unknown key\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	  
+  if(lvl > 3) {
+    PRINTF("RPL: Invalid security level\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
     goto discard;
   }
 
@@ -1789,7 +1855,12 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 
     set_ccm_nonce(ccm_nonce, rpl_sec_counter, RPL_SEC_LVL);
 
-    rpl_sec_counter++;
+    if(rpl_sec_counter + 1 < UINT32_MAX) {
+      rpl_sec_counter++;
+    } 
+    else {
+      rpl_sec_counter = 1;
+    }
 
     mic_len = sec_aead(ccm_nonce, pos - sec_len, sec_len, RPL_SEC_LVL, RPL_ENCRYPT);
 
@@ -1846,7 +1917,21 @@ dao_ack_input(void)
  *  Discard unassigned security levels
  */
 
-  if((timestamp == 1) || (kim != 0) || (lvl > 3)) {
+  if(timestamp == 1) {
+    PRINTF("RPL: Timestamp in Security Section not accepted, discard\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	
+  if(kim != 0) {
+    PRINTF("RPL: Packet secured with an unknown key\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
+    goto discard;
+  }
+	  
+  if(lvl > 3) {
+    PRINTF("RPL: Invalid security level\n");
+    RPL_STAT(rpl_stats.malformed_msgs++);
     goto discard;
   }
 
@@ -1947,7 +2032,12 @@ dao_ack_input(void)
         set_ip_icmp_fields(nexthop, RPL_CODE_SEC_DAO_ACK);
         set_ccm_nonce(ccm_nonce, rpl_sec_counter, lvl);
 
-        rpl_sec_counter++;
+	if(rpl_sec_counter + 1 < UINT32_MAX) {
+	  rpl_sec_counter++;
+	} 
+	else {
+          rpl_sec_counter = 1;
+	}
 
         sec_aead(ccm_nonce, buffer_length, sec_len, lvl, RPL_ENCRYPT);
         uip_icmp6_send(nexthop, ICMP6_RPL, RPL_CODE_SEC_DAO_ACK,
@@ -2013,7 +2103,12 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence,
 
   set_ccm_nonce(ccm_nonce, rpl_sec_counter, RPL_SEC_LVL);
 
-  rpl_sec_counter++;
+  if(rpl_sec_counter + 1 < UINT32_MAX) {
+    rpl_sec_counter++;
+  } 
+  else {
+    rpl_sec_counter = 1;
+  }
 
   mic_len = sec_aead(ccm_nonce, pos - sec_len, sec_len, RPL_SEC_LVL, RPL_ENCRYPT);
 
