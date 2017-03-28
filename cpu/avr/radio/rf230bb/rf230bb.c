@@ -94,6 +94,9 @@
 static bool is_promiscuous;
 #endif
 
+/* Poll mode disabled by default */
+uint8_t poll_mode = 0;
+
 /* RF230_CONF_FRAME_RETRIES is 1 plus the number written to the hardware. */
 /* Valid range 1-16, zero disables extended mode. */
 #ifndef RF230_CONF_FRAME_RETRIES
@@ -201,6 +204,8 @@ extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #define DEBUGFLOW(c)
 #endif
 
+static radio_status_t radio_set_trx_state(uint8_t new_state);
+
 /* XXX hack: these will be made as Chameleon packet attributes */
 #if RF230_CONF_TIMESTAMPS
 rtimer_clock_t rf230_time_of_arrival, rf230_time_of_departure;
@@ -254,17 +259,186 @@ static int rf230_cca(void);
 
 uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
+static void
+set_poll_mode(bool enable)
+{
+  poll_mode = enable;
+  if(poll_mode) {
+    rf230_set_rpc(0x0); /* Disbable all RPC features */
+    radio_set_trx_state(RX_ON);
+    hal_subregister_write(SR_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
+    /* hal_register_write(RG_IRQ_MASK, 0xFF); */
+  } else {
+    /* Initialize and enable interrupts */
+    rf230_set_rpc(0xFF); /* Enable all RPC features. Only XRFR2 radios */
+    radio_set_trx_state(RX_AACK_ON);
+  }
+}
+
+static bool
+get_poll_mode(void)
+{
+  return poll_mode;
+}
+
+void
+set_frame_filtering(bool i)
+{
+  if(i)
+    hal_subregister_write(SR_AACK_PROM_MODE, 0);
+  else {
+    hal_subregister_write(SR_AACK_PROM_MODE, 1);
+  }
+}
+
+static bool
+get_frame_filtering(void)
+{
+  int i = hal_subregister_read(SR_AACK_PROM_MODE);
+  if(i)
+    return 0;
+  return 1;
+}
+
+void
+set_auto_ack(bool i)
+{
+  if(i)
+    hal_subregister_write(SR_AACK_DIS_ACK, 0);
+  else
+    hal_subregister_write(SR_AACK_DIS_ACK, 1);
+}
+
+static bool
+get_auto_ack(void)
+{
+  int i = hal_subregister_read(SR_AACK_DIS_ACK);
+  if(i)
+    return 0;
+  return 1;
+}
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  if(!value) {
+    return RADIO_RESULT_INVALID_VALUE;
+  }
+
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    /* *value = (REG(RFCORE_XREG_RXENABLE) && RFCORE_XREG_RXENABLE_RXENMASK) == 0 )? 
+       RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON;  */
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_TX_MODE:
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_CHANNEL:
+    *value = (radio_value_t)rf230_get_channel();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_PAN_ID:
+    /* *value = get_pan_id(); */
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    /* *value = get_short_addr(); */
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    if(get_frame_filtering()) {
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    }
+    if(get_auto_ack()) {
+      *value |= RADIO_RX_MODE_AUTOACK;
+    }
+    if(get_poll_mode()) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    *value = rf230_get_txpower();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CCA_THRESHOLD:
+    /* *value = get_cca_threshold(); */
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RSSI:
+    *value = rf230_get_raw_rssi();
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MIN:
+    *value = RF230_MIN_CHANNEL;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MAX:
+    *value = RF230_MAX_CHANNEL;;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MIN:
+    *value = TX_PWR_MIN;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MAX:
+    *value = TX_PWR_MAX;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    if(value == RADIO_POWER_MODE_ON) {
+      rf230_on();
+      return RADIO_RESULT_OK;
+    }
+    if(value == RADIO_POWER_MODE_OFF) {
+      rf230_off();
+      return RADIO_RESULT_OK;
+    }
+    return RADIO_RESULT_INVALID_VALUE;
+
+  case RADIO_PARAM_CHANNEL:
+
+    if(value < RF230_MIN_CHANNEL ||
+       value > RF230_MAX_CHANNEL) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    rf230_set_channel(value);
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_TX_MODE:
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_PAN_ID:
+    /* set_pan_id(value & 0xffff); */
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    /* set_short_addr(value & 0xffff); */
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER | RADIO_RX_MODE_POLL_MODE |
+                 RADIO_RX_MODE_AUTOACK)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+    set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_TXPOWER:
+    if(value < TX_PWR_MIN || value > TX_PWR_MAX) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    rf230_set_txpower(value);
+    return RADIO_RESULT_OK;
+
+  case RADIO_PARAM_CCA_THRESHOLD:
+    /* set_cca_threshold(value); */
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
@@ -347,7 +521,7 @@ hal_rx_frame_t rxframe[RF230_CONF_RX_BUFFERS];
  *  \retval     STATE_TRANSITION   The radio transceiver's state machine is in
  *                                 transition between two states.
  */
-//static uint8_t
+
 uint8_t
 radio_get_trx_state(void)
 {
@@ -878,7 +1052,7 @@ void rf230_warm_reset(void) {
   DDRB  &= ~(1<<7);
 #endif
   
-  hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
+  hal_subregister_write(SR_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
 
   /* Set up number of automatic retries 0-15
    * (0 implies PLL_ON sends instead of the extended TX_ARET mode */
@@ -1291,6 +1465,21 @@ rf230_listen_channel(uint8_t c)
   radio_set_trx_state(RX_ON);
 }
 /*---------------------------------------------------------------------------*/
+
+unsigned 
+rf230_get_panid(void) 
+{
+  unsigned pan;
+  uint8_t byte;
+
+  byte = hal_register_read(RG_PAN_ID_1);
+  pan = byte;
+  byte = hal_register_read(RG_PAN_ID_0);
+  pan = (pan << 8) + byte;
+
+  return pan;
+}
+
 void
 rf230_set_pan_addr(unsigned pan,
                     unsigned addr,
