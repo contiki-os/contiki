@@ -32,6 +32,7 @@ cc2538-common/crypto/zoul \
 cc2538-common/pka/zoul \
 zolertia/zoul/zoul \
 zolertia/zoul/cc1200-demo/zoul \
+zolertia/zoul/orion/ip64-router/zoul:BOARD=orion \
 openmote-cc2538/openmote-cc2538 \
 er-rest-example/zoul \
 ipso-objects/zoul \
@@ -54,6 +55,7 @@ sensniff/ev-aducrf101mkxz \
 cfs-coffee/cc2538dk \
 cfs-coffee/openmote-cc2538 \
 cfs-coffee/zoul \
+fat/zoul:BOARD=remote-revb \
 ipv6/rpl-tsch/zoul \
 ipv6/rpl-tsch/zoul:MAKE_WITH_ORCHESTRA=1 \
 ipv6/rpl-tsch/zoul:MAKE_WITH_SECURITY=1

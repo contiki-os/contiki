@@ -35,7 +35,15 @@
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
 
+#define HAVE_LOGSCR
+
 #include "6502def.h"
+
+#if (WITH_PFS && !CFS_IMPL)
+#define cfs_opendir  pfs_opendir
+#define cfs_closedir pfs_closedir
+#define cfs_readdir  pfs_readdir
+#endif
 
 #define CTK_CONF_MENU_KEY         CH_F1
 #define CTK_CONF_WINDOWSWITCH_KEY CH_F3

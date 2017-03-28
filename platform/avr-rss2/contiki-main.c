@@ -258,6 +258,12 @@ initialize(void)
 /* rtimers needed for radio cycling */
   rtimer_init();
 
+/* we can initialize the energest arrays here */
+  energest_init();
+/* after the timer intitialisation we start the cpu measurement */
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+
+
   /* Initialize process subsystem */
   process_init();
 
@@ -376,7 +382,7 @@ initialize(void)
 #if 0
   {
     uip_ip6addr_t ipaddr;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, 0xfd00, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 /*  uip_ds6_prefix_add(&ipaddr,64,0); */
   }
@@ -458,6 +464,8 @@ main(void)
 #if NETSTACK_CONF_WITH_IPV6
   uip_ds6_nbr_t *nbr;
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+ 
+
   initialize();
 
   while(1) {

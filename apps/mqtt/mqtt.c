@@ -65,7 +65,7 @@
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
-#define PRINTF(...) PRINTF(__VA_ARGS__)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -751,6 +751,8 @@ handle_connack(struct mqtt_connection *conn)
     call_event(conn,
                MQTT_EVENT_CONNECTION_REFUSED_ERROR,
                &conn->in_packet.payload[1]);
+    abort_connection(conn);
+    return;
   }
 
   conn->out_packet.qos_state = MQTT_QOS_STATE_GOT_ACK;

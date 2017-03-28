@@ -73,7 +73,7 @@ static aes_key keys[] = {
 /*---------------------------------------------------------------------------*/
 static void
 tsch_security_init_nonce(uint8_t *nonce,
-    const linkaddr_t *sender, struct asn_t *asn)
+                         const linkaddr_t *sender, struct tsch_asn_t *asn)
 {
   memcpy(nonce, sender, 8);
   nonce[8] = asn->ms1b;
@@ -120,11 +120,12 @@ tsch_security_check_level(const frame802154_t *frame)
       required_key_index = TSCH_SECURITY_KEY_INDEX_OTHER;
       break;
   }
-  return frame->aux_hdr.security_control.security_level == required_security_level
-         && frame->aux_hdr.key_index == required_key_index;
+  return ((frame->aux_hdr.security_control.security_level ==
+           required_security_level) &&
+          frame->aux_hdr.key_index == required_key_index);
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_mic_len(const frame802154_t *frame)
 {
   if(frame != NULL && frame->fcf.security_enabled) {
@@ -134,9 +135,9 @@ tsch_security_mic_len(const frame802154_t *frame)
   }
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
-    int hdrlen, int datalen, struct asn_t *asn)
+                           int hdrlen, int datalen, struct tsch_asn_t *asn)
 {
   frame802154_t frame;
   uint8_t key_index = 0;
@@ -159,7 +160,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 
   if(!frame.fcf.security_enabled) {
     /* Security is not enabled for this frame, we're done */
-    return 1;
+    return 0;
   }
 
   /* Read security key index */
@@ -190,17 +191,17 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   CCM_STAR.set_key(keys[key_index - 1]);
 
   CCM_STAR.aead(nonce,
-      outbuf + a_len, m_len,
-      outbuf, a_len,
-      outbuf + hdrlen + datalen, mic_len, 1
-  );
+                outbuf + a_len, m_len,
+                outbuf, a_len,
+                outbuf + hdrlen + datalen, mic_len, 1);
 
   return mic_len;
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
-    const frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn)
+                          const frame802154_t *frame, const linkaddr_t *sender,
+                          struct tsch_asn_t *asn)
 {
   uint8_t generated_mic[16];
   uint8_t key_index = 0;
@@ -248,10 +249,9 @@ tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
   CCM_STAR.set_key(keys[key_index - 1]);
 
   CCM_STAR.aead(nonce,
-       (uint8_t *)hdr + a_len, m_len,
-       (uint8_t *)hdr, a_len,
-       generated_mic, mic_len, 0
-       );
+                (uint8_t *)hdr + a_len, m_len,
+                (uint8_t *)hdr, a_len,
+                generated_mic, mic_len, 0);
 
   if(mic_len > 0 && memcmp(generated_mic, hdr + hdrlen + datalen, mic_len) != 0) {
     return 0;

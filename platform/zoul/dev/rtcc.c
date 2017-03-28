@@ -523,7 +523,7 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
   } else {
     GPIO_ENABLE_INTERRUPT(RTC_INT1_PORT_BASE, RTC_INT1_PIN_MASK);
     ioc_set_over(RTC_INT1_PORT, RTC_INT1_PIN, IOC_OVERRIDE_PUE);
-    nvic_interrupt_enable(RTC_INT1_VECTOR);
+    NVIC_EnableIRQ(RTC_INT1_VECTOR);
   }
 
   if (trigger == RTCC_TRIGGER_INT1) {

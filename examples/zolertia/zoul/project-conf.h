@@ -48,7 +48,13 @@
  */
 #define MOTION_SENSOR_PORT       GPIO_A_NUM
 #define MOTION_SENSOR_PIN        5
-#define MOTION_SENSOR_VECTOR     NVIC_INT_GPIO_PORT_A
+#define MOTION_SENSOR_VECTOR     GPIO_A_IRQn
+
+/* Specify the digital light sensor model to use: TSL2561 (default) or TSL2563 */
+#define TSL256X_CONF_REF         TSL2561_SENSOR_REF
+
+/* Use the following I2C address for the BME280 sensor (from MikroElektronika) */
+#define BME280_CONF_ADDR         0x76
 
 #endif /* PROJECT_CONF_H_ */
 

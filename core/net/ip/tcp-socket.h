@@ -284,4 +284,16 @@ int tcp_socket_unregister(struct tcp_socket *s);
  */
 int tcp_socket_max_sendlen(struct tcp_socket *s);
 
+/**
+ * \brief      The number of bytes waiting to be sent
+ * \param s    A pointer to a TCP socket
+ * \return     The number of bytes that have not yet been acknowledged by the receiver.
+ *
+ *             This function queries the TCP socket and returns the
+ *             number of bytes that are currently not yet known to
+ *             have been successfully received by the receiver.
+ *
+ */
+int tcp_socket_queuelen(struct tcp_socket *s);
+
 #endif /* TCP_SOCKET_H */

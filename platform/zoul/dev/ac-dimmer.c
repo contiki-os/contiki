@@ -137,7 +137,7 @@ configure(int type, int value)
     /* Enable interrupts */
     GPIO_ENABLE_INTERRUPT(DIMMER_SYNC_PORT_BASE, DIMMER_SYNC_PIN_MASK);
     // ioc_set_over(DIMMER_SYNC_PORT, DIMMER_SYNC_PIN, IOC_OVERRIDE_PUE);
-    nvic_interrupt_enable(DIMMER_INT_VECTOR);
+    NVIC_EnableIRQ(DIMMER_INT_VECTOR);
 
     enabled = 1;
     dimming = DIMMER_DEFAULT_START_VALUE;

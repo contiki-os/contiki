@@ -490,26 +490,8 @@ void uip_reass_over(void);
  *
  * The uip_aligned_buf array is used to hold incoming and outgoing
  * packets. The device driver should place incoming data into this
- * buffer. When sending data, the device driver should read the link
- * level headers and the TCP/IP headers from this buffer. The size of
- * the link level headers is configured by the UIP_LLH_LEN define.
- *
- * \note The application data need not be placed in this buffer, so
- * the device driver must read it from the place pointed to by the
- * uip_appdata pointer as illustrated by the following example:
- \code
- void
- devicedriver_send(void)
- {
- hwsend(&uip_buf[0], UIP_LLH_LEN);
- if(uip_len <= UIP_LLH_LEN + UIP_TCPIP_HLEN) {
- hwsend(&uip_buf[UIP_LLH_LEN], uip_len - UIP_LLH_LEN);
- } else {
- hwsend(&uip_buf[UIP_LLH_LEN], UIP_TCPIP_HLEN);
- hwsend(uip_appdata, uip_len - UIP_TCPIP_HLEN - UIP_LLH_LEN);
- }
- }
- \endcode
+ * buffer. When sending data, the device driver should read the
+ * outgoing data from this buffer.
 */
 
 typedef union {

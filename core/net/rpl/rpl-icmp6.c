@@ -412,14 +412,6 @@ rpl_icmp6_update_nbr_table(uip_ipaddr_t *from, nbr_table_reason_t reason, void *
     }
   }
 
-  if(nbr != NULL) {
-#if UIP_ND6_SEND_NA
-    /* set reachable timer if we added or found the nbr entry - and update
-       neighbor entry to reachable to avoid sending NS/NA, etc.  */
-    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-    nbr->state = NBR_REACHABLE;
-#endif /* UIP_ND6_SEND_NA */
-  }
   return nbr;
 }
 /*---------------------------------------------------------------------------*/
@@ -521,15 +513,15 @@ dis_input(void)
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
       instance < end; ++instance) {
     if(instance->used == 1) {
+      if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
 #if RPL_LEAF_ONLY
       if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: LEAF ONLY Multicast DIS will NOT reset DIO timer\n");
 #else /* !RPL_LEAF_ONLY */
-      if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: Multicast DIS => reset DIO timer\n");
         rpl_reset_dio_timer(instance);
-      } else {
 #endif /* !RPL_LEAF_ONLY */
+      } else {
         /* Check if this neighbor should be added according to the policy. */
         if(rpl_icmp6_update_nbr_table(&UIP_IP_BUF->srcipaddr,
                                       NBR_TABLE_REASON_RPL_DIS, NULL) == NULL) {

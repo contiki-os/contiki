@@ -268,7 +268,7 @@
 /** BUTTON_USER -> PA3 */
 #define BUTTON_USER_PORT       GPIO_A_NUM
 #define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
+#define BUTTON_USER_VECTOR     GPIO_A_IRQn
 
 /* Notify various examples that we have an user button.
  * If ADC6 channel is used, then disable the user button
@@ -336,7 +336,7 @@
 #define I2C_SDA_PIN              2
 #define I2C_INT_PORT             GPIO_D_NUM
 #define I2C_INT_PIN              1
-#define I2C_INT_VECTOR           NVIC_INT_GPIO_PORT_D
+#define I2C_INT_VECTOR           GPIO_D_IRQn
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -395,7 +395,7 @@
 #define CC1200_GDO2_PIN             0
 #define CC1200_RESET_PORT           GPIO_C_NUM
 #define CC1200_RESET_PIN            7
-#define CC1200_GPIOx_VECTOR         NVIC_INT_GPIO_PORT_B
+#define CC1200_GPIOx_VECTOR         GPIO_B_IRQn
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -405,6 +405,7 @@
  * external module, to be used with SSI1
  * @{
  */
+#define USD_SPI_INSTANCE         1
 #define USD_CLK_PORT             SPI1_CLK_PORT
 #define USD_CLK_PIN              SPI1_CLK_PIN
 #define USD_MOSI_PORT            SPI1_TX_PORT
@@ -454,13 +455,14 @@
  * requiring to put the PIC into deep-sleep and waking up at a certain time.
  * @{
  */
+#define PLATFORM_HAS_RTC            1
 #define RTC_SDA_PORT                I2C_SDA_PORT
 #define RTC_SDA_PIN                 I2C_SDA_PIN
 #define RTC_SCL_PORT                I2C_SCL_PORT
 #define RTC_SCL_PIN                 I2C_SCL_PIN
 #define RTC_INT1_PORT               GPIO_A_NUM
 #define RTC_INT1_PIN                4
-#define RTC_INT1_VECTOR             NVIC_INT_GPIO_PORT_A
+#define RTC_INT1_VECTOR             GPIO_A_IRQn
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

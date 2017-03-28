@@ -37,5 +37,5 @@ Firefly pin-out
 
 ![Firefly Revision A pin-out (front)][firefly-reva-pinout-front]
 
-[firefly-reva-pinout-front]: ../images/firefly-pinout-front.png "Firefly Revision A pin-out (front)"
-[firefly-reva]: ../images/firefly-reva.png "Zolertia Firefly Revision A breakout board"
+[firefly-reva-pinout-front]: ../images/firefly-reva-pinout-front.png "Firefly Revision A pin-out (front)"
+[firefly-reva]: ../images/firefly-reva.jpg "Zolertia Firefly Revision A breakout board"

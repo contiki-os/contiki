@@ -642,12 +642,18 @@ rpl_update_header(void)
 
   if(default_instance->current_dag->rank == ROOT_RANK(default_instance)) {
     /* At the root, remove headers if any, and insert SRH or HBH
-     * (SRH is inserted only if the destination is in the DODAG) */
+    * (SRH is inserted only if the destination is in the DODAG) */
     rpl_remove_header();
-    if(RPL_IS_NON_STORING(default_instance)) {
-      return insert_srh_header();
+    if(rpl_get_dag(&UIP_IP_BUF->destipaddr) != NULL) {
+      /* dest is in a DODAG; the packet is going down. */
+      if(RPL_IS_NON_STORING(default_instance)) {
+        return insert_srh_header();
+      } else {
+        return insert_hbh_header(default_instance);
+      }
     } else {
-      return insert_hbh_header(default_instance);
+      /* dest is outside of DODAGs; no ext header is needed. */
+      return 1;
     }
   } else {
     if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)

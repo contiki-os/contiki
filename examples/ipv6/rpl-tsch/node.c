@@ -120,17 +120,20 @@ print_network_status(void)
   PRINTF("- Routing links (%u in total):\n", rpl_ns_num_nodes());
   link = rpl_ns_node_head();
   while(link != NULL) {
-    if(link->parent != NULL) {
-      uip_ipaddr_t child_ipaddr;
-      uip_ipaddr_t parent_ipaddr;
-      rpl_ns_get_node_global_addr(&child_ipaddr, link);
-      rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
-      PRINTF("-- ");
-      PRINT6ADDR(&child_ipaddr);
+    uip_ipaddr_t child_ipaddr;
+    uip_ipaddr_t parent_ipaddr;
+    rpl_ns_get_node_global_addr(&child_ipaddr, link);
+    rpl_ns_get_node_global_addr(&parent_ipaddr, link->parent);
+    PRINTF("-- ");
+    PRINT6ADDR(&child_ipaddr);
+    if(link->parent == NULL) {
+      memset(&parent_ipaddr, 0, sizeof(parent_ipaddr));
+      PRINTF(" --- DODAG root ");
+    } else {
       PRINTF(" to ");
       PRINT6ADDR(&parent_ipaddr);
-      PRINTF(" (lifetime: %lu seconds)\n", (unsigned long)link->lifetime);
     }
+    PRINTF(" (lifetime: %lu seconds)\n", (unsigned long)link->lifetime);
     link = rpl_ns_node_next(link);
   }
 #endif
@@ -170,15 +173,21 @@ PROCESS_THREAD(node_process, ev, data)
   static enum { role_6ln, role_6dr, role_6dr_sec } node_role;
   node_role = role_6ln;
 
+  int coordinator_candidate = 0;
+
+#ifdef CONTIKI_TARGET_Z1
   /* Set node with MAC address c1:0c:00:00:00:00:01 as coordinator,
    * convenient in cooja for regression tests using z1 nodes
    * */
-
-#ifdef CONTIKI_TARGET_Z1
   extern unsigned char node_mac[8];
   unsigned char coordinator_mac[8] = { 0xc1, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
-  if(memcmp(node_mac, coordinator_mac, 8) == 0) {
+  coordinator_candidate = (memcmp(node_mac, coordinator_mac, 8) == 0);
+#elif CONTIKI_TARGET_COOJA
+  coordinator_candidate = (node_id == 1);
+#endif
+
+  if(coordinator_candidate) {
     if(LLSEC802154_ENABLED) {
       node_role = role_6dr_sec;
     } else {
@@ -187,7 +196,6 @@ PROCESS_THREAD(node_process, ev, data)
   } else {
     node_role = role_6ln;
   }
-#endif
 
 #if CONFIG_VIA_BUTTON
   {

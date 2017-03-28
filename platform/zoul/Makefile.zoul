@@ -18,6 +18,11 @@ endif
 PYTHON = python
 BSL_FLAGS += -e -w -v
 
+BSL_SPEED ?= 460800
+
+# Works in Linux and probably on OSX too (RTCC example)
+CFLAGS += -DDATE="\"`date +"%02u %02d %02m %02y %02H %02M %02S"`\""
+
 ### Configure the build for the board and pull in board-specific sources
 CONTIKI_TARGET_DIRS += . dev
 CONTIKI_TARGET_DIRS += . $(BOARD)
@@ -45,9 +50,13 @@ endif
 CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538
 
-MODULES += core/net core/net/mac \
+MODULES += core/net core/net/mac core/net/ip \
            core/net/mac/contikimac \
            core/net/llsec core/net/llsec/noncoresec dev/cc1200
+
+ifeq ($(WITH_IP64),1)
+  MODULES += core/net/ip64
+endif
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
@@ -95,7 +104,7 @@ define UPLOAD_RULE
 	@BSL_ADDRESS=`$(OBJDUMP) -h $$*.elf | grep -B1 LOAD | \
 	             grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$$$5}' | \
 	             sort -g | head -1`; \
-	$(PYTHON) $(BSL) $(BSL_FLAGS) -a $$$${BSL_ADDRESS} -p $(MOTE) $$<
+	$(PYTHON) $(BSL) $(BSL_FLAGS) -b $(BSL_SPEED) -a $$$${BSL_ADDRESS} -p $(MOTE) $$<
 endef
 
 ### Create an upload rule for every MOTE connected

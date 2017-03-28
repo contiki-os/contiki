@@ -362,7 +362,7 @@ make example-collect.sky TARGET=sky</commands>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(600000);
+      <script>TIMEOUT(450000);
 
 num_nodes = mote.getSimulation().getMotesCount();
 
@@ -408,6 +408,8 @@ while(true) {
             dups = received[source].substr(seqno, 1);
             if(dups == "_") {
                 dups = 1;
+            } else if (dups == "") {
+                continue;
             } else if(dups &lt; 9) {
                 dups++;
             }
