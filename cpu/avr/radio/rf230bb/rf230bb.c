@@ -1291,6 +1291,21 @@ rf230_listen_channel(uint8_t c)
   radio_set_trx_state(RX_ON);
 }
 /*---------------------------------------------------------------------------*/
+
+unsigned 
+rf230_get_panid(void) 
+{
+  unsigned pan;
+  uint8_t byte;
+
+  byte = hal_register_read(RG_PAN_ID_1);
+  pan = byte;
+  byte = hal_register_read(RG_PAN_ID_0);
+  pan = (pan << 8) + byte;
+
+  return pan;
+}
+
 void
 rf230_set_pan_addr(unsigned pan,
                     unsigned addr,
