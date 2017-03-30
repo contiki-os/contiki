@@ -350,7 +350,7 @@ initialize(void)
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  PRINTA("PAN=0x%X, XMAC=%s, RDC=%s, NETWORK=%s, channel=%-u, check-rate-Hz=%-u, tx-power=%-u\n", rf230_get_panid(),
+  PRINTA("PAN=0x%X, MAC=%s, RDC=%s, NETWORK=%s, channel=%-u, check-rate-Hz=%-u, tx-power=%-u\n", rf230_get_panid(),
 	 NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name, rf230_get_channel(),
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 : NETSTACK_RDC.channel_check_interval()),
          rf230_get_txpower());
