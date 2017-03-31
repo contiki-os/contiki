@@ -1268,9 +1268,7 @@ appcall(void *state)
 
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
-      s->script = NULL;
-      s->blen = 0;
-      s->tmp_buf_len = 0;
+      memset(s, 0, sizeof(struct httpd_state));
       memb_free(&conns, s);
     }
   } else if(uip_connected()) {
@@ -1291,7 +1289,7 @@ appcall(void *state)
     if(uip_poll()) {
       if(timer_expired(&s->timer)) {
         uip_abort();
-        s->script = NULL;
+        memset(s, 0, sizeof(struct httpd_state));
         memb_free(&conns, s);
       }
     } else {
