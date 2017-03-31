@@ -108,6 +108,7 @@ Tested applications and examples
 * `rime`
 * `ipv6/multicast`
 * `examples/powertrace`
+* `examples/sensniff` use 500kBAUD
 * `example-shell`
 
 Note that the shell example needs file `symbols.c` to be added to project also seems like
