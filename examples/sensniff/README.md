@@ -49,6 +49,7 @@ The following radios have been tested:
 * CC2538
 * CC2530/CC2531
 * CC1200
+* RF233
 
 Once you have the radio sorted out, you also need to configure character I/O.
 The firmware captures wireless frames and streams them over a serial line to
