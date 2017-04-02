@@ -146,6 +146,8 @@ uint8_t ack_pending,ack_seqnum;
 #warning RF230 Untested Configuration!
 #endif
 
+static rtimer_clock_t rf230_last_rx_packet_timestamp;
+
 struct timestamp {
   uint16_t time;
   uint8_t authority_level;
@@ -281,7 +283,7 @@ get_poll_mode(void)
   return poll_mode;
 }
 
-void
+static void
 set_frame_filtering(bool i)
 {
   if(i)
@@ -300,7 +302,7 @@ get_frame_filtering(void)
   return 1;
 }
 
-void
+static void
 set_auto_ack(bool i)
 {
   if(i)
@@ -317,6 +319,44 @@ get_auto_ack(void)
     return 0;
   return 1;
 }
+
+uint16_t
+rf230_get_panid(void)
+{
+  unsigned pan;
+  uint8_t byte;
+
+  byte = hal_register_read(RG_PAN_ID_1);
+  pan = byte;
+  byte = hal_register_read(RG_PAN_ID_0);
+  pan = (pan << 8) + byte;
+
+  return pan;
+}
+
+static void
+rf230_set_panid(uint16_t pan)
+{
+  hal_register_write(RG_PAN_ID_1, (pan >> 8));
+  hal_register_write(RG_PAN_ID_0, (pan & 0xFF));
+}
+
+static uint16_t
+rf230_get_short_addr(void)
+{
+  unsigned char a0, a1;
+  a0 = hal_register_read(RG_SHORT_ADDR_0);
+  a1 = hal_register_read(RG_SHORT_ADDR_1);
+  return (a1 << 8) | a0;
+}
+
+static void
+rf230_set_short_addr(uint16_t addr)
+{
+  hal_register_write(RG_SHORT_ADDR_0, (addr & 0xFF));
+  hal_register_write(RG_SHORT_ADDR_1, (addr >> 8));
+}
+
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
@@ -338,10 +378,10 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = (radio_value_t)rf230_get_channel();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_PAN_ID:
-    /* *value = get_pan_id(); */
+    *value = rf230_get_panid();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_16BIT_ADDR:
-    /* *value = get_short_addr(); */
+    *value = rf230_get_short_addr(); 
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
     *value = 0;
@@ -410,10 +450,11 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
 
   case RADIO_PARAM_PAN_ID:
-    /* set_pan_id(value & 0xffff); */
+    rf230_set_panid(value & 0xffff);
     return RADIO_RESULT_OK;
+
   case RADIO_PARAM_16BIT_ADDR:
-    /* set_short_addr(value & 0xffff); */
+    rf230_set_short_addr(value & 0xffff);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
 
@@ -444,6 +485,14 @@ set_value(radio_param_t param, radio_value_t value)
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t *)dest = rf230_last_rx_packet_timestamp;
+
+    return RADIO_RESULT_OK;
+  }
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
@@ -1466,38 +1515,15 @@ rf230_listen_channel(uint8_t c)
 }
 /*---------------------------------------------------------------------------*/
 
-unsigned 
-rf230_get_panid(void) 
-{
-  unsigned pan;
-  uint8_t byte;
-
-  byte = hal_register_read(RG_PAN_ID_1);
-  pan = byte;
-  byte = hal_register_read(RG_PAN_ID_0);
-  pan = (pan << 8) + byte;
-
-  return pan;
-}
-
 void
 rf230_set_pan_addr(unsigned pan,
                     unsigned addr,
                     const uint8_t ieee_addr[8])
-//rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr)
 {
   PRINTF("rf230: PAN=%x Short Addr=%x\n",pan,addr);
   
-  uint8_t abyte;
-  abyte = pan & 0xFF;
-  hal_register_write(RG_PAN_ID_0,abyte);
-  abyte = (pan >> 8*1) & 0xFF;
-  hal_register_write(RG_PAN_ID_1, abyte);
-
-  abyte = addr & 0xFF;
-  hal_register_write(RG_SHORT_ADDR_0, abyte);
-  abyte = (addr >> 8*1) & 0xFF;
-  hal_register_write(RG_SHORT_ADDR_1, abyte);  
+  rf230_set_panid(pan);
+  rf230_set_short_addr(addr);
 
   if (ieee_addr != NULL) {
     PRINTF("MAC=%x",*ieee_addr);
@@ -1519,6 +1545,14 @@ rf230_set_pan_addr(unsigned pan,
     PRINTF("\n");
   }
 }
+
+/* From ISR context */
+void
+rf230_get_last_rx_packet_timestamp(void)
+{
+    rf230_last_rx_packet_timestamp = RTIMER_NOW();
+}
+
 /*---------------------------------------------------------------------------*/
 /*
  * Interrupt leaves frame intact in FIFO.

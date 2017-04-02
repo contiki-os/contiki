@@ -81,10 +81,10 @@ extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "at86rf230_registermap.h"
 #endif
 
+extern void rf230_get_last_rx_packet_timestamp(void);
 /*============================ VARIABLES =====================================*/
 
 volatile extern signed char rf230_last_rssi;
-
 /*============================ CALLBACKS =====================================*/
 
 
@@ -668,7 +668,7 @@ ISR(TRX24_RX_START_vect)
 #if !RF230_CONF_AUTOACK
     rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
 #endif
-
+    rf230_get_last_rx_packet_timestamp();
 }
 
 /* PLL has locked, either from a transition out of TRX_OFF or a channel change while on */
