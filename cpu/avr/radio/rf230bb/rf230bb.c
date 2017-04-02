@@ -146,7 +146,7 @@ uint8_t ack_pending,ack_seqnum;
 #warning RF230 Untested Configuration!
 #endif
 
-rtimer_clock_t last_rx_packet_timestamp;
+static rtimer_clock_t rf230_last_rx_packet_timestamp;
 
 struct timestamp {
   uint16_t time;
@@ -283,7 +283,7 @@ get_poll_mode(void)
   return poll_mode;
 }
 
-void
+static void
 set_frame_filtering(bool i)
 {
   if(i)
@@ -302,7 +302,7 @@ get_frame_filtering(void)
   return 1;
 }
 
-void
+static void
 set_auto_ack(bool i)
 {
   if(i)
@@ -334,14 +334,14 @@ rf230_get_panid(void)
   return pan;
 }
 
-void
+static void
 rf230_set_panid(uint16_t pan)
 {
   hal_register_write(RG_PAN_ID_1, (pan >> 8));
   hal_register_write(RG_PAN_ID_0, (pan & 0xFF));
 }
 
-uint16_t
+static uint16_t
 rf230_get_short_addr(void)
 {
   unsigned char a0, a1;
@@ -350,7 +350,7 @@ rf230_get_short_addr(void)
   return (a1 << 8) | a0;
 }
 
-void
+static void
 rf230_set_short_addr(uint16_t addr)
 {
   hal_register_write(RG_SHORT_ADDR_0, (addr & 0xFF));
@@ -489,7 +489,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    *(rtimer_clock_t *)dest = last_rx_packet_timestamp;
+    *(rtimer_clock_t *)dest = rf230_last_rx_packet_timestamp;
 
     return RADIO_RESULT_OK;
   }
@@ -1548,9 +1548,9 @@ rf230_set_pan_addr(unsigned pan,
 
 /* From ISR context */
 void
-get_last_rx_packet_timestamp(void)
+rf230_get_last_rx_packet_timestamp(void)
 {
-    last_rx_packet_timestamp = RTIMER_NOW();
+    rf230_last_rx_packet_timestamp = RTIMER_NOW();
 }
 
 /*---------------------------------------------------------------------------*/
