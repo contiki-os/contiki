@@ -137,8 +137,12 @@
  * Those values are not meant to be modified by the user
  * @{
  */
+#define BOARD_IOID_SPI_SCK        IOID_17
 #define BOARD_IOID_SPI_MOSI       IOID_19
 #define BOARD_IOID_SPI_MISO       IOID_18
+#define BOARD_SPI_SCK             (1 << BOARD_IOID_SPI_SCK)
+#define BOARD_SPI_MOSI            (1 << BOARD_IOID_SPI_MOSI)
+#define BOARD_SPI_MISO            (1 << BOARD_IOID_SPI_MISO)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
