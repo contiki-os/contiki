@@ -202,7 +202,7 @@ show_dag(void)
     printf("INSTANCE: instance_id: %d used; %d\n",
            instance->instance_id, instance->used);
 
-#ifdef RPL_CONF_STATS
+#ifdef RPL_STATS
     printf("    dio_sent: %d dio_recv: %d dio_totint: %d\n",
            instance->dio_totsend, instance->dio_totrecv,
            instance->dio_totint);
@@ -215,7 +215,7 @@ show_dag(void)
 void
 show_rpl_stats(voiD)
 {
-#ifdef RPL_CONF_STATS
+#ifdef RPL_STATS
   printf("rpl.mem_overflows=%-u\n", rpl_stats.mem_overflows);
   printf("rpl.local_repairs=%-u\n", rpl_stats.local_repairs);
   printf("rpl.global_repairs=%-u\n", rpl_stats.global_repairs);
