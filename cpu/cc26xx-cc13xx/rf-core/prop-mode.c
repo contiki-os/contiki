@@ -267,7 +267,6 @@ static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 static void
 rf_check_rx_err()
 {
-  int ret;
   if (smartrf_settings_cmd_prop_rx_adv.status == RF_CORE_RADIO_OP_STATUS_PROP_ERROR_RXBUF)
   {
     PRINTF("RXQ full, re-enabling radio!\n");
