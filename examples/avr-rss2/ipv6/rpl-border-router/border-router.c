@@ -56,6 +56,9 @@
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
+#include "dev/serial-line.h"
+
+extern void handle_serial_input(const char *line);
 
 static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
@@ -380,6 +383,9 @@ PROCESS_THREAD(border_router_process, ev, data)
     if (ev == sensors_event && data == &button_sensor) {
       PRINTF("Initiating global repair\n");
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
+    }
+    if (ev == serial_line_event_message && data != NULL) {
+      handle_serial_input((const char *) data);
     }
   }
 
