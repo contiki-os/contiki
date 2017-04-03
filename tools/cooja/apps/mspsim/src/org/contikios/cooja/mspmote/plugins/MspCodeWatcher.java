@@ -224,7 +224,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     for (Component c: assCodeUI.getComponents()) {
       c.setBackground(Color.WHITE);
     }
-    mainPane.addTab("Instructions", null, assCodeUI, null);
+    Box assCodeControl = Box.createHorizontalBox();
+    assCodeControl.add(new JButton(stepAction));
+    JPanel assCodePanel = new JPanel(new BorderLayout());
+    assCodePanel.add(BorderLayout.CENTER, assCodeUI);
+    assCodePanel.add(BorderLayout.SOUTH, assCodeControl);
+    mainPane.addTab("Instructions", null, assCodePanel, null);
 
     breakpointsUI = new BreakpointsUI(mspMote, this);
     mainPane.addTab("Breakpoints", null, breakpointsUI, "Right-click source code to add"); /* BREAKPOINTS */
