@@ -32,14 +32,14 @@
  *         Minimal and simple serial line API for ipv6 and RPL monitoring
  *         See help command to get an overview
  *
- * \Author
+ * \author
  *         Robert Olsson
  *
- * \Used code from border-router.c with authors
+ * Used code from border-router.c with authors
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  *
- * \Used code from pdr.c with authors:
+ * Used code from pdr.c with authors:
  *         Atis Elsts       <atis.elsts@bristol.ac.uk>
  *         Christian Rohner <christian.rohner@it.uu.se>
  *         Robert Olsson    <roolss@kth.se>
