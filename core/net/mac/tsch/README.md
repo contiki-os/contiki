@@ -13,7 +13,9 @@ It was developped by:
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
 * Atis Elsts, Univ. Bristol, atis.elsts@bristol.ac.uk, github user: [atiselsts](https://github.com/atiselsts)
 
-You can find an extensive evaluation of this implementation in our paper [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
+
+This implementation is presented in depth and evaluated in our paper: [*TSCH and 6TiSCH for Contiki: Challenges, Design and Evaluation*](http://www.simonduquennoy.net/papers/duquennoy17tsch.pdf), IEEE DCOSS'17.
+The scheduler Orchestra is detailled in [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
 
 ## Features
 
