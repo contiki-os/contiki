@@ -1,8 +1,8 @@
-# IEEE 802.15.4e TSCH (TimeSlotted Channel Hopping)
+# IEEE 802.15.4-2015 TSCH and IETF 6TiSCH
 
 ## Overview
 
-TSCH is a MAC layer of the [IEEE 802.15.4e-2012 amendment][ieee802.15.4e-2012],
+Time Slotted Channel Hopping (TSCH) is a MAC layer of the [IEEE 802.15.4e-2012 amendment][ieee802.15.4e-2012],
 currently being integrated as part of the new IEEE 802.15.4-2015.
 [6TiSCH][ietf-6tisch-wg] is an IETF Working Group focused on IPv6 over TSCH.
 This is a Contiki implementation of TSCH and the 6TiSCH so-called "minimal configuration",
@@ -29,7 +29,7 @@ This implementation includes:
   * Standard TSCH link selection and slot operation (10ms slots by default)
   * Standard TSCH synchronization, including with ACK/NACK time correction Information Element
   * Standard TSCH queues and CSMA-CA mechanism
-  * Standard TSCH security
+  * Standard TSCH and 6TiSCH security
   * Standard 6TiSCH TSCH-RPL interaction (6TiSCH Minimal Configuration and Minimal Schedule)
   * A scheduling API to add/remove slotframes and links
   * A system for logging from TSCH timeslot operation interrupt, with postponed printout
