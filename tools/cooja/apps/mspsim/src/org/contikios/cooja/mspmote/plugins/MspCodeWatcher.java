@@ -92,6 +92,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = -8463196456352243367L;
 
   private static final int SOURCECODE = 0;
+  private static final int INSTRUCTIONS = 1;
   private static final int BREAKPOINTS = 2;
 
   private static Logger logger = Logger.getLogger(MspCodeWatcher.class);
@@ -290,8 +291,10 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   public void displaySourceFile(final File file, final int line, final boolean markCurrent) {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        mainPane.setSelectedIndex(SOURCECODE); /* code */
-        sourceCodeUI.displayNewCode(file, line, markCurrent);
+        if(mainPane.getSelectedIndex() != INSTRUCTIONS){
+          mainPane.setSelectedIndex(SOURCECODE); /* code */
+          sourceCodeUI.displayNewCode(file, line, markCurrent);
+        }
       }});
   }
 
