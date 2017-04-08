@@ -65,14 +65,22 @@ app_main(void)
   process_init();
   procinit_init();
   ctimer_init();
-  autostart_start(autostart_processes);
-
   eth_init();
+
+  autostart_start(autostart_processes);
 
   while(1) {
     process_run();
   }
 
+  halt();
+}
+/*---------------------------------------------------------------------------*/
+static void
+gp_fault_handler(struct interrupt_context context)
+{
+  fprintf(stderr, "General protection exception @%08x (ec: %u)\n",
+          context.eip, context.error_code);
   halt();
 }
 /*---------------------------------------------------------------------------*/
@@ -91,6 +99,7 @@ main(void)
    * Galileo Gen2 FTDI header
    */
   quarkX1000_uart_init_port(QUARK_X1000_UART_1, 115200);
+  SET_EXCEPTION_HANDLER(13, 1, gp_fault_handler);
   clock_init();
   rtimer_init();
 

@@ -57,6 +57,8 @@
  */
 #define SSI0_BASE               0x40008000 /**< Base address for SSI0 */
 #define SSI1_BASE               0x40009000 /**< Base address for SSI1 */
+/** Base address of the \c dev instance of the SSI */
+#define SSI_BASE(dev)           (SSI0_BASE + (dev) * (SSI1_BASE - SSI0_BASE))
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SSI register offsets

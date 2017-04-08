@@ -174,7 +174,7 @@ handle_dio_timer(void *ptr)
 
   if(instance->dio_send) {
     /* send DIO if counter is less than desired redundancy */
-    if(instance->dio_redundancy != 0 && instance->dio_counter < instance->dio_redundancy) {
+    if(instance->dio_redundancy == 0 || instance->dio_counter < instance->dio_redundancy) {
 #if RPL_CONF_STATS
       instance->dio_totsend++;
 #endif /* RPL_CONF_STATS */
@@ -238,7 +238,7 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
 
   /* Set up another DAO within half the expiration time, if such a
      time has been configured */
-  if(instance->lifetime_unit != 0xffff && instance->default_lifetime != 0xff) {
+  if(instance->default_lifetime != RPL_INFINITE_LIFETIME) {
     clock_time_t expiration_time;
     expiration_time = (clock_time_t)instance->default_lifetime *
       (clock_time_t)instance->lifetime_unit *

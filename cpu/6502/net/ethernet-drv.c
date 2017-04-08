@@ -92,7 +92,7 @@ PROCESS_THREAD(ethernet_process, ev, data)
 
   PROCESS_BEGIN();
 
-  ethernet_init((struct ethernet_config *)data);
+  ethernet_init();
 
   tcpip_set_outputfunc(ethernet_output);
 

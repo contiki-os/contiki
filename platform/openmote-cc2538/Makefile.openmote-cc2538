@@ -1,5 +1,10 @@
 # openmote-cc2538 platform makefile
 
+### Allow the OpenMote-CC2538 platform to support different CC2538 chip revisions
+ifeq ($(findstring REV_A1,$(BOARD_REVISION)),REV_A1)
+    CFLAGS+=-DCC2538_DEV_CONF=CC2538_DEV_CC2538SF23
+endif
+
 ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
@@ -31,7 +36,7 @@ MODULES += core/net core/net/mac \
            core/net/llsec core/net/llsec/noncoresec
 
 PYTHON = python
-BSL_FLAGS += -e -w -v -b 450000
+BSL_FLAGS += -e --bootloader-invert-lines -w -v -b 450000
 
 ifdef PORT
   BSL_FLAGS += -p $(PORT)

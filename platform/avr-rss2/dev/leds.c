@@ -33,6 +33,12 @@ leds_off(unsigned char ledv)
 void
 leds_toggle(unsigned char ledv)
 {
+  if(ledv & LEDS_YELLOW) {
+    PORTE ^= (1 << LED_YELLOW);
+  }
+  if(ledv & LEDS_RED) {
+    PORTE ^= (1 << LED_RED);
+  }
 }
 void
 leds_invert(unsigned char ledv)

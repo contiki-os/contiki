@@ -345,10 +345,10 @@ set_poll_mode(uint8_t enable)
     mac_timer_init();
     REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP; /* mask out FIFOP interrupt source */
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;   /* clear pending FIFOP interrupt */
-    nvic_interrupt_disable(NVIC_INT_RF_RXTX);               /* disable RF interrupts */
+    NVIC_DisableIRQ(RF_TX_RX_IRQn);                         /* disable RF interrupts */
   } else {
     REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;  /* enable FIFOP interrupt source */
-    nvic_interrupt_enable(NVIC_INT_RF_RXTX);                /* enable RF interrupts */
+    NVIC_EnableIRQ(RF_TX_RX_IRQn);                          /* enable RF interrupts */
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -482,7 +482,7 @@ init(void)
   REG(SYS_CTRL_SCGCRFC) = 1;
   REG(SYS_CTRL_DCGCRFC) = 1;
 
-  REG(RFCORE_XREG_CCACTRL0) = CC2538_RF_CCA_THRES_USER_GUIDE;
+  REG(RFCORE_XREG_CCACTRL0) = CC2538_RF_CCA_THRES;
 
   /*
    * Changes from default values
@@ -516,7 +516,7 @@ init(void)
 
   /* Acknowledge all RF Error interrupts */
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;
-  nvic_interrupt_enable(NVIC_INT_RF_ERR);
+  NVIC_EnableIRQ(RF_ERR_IRQn);
 
   if(CC2538_RF_CONF_TX_USE_DMA) {
     /* Disable peripheral triggers for the channel */

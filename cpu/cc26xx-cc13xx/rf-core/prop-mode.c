@@ -219,14 +219,23 @@ const output_config_t *tx_power_current = &output_power[1];
 #define PROP_MODE_LO_DIVIDER   0x05
 #endif
 /*---------------------------------------------------------------------------*/
+#ifdef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_RX_BUF_CNT PROP_MODE_CONF_RX_BUF_CNT
+#else
+#define PROP_MODE_RX_BUF_CNT 4
+#endif
+/*---------------------------------------------------------------------------*/
 #define DATA_ENTRY_LENSZ_NONE 0
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
+/*
+ * RX buffers.
+ * PROP_MODE_RX_BUF_CNT buffers of RX_BUF_SIZE bytes each. The start of each
+ * buffer must be 4-byte aligned, therefore RX_BUF_SIZE must divide by 4
+ */
 #define RX_BUF_SIZE 140
-/* Receive buffers: 1 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf[PROP_MODE_RX_BUF_CNT][RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -261,6 +270,7 @@ get_rssi(void)
 {
   uint32_t cmd_status;
   int8_t rssi;
+  uint8_t attempts = 0;
   uint8_t was_off = 0;
   rfc_CMD_GET_RSSI_t cmd;
 
@@ -273,14 +283,19 @@ get_rssi(void)
     }
   }
 
-  memset(&cmd, 0x00, sizeof(cmd));
-  cmd.commandNo = CMD_GET_RSSI;
-
   rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
 
-  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-    /* Current RSSI in bits 23:16 of cmd_status */
-    rssi = (cmd_status >> 16) & 0xFF;
+  while((rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) && ++attempts < 10) {
+    memset(&cmd, 0x00, sizeof(cmd));
+    cmd.commandNo = CMD_GET_RSSI;
+
+    if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+      PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
+      break;
+    } else {
+      /* Current RSSI in bits 23:16 of cmd_status */
+      rssi = (cmd_status >> 16) & 0xFF;
+    }
   }
 
   /* If we were off, turn back off */
@@ -427,6 +442,24 @@ rf_cmd_prop_rx()
   return ret;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init_rx_buffers(void)
+{
+  rfc_dataEntry_t *entry;
+  int i;
+
+  for(i = 0; i < PROP_MODE_RX_BUF_CNT; i++) {
+    entry = (rfc_dataEntry_t *)rx_buf[i];
+    entry->status = DATA_ENTRY_STATUS_PENDING;
+    entry->config.type = DATA_ENTRY_TYPE_GEN;
+    entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
+    entry->length = RX_BUF_SIZE - 8;
+    entry->pNextEntry = rx_buf[i + 1];
+  }
+
+  ((rfc_dataEntry_t *)rx_buf[PROP_MODE_RX_BUF_CNT - 1])->pNextEntry = rx_buf[0];
+}
+/*---------------------------------------------------------------------------*/
 static int
 rx_on_prop(void)
 {
@@ -564,8 +597,6 @@ static const rf_core_primary_mode_t mode_prop = {
 static int
 init(void)
 {
-  rfc_dataEntry_t *entry;
-
   lpm_register_module(&prop_lpm_module);
 
   if(ti_lib_chipinfo_chip_family_is_cc13xx() == false) {
@@ -575,29 +606,14 @@ init(void)
   rf_core_set_modesel();
 
   /* Initialise RX buffers */
-  memset(rx_buf_0, 0, RX_BUF_SIZE);
-  memset(rx_buf_1, 0, RX_BUF_SIZE);
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_1;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  entry->config.type = DATA_ENTRY_TYPE_GEN;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_WORD;
-  entry->length = RX_BUF_SIZE - 8;
-  entry->pNextEntry = rx_buf_0;
+  memset(rx_buf, 0, sizeof(rx_buf));
 
   /* Set of RF Core data queue. Circular buffer, no last entry */
-  rx_data_queue.pCurrEntry = rx_buf_0;
+  rx_data_queue.pCurrEntry = rx_buf[0];
   rx_data_queue.pLastEntry = NULL;
 
   /* Initialize current read pointer to first element (used in ISR) */
-  rx_read_entry = rx_buf_0;
+  rx_read_entry = rx_buf[0];
 
   smartrf_settings_cmd_prop_rx_adv.pQueue = &rx_data_queue;
   smartrf_settings_cmd_prop_rx_adv.pOutput = (uint8_t *)&rx_stats;
@@ -904,6 +920,8 @@ on(void)
 
   rf_core_setup_interrupts(false);
 
+  init_rx_buffers();
+
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
    * This will block until the XOSC is actually ready, but give how we
@@ -927,8 +945,6 @@ on(void)
 static int
 off(void)
 {
-  rfc_dataEntry_t *entry;
-
   /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
    * from within an interrupt context. Abort, but pretend everything is OK.
@@ -947,12 +963,6 @@ off(void)
 
   /* We pulled the plug, so we need to restore the status manually */
   smartrf_settings_cmd_prop_rx_adv.status = RF_CORE_RADIO_OP_STATUS_IDLE;
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->status = DATA_ENTRY_STATUS_PENDING;
 
   return RF_CORE_CMD_OK;
 }

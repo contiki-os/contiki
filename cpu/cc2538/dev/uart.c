@@ -181,7 +181,7 @@ static const uart_regs_t uart_regs[UART_INSTANCE_COUNT] = {
     .tx = {UART0_TX_PORT, UART0_TX_PIN},
     .cts = {-1, -1},
     .rts = {-1, -1},
-    .nvic_int = NVIC_INT_UART0
+    .nvic_int = UART0_IRQn
   }, {
     .sys_ctrl_rcgcuart_uart = SYS_CTRL_RCGCUART_UART1,
     .sys_ctrl_scgcuart_uart = SYS_CTRL_SCGCUART_UART1,
@@ -195,7 +195,7 @@ static const uart_regs_t uart_regs[UART_INSTANCE_COUNT] = {
     .tx = {UART1_TX_PORT, UART1_TX_PIN},
     .cts = {UART1_CTS_PORT, UART1_CTS_PIN},
     .rts = {UART1_RTS_PORT, UART1_RTS_PIN},
-    .nvic_int = NVIC_INT_UART1
+    .nvic_int = UART1_IRQn
   }
 };
 static int (* input_handler[UART_INSTANCE_COUNT])(unsigned char c);
@@ -328,7 +328,7 @@ uart_init(uint8_t uart)
   REG(regs->base + UART_CTL) |= UART_CTL_UARTEN;
 
   /* Enable UART0 Interrupts */
-  nvic_interrupt_enable(regs->nvic_int);
+  NVIC_EnableIRQ(regs->nvic_int);
 }
 /*---------------------------------------------------------------------------*/
 void

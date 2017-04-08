@@ -83,7 +83,7 @@ ringbufindex_peek_put(const struct ringbufindex *r)
   if(((r->put_ptr - r->get_ptr) & r->mask) == r->mask) {
     return -1;
   }
-  return (r->put_ptr + 1) & r->mask;
+  return r->put_ptr;
 }
 /* Remove the first element and return its index */
 int
@@ -118,7 +118,7 @@ ringbufindex_peek_get(const struct ringbufindex *r)
      first one. If there are no bytes left, we return -1.
    */
   if(((r->put_ptr - r->get_ptr) & r->mask) > 0) {
-    return (r->get_ptr + 1) & r->mask;
+    return r->get_ptr;
   } else {
     return -1;
   }

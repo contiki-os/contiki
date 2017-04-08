@@ -40,6 +40,7 @@
 #include "ieee-addr.h"
 
 #include <stdint.h>
+#include <string.h>
 /*---------------------------------------------------------------------------*/
 void
 ieee_addr_cpy_to(uint8_t *dst, uint8_t len)

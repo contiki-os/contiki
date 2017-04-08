@@ -1,0 +1,4 @@
+MOTELIST_ZOLERTIA = remote
+BOARD_SOURCEFILES += board.c antenna-sw.c mmc-arch.c rtcc.c leds-res-arch.c power-mgmt.c
+
+MODULES += lib/fs/fat lib/fs/fat/option platform/zoul/fs/fat dev/disk/mmc

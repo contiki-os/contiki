@@ -31,13 +31,14 @@
 /**
  * \addtogroup zoul-examples
  * @{
+ *
  * \defgroup zoul-pm10-sensor-test Test PM10 sensor
  *
  * Demonstrates the operation of the Sharp PM10 analog sensor
  * @{
  *
  * \file
- *  GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper   
+ *         GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper
  *
  * \author
  *         Toni Lozano <tlozano@zolertia.com>
@@ -93,3 +94,4 @@ PROCESS_THREAD(test_pm10_sensor_process, ev, data)
  * @}
  * @}
  */
+

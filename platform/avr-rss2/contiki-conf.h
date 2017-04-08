@@ -78,10 +78,6 @@
 #define NETSTACK_CONF_RADIO   rf230_driver
 #endif
 
-#ifndef CHANNEL_802_15_4
-#define CHANNEL_802_15_4      26
-#endif
-
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #ifndef RF230_CONF_AUTOACK
 #define RF230_CONF_AUTOACK        1
@@ -109,6 +105,11 @@ void clock_adjust_ticks(clock_time_t howmany);
 /* RSS2 boards has a 32768Hz on TIMER2 */
 #define AVR_CONF_USE32KCRYSTAL 1
 #define SLIP_PORT RS232_PORT_0
+
+/* Default baud rare on RS232 port */
+#ifndef RS232_BAUDRATE
+#define RS232_BAUDRATE USART_BAUD_38400
+#endif 
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
@@ -164,6 +165,16 @@ typedef unsigned short uip_stats_t;
 #define RDC_CONF_MCU_SLEEP         1
 
 #if NETSTACK_CONF_WITH_IPV6
+
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     20
+#endif 
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES      20
+#endif 
+#ifndef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE    1280
+#endif
 #define LINKADDR_CONF_SIZE        8
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
@@ -229,16 +240,15 @@ typedef unsigned short uip_stats_t;
 /* from previous GETs, causing decreased throughput, retransmissions, and timeouts. Increase to study this. */
 /* ACKs to other ports become interleaved with computation-intensive GETs, so ACKs are particularly missed. */
 /* Increasing the number of packet receive buffers in RAM helps to keep ACKs from being lost */
+
 #define UIP_CONF_MAX_CONNECTIONS  4
 /* 2 bytes per TCP listening port */
 #define UIP_CONF_MAX_LISTENPORTS  4
 /* 25 bytes per UDP connection */
 #define UIP_CONF_UDP_CONNS       10
 /* See uip-ds6.h */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS      20
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_MAX_ROUTES    20
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -270,10 +280,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS  2
 #define UIP_CONF_MAX_LISTENPORTS  4
 #define UIP_CONF_UDP_CONNS        5
-#define NBR_TABLE_CONF_MAX_NEIGHBORS      20
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -299,10 +307,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS  2
 #define UIP_CONF_MAX_LISTENPORTS  4
 #define UIP_CONF_UDP_CONNS        5
-#define NBR_TABLE_CONF_MAX_NEIGHBORS      4
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -332,7 +338,6 @@ typedef unsigned short uip_stats_t;
 /* For slow slip connections, to prevent buffer overruns */
 /* #define UIP_CONF_RECEIVE_WINDOW 300 */
 #undef UIP_CONF_FWCACHE_SIZE
-#define UIP_CONF_BUFFER_SIZE   600 /*  DHCPv4 packets by ip64 module */
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
 #define UIP_ARCH_IPCHKSUM        1

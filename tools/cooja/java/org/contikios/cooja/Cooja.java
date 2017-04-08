@@ -3378,7 +3378,7 @@ public class Cooja extends Observable {
       }
 
       /* Verify extension directories */
-      boolean projectsOk = verifyProjects(root.getChildren(), !quick);
+      boolean projectsOk = verifyProjects(root.getChildren());
 
       /* GENERATE UNIQUE MOTE TYPE IDENTIFIERS */
       root.detach();
@@ -3428,7 +3428,8 @@ public class Cooja extends Observable {
           Collection<Element> config = ((Element) element).getChildren();
           newSim = new Simulation(this);
           System.gc();
-          boolean createdOK = newSim.setConfigXML(config, !quick, manualRandomSeed);
+          
+          boolean createdOK = newSim.setConfigXML(config, isVisualized(), quick, manualRandomSeed);
           if (!createdOK) {
             logger.info("Simulation not loaded");
             return null;
@@ -3437,7 +3438,7 @@ public class Cooja extends Observable {
       }
 
       // Restart plugins from config
-      setPluginsConfigXML(root.getChildren(), newSim, !quick);
+      setPluginsConfigXML(root.getChildren(), newSim, isVisualized(), quick);
 
     } catch (JDOMException e) {
       throw (SimulationCreationException) new SimulationCreationException(
@@ -3599,7 +3600,7 @@ public class Cooja extends Observable {
     return config;
   }
 
-  public boolean verifyProjects(Collection<Element> configXML, boolean visAvailable) {
+  public boolean verifyProjects(Collection<Element> configXML) {
     boolean allOk = true;
 
     /* Match current extensions against extensions in simulation config */
@@ -3641,8 +3642,8 @@ public class Cooja extends Observable {
    * @return True if all plugins started, false otherwise
    */
   public boolean setPluginsConfigXML(Collection<Element> configXML,
-      Simulation simulation, boolean visAvailable) {
-
+      Simulation simulation, boolean visAvailable, boolean quick) {
+      
     for (final Element pluginElement : configXML.toArray(new Element[0])) {
       if (pluginElement.getName().equals("plugin")) {
 
