@@ -1,144 +1,80 @@
 /*
-  Contiki Rime BRD demo.
-  Broadcast Temp, Bat Voltage, RSSI, LQI DEMO. Robert Olsson <robert@herjulf.se>
-  Heavily based on code from:
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
-  See Contiki for full copyright.
-*/
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ */
+
+/**
+ * \file
+ *         Testing the abc layer in Rime
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
 
 #include "contiki.h"
-#include "contiki-net.h"
-#include "lib/list.h"
-#include "lib/memb.h"
-#include "lib/random.h"
 #include "net/rime/rime.h"
-#include "dev/leds.h"
-#include "rf230bb.h"
+#include "random.h"
+#include "netstack.h"
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <string.h>
-#include "rss2.h"
-#include <avr/io.h>
-#include <avr/wdt.h>
-
-#define MAX_NEIGHBORS 64
-#define SIZE          40
-
-unsigned char charbuf[SIZE];
-#define MAX_BCAST_SIZE 99
-
-struct broadcast_message {
-  uint8_t head; /* version << 4 + ttl */
-  uint8_t seqno;
-  uint8_t buf[MAX_BCAST_SIZE+20];  /* Check for max payload 20 extra to be able to test */
-};
-
-#define DEF_CHAN 26
-
-struct neighbor {
-  struct neighbor *next;
-  linkaddr_t addr;
-
-  /* The ->last_rssi and ->last_lqi fields hold the Received Signal
-     Strength Indicator (RSSI) and CC2420 Link Quality Indicator (LQI)
-     values that are received for the incoming broadcast packets. */
-  uint16_t last_rssi, last_lqi;
-  uint8_t last_seqno;
-
-  /* The ->avg_gap contains the average seqno gap that we have seen
-     from this neighbor. */
-  uint32_t avg_seqno_gap;
-};
-
-MEMB(neighbors_memb, struct neighbor, MAX_NEIGHBORS);
-LIST(neighbors_list);
-
-static struct broadcast_conn broadcast;
-
-#define SEQNO_EWMA_UNITY 0x100 /* Moving average */
-#define SEQNO_EWMA_ALPHA 0x040
-
-PROCESS(broadcast_process, "Broadcast process");
-AUTOSTART_PROCESSES(&broadcast_process);
-
-static void broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
+/*---------------------------------------------------------------------------*/
+PROCESS(example_abc_process, "ABC example");
+AUTOSTART_PROCESSES(&example_abc_process);
+/*---------------------------------------------------------------------------*/
+static void
+abc_recv(struct abc_conn *c)
 {
-  struct neighbor *n;
-  struct broadcast_message *msg;
-  uint8_t seqno_gap;
-
-  leds_off(4); // - RED
-  msg = packetbuf_dataptr();
-  /* From our own address. Can happen if we receive own pkt via relay
-     Ignore
-  */
-
-  if(linkaddr_cmp(&linkaddr_node_addr, from)) {
-    //do nothing
-    goto out;
-  }
-
-  /* Check if we already know this neighbor. */
-  for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
-
-    if(linkaddr_cmp(&n->addr, from)) 
-      break;
-  }
-
-  if(n == NULL) {
-    n = memb_alloc(&neighbors_memb); /* New neighbor */
-
-    if(! n ) 
-      goto out;
-    
-    linkaddr_copy(&n->addr, from);
-    n->last_seqno = msg->seqno - 1;
-    n->avg_seqno_gap = SEQNO_EWMA_UNITY;
-    list_add(neighbors_list, n);
-  }
-
-  n->last_rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
-  n->last_lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
-
-  /* Compute the average sequence number gap from this neighbor. */
-  seqno_gap = msg->seqno - n->last_seqno;
-
-  
-  n->avg_seqno_gap = (((uint32_t)seqno_gap * SEQNO_EWMA_UNITY) *
-                      SEQNO_EWMA_ALPHA) / SEQNO_EWMA_UNITY +
-                      ((uint32_t)n->avg_seqno_gap * (SEQNO_EWMA_UNITY -
-                                                     SEQNO_EWMA_ALPHA)) / SEQNO_EWMA_UNITY;
-
-  n->last_seqno = msg->seqno;
-
-  printf("&: %s [ADDR=%-d.%-d SEQ=%-d TTL=%-u RSSI=%-u LQI=%-u DRP=%-d.%02d]\n",
-	 msg->buf,
-	 from->u8[0], from->u8[1], msg->seqno, msg->head & 0xF,
-	 n->last_rssi,
-	 n->last_lqi, 
-	 (int)(n->avg_seqno_gap / SEQNO_EWMA_UNITY),
-	 (int)(((100UL * n->avg_seqno_gap) / SEQNO_EWMA_UNITY) % 100));
-
-out:
-  leds_off(4); //0b00010000 - PE4
+  printf("abc message received '%s'\n", (char *)packetbuf_dataptr());
 }
-
-
-static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
-
-PROCESS_THREAD(broadcast_process, ev, data)
+static const struct abc_callbacks abc_call = {abc_recv};
+static struct abc_conn abc;
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(example_abc_process, ev, data)
 {
+  static struct etimer et;
+  PROCESS_EXITHANDLER(abc_close(&abc);)
   PROCESS_BEGIN();
-  broadcast_open(&broadcast, 129, &broadcast_call);
-  wdt_disable();
-  leds_init();
-  rf230_set_channel(26);  
-  while(1) 
-  {
-	  //no transmissions. just wait to receive
+  abc_open(&abc, 129, &abc_call);
+  
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
+
+  while(1) {
+
+    /* Delay 2-4 seconds */
+    etimer_set(&et, CLOCK_SECOND);
+
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    packetbuf_copyfrom("Hello", 6);
+    abc_send(&abc);
+    printf("abc message sent\n");
   }
+
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
