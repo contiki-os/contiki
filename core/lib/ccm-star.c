@@ -153,6 +153,7 @@ aead(const uint8_t* nonce,
     uint8_t *result, uint8_t mic_len,
     int forward)
 {
+
   if(!forward) {
     /* decrypt */
     ctr(nonce, m, m_len);
@@ -172,6 +173,6 @@ aead(const uint8_t* nonce,
 /*---------------------------------------------------------------------------*/
 const struct ccm_star_driver ccm_star_driver = {
   set_key,
-  aead
+  aead,
 };
 /*---------------------------------------------------------------------------*/

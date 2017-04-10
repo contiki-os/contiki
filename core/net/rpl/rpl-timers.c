@@ -134,12 +134,12 @@ new_dio_interval(rpl_instance_t *instance)
   instance->dio_totint++;
   instance->dio_totrecv += instance->dio_counter;
   ANNOTATE("#A rank=%u.%u(%u),stats=%d %d %d %d,color=%s\n",
-	   DAG_RANK(instance->current_dag->rank, instance),
+           DAG_RANK(instance->current_dag->rank, instance),
            (10 * (instance->current_dag->rank % instance->min_hoprankinc)) / instance->min_hoprankinc,
            instance->current_dag->version,
            instance->dio_totint, instance->dio_totsend,
-           instance->dio_totrecv,instance->dio_intcurrent,
-	   instance->current_dag->rank == ROOT_RANK(instance) ? "BLUE" : "ORANGE");
+           instance->dio_totrecv, instance->dio_intcurrent,
+           instance->current_dag->rank == ROOT_RANK(instance) ? "BLUE" : "ORANGE");
 #endif /* RPL_CONF_STATS */
 
   /* reset the redundancy counter */
@@ -274,16 +274,15 @@ handle_dao_timer(void *ptr)
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     /* Set the route lifetime to the default value. */
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
-
 #if RPL_WITH_MULTICAST
     /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
     if(instance->mop == RPL_MOP_STORING_MULTICAST) {
       /* Send a DAO for own multicast addresses */
       for(i = 0; i < UIP_DS6_MADDR_NB; i++) {
         if(uip_ds6_if.maddr_list[i].isused
-            && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)) {
+           && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)) {
           dao_output_target(instance->current_dag->preferred_parent,
-              &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
+                            &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
         }
       }
 
@@ -293,7 +292,7 @@ handle_dao_timer(void *ptr)
         /* Don't send if it's also our own address, done that already */
         if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
           dao_output_target(instance->current_dag->preferred_parent,
-                     &mcast_route->group, RPL_MCAST_LIFETIME);
+                            &mcast_route->group, RPL_MCAST_LIFETIME);
         }
         mcast_route = list_item_next(mcast_route);
       }
@@ -373,7 +372,7 @@ void
 rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance)
 {
   ctimer_set(&instance->unicast_dio_timer, 0,
-                  handle_unicast_dio_timer, instance);
+             handle_unicast_dio_timer, instance);
 }
 /*---------------------------------------------------------------------------*/
 #if RPL_WITH_PROBING
@@ -381,7 +380,7 @@ clock_time_t
 get_probing_delay(rpl_dag_t *dag)
 {
   if(dag != NULL && dag->instance != NULL
-      && dag->instance->urgent_probing_target != NULL) {
+     && dag->instance->urgent_probing_target != NULL) {
     /* Urgent probing needed (to find out if a neighbor may become preferred parent) */
     return random_rand() % (CLOCK_SECOND * 10);
   } else {
@@ -407,7 +406,7 @@ get_probing_target(rpl_dag_t *dag)
   clock_time_t clock_now = clock_time();
 
   if(dag == NULL ||
-      dag->instance == NULL) {
+     dag->instance == NULL) {
     return NULL;
   }
 
@@ -429,7 +428,7 @@ get_probing_target(rpl_dag_t *dag)
         /* p is in our dag and needs probing */
         rpl_rank_t p_rank = rpl_rank_via_parent(p);
         if(probing_target == NULL
-            || p_rank < probing_target_rank) {
+           || p_rank < probing_target_rank) {
           probing_target = p;
           probing_target_rank = p_rank;
         }
@@ -442,10 +441,10 @@ get_probing_target(rpl_dag_t *dag)
   if(probing_target == NULL) {
     p = nbr_table_head(rpl_parents);
     while(p != NULL) {
-      const struct link_stats *stats =rpl_get_parent_link_stats(p);
+      const struct link_stats *stats = rpl_get_parent_link_stats(p);
       if(p->dag == dag && stats != NULL) {
         if(probing_target == NULL
-            || clock_now - stats->last_tx_time > probing_target_age) {
+           || clock_now - stats->last_tx_time > probing_target_age) {
           probing_target = p;
           probing_target_age = clock_now - stats->last_tx_time;
         }
@@ -469,11 +468,11 @@ handle_probing_timer(void *ptr)
     const struct link_stats *stats = rpl_get_parent_link_stats(probing_target);
     (void)stats;
     PRINTF("RPL: probing %u %s last tx %u min ago\n",
-        rpl_get_parent_lladdr(probing_target)->u8[7],
-        instance->urgent_probing_target != NULL ? "(urgent)" : "",
-        probing_target != NULL ?
-        (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0
-        );
+           rpl_get_parent_lladdr(probing_target)->u8[7],
+           instance->urgent_probing_target != NULL ? "(urgent)" : "",
+           probing_target != NULL ?
+           (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0
+           );
     /* Send probe, e.g. unicast DIO or DIS */
     RPL_PROBING_SEND_FUNC(instance, target_ipaddr);
     instance->urgent_probing_target = NULL;
@@ -491,7 +490,7 @@ void
 rpl_schedule_probing(rpl_instance_t *instance)
 {
   ctimer_set(&instance->probing_timer, RPL_PROBING_DELAY_FUNC(instance->current_dag),
-                  handle_probing_timer, instance);
+             handle_probing_timer, instance);
 }
 #endif /* RPL_WITH_PROBING */
 /** @}*/

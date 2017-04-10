@@ -51,21 +51,21 @@
 /*---------------------------------------------------------------------------*/
 /** \brief Is IPv6 address addr the link-local, all-RPL-nodes
     multicast address? */
-#define uip_is_addr_linklocal_rplnodes_mcast(addr)	    \
-  ((addr)->u8[0] == 0xff) &&				    \
-  ((addr)->u8[1] == 0x02) &&				    \
-  ((addr)->u16[1] == 0) &&				    \
-  ((addr)->u16[2] == 0) &&				    \
-  ((addr)->u16[3] == 0) &&				    \
-  ((addr)->u16[4] == 0) &&				    \
-  ((addr)->u16[5] == 0) &&				    \
-  ((addr)->u16[6] == 0) &&				    \
-  ((addr)->u8[14] == 0) &&				    \
+#define uip_is_addr_linklocal_rplnodes_mcast(addr) \
+  ((addr)->u8[0] == 0xff) && \
+  ((addr)->u8[1] == 0x02) && \
+  ((addr)->u16[1] == 0) && \
+  ((addr)->u16[2] == 0) && \
+  ((addr)->u16[3] == 0) && \
+  ((addr)->u16[4] == 0) && \
+  ((addr)->u16[5] == 0) && \
+  ((addr)->u16[6] == 0) && \
+  ((addr)->u8[14] == 0) && \
   ((addr)->u8[15] == 0x1a))
 
 /** \brief Set IP address addr to the link-local, all-rpl-nodes
     multicast address. */
-#define uip_create_linklocal_rplnodes_mcast(addr)	\
+#define uip_create_linklocal_rplnodes_mcast(addr) \
   uip_ip6addr((addr), 0xff02, 0, 0, 0, 0, 0, 0, 0x001a)
 /*---------------------------------------------------------------------------*/
 /* RPL message types */
@@ -77,6 +77,7 @@
 #define RPL_CODE_SEC_DIO               0x81   /* Secure DIO */
 #define RPL_CODE_SEC_DAO               0x82   /* Secure DAO */
 #define RPL_CODE_SEC_DAO_ACK           0x83   /* Secure DAO ACK */
+#define RPL_CODE_CC                    0x8A   /* Consistency Check */
 
 /* RPL control message options. */
 #define RPL_OPTION_PAD1                  0
@@ -102,17 +103,17 @@
 
 /*---------------------------------------------------------------------------*/
 /* RPL IPv6 extension header option. */
-#define RPL_HDR_OPT_LEN			4
-#define RPL_HOP_BY_HOP_LEN		(RPL_HDR_OPT_LEN + 2 + 2)
-#define RPL_RH_LEN     4
-#define RPL_SRH_LEN    4
-#define RPL_RH_TYPE_SRH   3
-#define RPL_HDR_OPT_DOWN		0x80
-#define RPL_HDR_OPT_DOWN_SHIFT  	7
-#define RPL_HDR_OPT_RANK_ERR		0x40
-#define RPL_HDR_OPT_RANK_ERR_SHIFT   	6
-#define RPL_HDR_OPT_FWD_ERR		0x20
-#define RPL_HDR_OPT_FWD_ERR_SHIFT   	5
+#define RPL_HDR_OPT_LEN        		  4
+#define RPL_HOP_BY_HOP_LEN            (RPL_HDR_OPT_LEN + 2 + 2)
+#define RPL_RH_LEN                    4
+#define RPL_SRH_LEN                   4
+#define RPL_RH_TYPE_SRH               3
+#define RPL_HDR_OPT_DOWN              0x80
+#define RPL_HDR_OPT_DOWN_SHIFT        7
+#define RPL_HDR_OPT_RANK_ERR          0x40
+#define RPL_HDR_OPT_RANK_ERR_SHIFT    6
+#define RPL_HDR_OPT_FWD_ERR           0x20
+#define RPL_HDR_OPT_FWD_ERR_SHIFT     5
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
@@ -151,8 +152,7 @@
 #define RPL_ROUTE_INFINITE_LIFETIME           0xFFFFFFFF
 
 #define RPL_LIFETIME(instance, lifetime) \
-          (((lifetime) == RPL_INFINITE_LIFETIME) ? RPL_ROUTE_INFINITE_LIFETIME : (unsigned long)(instance)->lifetime_unit * (lifetime))
-
+  (((lifetime) == RPL_INFINITE_LIFETIME) ? RPL_ROUTE_INFINITE_LIFETIME : (unsigned long)(instance)->lifetime_unit * (lifetime))
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
 /* RFC6550 defines the default MIN_HOPRANKINC as 256.
@@ -275,16 +275,16 @@
 #define RPL_LOLLIPOP_CIRCULAR_REGION     127
 #define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
 #define RPL_LOLLIPOP_INIT                (RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1)
-#define RPL_LOLLIPOP_INCREMENT(counter)                                 \
-  do {                                                                  \
-    if((counter) > RPL_LOLLIPOP_CIRCULAR_REGION) {                      \
-      (counter) = ((counter) + 1) & RPL_LOLLIPOP_MAX_VALUE;             \
-    } else {                                                            \
-      (counter) = ((counter) + 1) & RPL_LOLLIPOP_CIRCULAR_REGION;       \
-    }                                                                   \
+#define RPL_LOLLIPOP_INCREMENT(counter) \
+  do { \
+    if((counter) > RPL_LOLLIPOP_CIRCULAR_REGION) { \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_MAX_VALUE; \
+    } else { \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_CIRCULAR_REGION; \
+    } \
   } while(0)
 
-#define RPL_LOLLIPOP_IS_INIT(counter)		\
+#define RPL_LOLLIPOP_IS_INIT(counter) \
   ((counter) > RPL_LOLLIPOP_CIRCULAR_REGION)
 /*---------------------------------------------------------------------------*/
 /* Logical representation of a DAG Information Object (DIO.) */
@@ -329,13 +329,11 @@ typedef struct rpl_stats rpl_stats_t;
 
 extern rpl_stats_t rpl_stats;
 #endif
-
-
 /*---------------------------------------------------------------------------*/
 /* RPL macros. */
 
 #if RPL_CONF_STATS
-#define RPL_STAT(code)	(code) 
+#define RPL_STAT(code)  (code)
 #else
 #define RPL_STAT(code)
 #endif /* RPL_CONF_STATS */
@@ -376,7 +374,7 @@ void rpl_nullify_parent(rpl_parent_t *);
 void rpl_remove_parent(rpl_parent_t *);
 void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
-rpl_dag_t *rpl_select_dag(rpl_instance_t *instance,rpl_parent_t *parent);
+rpl_dag_t *rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *parent);
 void rpl_recalculate_ranks(void);
 
 /* RPL routing table functions. */
@@ -401,7 +399,6 @@ void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */
 void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);
-
 
 rpl_instance_t *rpl_get_default_instance(void);
 

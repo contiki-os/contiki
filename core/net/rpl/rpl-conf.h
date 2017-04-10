@@ -95,7 +95,7 @@
 #ifdef RPL_CONF_DEFAULT_INSTANCE
 #define RPL_DEFAULT_INSTANCE RPL_CONF_DEFAULT_INSTANCE
 #else
-#define RPL_DEFAULT_INSTANCE	       0x1e
+#define RPL_DEFAULT_INSTANCE         0x1e
 #endif /* RPL_CONF_DEFAULT_INSTANCE */
 
 /*
@@ -155,16 +155,16 @@
 #endif /* RPL_CONF_DAG_LIFETIME */
 
 /*
- * 
+ *
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG
-  #if RPL_MAX_DAG_PER_INSTANCE > 1
-    #define RPL_DAO_SPECIFY_DAG 1
-  #else
-    #define RPL_DAO_SPECIFY_DAG 0
-  #endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+#if RPL_MAX_DAG_PER_INSTANCE > 1
+#define RPL_DAO_SPECIFY_DAG 1
 #else
-  #define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
+#define RPL_DAO_SPECIFY_DAG 0
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+#else
+#define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
 #endif /* RPL_CONF_DAO_SPECIFY_DAG */
 
 /*
@@ -240,9 +240,9 @@
  * This will also enable retransmission of DAO when no ack is received.
  * */
 #ifdef RPL_CONF_WITH_DAO_ACK
-#define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
+#define RPL_WITH_DAO_ACK 	RPL_CONF_WITH_DAO_ACK
 #else
-#define RPL_WITH_DAO_ACK 0
+#define RPL_WITH_DAO_ACK 	0
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
@@ -336,6 +336,43 @@
 #define RPL_DIS_START_DELAY             RPL_CONF_DIS_START_DELAY
 #else
 #define RPL_DIS_START_DELAY             5
+#endif
+
+/*
+ * RPL Security
+ * = 0  : Unsecured Mode
+ * = 1  : Secure Mode
+ * = 2  : Authenticated Mode (Not yet Implemented)
+ * Authenticated Mode not implemented
+ */
+#ifdef RPL_CONF_SECURITY
+#define RPL_SECURITY          RPL_CONF_SECURITY
+#else /* Not enabled by user, disable security */
+#define RPL_SECURITY          0
+#endif
+
+/*
+ * RPL Pre-installed key for Secure Mode
+ */
+#ifdef RPL_CONF_SECURITY_K
+#define RPL_SECURITY_K RPL_CONF_SECURITY_K
+#else
+#define RPL_SECURITY_K { 0xF7, 0x8E, 0xBA, 0xC9, 0xED, 0xE3, 0xE6, 0x68, 0xDF, 0x15, 0x72, 0xE0, 0x78, 0xB7, 0x80, 0x9E }
+#endif
+
+/*
+ * RPL Security Level
+ * KIM = 0 in this implementation
+ * LVL = 0 : MAC-32 mode
+ * LVL = 1 : ENC-MAC-32 mode (default)
+ * LVL = 2 : MAC-64 mode
+ * LVL = 3 : ENC-MAC-64 mode
+ */
+
+#ifdef RPL_CONF_SEC_LVL
+#define RPL_SEC_LVL  RPL_CONF_SEC_LVL
+#else
+#define RPL_SEC_LVL 1
 #endif
 
 #endif /* RPL_CONF_H */
