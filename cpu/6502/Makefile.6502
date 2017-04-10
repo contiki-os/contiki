@@ -67,7 +67,7 @@ AR = ar65
 # The apps coming with Contiki run even on a 0x100 byte stack.
 
 ASFLAGS = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or -W -unused-param
+CFLAGS += -t $(TARGET) -Ors -W -unused-param
 LDFLAGS = -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
 
