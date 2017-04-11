@@ -1338,7 +1338,9 @@ mqtt_connect(struct mqtt_connection *conn, char *host, uint16_t port,
   conn->connect_vhdr_flags |= MQTT_VHDR_CLEAN_SESSION_FLAG;
 
   /* convert the string IPv6 address to a numeric IPv6 address */
-  uiplib_ip6addrconv(host, &ip6addr);
+  if(uiplib_ip6addrconv(host, &ip6addr) == 0) {
+    return MQTT_STATUS_ERROR;
+  }
 
   uip_ipaddr_copy(&(conn->server_ip), ipaddr);
 

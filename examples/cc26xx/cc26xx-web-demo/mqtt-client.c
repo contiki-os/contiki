@@ -698,10 +698,15 @@ static void
 connect_to_broker(void)
 {
   /* Connect to MQTT server */
-  mqtt_connect(&conn, conf->broker_ip, conf->broker_port,
-               conf->pub_interval * 3);
+  mqtt_status_t conn_attempt_result = mqtt_connect(&conn, conf->broker_ip,
+                                                   conf->broker_port,
+                                                   conf->pub_interval * 3);
 
-  state = MQTT_CLIENT_STATE_CONNECTING;
+  if(conn_attempt_result == MQTT_STATUS_OK) {
+    state = MQTT_CLIENT_STATE_CONNECTING;
+  } else {
+    state = MQTT_CLIENT_STATE_CONFIG_ERROR;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -827,8 +832,8 @@ state_machine(void)
     }
     break;
   case MQTT_CLIENT_STATE_NEWCONFIG:
-    /* Only update config after we have disconnected */
-    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED) {
+    /* Only update config after we have disconnected or in the case of an error */
+    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED || conn.state == MQTT_CONN_STATE_ERROR) {
       update_config();
       DBG("New config\n");
 
