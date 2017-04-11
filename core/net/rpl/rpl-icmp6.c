@@ -652,6 +652,7 @@ dao_input_storing(void)
 
   prefixlen = 0;
   parent = NULL;
+  memset(&prefix, 0, sizeof(prefix));
 
   uip_ipaddr_copy(&dao_sender_addr, &UIP_IP_BUF->srcipaddr);
 
