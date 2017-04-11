@@ -205,7 +205,7 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
 int
 frame802154_check_dest_panid(frame802154_t *frame)
 {
-  int has_dest_panid;
+  int has_dest_panid = 0;
 
   if(frame == NULL) {
     return 0;
