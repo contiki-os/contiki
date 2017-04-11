@@ -83,7 +83,10 @@
 #define SR_CCA_DONE            0x141, 0x80, 7
 #define SR_CCA_STATUS          0x141, 0x40, 6
 #define SR_AACK_SET_PD         0x16e, 0x20, 5
+#define SR_AACK_DIS_ACK        0x16e, 0x10, 4
 
+#define RG_XAH_CTRL_1         (0x157)
+#define SR_AACK_PROM_MODE     0x157, 0x02, 1
 
 /* RF230 register assignments, for reference */
 #if 0

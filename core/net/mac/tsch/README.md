@@ -1,8 +1,8 @@
-# IEEE 802.15.4e TSCH (TimeSlotted Channel Hopping)
+# IEEE 802.15.4-2015 TSCH and IETF 6TiSCH
 
 ## Overview
 
-TSCH is a MAC layer of the [IEEE 802.15.4e-2012 amendment][ieee802.15.4e-2012],
+Time Slotted Channel Hopping (TSCH) is a MAC layer of the [IEEE 802.15.4e-2012 amendment][ieee802.15.4e-2012],
 currently being integrated as part of the new IEEE 802.15.4-2015.
 [6TiSCH][ietf-6tisch-wg] is an IETF Working Group focused on IPv6 over TSCH.
 This is a Contiki implementation of TSCH and the 6TiSCH so-called "minimal configuration",
@@ -13,7 +13,9 @@ It was developped by:
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
 * Atis Elsts, Univ. Bristol, atis.elsts@bristol.ac.uk, github user: [atiselsts](https://github.com/atiselsts)
 
-You can find an extensive evaluation of this implementation in our paper [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
+
+This implementation is presented in depth and evaluated in our paper: [*TSCH and 6TiSCH for Contiki: Challenges, Design and Evaluation*](http://www.simonduquennoy.net/papers/duquennoy17tsch.pdf), IEEE DCOSS'17.
+The scheduler Orchestra is detailled in [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
 
 ## Features
 
@@ -27,7 +29,7 @@ This implementation includes:
   * Standard TSCH link selection and slot operation (10ms slots by default)
   * Standard TSCH synchronization, including with ACK/NACK time correction Information Element
   * Standard TSCH queues and CSMA-CA mechanism
-  * Standard TSCH security
+  * Standard TSCH and 6TiSCH security
   * Standard 6TiSCH TSCH-RPL interaction (6TiSCH Minimal Configuration and Minimal Schedule)
   * A scheduling API to add/remove slotframes and links
   * A system for logging from TSCH timeslot operation interrupt, with postponed printout

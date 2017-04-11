@@ -178,7 +178,7 @@ coap_serialize_array_option(unsigned int number, unsigned int current_number,
   size_t i = 0;
 
   PRINTF("ARRAY type %u, len %zu, full [%.*s]\n", number, length,
-	 (int)length, array);
+         (int)length, array);
 
   if(split_char != '\0') {
     int j;
@@ -602,7 +602,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       coap_pkt->uri_host = (char *)current_option;
       coap_pkt->uri_host_len = option_length;
       PRINTF("Uri-Host [%.*s]\n", (int)coap_pkt->uri_host_len,
-	     coap_pkt->uri_host);
+             coap_pkt->uri_host);
       break;
     case COAP_OPTION_URI_PORT:
       coap_pkt->uri_port = coap_parse_int_option(current_option,
