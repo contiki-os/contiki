@@ -49,7 +49,6 @@ static struct ringbuf rxbuf;
 static uint8_t rxbuf_data[BUFSIZE];
 
 PROCESS(serial_raw_process, "Serial driver for raw unbuffered input");
-AUTOSTART_PROCESSES(&serial_raw_process);
 
 process_event_t serial_raw_event_message;
 /*---------------------------------------------------------------------------*/
@@ -69,6 +68,8 @@ PROCESS_THREAD(serial_raw_process, ev, data)
 
   PROCESS_BEGIN();
   
+  serial_raw_event_message = process_alloc_event();
+
   while(1) {
     int c = ringbuf_get(&rxbuf);
     if (c == -1) {
