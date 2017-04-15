@@ -1,3 +1,7 @@
+
+#ifndef __HTML_STRINGS_H__
+#define __HTML_STRINGS_H__
+
 extern const char html_slasha[4];
 extern const char html_slashdiv[6];
 extern const char html_slashform[7];
@@ -33,3 +37,5 @@ extern const char html_text[6];
 extern const char html_size[6];
 extern const char html_image[7];
 extern const char html_hidden[8];
+
+#endif
