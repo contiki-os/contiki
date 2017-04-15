@@ -5,7 +5,7 @@ all:
 	@$(MAKE) -s -k compile || cat *.output
 
 compile: rime-examples shell hello-world \
-         ipso-ipv6-raven jcreate multi-threading sky sky-ip sky-shell \
+         jcreate multi-threading sky sky-ip sky-shell \
          webserver-ipv6 webserver-ipv6-raven tools
 
 tools:
@@ -18,7 +18,6 @@ hello-world: example-hello-world.sky example-hello-world.native \
              example-hello-world.micaz example-hello-world.avr-raven \
              example-hello-world.redbee-econotag example-hello-world.z1
 rime-examples: example-rime.sky example-rime.z1 example-rime.esb example-rime.redbee-econotag
-ipso-ipv6-raven: example-ipso-ipv6-raven.avr-raven
 jcreate: example-jcreate.jcreate
 multi-threading: example-multi-threading.sky \
                  example-multi-threading.native example-multi-threading.msb430 \
