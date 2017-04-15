@@ -1,0 +1,146 @@
+# Adapted from Makefile.msp430
+
+### Code common for all ARM CPUs
+
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm/
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/lpc1768
+
+
+### Define the source files we have in the LPC1768 port
+
+CONTIKI_CPU_DIRS = . cmsis_lpc17xx dbg_io
+
+#List of source files that interface between Contiki and the LPC17xx drivers
+LPC1768     = clock.c emac.c emac-driver.c startup-LPC1768.c
+
+#List of source files of the CMSIS driver library for the LPC17xx family			 
+CMSIS_LPC17xx = core_cm3.c debug_frmwrk.c lpc17xx_adc.c lpc17xx_can.c \
+				lpc17xx_clkpwr.c lpc17xx_dac.c lpc17xx_emac.c \
+				lpc17xx_exti.c lpc17xx_gpdma.c lpc17xx_gpio.c \
+				lpc17xx_i2c.c lpc17xx_i2s.c lpc17xx_libcfg_default.c \
+				lpc17xx_mcpwm.c lpc17xx_nvic.c lpc17xx_pinsel.c \
+				lpc17xx_pwm.c lpc17xx_qei.c lpc17xx_rit.c \
+				lpc17xx_rtc.c lpc17xx_spi.c lpc17xx_ssp.c \
+				lpc17xx_systick.c lpc17xx_timer.c lpc17xx_uart.c \
+				lpc17xx_wdt.c system_LPC17xx.c
+				
+#List of source files that retarget the stdio.h functions to the UART
+DBG_IO = debug-uart.c syscalls.c			
+
+CONTIKI_TARGET_SOURCEFILES += $(LPC1768) $(CMSIS_LPC17xx) $(DBG_IO) $(UIPDRIVERS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+THREADS =
+
+### Compiler definitions
+CC       = arm-none-eabi-gcc
+LD       = arm-none-eabi-ld
+AS       = arm-none-eabi-as
+AR       = arm-none-eabi-ar
+NM       = arm-none-eabi-nm
+OBJCOPY  = arm-none-eabi-objcopy
+STRIP    = arm-none-eabi-strip
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+LINKERSCRIPT = $(CONTIKI_CPU)/lpc1768.ld
+
+STARTUP=${addprefix $(OBJECTDIR)/,startup-LPC1768.o}
+
+ARCH_FLAGS= -mthumb -mcpu=cortex-m3
+
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
+           -Wall $(ARCH_FLAGS) -g -D SUBTARGET=$(SUBTARGET) \
+
+CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN
+LDFLAGS += -L $(CONTIKI_CPU) -T $(LINKERSCRIPT) -nostartfiles \
+			-Wl,-Map -Xlinker contiki-$(TARGET).map
+
+CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
+
+
+### Setup directory search path for source files
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+CUSTOM_RULE_C_TO_O=yes
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
+%.o: %.S
+	$(CC) $(CFLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.S
+	$(CC) $(CFLAGS) $< -c  -o $@
+
+
+CUSTOM_RULE_C_TO_CO=yes
+
+%.co: %.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+CUSTOM_RULE_C_TO_CE=yes
+
+%.ce: %.o
+	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+CUSTOM_RULE_LINK=yes
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) # $(OBJECTDIR)/empty-symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+
+%.ihex: %.$(TARGET)
+	$(OBJCOPY) $^ -O ihex $@
+
+%.bin: %.$(TARGET)
+	$(OBJCOPY) -O binary $< $@
+ 
+.PHONY: symbols.c
+ifdef CORE
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+symbols.c: $(CORE)
+	$(NM) $< | awk -f $(CONTIKI_CPU)/builtins.awk -f ../../tools/mknmlist > symbols.c
+
+else
+%.$(TARGET): %-nosyms.$(TARGET)
+	ln -sf $< $@
+endif
+
+empty-symbols.c:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+
+clean: clean_cpu
+
+.PHONY: clean_cpu
+
+clean_cpu:
+	-rm -rf $(BUILTSRCDIR)
+
+.PRECIOUS: %-nosyms.$(TARGET)
