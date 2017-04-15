@@ -67,6 +67,7 @@ SECTIONS
         *(.vectors)
         *(.text*)
         *(.rodata*)
+        . = ALIGN(8);
         _etext = .;
     } > FLASH_FW= 0
 
