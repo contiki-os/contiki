@@ -1,0 +1,25 @@
+BI-DCDC =  
+
+#CODEPROP_SOURCES = codeprop-otf.c ram-segments.c
+
+CONTIKI_TARGET_DIRS = . dev net
+# Master clock frequency
+MCK=48000000
+CFLAGS+=-DAUTOSTART_ENABLE -DMCK=48000000
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(CODEPROP_SOURCES) $(CONTIKI_TARGET_MAIN)
+
+#include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
+
+include $(CONTIKI)/cpu/arm/lpc1768/Makefile.lpc1768
+
+#contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+ifndef BASE_IP
+BASE_IP := 172.16.1.1
+endif
+
