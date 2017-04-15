@@ -62,7 +62,6 @@ void cdc_eem_process(void) {
 #endif
 
 	//Connected!
-	Led0_on();
 
 	Usb_select_endpoint(RX_EP);
 

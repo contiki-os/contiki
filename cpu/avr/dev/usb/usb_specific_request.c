@@ -102,8 +102,8 @@ Bool usb_user_read_request(U8 type, U8 request)
 				MSB(wLength) = Usb_read_byte();
 				if((usb_configuration_nb==USB_CONFIG_RNDIS)||(usb_configuration_nb==USB_CONFIG_RNDIS_DEBUG))
 					return rndis_send_encapsulated_command(wLength);
-				else
-					return FALSE;
+				else if((usb_configuration_nb==USB_CONFIG_ECM)||(usb_configuration_nb==USB_CONFIG_ECM_DEBUG))
+					return cdc_ecm_handle_send_encapsulated_command(wLength);
       			break;
 
   		case GET_ENCAPSULATED_COMMAND:
@@ -116,6 +116,8 @@ Bool usb_user_read_request(U8 type, U8 request)
 				MSB(wLength) = Usb_read_byte();
 				if((usb_configuration_nb==USB_CONFIG_RNDIS)||(usb_configuration_nb==USB_CONFIG_RNDIS_DEBUG))
 					return rndis_get_encapsulated_command();
+				else if((usb_configuration_nb==USB_CONFIG_ECM)||(usb_configuration_nb==USB_CONFIG_ECM_DEBUG))
+					return cdc_ecm_handle_get_encapsulated_command();
 				else
 					return FALSE;
       			break;
@@ -225,20 +227,36 @@ static char itoh(unsigned char i) {
 }
 const char* usb_user_get_string_sram(U8 string_type) {
 	static char serial[13];
-	uint8_t i;
+	uint8_t i=0;
+	char *ptr = serial;
 	
 	switch (string_type)
 	{
 		case USB_STRING_SERIAL:
+#if USB_CONF_MACINTOSH
+			/*	On MacOS X, if the serial number is larger
+			**	than 8 characters, then the number appended
+			**	to /dev/tty.usbmodem is based on which USB
+			**	port the device is connected to. If it is
+			**	less than or equal to 8 characters, then
+			**	the serial number is simply appended to
+			**	/dev/tty.usbmodem. Having a stable device
+			**	name that is independent of the USB port
+			**	is valuble, so when USB_CONF_MACINTOSH
+			**	is set, we go ahead and drop the first
+			**	four characters. */
+			i=2;
+#endif
 		case USB_STRING_MAC_ADDRESS:
 			{
 				uint8_t mac_address[6];
 				usb_eth_get_mac_address(mac_address);
 				
-				for(i=0;i<6;i++) {
-					serial[i*2] = itoh(mac_address[i]>>4);
-					serial[i*2+1] = itoh(mac_address[i]);
+				for(;i<6;i++) {
+					*ptr++ = itoh(mac_address[i]>>4);
+					*ptr++ = itoh(mac_address[i]);
 				}
+				*ptr = 0;
 			}
 			break;
 		default:
@@ -314,7 +332,15 @@ PGM_P usb_user_get_string(U8 string_type) {
 //! @param conf_nb Not used
 void usb_user_endpoint_init(U8 conf_nb)
 {
+	usb_eth_reset();
+
+#if defined(USB_HOOK_UNENUMERATED)
+	if(conf_nb==0)
+		USB_HOOK_UNENUMERATED();
+#endif
+
 	if(USB_CONFIG_HAS_DEBUG_PORT(conf_nb)) {
+		uart_usb_init();
 		uart_usb_configure_endpoints();
 	}
 
@@ -361,7 +387,6 @@ void usb_user_endpoint_init(U8 conf_nb)
 			break;	
 #endif
 	}
-	Led0_on();
 }
 
 #if USB_CONF_SERIAL
