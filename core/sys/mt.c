@@ -107,3 +107,21 @@ mt_stop(struct mt_thread *thread)
   mtarch_stop(&thread->thread);
 }
 /*--------------------------------------------------------------------------*/
+
+
+
+
+/**
+ * Returns the currently running thread
+ *
+ * This function returns the currently running thread.
+ *
+ * \return  Either NULL if no thread is running or a pointer to the
+ *          mt_thread instance of the currently running thread is returned.
+ *
+ */
+struct mt_thread*
+mt_current(void)
+{
+    return current;
+}
