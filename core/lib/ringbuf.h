@@ -55,6 +55,7 @@
 #define RINGBUF_H_
 
 #include "contiki-conf.h"
+#include "lib/assert.h"
 
 /**
  * \brief      Structure that holds the state of a ring buffer.
@@ -78,16 +79,34 @@ struct ringbuf {
  * \param r    A pointer to a struct ringbuf to hold the state of the ring buffer
  * \param a    A pointer to an array to hold the data in the buffer
  * \param size_power_of_two The size of the ring buffer, which must be a power of two
+ * \sa RINGBUF_INIT
  *
  *             This function initiates a ring buffer. The data in the
  *             buffer is stored in an external array, to which a
  *             pointer must be supplied. The size of the ring buffer
  *             must be a power of two and cannot be larger than 128
- *             bytes.
+ *             bytes. If possible use the \ref RINGBUF_INIT macro.
  *
  */
 void    ringbuf_init(struct ringbuf *r, uint8_t *a,
 		     uint8_t size_power_of_two);
+
+
+/**
+ * \brief      Initialize a ring buffer with compile time checks
+ * @param r    A pointer to a struct ringbuf to hold the state of the ring buffer
+ * @param b    A pointer to an array to hold the data in the buffer - must be a power of two
+ * @sa ringbuf_init
+ *
+ *             This macro calls rinbuf_init(), but does some compile time checks whether your
+ *             buffer meets the criteria by \ref ringbuf_init. At least when using GCC.
+ */
+
+#define RINGBUF_INIT(r, b) do {\
+  _CTASSERT( (sizeof(b) <= 128) && ((sizeof(b) & (sizeof(b) -1)) == 0), BUFFER_SIZE_NOT_VALID_); \
+  ringbuf_init(r, b, sizeof(b));\
+} while(0)
+
 
 /**
  * \brief      Insert a byte into the ring buffer

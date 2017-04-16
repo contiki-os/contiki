@@ -33,7 +33,7 @@
  */
 
 #include <stdio.h>
-#include <assert.h>
+#include "lib/assert.h"
 #include <string.h>  /* for memcmp(). */
 #include <stdbool.h>
 

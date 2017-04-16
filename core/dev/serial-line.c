@@ -131,7 +131,7 @@ PROCESS_THREAD(serial_line_process, ev, data)
 void
 serial_line_init(void)
 {
-  ringbuf_init(&rxbuf, rxbuf_data, sizeof(rxbuf_data));
+  RINGBUF_INIT(&rxbuf, rxbuf_data);
   process_start(&serial_line_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
