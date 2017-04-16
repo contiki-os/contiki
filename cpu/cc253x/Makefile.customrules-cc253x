@@ -1,4 +1,5 @@
 ### Compilation rules
+.NOTPARALLEL :
 
 SEGMENT_RULE_FILES = $(foreach dir, . $(CONTIKI_PLATFORM_DIRS) \
 	$(CONTIKI_CPU_DIRS_LIST), $(wildcard $(dir)/segment.rules) )
