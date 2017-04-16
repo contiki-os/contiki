@@ -87,6 +87,20 @@
 #define RF230_MAX_TX_FRAME_LENGTH               ( 127 ) /**< 127 Byte PSDU. */
 
 #define TX_PWR_3DBM                             ( 0 )
+#define TX_PWR_2_8DBM                           ( 1 )
+#define TX_PWR_2_3DBM                           ( 2 )
+#define TX_PWR_1_8DBM                           ( 3 )
+#define TX_PWR_1_3DBM                           ( 4 )
+#define TX_PWR_0_7DBM                           ( 5 )
+#define TX_PWR_0DBM                             ( 6 )
+#define TX_PWR_1DBM                             ( 7 )
+#define TX_PWR_2DBM                             ( 8 )
+#define TX_PWR_3DBM                             ( 9 )
+#define TX_PWR_4DBM                             ( 10 )
+#define TX_PWR_5DBM                             ( 11 )
+#define TX_PWR_7DBM                             ( 12 )
+#define TX_PWR_9DBM                             ( 13 )
+#define TX_PWR_12DBM                            ( 14 )
 #define TX_PWR_17_2DBM                          ( 15 )
 
 #define TX_PWR_MAX                             TX_PWR_3DBM
