@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#ifndef FREEBUF_H_
+#define FREEBUF_H_
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+#ifdef TESTUNIX
+#include <stdint.h>
+#include <sys/types.h>
+#else
+#include <stddef.h>
+#include "contiki.h"
+#endif
 
-#include "net/linkaddr.h"
-#include <string.h>
+void freebuf_init(void **freelist, void *memAddr, size_t elemSize, int numElem);
 
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
+void *freebuf_pop(void **freelist);
 
+void freebuf_push(void **freelist, void *e);
 
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
-{
-	memcpy(dest, src, LINKADDR_SIZE);
-}
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
-{
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+#endif /* FREEBUF_H_ */

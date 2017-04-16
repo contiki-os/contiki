@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,76 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include <p33Fxxxx.h>
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+#define STDIN   0
+#define STDOUT  1
+#define STDERR  2
 
-#include "net/linkaddr.h"
-#include <string.h>
+#include "rs232.h"
 
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+rs232_init(int baud)
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  int i;
+  _DOZE = 0b000;
+  _RP0R = 0b00011; /* Map U1TX to RP1 */
+
+  U1STAbits.UTXEN = 0; /* Enable UART Tx */
+  U1MODEbits.UARTEN = 0; /* Enable UART */
+
+#ifdef NOBOOTLOADER
+  U1MODEbits.STSEL = 0; /* 1-stop bit */
+  U1MODEbits.PDSEL = 0; /* No Parity, 8-data bits */
+  U1MODEbits.ABAUD = 0; /* Auto-Baud Disabled */
+  U1MODEbits.BRGH = 0; /* Low Speed mode */
+  U1BRG = 64; /* BAUD Rate Setting for 9600=259, 38400=64 */
+#endif
+
+  U1STAbits.UTXISEL0 = 0; /* Interrupt after one Tx character is transmitted */
+  U1STAbits.UTXISEL1 = 0;
+
+  U1MODEbits.UARTEN = 1; /* Enable UART */
+  U1STAbits.UTXEN = 1; /* Enable UART Tx */
+
+  /* wait at least 104 usec (1/9600) before sending first char */
+  for(i = 0; i < 16384; i++) {
+    Nop();
+  }
 }
-/*---------------------------------------------------------------------------*/
+int __attribute__((__weak__, __section__(".libc")))
+write(int handle, void *buffer, unsigned int len)
+{
+  int i = 0;
+  switch(handle) {
+  case STDOUT:
+  case STDERR:
+    while(i < len) putchar(((char *)buffer)[i++]);
+    break;
+  }
+  return len;    /* number of characters written */
+}
 int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+putchar(int c)
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  while(U1STAbits.UTXBF) ;
+  U1TXREG = (char)c;
+
+  return c;
 }
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
+int
+puts(const char *s)
 {
-  linkaddr_copy(&linkaddr_node_addr, t);
+  while(*s != '\0') {
+    putchar(*s++); /* Transmit one character */
+  }
+  putchar('\n');
+
+  return 1;
 }
-/*---------------------------------------------------------------------------*/
-/** @} */

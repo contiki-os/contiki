@@ -28,57 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * Author: Oliver Schmidt <ol.sc@web.de>
+ *
+ * $Id: mtarch.h,v 1.1 2007/04/03 00:40:51 oliverschmidt Exp $
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#ifndef __MTARCH_H__
+#define __MTARCH_H__
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+struct mtarch_thread {
+  void *mt_thread;
+};
 
-#include "net/linkaddr.h"
-#include <string.h>
-
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
-{
-	memcpy(dest, src, LINKADDR_SIZE);
-}
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
-{
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+#endif /* __MTARCH_H__ */

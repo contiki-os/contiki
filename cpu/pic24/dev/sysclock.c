@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include <p33Fxxxx.h>
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+#include "sysclock.h"
 
-#include "net/linkaddr.h"
-#include <string.h>
-
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+sysclock_init()
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  /* Setup the clock to 80MHz and wait for PLL stabilazation */
+  CLKDIVbits.PLLPRE = 0b00011;
+  PLLFBD = 18;
+  CLKDIVbits.PLLPOST = 0b00;
+  __builtin_write_OSCCONH(0x03);
+  __builtin_write_OSCCONL(0x01);
+
+  while(OSCCONbits.COSC != 0b011) ;
+
+  while(OSCCONbits.LOCK != 1) ;
 }
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
-{
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */

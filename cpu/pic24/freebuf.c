@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
+#include "freebuf.h"
+
+/* Freebuf library
+ * Each element must be larger than a void*
+ * When an element is on the freelist it will have a void* stored at the beginning of the buffer that points to the next buffer
+ * There is no overhead
  */
-
-/**
- * \addtogroup linkaddr
- * @{
- */
-
-#include "net/linkaddr.h"
-#include <string.h>
-
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+freebuf_init(void **freelist, void *memAddr, size_t elemSize, int numElem)
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  *freelist = memAddr;
+  void **t = (void **)memAddr;
+  while(--numElem) {
+    *t = (uint8_t *)t + elemSize; /* Will be where the next element starts */
+    t = *t;
+  }
+  /* Last element, zero the pointer to indicate the end of the list */
+  *t = 0;
 }
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+void *
+freebuf_pop(void **freelist)
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  void *r = *freelist;
+  if(!r) {
+    return 0; /* Shortcut a null return if the list is empty */
+  }
+  *freelist = *(void **)r;
+  return r;
 }
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_set_node_addr(linkaddr_t *t)
+freebuf_push(void **freelist, void *e)
 {
-  linkaddr_copy(&linkaddr_node_addr, t);
+  void **t = (void **)e;
+  *t = *freelist;
+  *freelist = e;
 }
-/*---------------------------------------------------------------------------*/
-/** @} */

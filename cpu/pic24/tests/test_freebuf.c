@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,68 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include <stdint.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+#include "../freebuf.h"
 
-#include "net/linkaddr.h"
-#include <string.h>
-
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+dump_buf(void *base, size_t len)
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  uint8_t *t = (uint8_t *)base;
+
+  while(len > 0) {
+    printf("%016llx    ", (unsigned long long)t);
+    int i;
+    for(i = 0; i < 16 && len > 0; ++i, --len) {
+      printf("%02x ", *t++);
+    }
+    printf("\n");
+  }
 }
-/*---------------------------------------------------------------------------*/
+static void *freebuf_head;
+
 int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+main(int argc, char **argv)
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  void *test_storage[51];
+
+  void *buf = malloc(510);
+
+  dump_buf(buf, 510);
+
+  freebuf_init(&freebuf_head, buf, 10, 51);
+
+  dump_buf(buf, 510);
+
+  {
+    int i;
+    for(i = 0; i < 51; ++i) {
+      test_storage[i] = freebuf_pop(&freebuf_head);
+      assert(test_storage[i] != 0);
+    }
+
+    dump_buf(buf, 510);
+
+    assert(freebuf_head == 0);
+    assert(freebuf_pop(&freebuf_head) == 0);
+
+    for(i = 0; i < 51; ++i) {
+      freebuf_push(&freebuf_head, test_storage[i]);
+      assert(freebuf_head != 0);
+    }
+  }
+
+  dump_buf(buf, 510);
+
+  return 0;
 }
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */

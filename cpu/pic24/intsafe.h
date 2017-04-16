@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#ifndef INTSAFE_H_
+#define INTSAFE_H_
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+/* #define DISABLE_INT() asm("disi #0x3fff") */
+/* #define ENABLE_INT() DISICNT = 0x0000 */
 
-#include "net/linkaddr.h"
-#include <string.h>
-
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+inline static uint16_t
+disable_int()
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  uint16_t osr;
+  __asm__ volatile ("mov 0x42, %0\n"
+                    "mov #0x00e0, w0\n"
+                    "ior 0x42" /* SR */
+                    : "=&r" (osr) : : "w0");
+  return osr;
 }
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+inline static void
+enable_int(uint16_t sr)
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  __asm__ volatile ("mov %0, 0x42"
+                    : : "r" (sr));
 }
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+#endif /* INTSAFE_H_ */

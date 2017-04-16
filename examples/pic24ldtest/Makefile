@@ -1,0 +1,12 @@
+CONTIKI_PROJECT = pic24loader
+all: $(CONTIKI_PROJECT)
+
+APPS += pic24loader 
+UIP_CONF_IPV6=1
+UIP_CONF_IPV6_RPL=0
+UIP_CONF_RPL=0
+#CONTIKI_NO_NET=1
+#DEFINES=WITH_UIP6
+
+CONTIKI = ../..
+include $(CONTIKI)/Makefile.include

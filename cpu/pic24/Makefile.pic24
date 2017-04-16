@@ -1,0 +1,38 @@
+CONTIKI_CPU_DIRS = . net dev
+
+CONTIKI_SOURCEFILES += rs232.c sysclock.c dspictimer.c freebuf.c enc424mac.c spidrv.c freebuf.c dspicflash.c trap.c default_isr.S
+
+### Compiler definitions
+CC       = xc16-gcc
+LD       = xc16-ld
+AS       = xc16-as
+NM       = xc16-nm
+AR       = xc16-ar
+OBJCOPY  = xc16-objcopy
+STRIP    = xc16-strip
+ifdef WERROR
+CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
+endif
+CFLAGSNO = -Wall $(CFLAGSWERROR)
+CFLAGS  += $(CFLAGSNO) -g -O1 -mcpu=33FJ128MC804 -mlarge-code -mlarge-data -ffunction-sections -fno-omit-frame-pointer
+ifndef LDFLAGS
+LDFLAGS  = -L/opt/microchip/xc16/v1.20/lib/ -T$(CONTIKI)/cpu/pic24/p33FJ128MC804-slc.gld -p33FJ128MC804 --stack=512 --heap=2048 -u_main -u__DefaultInterrupt -u_printf -u_malloc -u_free -u_tcp_listen -u_uip_udp_packet_send
+TARGET_LIBFILES =  -lc -lpic30 -lm
+endif
+
+### Compilation rules
+
+#%.so: $(OBJECTDIR)/%.o
+#	$(LD) -shared -o $@ $^
+
+ifdef CORE
+.PHONY: symbols.c symbols.h
+symbols.c symbols.h:
+	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
+else
+symbols.c symbols.h:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+endif
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}

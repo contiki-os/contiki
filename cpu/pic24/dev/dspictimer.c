@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include <p33Fxxxx.h>
 
-/**
- * \addtogroup linkaddr
- * @{
- */
+#include "contiki-conf.h"
+#include "dspictimer.h"
 
-#include "net/linkaddr.h"
-#include <string.h>
+volatile uint32_t dspic_tickCounter;
 
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
 void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+dspic_timer_init()
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+  dspic_tickCounter = 0;
+
+  /* Setup for a 100Hz timer given a Fcy of 40MHz */
+  /* Fcy = 40000000 */
+  /* Prescale = 64 */
+  /* For 100Hz need 6250 in PR */
+  T1CONbits.TON = 0; /* Disable Timer */
+  T1CONbits.TCS = 0; /* Select internal instruction cycle clock */
+  T1CONbits.TGATE = 0; /* Disable Gated Timer mode */
+  T1CONbits.TCKPS = 0b10; /* Select 1:64 Prescaler */
+  TMR1 = 0; /* Clear timer register */
+  PR1 = 6250; /* Load the period value */
+  IPC0bits.T1IP = 0x04; /* Set Timer1 Interrupt Priority Level */
+  IFS0bits.T1IF = 0; /* Clear Timer1 Interrupt Flag */
+  IEC0bits.T1IE = 1; /* Enable Timer1 interrupt */
+  T1CONbits.TON = 1; /* Start Timer */
 }
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+/* Timer 1 ISR */
+void __attribute__((__interrupt__, __no_auto_psv__))
+_T1Interrupt()
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  ++dspic_tickCounter;
+
+  IFS0bits.T1IF = 0; /* Clear Timer1 interrupt flag */
 }
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
