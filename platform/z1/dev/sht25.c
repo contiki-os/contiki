@@ -51,8 +51,6 @@ configure(int type, int value)
   }
   if(value) {
     i2c_enable();
-  } else {
-    i2c_disable();
   }
   enabled = value;
   return 0;
