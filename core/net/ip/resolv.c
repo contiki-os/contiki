@@ -668,12 +668,13 @@ check_entries(void)
       if(namemapptr->state == STATE_ASKING) {
         if(--namemapptr->tmr == 0) {
 #if RESOLV_CONF_SUPPORTS_MDNS
-          if(++namemapptr->retries ==
+          int test = ++namemapptr->retries ==
              (namemapptr->is_mdns ? RESOLV_CONF_MAX_MDNS_RETRIES :
-              RESOLV_CONF_MAX_RETRIES))
+              RESOLV_CONF_MAX_RETRIES);
 #else /* RESOLV_CONF_SUPPORTS_MDNS */
-          if(++namemapptr->retries == RESOLV_CONF_MAX_RETRIES)
+          int test = ++namemapptr->retries == RESOLV_CONF_MAX_RETRIES;
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
+          if (test)
           {
             /* Try the next server (if possible) before failing. Otherwise
                simply mark the entry as failed. */
@@ -1067,11 +1068,12 @@ newdata(void)
   /* Got to this point there's no answer, try next nameserver if available
      since this one doesn't know the answer */
 #if RESOLV_CONF_SUPPORTS_MDNS
-  if(nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT) 
-      && hdr->id != 0)
+  int test = nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT) 
+      && hdr->id != 0;
 #else
-  if(nanswers == 0) 
+  int test = nanswers == 0;
 #endif
+  if (test)
   {
     if(try_next_server(namemapptr)) {
       namemapptr->state = STATE_ASKING;
