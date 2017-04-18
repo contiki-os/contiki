@@ -1,1 +1,1 @@
-http_user_agent_fields "Connection: close\r\nUser-Agent: Contiki/3.x (; http://www.contiki-os.org/)\r\n\r\n"
+http_user_agent_fields "Connection: close\r\nUser-Agent: Contiki/3.0 (; http://www.contiki-os.org/)\r\n\r\n"
