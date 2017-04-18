@@ -46,6 +46,7 @@
 #include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
+#include "dev/scb.h"
 #include "dev/nvic.h"
 #include "dev/uart.h"
 #include "dev/watchdog.h"
@@ -63,7 +64,6 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
-#include "soc.h"
 #include "cpu.h"
 #include "reg.h"
 #include "ieee-addr.h"
@@ -150,10 +150,7 @@ main(void)
   gpio_init();
 
   leds_init();
-  //leds_on(LEDS_RED);
-  //leds_on(LEDS_YELLOW);
-  //leds_on(LEDS_GREEN); 
-  //fade(LEDS_RED);
+  fade(LEDS_RED);
 
   process_init();
 
@@ -182,15 +179,11 @@ main(void)
 #endif
 
   serial_line_init();
-
   INTERRUPTS_ENABLE();
-  //fade(LEDS_YELLOW);
+  fade(LEDS_YELLOW);
 
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
-#if STARTUP_CONF_VERBOSE
-  soc_print_info();
-#endif
 
   PRINTF(" Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
@@ -232,7 +225,7 @@ main(void)
   autostart_start(autostart_processes);
 
   watchdog_start();
-  //fade(LEDS_GREEN);
+  fade(LEDS_GREEN);
 
   while(1) {
     uint8_t r;
@@ -252,4 +245,4 @@ main(void)
 /**
  * @}
  * @}
-*/
+ */

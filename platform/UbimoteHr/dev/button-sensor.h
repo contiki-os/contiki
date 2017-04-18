@@ -28,91 +28,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538-char-io
- * @{ */
 /**
+ * \addtogroup cc2538-smartrf-sensors
+ * @{
+ *
+ * \defgroup cc2538dk-button-sensor cc2538dk Button Driver
+ *
+ * Driver for the SmartRF06EB buttons
+ * @{
+ *
  * \file
- *     Implementation of arch-specific functions required by the dbg_io API in
- *     cpu/arm/common/dbg-io
+ * Header file for the cc2538dk Button Driver
  */
-#include "contiki.h"
+#ifndef BUTTON_SENSOR_H_
+#define BUTTON_SENSOR_H_
 
-#include "dbg.h"
-#include "dev/uart.h"
-#include "usb/usb-serial.h"
+#include "lib/sensors.h"
+#include "dev/gpio.h"
 
-#include <stdio.h>
+#define BUTTON_SENSOR "Button"
+
+#define button_sensor button_select_sensor
+extern const struct sensors_sensor button_select_sensor;
+extern const struct sensors_sensor button_left_sensor;
+extern const struct sensors_sensor button_right_sensor;
+extern const struct sensors_sensor button_up_sensor;
+extern const struct sensors_sensor button_down_sensor;
 /*---------------------------------------------------------------------------*/
-#ifndef DBG_CONF_USB
-#define DBG_CONF_USB 0
-#endif
+#endif /* BUTTON_SENSOR_H_ */
 
-#if DBG_CONF_USB
-#define write_byte(b) usb_serial_writeb(b)
-#define flush()       usb_serial_flush()
-#else
-#define write_byte(b) uart_write_byte(DBG_CONF_UART, b)
-#define flush()
-#endif
-/*---------------------------------------------------------------------------*/
-#undef putchar
-#undef puts
+/** \brief Common initialiser for all SmartRF Buttons */
+void button_sensor_init();
 
-#define SLIP_END     0300
-/*---------------------------------------------------------------------------*/
-int
-putchar(int c)
-{
-#if DBG_CONF_SLIP_MUX
-  static char debug_frame = 0;
-
-  if(!debug_frame) {
-    write_byte(SLIP_END);
-    write_byte('\r');
-    debug_frame = 1;
-  }
-#endif
-
-  write_byte(c);
-
-  if(c == '\n') {
-#if DBG_CONF_SLIP_MUX
-    write_byte(SLIP_END);
-    debug_frame = 0;
-#endif
-    write_byte('\r');
-    dbg_flush();
-  }
-  return c;
-}
-/*---------------------------------------------------------------------------*/
-unsigned int
-dbg_send_bytes(const unsigned char *s, unsigned int len)
-{
-  unsigned int i = 0;
-
-  while(s && *s != 0) {
-    if(i >= len) {
-      break;
-    }
-    putchar(*s++);
-    i++;
-  }
-  return i;
-}
-/*---------------------------------------------------------------------------*/
-int
-puts(const char *s)
-{
-  unsigned int i = 0;
-
-  while(s && *s != 0) {
-    putchar(*s++);
-    i++;
-  }
-  putchar('\n');
-  return i;
-}
-/*---------------------------------------------------------------------------*/
-
-/** @} */
+/**
+ * @}
+ * @}
+ */

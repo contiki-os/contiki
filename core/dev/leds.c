@@ -71,6 +71,7 @@ show_leds(unsigned char new_leds)
 void
 leds_init(void)
 {
+  //printf("leds_init\n");
   leds_arch_init();
   leds = 0;
 }
