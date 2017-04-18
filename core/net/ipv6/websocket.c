@@ -547,8 +547,8 @@ websocket_open(struct websocket *s, const char *url,
 	       websocket_callback c)
 {
   int ret;
-  char host[MAX_HOSTLEN];
-  char path[MAX_PATHLEN];
+  char host[MAX_HOSTLEN + 1] = {0};
+  char path[MAX_PATHLEN + 1] = {0};
   uint16_t port;
   uip_ipaddr_t addr;
 
