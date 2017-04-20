@@ -247,8 +247,10 @@ border_router_set_mac(const uint8_t *data)
 
   /* is this ok - should instead remove all addresses and
      add them back again - a bit messy... ?*/
+  PROCESS_CONTEXT_BEGIN(&tcpip_process);
   uip_ds6_init();
   rpl_init();
+  PROCESS_CONTEXT_END(&tcpip_process);
 
   mac_set = 1;
 }
