@@ -38,9 +38,9 @@
  */
 
 #include "contiki.h"
-#include "netstack.h"
 #include "net/rime/rime.h"
 #include "random.h"
+#include "netstack.h"
 
 #include "dev/button-sensor.h"
 

@@ -1,0 +1,1 @@
+avr-objcopy -j .text -j .data -O ihex hello-sensors.avr-rss2 hello-sensors.hex

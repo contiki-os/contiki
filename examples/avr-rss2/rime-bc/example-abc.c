@@ -38,9 +38,12 @@
  */
 
 #include "contiki.h"
+#include "netstack.h"
 #include "net/rime/rime.h"
 #include "random.h"
-#include "netstack.h"
+#include "dev/button-sensor.h"
+#include "dev/leds.h"
+
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 PROCESS(example_abc_process, "ABC example");
@@ -59,14 +62,14 @@ PROCESS_THREAD(example_abc_process, ev, data)
   static struct etimer et;
   PROCESS_EXITHANDLER(abc_close(&abc);)
   PROCESS_BEGIN();
+
   abc_open(&abc, 129, &abc_call);
-  
   NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
 
   while(1) {
 
     /* Delay 2-4 seconds */
-    etimer_set(&et, CLOCK_SECOND);
+    etimer_set(&et, CLOCK_SECOND * 2 + random_rand() % (CLOCK_SECOND * 2));
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
