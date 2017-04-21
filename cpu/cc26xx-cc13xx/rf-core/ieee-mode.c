@@ -1587,7 +1587,7 @@ get_object(radio_param_t param, void *dest, size_t size)
 static radio_result_t
 set_object(radio_param_t param, const void *src, size_t size)
 {
-  radio_result_t rv;
+  radio_result_t rv = RADIO_RESULT_OK;
   int i;
   uint8_t *dst;
   rfc_CMD_IEEE_RX_t *cmd = (rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf;
