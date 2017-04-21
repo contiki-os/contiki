@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,42 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         A very simple Contiki application showing how Contiki programs look
+ *      ETSI Plugtest resource
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#include "contiki.h"
+#include <string.h>
+#include "rest-engine.h"
+#include "er-coap.h"
+#include "er-plugtest.h"
 
-#include <stdio.h> /* For printf() */
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-/*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(hello_world_process, ev, data)
+RESOURCE(res_plugtest_longpath,
+         "title=\"Long path resource\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
+
+static void
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  
-  PROCESS_BEGIN();
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
-  printf("Hello World\n"); 
-  
-  PROCESS_END();
+  PRINTF("/seg1/seg2/seg3 GET ");
+  /* Code 2.05 CONTENT is default. */
+  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+  REST.set_response_payload(
+    response,
+    buffer,
+    snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD,
+             "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid));
+
+  PRINTF("(%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
 }
-/*---------------------------------------------------------------------------*/

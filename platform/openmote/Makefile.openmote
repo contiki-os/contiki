@@ -1,0 +1,39 @@
+# OpenMote-CC2538 platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+CONTIKI_TARGET_DIRS = . dev
+
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c smartrf-sensors.c
+CONTIKI_TARGET_SOURCEFILES += relay.c
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.OpenMote-CC2538
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/mac/tsch \
+           core/net/llsec
+           
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	python $(BSL) -e -w -v -V -b 115200 -p /dev/ttyUSB0 $<
+endif
