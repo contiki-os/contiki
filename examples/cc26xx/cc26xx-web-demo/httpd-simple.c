@@ -137,6 +137,10 @@ PROCESS(httpd_simple_process, "CC26XX Web Server");
 #define REQUEST_TYPE_GET  1
 #define REQUEST_TYPE_POST 2
 /*---------------------------------------------------------------------------*/
+/* Temporary buffer for holding escaped HTML used by html_escape_quotes */
+#define HTML_ESCAPED_BUFFER_SIZE 128
+static char html_escaped_buf[HTML_ESCAPED_BUFFER_SIZE];
+/*---------------------------------------------------------------------------*/
 static const char *NOT_FOUND = "<html><body bgcolor=\"white\">"
                                "<center>"
                                "<h1>404 - file not found</h1>"
@@ -303,6 +307,30 @@ url_unescape(const char *src, size_t srclen, char *dst, size_t dstlen)
   dst[j] = '\0';
 
   return i == srclen;
+}
+/*---------------------------------------------------------------------------*/
+static char*
+html_escape_quotes(const char *src)
+{
+  memset(html_escaped_buf, 0, HTML_ESCAPED_BUFFER_SIZE);
+  size_t dstpos = 0;
+  for(size_t i = 0; i < HTML_ESCAPED_BUFFER_SIZE; i++) {
+    if(src[i] == '\0') {
+      break;
+    } else if(src[i] == '"') {
+      if(dstpos + 6 > HTML_ESCAPED_BUFFER_SIZE) {
+        break;
+      }
+
+      strcpy(&html_escaped_buf[dstpos], "&quot;");
+      dstpos += 6;
+    } else {
+      html_escaped_buf[dstpos++] = src[i];
+    }
+  }
+
+  html_escaped_buf[HTML_ESCAPED_BUFFER_SIZE - 1] = '\0';
+  return html_escaped_buf;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -675,7 +703,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.type_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.type_id)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"type_id\">%s", config_div_close));
 
@@ -687,7 +716,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.org_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.org_id)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"org_id\">%s", config_div_close));
 
@@ -711,7 +741,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.cmd_type));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.cmd_type)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"cmd_type\">%s",
                                config_div_close));
@@ -724,7 +755,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                                config_div_right));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "value=\"%s\" ",
-                               cc26xx_web_demo_config.mqtt_config.event_type_id));
+                               html_escape_quotes(
+                               cc26xx_web_demo_config.mqtt_config.event_type_id)));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "name=\"event_type_id\">%s",
                                config_div_close));
