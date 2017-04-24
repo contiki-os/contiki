@@ -64,14 +64,15 @@
 #include "hw_rfc_pwr.h"
 /*---------------------------------------------------------------------------*/
 /* RF Core Mailbox API */
-#include "rf-core/api/mailbox.h"
-#include "rf-core/api/common_cmd.h"
-#include "rf-core/api/data_entry.h"
-#include "rf-core/api/prop_mailbox.h"
-#include "rf-core/api/prop_cmd.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
+#include "driverlib/rf_data_entry.h"
+#include "driverlib/rf_prop_mailbox.h"
+#include "driverlib/rf_prop_cmd.h"
 /*---------------------------------------------------------------------------*/
 /* CC13xxware patches */
 #include "rf_patches/rf_patch_cpe_genfsk.h"
+#include "rf_patches/rf_patch_rfe_genfsk.h"
 /*---------------------------------------------------------------------------*/
 #include "rf-core/smartrf-settings.h"
 /*---------------------------------------------------------------------------*/
@@ -186,7 +187,7 @@ typedef struct output_config {
 
 static const output_config_t output_power[] = {
   { 14, 0xa73f },
-  { 13, 0xa73f }, /* 12.5 */
+  { 13, 0xa63f }, /* 12.5 */
   { 12, 0xb818 },
   { 11, 0x50da },
   { 10, 0x38d3 },
@@ -603,8 +604,6 @@ init(void)
     return RF_CORE_CMD_ERROR;
   }
 
-  rf_core_set_modesel();
-
   /* Initialise RX buffers */
   memset(rx_buf, 0, sizeof(rx_buf));
 
@@ -907,7 +906,29 @@ on(void)
       return RF_CORE_CMD_ERROR;
     }
 
+    /* Keep track of RF Core mode */
+    rf_core_set_modesel();
+
+    /* Apply patches to radio core */
     rf_patch_cpe_genfsk();
+    while(!HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG));
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
+    rf_patch_rfe_genfsk();
+
+    /* Initialize bus request */
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDR) =
+      CMDR_DIR_CMD_1BYTE(CMD_BUS_REQUEST, 1);
+
+    /* set VCOLDO reference */
+    ti_lib_rfc_adi3vco_ldo_voltage_mode(true);
+
+    /* Let CC13xxware automatically set a correct value for RTRIM for us */
+    ti_lib_rfc_rtrim((rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup);
+
+    /* Make sure BUS_REQUEST is done */
+    while(!HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG));
+    HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
 
     if(rf_core_start_rat() != RF_CORE_CMD_OK) {
       PRINTF("on: rf_core_start_rat() failed\n");

@@ -391,6 +391,12 @@
 #define ti_lib_pwr_ctrl_io_freeze_enable(...)   PowerCtrlIOFreezeEnable(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_io_freeze_disable(...)  PowerCtrlIOFreezeDisable(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
+/* rfc.h */
+#include "driverlib/rfc.h"
+
+#define ti_lib_rfc_rtrim(...)                    RFCRTrim(__VA_ARGS__)
+#define ti_lib_rfc_adi3vco_ldo_voltage_mode(...) RFCAdi3VcoLdoVoltageMode(__VA_ARGS__)
+/*---------------------------------------------------------------------------*/
 /* sys_ctrl.h */
 #include "driverlib/sys_ctrl.h"
 

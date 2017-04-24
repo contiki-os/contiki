@@ -55,8 +55,8 @@
 //! @{
 
 #include <stdint.h>
-#include "mailbox.h"
-#include "common_cmd.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
 
 typedef struct __RFC_STRUCT rfc_CMD_IEEE_RX_s rfc_CMD_IEEE_RX_t;
 typedef struct __RFC_STRUCT rfc_CMD_IEEE_ED_SCAN_s rfc_CMD_IEEE_ED_SCAN_t;
