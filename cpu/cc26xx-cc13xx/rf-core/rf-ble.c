@@ -46,8 +46,8 @@
 #include "dev/oscillators.h"
 #include "rf-core/rf-core.h"
 #include "rf-core/rf-ble.h"
-#include "rf-core/api/ble_cmd.h"
-#include "rf-core/api/common_cmd.h"
+#include "driverlib/rf_ble_cmd.h"
+#include "driverlib/rf_common_cmd.h"
 #include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>
@@ -81,14 +81,7 @@ static uint8_t payload[BLE_ADV_PAYLOAD_BUF_LEN];
 static int p = 0;
 static int i;
 /*---------------------------------------------------------------------------*/
-typedef struct default_ble_tx_power_s {
-   uint16_t ib:6;
-   uint16_t gc:2;
-   uint16_t boost:1;
-   uint16_t temp_coeff:7;
-} default_ble_tx_power_t;
-
-static default_ble_tx_power_t tx_power = { 0x29, 0x00, 0x00, 0x00 };
+static uint16_t tx_power = 0x9330;
 /*---------------------------------------------------------------------------*/
 /* BLE beacond config */
 static struct ble_beacond_config {
@@ -220,10 +213,7 @@ rf_radio_setup()
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  cmd.txPower.IB = tx_power.ib;
-  cmd.txPower.GC = tx_power.gc;
-  cmd.txPower.tempCoeff = tx_power.temp_coeff;
-  cmd.txPower.boost = tx_power.boost;
+  cmd.txPower = tx_power;
   cmd.pRegOverride = ble_overrides;
   cmd.mode = 0;
 
