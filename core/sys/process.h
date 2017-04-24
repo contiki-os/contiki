@@ -529,3 +529,26 @@ CCIF extern struct process *process_list;
 
 /** @} */
 /** @} */
+ //Shaves off any leading  space 
+char* process_space_begin(char *input){
+	while(*input==' '){
+		input++;
+	}
+	return input;
+}
+
+//Find first space in a string, then replace the space with zero.
+void nullterminate(char *cptr){
+ 	for(; *cptr != ' ' && *cptr !=0; ++cptr);
+        *cptr=0;
+}
+
+static int is_broadcast_addr(uint_t mode, uint_t *addr){
+	int i=mode==FRAME802154_SHORTADDRMODE ? 2 : 8;
+	while(i-->0){
+		if(addr[i] != 0xff){
+			return 0;
+		}
+	}
+	return 1;
+}

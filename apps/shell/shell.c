@@ -242,12 +242,7 @@ start_command(char *commandline, struct shell_command *child)
   char *next, *args;
   int command_len;
   struct shell_command *c;
-
-  /* Shave off any leading spaces. */
-  while(*commandline == ' ') {
-    commandline++;
-  }
-
+  commandline=process_space_begin(commandline);
   /* Find the next command in a pipeline and start it. */
   next = find_pipe(commandline);
   if(next != NULL) {
@@ -528,9 +523,8 @@ shell_strtolong(const char *str, const char **retstr)
     return 0;
   }
   
-  while(*strptr == ' ') {
-    ++strptr;
-  }
+ 
+  strptr=process_space_begin(strptr);
   
   for(i = 0; i < 10 && isdigit((int)strptr[i]); ++i) {
     num = num * 10 + strptr[i] - '0';

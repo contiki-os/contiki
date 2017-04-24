@@ -148,10 +148,9 @@ PROCESS_THREAD(shell_download_process, ev, data)
   ++nextptr;
   addr.u8[1] = shell_strtolong(nextptr, &nextptr);
 
-  /* Get the length of the file, excluding a terminating NUL character. */
-  while(nextptr[0] == ' ') {
-    nextptr++;
-  }
+  
+  nextptr=process_space_begin(nextptr);
+  
   len = strlen(nextptr);
 
   /*snprintf(buf, sizeof(buf), "%d.%d", addr.u8[0], addr.u8[1]);*/

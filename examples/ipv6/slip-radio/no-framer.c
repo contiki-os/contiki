@@ -62,19 +62,6 @@ static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
  *   associated.
  */
 static const uint16_t mac_src_pan_id = IEEE802154_PANID;
-/*---------------------------------------------------------------------------*/
-static int
-is_broadcast_addr(uint8_t mode, uint8_t *addr)
-{
-  int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
-  while(i-- > 0) {
-    if(addr[i] != 0xff) {
-      return 0;
-    }
-  }
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
 static int
 hdr_length(void)
 {

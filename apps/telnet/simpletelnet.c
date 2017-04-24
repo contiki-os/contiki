@@ -155,11 +155,7 @@ connect(void)
   char *cptr;
   struct uip_conn *conn;
 
-  /* Find the first space character in host and put a zero there
-     to end the string. */
-  for(cptr = telnethost; *cptr != ' ' && *cptr != 0; ++cptr);
-  *cptr = 0;
-
+  nullterminate(telnethost);
   addrptr = &addr;
 #if UIP_UDP
   if(uiplib_ipaddrconv(telnethost, &addr) == 0) {

@@ -220,19 +220,7 @@ frame802154_check_dest_panid(frame802154_t *frame)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-/* Check is the address is a broadcast address, whatever its size */
-int
-frame802154_is_broadcast_addr(uint8_t mode, uint8_t *addr)
-{
-  int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
-  while(i-- > 0) {
-    if(addr[i] != 0xff) {
-      return 0;
-    }
-  }
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
+
 /* Check and extract source and destination linkaddr from frame */
 int
 frame802154_extract_linkaddr(frame802154_t *frame,
@@ -247,7 +235,7 @@ frame802154_extract_linkaddr(frame802154_t *frame,
   /* Check and extract source address */
   src_addr_len = frame->fcf.src_addr_mode ?
     ((frame->fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) ? 2 : 8) : 0;
-  if(src_addr_len == 0 || frame802154_is_broadcast_addr(frame->fcf.src_addr_mode, frame->src_addr)) {
+  if(src_addr_len == 0 || is_broadcast_addr(frame->fcf.src_addr_mode, frame->src_addr)) {
     /* Broadcast address */
     if(source_address != NULL) {
       linkaddr_copy(source_address, &linkaddr_null);
@@ -266,7 +254,7 @@ frame802154_extract_linkaddr(frame802154_t *frame,
   /* Check and extract destination address */
   dest_addr_len = frame->fcf.dest_addr_mode ?
     ((frame->fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) ? 2 : 8) : 0;
-  if(dest_addr_len == 0 || frame802154_is_broadcast_addr(frame->fcf.dest_addr_mode, frame->dest_addr)) {
+  if(dest_addr_len == 0 || is_broadcast_addr(frame->fcf.dest_addr_mode, frame->dest_addr)) {
     /* Broadcast address */
     if(dest_address != NULL) {
       linkaddr_copy(dest_address, &linkaddr_null);

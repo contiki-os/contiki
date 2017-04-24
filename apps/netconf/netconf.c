@@ -119,16 +119,6 @@ makestrings(void)
   }
 #endif /* UIP_UDP */
 }
-/*-----------------------------------------------------------------------------------*/
-static void
-nullterminate(char *cptr)
-{
-  /* Find the first space character in the ipaddr and put a zero there
-     to end the string. */
-  for(; *cptr != ' ' && *cptr != 0; ++cptr);
-  *cptr = 0;
-}
-/*-----------------------------------------------------------------------------------*/
 static void
 apply_tcpipconfig(void)
 {

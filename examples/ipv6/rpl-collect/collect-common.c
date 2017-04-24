@@ -126,17 +126,13 @@ PROCESS_THREAD(collect_common_process, ev, data)
       } else if(strncmp(line, "time ", 5) == 0) {
         unsigned long tmp;
         line += 6;
-        while(*line == ' ') {
-          line++;
-        }
+        line=process_space_begin(line);
         tmp = strtolong(line);
         time_offset = clock_seconds() - tmp;
         printf("Time offset set to %lu\n", time_offset);
       } else if(strncmp(line, "mac ", 4) == 0) {
         line +=4;
-        while(*line == ' ') {
-          line++;
-        }
+        line=process_space_begin(line);
         if(*line == '0') {
           NETSTACK_RDC.off(1);
           printf("mac: turned MAC off (keeping radio on): %s\n",
