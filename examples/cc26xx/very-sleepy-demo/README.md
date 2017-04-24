@@ -23,7 +23,7 @@ as per the instructions below.
 
 When the node is duty-cycling the radio, either because it is in normal mode or
 because network maintenance is taking place, it will keep its green LED on thus
-providing an indication that it is reachable.
+providing an indication that it is reachable (red LED for the CC1350 tag).
 
 A normal mode stint can be manually triggered by pressing the left button.
 

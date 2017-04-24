@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26XX Reed Relay
+ *  Driver for the Sensortag Reed Relay
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"

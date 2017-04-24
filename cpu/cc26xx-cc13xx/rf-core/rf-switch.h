@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,75 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup sensortag-cc26xx-peripherals
+/** \addtogroup rf-core
  * @{
  *
- * \defgroup sensortag-cc26xx-bmp-sensor SensorTag 2.0 Pressure Sensor
+ * \defgroup rf-switch RF Switch
  *
- * Due to the time required for the sensor to startup, this driver is meant to
- * be used in an asynchronous fashion. The caller must first activate the
- * sensor by calling SENSORS_ACTIVATE(). This will trigger the sensor's startup
- * sequence, but the call will not wait for it to complete so that the CPU can
- * perform other tasks or drop to a low power mode.
+ * Header file for RF switch support
  *
- * Once the sensor is stable, the driver will generate a sensors_changed event.
- *
- * We take readings in "Forced" mode. In this mode, the BMP will take a single
- * measurement and it will then automatically go to sleep.
- *
- * SENSORS_ACTIVATE must be called again to trigger a new reading cycle
  * @{
  *
  * \file
- * Header file for the Sensortag BMP280 Altimeter / Pressure Sensor
+ * Header file with definitions related to RF switch support
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BMP_280_SENSOR_H_
-#define BMP_280_SENSOR_H_
+#ifndef RF_SWITCH_H_
+#define RF_SWITCH_H_
 /*---------------------------------------------------------------------------*/
-#define BMP_280_SENSOR_TYPE_TEMP    1
-#define BMP_280_SENSOR_TYPE_PRESS   2
+#include "contiki-conf.h"
+
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor bmp_280_sensor;
+#ifdef RF_SWITCH_CONF_PATH_2_4GHZ
+#define RF_SWITCH_PATH_2_4GHZ RF_SWITCH_CONF_PATH_2_4GHZ
+#else
+#define RF_SWITCH_PATH_2_4GHZ 0
+#endif
+
+#ifdef RF_SWITCH_CONF_PATH_SUBGHZ
+#define RF_SWITCH_PATH_SUBGHZ RF_SWITCH_CONF_PATH_SUBGHZ
+#else
+#define RF_SWITCH_PATH_SUBGHZ 1
+#endif
 /*---------------------------------------------------------------------------*/
-#endif /* BMP_280_SENSOR_H_ */
+#ifdef RF_SWITCH_CONF_ENABLE
+#define RF_SWITCH_ENABLE RF_SWITCH_CONF_ENABLE
+#else
+#define RF_SWITCH_ENABLE 0
+#endif
+/*---------------------------------------------------------------------------*/
+#if RF_SWITCH_ENABLE
+/**
+ * \brief Initialise RF switch pin states.
+ */
+void rf_switch_init(void);
+
+/**
+ * \brief Power up the RF switch.
+ */
+void rf_switch_power_up(void);
+
+/**
+ * \brief Power down the RF switch.
+ */
+void rf_switch_power_down(void);
+
+/**
+ * \brief Select RF path
+ * \param path The RF path to select on the switch.
+ *
+ * The path argument can take values RF_SWITCH_PATH_xyz
+ */
+void rf_switch_select_path(uint8_t path);
+#else
+#define rf_switch_init()
+#define rf_switch_power_up()
+#define rf_switch_power_down()
+#define rf_switch_select_path(p)
+#endif /* RF_SWITCH_ENABLE */
+/*---------------------------------------------------------------------------*/
+#endif /* RF_SWITCH_H_ */
 /*---------------------------------------------------------------------------*/
 /**
  * @}

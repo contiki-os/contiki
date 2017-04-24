@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,40 +29,37 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
- *
- * \defgroup sensortag-cc26xx-bmp-sensor SensorTag 2.0 Pressure Sensor
- *
- * Due to the time required for the sensor to startup, this driver is meant to
- * be used in an asynchronous fashion. The caller must first activate the
- * sensor by calling SENSORS_ACTIVATE(). This will trigger the sensor's startup
- * sequence, but the call will not wait for it to complete so that the CPU can
- * perform other tasks or drop to a low power mode.
- *
- * Once the sensor is stable, the driver will generate a sensors_changed event.
- *
- * We take readings in "Forced" mode. In this mode, the BMP will take a single
- * measurement and it will then automatically go to sleep.
- *
- * SENSORS_ACTIVATE must be called again to trigger a new reading cycle
+ * \addtogroup rf-core-prop
  * @{
  *
  * \file
- * Header file for the Sensortag BMP280 Altimeter / Pressure Sensor
+ * TX power settings for the CC1350 LP
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BMP_280_SENSOR_H_
-#define BMP_280_SENSOR_H_
+#include "contiki-conf.h"
+#include "dev/radio.h"
+#include "rf-core/prop-mode.h"
 /*---------------------------------------------------------------------------*/
-#define BMP_280_SENSOR_TYPE_TEMP    1
-#define BMP_280_SENSOR_TYPE_PRESS   2
-/*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor bmp_280_sensor;
-/*---------------------------------------------------------------------------*/
-#endif /* BMP_280_SENSOR_H_ */
+/* TX power settings for the 779-930MHz band */
+const prop_mode_tx_power_config_t tx_power_driver_779_930[] = {
+  {  14, 0xab3f },
+  {  12, 0xbc2b },
+  {  11, 0x90e5 },
+  {  10, 0x58d8 },
+  {   9, 0x40d2 },
+  {   8, 0x32ce },
+  {   7, 0x2acb },
+  {   6, 0x24c9 },
+  {   5, 0x20c8 },
+  {   4, 0x1844 },
+  {   3, 0x1cc6 },
+  {   2, 0x18c5 },
+  {   1, 0x16c4 },
+  {   0, 0x12c3 },
+  { -10, 0x04c0 },
+  {-128, 0xFFFF },
+};
 /*---------------------------------------------------------------------------*/
 /**
- * @}
  * @}
  */

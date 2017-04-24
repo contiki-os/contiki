@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx TI TMP007 infrared thermophile sensor
+ *  Driver for the Sensortag TI TMP007 infrared thermophile sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

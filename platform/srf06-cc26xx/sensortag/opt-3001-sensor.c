@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx Opt3001 light sensor
+ *  Driver for the Sensortag Opt3001 light sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

@@ -34,7 +34,7 @@
  * @{
  *
  * \file
- * Board-specific I2C driver for the Sensortag-CC26xx
+ * Board-specific I2C driver for the Sensortags
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

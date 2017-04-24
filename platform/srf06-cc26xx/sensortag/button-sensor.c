@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- * Driver for the Sensortag-CC26xx buttons
+ * Driver for Sensortag buttons
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"

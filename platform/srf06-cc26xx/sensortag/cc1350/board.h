@@ -31,15 +31,15 @@
 /** \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup sensortag-cc26xx-specific CC2650 Sensortag Peripherals
+ * \defgroup sensortag-cc13xx-peripherals CC1350 Sensortag Peripherals
  *
- * Defines related to the CC2650 Sensortag
+ * Defines related to the CC1350 Sensortag
  *
  * This file provides connectivity information on LEDs, Buttons, UART and
  * other peripherals
  *
  * This file can be used as the basis to configure other boards using the
- * CC13xx/CC26xx code as their basis.
+ * CC13xx code as their basis.
  *
  * This file is not meant to be modified by the user.
  * @{
@@ -71,11 +71,11 @@
 #undef LEDS_CONF_ALL
 
 #define LEDS_RED       1
-#define LEDS_GREEN     2
-#define LEDS_YELLOW    LEDS_GREEN
+#define LEDS_GREEN     LEDS_RED
+#define LEDS_YELLOW    LEDS_RED
 #define LEDS_ORANGE    LEDS_RED
 
-#define LEDS_CONF_ALL  3
+#define LEDS_CONF_ALL  1
 
 /* Notify various examples that we have LEDs */
 #define PLATFORM_HAS_LEDS        1
@@ -88,10 +88,8 @@
  * @{
  */
 #define BOARD_IOID_LED_1          IOID_10
-#define BOARD_IOID_LED_2          IOID_15
 #define BOARD_LED_1               (1 << BOARD_IOID_LED_1)
-#define BOARD_LED_2               (1 << BOARD_IOID_LED_2)
-#define BOARD_LED_ALL             (BOARD_LED_1 | BOARD_LED_2)
+#define BOARD_LED_ALL             BOARD_LED_1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -125,7 +123,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_KEY_LEFT       IOID_0
+#define BOARD_IOID_KEY_LEFT       IOID_15
 #define BOARD_IOID_KEY_RIGHT      IOID_4
 #define BOARD_KEY_LEFT            (1 << BOARD_IOID_KEY_LEFT)
 #define BOARD_KEY_RIGHT           (1 << BOARD_IOID_KEY_RIGHT)
@@ -137,12 +135,8 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_SPI_SCK        IOID_17
 #define BOARD_IOID_SPI_MOSI       IOID_19
 #define BOARD_IOID_SPI_MISO       IOID_18
-#define BOARD_SPI_SCK             (1 << BOARD_IOID_SPI_SCK)
-#define BOARD_SPI_MOSI            (1 << BOARD_IOID_SPI_MOSI)
-#define BOARD_SPI_MISO            (1 << BOARD_IOID_SPI_MISO)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -158,11 +152,11 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_REED_RELAY     IOID_3
+#define BOARD_IOID_REED_RELAY     IOID_1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name External flash IOID mapping
+ * \name External flash IOID mapping and part-related constants
  *
  * Those values are not meant to be modified by the user
  * @{
@@ -220,7 +214,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_TMP_RDY          IOID_1
+#define BOARD_IOID_TMP_RDY          IOID_11
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -231,15 +225,48 @@
  */
 #define BOARD_IOID_MIC_POWER        IOID_13
 #define BOARD_IOID_AUDIO_DI         IOID_2
-#define BOARD_IOID_AUDIO_CLK        IOID_11
+#define BOARD_IOID_AUDIO_CLK        IOID_3
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name RF Front End configuration
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define RF_CORE_CONF_RADIO_SETUP_FRONT_END_MODE 0x01 /* Single-Ended, RFP */
+#define RF_CORE_CONF_RADIO_SETUP_BIAS_MODE      0x01 /* External */
+#define RF_CORE_CONF_PROP_FRONT_END_MODE        0x02 /* Single-Ended, RFN */
+#define RF_CORE_CONF_PROP_BIAS_MODE             0x01 /* External */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Board-specific overrides
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define IEEE_MODE_CONF_BOARD_OVERRIDES        ADI_HALFREG_OVERRIDE(0, 16, 0x7, 1),
+#define RF_BLE_CONF_BOARD_OVERRIDES           ADI_HALFREG_OVERRIDE(0, 16, 0x7, 1),
+#define SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES ADI_HALFREG_OVERRIDE(0, 16, 0x7, 2),
+
+#define SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930  0x00F688A3
+#define SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET 0x00018883
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name Device string used on startup
  * @{
  */
-#define BOARD_STRING "TI CC2650 SensorTag"
+#define BOARD_STRING "TI CC1350 SensorTag"
 
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Board specific iniatialisation
+ * @{
+ */
+void board_init(void);
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */
