@@ -29,40 +29,49 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
- *
- * \defgroup sensortag-cc26xx-bmp-sensor SensorTag 2.0 Pressure Sensor
- *
- * Due to the time required for the sensor to startup, this driver is meant to
- * be used in an asynchronous fashion. The caller must first activate the
- * sensor by calling SENSORS_ACTIVATE(). This will trigger the sensor's startup
- * sequence, but the call will not wait for it to complete so that the CPU can
- * perform other tasks or drop to a low power mode.
- *
- * Once the sensor is stable, the driver will generate a sensors_changed event.
- *
- * We take readings in "Forced" mode. In this mode, the BMP will take a single
- * measurement and it will then automatically go to sleep.
- *
- * SENSORS_ACTIVATE must be called again to trigger a new reading cycle
+ * \addtogroup sensortag-cc13xx-peripherals
  * @{
  *
  * \file
- * Header file for the Sensortag BMP280 Altimeter / Pressure Sensor
+ *  Driver for the Sensortag-CC1350 LEDs
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BMP_280_SENSOR_H_
-#define BMP_280_SENSOR_H_
+#include "contiki.h"
+#include "dev/leds.h"
+
+#include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
-#define BMP_280_SENSOR_TYPE_TEMP    1
-#define BMP_280_SENSOR_TYPE_PRESS   2
+static unsigned char c;
+static int inited = 0;
 /*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor bmp_280_sensor;
+void
+leds_arch_init(void)
+{
+  if(inited) {
+    return;
+  }
+  inited = 1;
+
+  ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_LED_1);
+
+  ti_lib_gpio_clear_multi_dio(BOARD_LED_ALL);
+}
 /*---------------------------------------------------------------------------*/
-#endif /* BMP_280_SENSOR_H_ */
+unsigned char
+leds_arch_get(void)
+{
+  return c;
+}
 /*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
- */
+void
+leds_arch_set(unsigned char leds)
+{
+  c = leds;
+  ti_lib_gpio_clear_dio(BOARD_IOID_LED_1);
+
+  if((leds & LEDS_RED) == LEDS_RED) {
+    ti_lib_gpio_set_dio(BOARD_IOID_LED_1);
+  }
+}
+/*---------------------------------------------------------------------------*/
+/** @} */

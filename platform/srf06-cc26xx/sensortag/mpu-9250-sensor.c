@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26XX Invensense MPU9250 motion processing unit
+ *  Driver for the Sensortag Invensense MPU9250 motion processing unit
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

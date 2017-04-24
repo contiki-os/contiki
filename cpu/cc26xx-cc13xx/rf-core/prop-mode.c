@@ -29,11 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup rf-core
- * @{
- *
- * \defgroup rf-core-prop CC13xx Prop mode driver
- *
+ * \addtogroup rf-core-prop
  * @{
  *
  * \file
@@ -56,7 +52,9 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
+#include "rf-core/prop-mode.h"
 #include "rf-core/dot-15-4g.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
@@ -179,40 +177,35 @@ static rfc_propRxOutput_t rx_stats;
 /* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
 #define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
 /*---------------------------------------------------------------------------*/
-/* TX Power dBm lookup table - values from SmartRF Studio */
-typedef struct output_config {
-  radio_value_t dbm;
-  uint16_t tx_power; /* Value for the PROP_DIV_RADIO_SETUP.txPower field */
-} output_config_t;
-
-static const output_config_t output_power[] = {
-  { 14, 0xa73f },
-  { 13, 0xa63f }, /* 12.5 */
-  { 12, 0xb818 },
-  { 11, 0x50da },
-  { 10, 0x38d3 },
-  {  9, 0x2ccd },
-  {  8, 0x24cb },
-  {  7, 0x20c9 },
-  {  6, 0x1cc7 },
-  {  5, 0x18c6 },
-  {  4, 0x18c5 },
-  {  3, 0x14c4 },
-  {  2, 0x1042 },
-  {  1, 0x10c3 },
-  {  0, 0x0041 },
-  {-10, 0x08c0 },
-};
-
-#define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
+/* TX power table for the 431-527MHz band */
+#ifdef PROP_MODE_CONF_TX_POWER_431_527
+#define PROP_MODE_TX_POWER_431_527 PROP_MODE_CONF_TX_POWER_431_527
+#else
+#define PROP_MODE_TX_POWER_431_527 prop_mode_tx_power_431_527
+#endif
+/*---------------------------------------------------------------------------*/
+/* TX power table for the 779-930MHz band */
+#ifdef PROP_MODE_CONF_TX_POWER_779_930
+#define PROP_MODE_TX_POWER_779_930 PROP_MODE_CONF_TX_POWER_779_930
+#else
+#define PROP_MODE_TX_POWER_779_930 prop_mode_tx_power_779_930
+#endif
+/*---------------------------------------------------------------------------*/
+/* Select power table based on the frequency band */
+#if DOT_15_4G_FREQUENCY_BAND_ID==DOT_15_4G_FREQUENCY_BAND_470
+#define TX_POWER_DRIVER PROP_MODE_TX_POWER_431_527
+#else
+#define TX_POWER_DRIVER PROP_MODE_TX_POWER_779_930
+#endif
+/*---------------------------------------------------------------------------*/
+extern const prop_mode_tx_power_config_t TX_POWER_DRIVER[];
 
 /* Max and Min Output Power in dBm */
-#define OUTPUT_POWER_MIN     (output_power[OUTPUT_CONFIG_COUNT - 1].dbm)
-#define OUTPUT_POWER_MAX     (output_power[0].dbm)
+#define OUTPUT_POWER_MAX     (TX_POWER_DRIVER[0].dbm)
 #define OUTPUT_POWER_UNKNOWN 0xFFFF
 
 /* Default TX Power - position in output_power[] */
-const output_config_t *tx_power_current = &output_power[1];
+const prop_mode_tx_power_config_t *tx_power_current = &TX_POWER_DRIVER[1];
 /*---------------------------------------------------------------------------*/
 #ifdef PROP_MODE_CONF_LO_DIVIDER
 #define PROP_MODE_LO_DIVIDER   PROP_MODE_CONF_LO_DIVIDER
@@ -344,6 +337,19 @@ set_channel(uint8_t channel)
   smartrf_settings_cmd_fs.fractFreq = frac;
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+get_tx_power_array_last_element(void)
+{
+  const prop_mode_tx_power_config_t *array = TX_POWER_DRIVER;
+  uint8_t count = 0;
+
+  while(array->tx_power != OUTPUT_POWER_UNKNOWN) {
+    count++;
+    array++;
+  }
+  return count - 1;
+}
+/*---------------------------------------------------------------------------*/
 /* Returns the current TX power in dBm */
 static radio_value_t
 get_tx_power(void)
@@ -352,7 +358,7 @@ get_tx_power(void)
 }
 /*---------------------------------------------------------------------------*/
 /*
- * The caller must make sure to send a new CMD_PROP_RADIO_DIV_SETP to the
+ * The caller must make sure to send a new CMD_PROP_RADIO_DIV_SETUP to the
  * radio after calling this function.
  */
 static void
@@ -360,14 +366,14 @@ set_tx_power(radio_value_t power)
 {
   int i;
 
-  for(i = OUTPUT_CONFIG_COUNT - 1; i >= 0; --i) {
-    if(power <= output_power[i].dbm) {
+  for(i = get_tx_power_array_last_element(); i >= 0; --i) {
+    if(power <= TX_POWER_DRIVER[i].dbm) {
       /*
        * Merely save the value. It will be used in all subsequent usages of
        * CMD_PROP_RADIO_DIV_SETP, including one immediately after this function
        * has returned
        */
-      tx_power_current = &output_power[i];
+      tx_power_current = &TX_POWER_DRIVER[i];
 
       return;
     }
@@ -380,11 +386,19 @@ prop_div_radio_setup(void)
   uint32_t cmd_status;
   rfc_radioOp_t *cmd = (rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup;
 
+  rf_switch_select_path(RF_SWITCH_PATH_SUBGHZ);
+
   /* Adjust loDivider depending on the selected band */
   smartrf_settings_cmd_prop_radio_div_setup.loDivider = PROP_MODE_LO_DIVIDER;
 
   /* Update to the correct TX power setting */
   smartrf_settings_cmd_prop_radio_div_setup.txPower = tx_power_current->tx_power;
+
+  /* Adjust RF Front End and Bias based on the board */
+  smartrf_settings_cmd_prop_radio_div_setup.config.frontEndMode =
+    RF_CORE_PROP_FRONT_END_MODE;
+  smartrf_settings_cmd_prop_radio_div_setup.config.biasMode =
+    RF_CORE_PROP_BIAS_MODE;
 
   /* Send Radio setup to RF Core */
   if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
@@ -1024,7 +1038,7 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = DOT_15_4G_CHANNEL_MAX;
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MIN:
-    *value = OUTPUT_POWER_MIN;
+    *value = TX_POWER_DRIVER[get_tx_power_array_last_element()].dbm;
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MAX:
     *value = OUTPUT_POWER_MAX;
@@ -1069,7 +1083,8 @@ set_value(radio_param_t param, radio_value_t value)
     set_channel((uint8_t)value);
     break;
   case RADIO_PARAM_TXPOWER:
-    if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
+    if(value < TX_POWER_DRIVER[get_tx_power_array_last_element()].dbm ||
+       value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
@@ -1149,6 +1164,5 @@ const struct radio_driver prop_mode_driver = {
 };
 /*---------------------------------------------------------------------------*/
 /**
- * @}
  * @}
  */

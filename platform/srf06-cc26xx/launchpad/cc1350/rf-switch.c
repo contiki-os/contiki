@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,40 +29,64 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
- *
- * \defgroup sensortag-cc26xx-bmp-sensor SensorTag 2.0 Pressure Sensor
- *
- * Due to the time required for the sensor to startup, this driver is meant to
- * be used in an asynchronous fashion. The caller must first activate the
- * sensor by calling SENSORS_ACTIVATE(). This will trigger the sensor's startup
- * sequence, but the call will not wait for it to complete so that the CPU can
- * perform other tasks or drop to a low power mode.
- *
- * Once the sensor is stable, the driver will generate a sensors_changed event.
- *
- * We take readings in "Forced" mode. In this mode, the BMP will take a single
- * measurement and it will then automatically go to sleep.
- *
- * SENSORS_ACTIVATE must be called again to trigger a new reading cycle
+ * \addtogroup rf-switch
  * @{
  *
  * \file
- * Header file for the Sensortag BMP280 Altimeter / Pressure Sensor
+ * CC1350 LP RF switch driver
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BMP_280_SENSOR_H_
-#define BMP_280_SENSOR_H_
+#include "contiki-conf.h"
+#include "lpm.h"
+#include "rf-core/rf-switch.h"
+#include "ti-lib.h"
+
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define BMP_280_SENSOR_TYPE_TEMP    1
-#define BMP_280_SENSOR_TYPE_PRESS   2
+#define POWER_PIN  IOID_30
+#define SELECT_PIN IOID_1
 /*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor bmp_280_sensor;
+static void
+shutdown_handler(uint8_t mode)
+{
+  ti_lib_gpio_clear_dio(POWER_PIN);
+}
 /*---------------------------------------------------------------------------*/
-#endif /* BMP_280_SENSOR_H_ */
-/*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
+/*
+ * Declare a data structure to register with LPM. Always turn off the switch
+ * when we are dropping to deep sleep. We let the RF driver turn it on though.
  */
+LPM_MODULE(rf_switch_module, NULL, shutdown_handler, NULL, LPM_DOMAIN_NONE);
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_init()
+{
+  ti_lib_rom_ioc_pin_type_gpio_output(POWER_PIN);
+  ti_lib_gpio_clear_dio(POWER_PIN);
+  ti_lib_rom_ioc_pin_type_gpio_output(SELECT_PIN);
+  ti_lib_gpio_clear_dio(SELECT_PIN);
+
+  lpm_register_module(&rf_switch_module);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_power_up()
+{
+  ti_lib_gpio_set_dio(POWER_PIN);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_power_down()
+{
+  ti_lib_gpio_clear_dio(POWER_PIN);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf_switch_select_path(uint8_t path)
+{
+  ti_lib_gpio_write_dio(SELECT_PIN, path);
+}
+/*---------------------------------------------------------------------------*/
+/** @} */

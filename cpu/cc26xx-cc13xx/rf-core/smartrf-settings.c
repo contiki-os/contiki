@@ -28,9 +28,53 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
+
+#include "rf-core/dot-15-4g.h"
 #include "driverlib/rf_mailbox.h"
 #include "driverlib/rf_common_cmd.h"
 #include "driverlib/rf_prop_cmd.h"
+
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES
+#define SMARTRF_SETTINGS_BOARD_OVERRIDES SMARTRF_SETTINGS_CONF_BOARD_OVERRIDES
+#else
+#define SMARTRF_SETTINGS_BOARD_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_BAND_OVERRIDES
+#define SMARTRF_SETTINGS_BAND_OVERRIDES SMARTRF_SETTINGS_CONF_BAND_OVERRIDES
+#else
+#define SMARTRF_SETTINGS_BAND_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
+/* RSSI offset configuration for the 431-527MHz band */
+#ifdef SMARTRF_SETTINGS_CONF_RSSI_OFFSET_431_527
+#define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 SMARTRF_SETTINGS_CONF_RSSI_OFFSET_431_527
+#else
+#define SMARTRF_SETTINGS_RSSI_OFFSET_431_527 0x000288A3
+#endif
+/*---------------------------------------------------------------------------*/
+/* RSSI offset configuration for the 779-930MHz band */
+#ifdef SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930
+#define SMARTRF_SETTINGS_RSSI_OFFSET_779_930 SMARTRF_SETTINGS_CONF_RSSI_OFFSET_779_930
+#else
+#define SMARTRF_SETTINGS_RSSI_OFFSET_779_930 0x00FB88A3
+#endif
+/*---------------------------------------------------------------------------*/
+#ifdef SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
+#define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET SMARTRF_SETTINGS_CONF_OVERRIDE_TRIM_OFFSET
+#else
+#define SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET 0x00038883
+#endif
+/*---------------------------------------------------------------------------*/
+/* Select RSSI offset value based on the frequency band */
+#if DOT_15_4G_FREQUENCY_BAND_ID==DOT_15_4G_FREQUENCY_BAND_470
+#define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_431_527
+#else
+#define RSSI_OFFSET SMARTRF_SETTINGS_RSSI_OFFSET_779_930
+#endif
 /*---------------------------------------------------------------------------*/
 /* Overrides for CMD_PROP_RADIO_DIV_SETUP */
 static uint32_t overrides[] =
@@ -80,9 +124,9 @@ static uint32_t overrides[] =
   ADI_HALFREG_OVERRIDE(0, 61, 0xF, 0xD),
   /*
    * override_phy_gfsk_rx.xml
-   * Rx: Set LNA bias current trim offset to 3
+   * Rx: Set LNA bias current trim offset. The board can override this
    */
-  (uint32_t)0x00038883,
+  (uint32_t)SMARTRF_SETTINGS_OVERRIDE_TRIM_OFFSET,
   /* Rx: Freeze RSSI on sync found event */
   HW_REG_OVERRIDE(0x6084, 0x35F1),
   /*
@@ -93,10 +137,11 @@ static uint32_t overrides[] =
   /* Tx: Configure PA ramping setting */
   HW_REG_OVERRIDE(0x608C, 0x8213),
   /*
-   * override_phy_rx_rssi_offset_5db.xml
-   * Rx: Set RSSI offset to adjust reported RSSI by +5 dB
+   * Rx: Set RSSI offset to adjust reported RSSI
+   * The board can override this
    */
-  (uint32_t)0x00FB88A3,
+  (uint32_t)RSSI_OFFSET,
+
   /*
    * TX power override
    * Tx: Set PA trim to max (in ADI0, set PACTL0=0xF8)
@@ -106,6 +151,12 @@ static uint32_t overrides[] =
   /* Overrides for CRC16 functionality */
   (uint32_t)0x943,
   (uint32_t)0x963,
+
+  /* Board-specific overrides, if any */
+  SMARTRF_SETTINGS_BOARD_OVERRIDES
+
+  /* Band-specific overrides, if any */
+  SMARTRF_SETTINGS_BAND_OVERRIDES
 
   (uint32_t)0xFFFFFFFF,
 };
@@ -137,8 +188,8 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t smartrf_settings_cmd_prop_radio_div_setup =
 
   /* 7: .4g mode with dynamic whitening and CRC choice */
   .formatConf.whitenMode = 0x7,
-  .config.frontEndMode = 0x0, /* Differential mode */
-  .config.biasMode = 0x1,     /* External bias*/
+  .config.frontEndMode = 0x00, /* Set by the driver */
+  .config.biasMode = 0x00,     /* Set by the driver */
   .config.analogCfgMode = 0x0,
   .config.bNoFsPowerUp = 0x0,
   .txPower = 0x00, /* Driver sets correct value */

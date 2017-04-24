@@ -45,6 +45,7 @@
 #include "net/linkaddr.h"
 #include "dev/oscillators.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
 #include "driverlib/rf_ble_cmd.h"
 #include "driverlib/rf_common_cmd.h"
@@ -89,6 +90,12 @@ static struct ble_beacond_config {
   char adv_name[BLE_ADV_NAME_BUF_LEN];
 } beacond_config = { .interval = BLE_ADV_INTERVAL };
 /*---------------------------------------------------------------------------*/
+#ifdef RF_BLE_CONF_BOARD_OVERRIDES
+#define RF_BLE_BOARD_OVERRIDES RF_BLE_CONF_BOARD_OVERRIDES
+#else
+#define RF_BLE_BOARD_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
 /* BLE overrides */
 static uint32_t ble_overrides[] = {
   0x00364038, /* Synth: Set RTRIM (POTAILRESTRIM) to 6 */
@@ -97,6 +104,7 @@ static uint32_t ble_overrides[] = {
   0xEAE00603, /* Synth: Set loop bandwidth after lock to 80 kHz (K3, LSB) */
   0x00010623, /* Synth: Set loop bandwidth after lock to 80 kHz (K3, MSB) */
   0x00456088, /* Adjust AGC reference level */
+  RF_BLE_BOARD_OVERRIDES
   0xFFFFFFFF, /* End of override list */
 };
 /*---------------------------------------------------------------------------*/
@@ -210,11 +218,15 @@ rf_radio_setup()
   uint32_t cmd_status;
   rfc_CMD_RADIO_SETUP_t cmd;
 
+  rf_switch_select_path(RF_SWITCH_PATH_2_4GHZ);
+
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
   cmd.txPower = tx_power;
   cmd.pRegOverride = ble_overrides;
+  cmd.config.frontEndMode = RF_CORE_RADIO_SETUP_FRONT_END_MODE;
+  cmd.config.biasMode = RF_CORE_RADIO_SETUP_BIAS_MODE;
   cmd.mode = 0;
 
   /* Send Radio setup to RF Core */
