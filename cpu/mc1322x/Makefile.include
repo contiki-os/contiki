@@ -41,7 +41,8 @@ CFLAGS_MISC  ?= -pipe
 CFLAGS := $(CFLAGS_PLAT) $(CFLAGS_WARN) $(CFLAGS_OPT) $(CFLAGS_DEBUG) $(CFLAGS_MISC) $(CFLAGS)
 
 # Thumb flags, used for building most objects
-CFLAGS_THUMB ?= -mthumb -mcallee-super-interworking
+#CFLAGS_THUMB ?= -mthumb -mcallee-super-interworking
+CFLAGS_THUMB ?= -mthumb
 
 # Linker flags
 LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
