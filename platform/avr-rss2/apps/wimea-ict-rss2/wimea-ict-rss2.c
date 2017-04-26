@@ -79,7 +79,7 @@ PROCESS_THREAD(default_config_process, ev, data)
 	eeprom_interval = eeprom_read_word(&eemem_transmission_interval);
 	time_interval = (eeprom_interval == 0) ? 60 : eeprom_interval;
 	eeprom_update_word(&eemem_transmission_interval, time_interval);  
-	sei(); 
+	sei();
 	process_start(&serial_input_process, NULL);
 	PROCESS_END();
 }
@@ -93,7 +93,6 @@ PROCESS_THREAD(serial_input_process, ev, data)
 	//uint8_t flag;
 	char * value;
 	event_new_interval = process_alloc_event();
-   
 	for(;;){
 		PROCESS_YIELD_UNTIL(ev == serial_line_event_message);
 		command = (char*)strtok((char*)data, (const char*)delimiter);
