@@ -62,8 +62,14 @@
 
 #include "contiki.h"
 #include "dev/gptimer.h"
+#include "dev/sys-ctrl.h"           /* for SYS_CTRL_OSC32K_USE_XTAL */
 
-#define RTIMER_ARCH_SECOND 32768
+#define HF_XOSC_FREQ       32000000 /* 32 MHz */
+#define LF_XOSC_FREQ          32768 /* 32.768 kHz */
+#define LF_RCOSC_CAL_RATIO      977 /* Essentially round(32 MHz / 32.768 kHz) */
+#define LF_RCOSC_FREQ      ( SYS_CTRL_OSC32K_USE_XTAL? LF_XOSC_FREQ : (HF_XOSC_FREQ / LF_RCOSC_CAL_RATIO) )
+
+#define RTIMER_ARCH_SECOND LF_RCOSC_FREQ
 
 /* Do the math in 32bits to save precision.
  * Round to nearest integer rather than truncate. */
