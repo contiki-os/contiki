@@ -27,12 +27,13 @@
 
 #define MAX_BCAST_SIZE 99
 #define DEF_TTL 0xF
+#define TRANSMIT_INTERVAL 30
 
 char str_t[127], year[4], report [200],e64[16],rtc_date[20];
 datetime_t datetime;
 float v_in;
 int p1,p2,lines=0; //temporary upper and lower parts of floating point variables
-int prev_min=0, curr_min=0, mins_elapsed=0; /*Sleep function distorts timers. We'll use the rtc time to schedule transmissions after N minutes*/
+int prev_sec=0, curr_sec=0, secs_elapsed=0; /*Sleep function distorts timers. We'll use the rtc time to schedule transmissions after N seconds*/
 uint8_t rssi,lqi;
 uint16_t err=0; 
 
@@ -73,7 +74,7 @@ static void
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
 	struct broadcast_message *msg;
-	leds_on(LEDS_RED);
+	
 	msg = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
@@ -89,26 +90,27 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	/*write to sd card*/
 	if (f_open(fp, "data.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) 
 	{	// Open existing or create new file
+        leds_on(LEDS_RED);
 		if (f_lseek(fp, f_size(fp)) == FR_OK) 
 		{
 			f_write(fp, report, strlen(report), &bw);	// Write data to the file
-			lines++;
-		}
-		if (bw != strlen(report))  //error we did not the entire string
+		} 	
+		if (bw == strlen(report))  //we wrote the entire string
 		{ 
-			++err;
+		    ++lines;
+			leds_off(LEDS_RED);
 		}
-	}
+ 
+	}else ++err;
 	f_close(fp);// close the file
 	
-    curr_min = datetime.secs;
-	mins_elapsed = curr_min - prev_min;
-	if(mins_elapsed <0 ) mins_elapsed += 60;
-	if(mins_elapsed >= 10) {
-		prev_min=curr_min;
+    curr_sec = datetime.secs;
+	secs_elapsed = curr_sec - prev_sec;
+	if(secs_elapsed <0 ) secs_elapsed += 60;
+	if(secs_elapsed >= TRANSMIT_INTERVAL) {
+		prev_sec=curr_sec;
 		process_post(&sinknode_process, 0x10, NULL);
 	}
-	leds_off(LEDS_RED);
 }
 
 
@@ -140,6 +142,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	while(1) {
 		
 		PROCESS_YIELD_UNTIL(ev==0x10);	
+		leds_on(LEDS_YELLOW);
 			int len;	
 			v_in=adc_read_v_in();
 			p1 = (int)v_in; //e.g. 4.93 gives 4
@@ -150,18 +153,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 			ds3231_get_datetime(&datetime);
 			sprintf(rtc_date, "20%d-%02d-%02d %02d:%02d:%02d",datetime.year,datetime.month,
 			datetime.day, datetime.hours,datetime.mins,datetime.secs);
-			
-			/*get lines in SD card
-			if (f_open(fp, "data.txt", FA_READ) == FR_OK) 
-			{	 Read all lines 
-			 for (lines = 0; (f_eof(fp) == 0); lines++)
-				{
-				   f_gets((char*)report, sizeof(report), fp);
-				   report[0]='\0';
-				}		
-			}
-		    f_close(fp);*/
-			
+					
 			len += sprintf(&msg.buf[len],"TXT=mak-gen3 RTC_TIME=%s V_IN=%d.%02d SD.ERR=%d REPORTS=%d",rtc_date,p1, p2,err,lines);		
 			msg.buf[len++] = '\0';		/*null terminate the string*/
 			packetbuf_copyfrom(&msg, len+2);		
@@ -172,6 +164,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 			
 			broadcast_send(&broadcast);
 			seqno++;
+			leds_off(LEDS_YELLOW);
 			printf("&: %s\n\r", msg.buf);
 	}
 
