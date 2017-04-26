@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB  
+ * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,6 @@ PROCESS_THREAD(serial_input_process, ev, data)
 	for(;;){
 		PROCESS_YIELD_UNTIL(ev == serial_line_event_message);
 		command = (char*)strtok((char*)data, (const char*)delimiter);
-	   
 		if(!strncmp(command, "h", 1)) {
 			print_help_command_menu();
 		} else if (!strncmp(command,"ri",2)) {
