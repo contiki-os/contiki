@@ -201,7 +201,7 @@ print_help_command_menu()
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
 	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>"); 
-	printf("\n Set Time\t time hh:mm:ss");
+	printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");
 	printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
 	printf("\n Display Time\t time");
 	printf("\n Display Date\t date\n");
@@ -395,4 +395,4 @@ set_time(uint8_t hours, uint8_t minutes, uint8_t seconds){
 static void
 print_time(void){
 	printf("%02d:%02d:%02d", ds1307_sensor.value(8), ds1307_sensor.value(7), ds1307_sensor.value(6));
-}	
+}
