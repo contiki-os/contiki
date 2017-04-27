@@ -41,6 +41,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <i2c.h>
+#include <compat/twi.h>
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
@@ -71,7 +72,7 @@ value(int var)
   (void) csum;
 
   res = 0;
-  i2c_start_wait(I2C_CO2SA_ADDR | I2C_WRITE);
+  i2c_start_wait(I2C_CO2SA_ADDR | TW_WRITE);
   if(res) {
     goto err;
   }
@@ -103,7 +104,7 @@ value(int var)
   clock_delay_msec(20);
 
   res = 0;
-  i2c_start(I2C_CO2SA_ADDR | I2C_READ);
+  i2c_start(I2C_CO2SA_ADDR | TW_READ);
 
   if(res) {
     goto err;
