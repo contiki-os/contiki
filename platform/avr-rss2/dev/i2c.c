@@ -35,7 +35,7 @@
  *         Robert Olsson <robert@radio-sensors.com>
  * \changes
  * 		   Flavia Nshemerirwe
- *         
+ *
  */
 
 #include <avr/pgmspace.h>

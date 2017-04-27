@@ -32,7 +32,7 @@
  * \file
  *         includes for i2c core functions
  * \author
- *         Robert Olsson <robert@radio-sensors.com>  
+ *         Robert Olsson <robert@radio-sensors.com>
  */
 
 #include "contiki.h"
