@@ -31,7 +31,7 @@
  *
  * Authors  : Maximus Byamukama, Flavia Nshemerirwe
  * Created :
- * /
+ */
 
 #include "contiki.h"
 #include <stdio.h>
