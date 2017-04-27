@@ -28,7 +28,7 @@
  *
  *
  * Authors  : Maximus Byamukama, Flavia Nshemerirwe
- * Created : 
+ * Created :
  * This file is part of the Contiki operating system.
  */
 

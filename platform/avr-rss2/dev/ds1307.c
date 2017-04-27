@@ -30,8 +30,8 @@
  *
  *
  * Authors  : Maximus Byamukama, Flavia Nshemerirwe
- * Created : 
- */
+ * Created :
+ * /
 
 #include "contiki.h"
 #include <stdio.h>
@@ -53,7 +53,7 @@
 uint8_t am_pm_flag = 0;
 
 /*initialize DS1307 RTC*/
-void 
+void
 DS1307_init(void)
 {
 	i2c_init(F_SCL);
@@ -61,7 +61,7 @@ DS1307_init(void)
 	i2c_write(I2C_DS1307_ADDR+TW_WRITE);
 	i2c_write(CONTROL_REGISTER);
 	i2c_write(0x00);
-	i2c_stop(); 
+	i2c_stop();
 }
 
 /*Convert bcd value to decimal value*/
@@ -132,13 +132,13 @@ get_minutes()
 	i2c_read_mem(I2C_DS1307_ADDR,REG_MINS, min, 1);
 	return bcd_to_dec(min[0]);
 }
- 
+
 uint8_t
 get_hours()
 {
 	uint8_t hrs[1];
 	i2c_read_mem(I2C_DS1307_ADDR,REG_HRS, hrs, 1);
-	return bcd_to_dec(hrs[0]); 
+	return bcd_to_dec(hrs[0]);
 }
 
 /*get date*/
@@ -177,7 +177,7 @@ configure(int type, int c)
 	switch (type){
 		case SET_SEC:
 			set_seconds(c);
-			break;	
+			break;
         case SET_MIN:
 			set_minutes(c);
 			break;
