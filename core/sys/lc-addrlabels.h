@@ -75,6 +75,9 @@ typedef void * lc_t;
 #define LC_SET(s)                               \
   do { ({ __label__ resume; resume: (s) = &&resume; }); }while(0)
 
+#define LC_SET_YIELD(s,retval)                               \
+  do { ({ __label__ resume; (s) = &&resume; return retval; resume:;  }); }while(0)
+
 #define LC_END(s)
 
 #endif /* LC_ADDRLABELS_H_ */

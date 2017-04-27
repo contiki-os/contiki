@@ -111,7 +111,7 @@ struct pt {
  *
  * \hideinitializer
  */
-#define PT_BEGIN(pt) { char PT_YIELD_FLAG = 1; if (PT_YIELD_FLAG) {;} LC_RESUME((pt)->lc)
+#define PT_BEGIN(pt) { LC_RESUME((pt)->lc)
 
 /**
  * Declare the end of a protothread.
@@ -123,8 +123,8 @@ struct pt {
  *
  * \hideinitializer
  */
-#define PT_END(pt) LC_END((pt)->lc); PT_YIELD_FLAG = 0; \
-                   PT_INIT(pt); return PT_ENDED; }
+#define PT_END(pt) LC_END((pt)->lc); \
+    PT_INIT(pt); return PT_ENDED; }
 
 /** @} */
 
@@ -286,13 +286,9 @@ struct pt {
  *
  * \hideinitializer
  */
-#define PT_YIELD(pt)				\
-  do {						\
-    PT_YIELD_FLAG = 0;				\
-    LC_SET((pt)->lc);				\
-    if(PT_YIELD_FLAG == 0) {			\
-      return PT_YIELDED;			\
-    }						\
+#define PT_YIELD(pt)                        \
+  do {                                      \
+      LC_SET_YIELD((pt)->lc, PT_YIELDED);   \
   } while(0)
 
 /**
@@ -306,14 +302,10 @@ struct pt {
  *
  * \hideinitializer
  */
-#define PT_YIELD_UNTIL(pt, cond)		\
-  do {						\
-    PT_YIELD_FLAG = 0;				\
-    LC_SET((pt)->lc);				\
-    if((PT_YIELD_FLAG == 0) || !(cond)) {	\
-      return PT_YIELDED;			\
-    }						\
-  } while(0)
+#define PT_YIELD_UNTIL(pt, cond)            \
+  do {                                      \
+    LC_SET_YIELD((pt)->lc, PT_YIELDED);     \
+  } while(!(cond))
 
 /** @} */
 
