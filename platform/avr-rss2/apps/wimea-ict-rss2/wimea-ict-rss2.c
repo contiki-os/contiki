@@ -52,7 +52,9 @@
 #include "dev/pulse-sensor.h"
 #include "dev/bme280/bme280-sensor.h"
 #include "dev/co2_sa_kxx-sensor.h"
+#include "dev/ds1307.h"
 #include "net/rime/rime.h"
+
 
 
 #define NAME_LENGTH 10
@@ -69,7 +71,7 @@ static process_event_t event_new_interval;
 uint16_t time_interval;
 struct etimer et;
 
-AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process);
+AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process, &serial_input_process);
 
 PROCESS_THREAD(default_config_process, ev, data)
 {
@@ -80,7 +82,6 @@ PROCESS_THREAD(default_config_process, ev, data)
 	time_interval = (eeprom_interval == 0) ? 60 : eeprom_interval;
 	eeprom_update_word(&eemem_transmission_interval, time_interval);  
 	sei();
-	process_start(&serial_input_process, NULL);
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -90,7 +91,7 @@ PROCESS_THREAD(serial_input_process, ev, data)
 	PROCESS_BEGIN();
 	char delimiter[]=" ";
 	char *command = NULL;
-	//uint8_t flag;
+	uint8_t flag;
 	char * value;
 	event_new_interval = process_alloc_event();
 	for(;;){
@@ -100,7 +101,7 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			print_help_command_menu();
 		} else if (!strncmp(command,"ri",2)) {
 			value=(char*) malloc(6);
-			strncpy(value, command+3, 6);//(strlen(command)-3)
+			strlcpy(value, command+3, 6);//(strlen(command)-3)
 			if(strlen(command)>2)
 				change_reporting_interval(value);
 			else
@@ -110,7 +111,7 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			display_system_information();
 		} else if(!strncmp(command, "name", 4)) {
 			value=(char*) malloc(12);
-			strncpy(value, command+5, 12);//(strlen(command)-3)
+			strlcpy(value, command+5, 12);//(strlen(command)-3)
 			if(strlen(command)>4)
 				change_node_name(value);
 			else 
@@ -118,6 +119,32 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			free(value);
 		} else if (!strncmp(command,"u", 1)){
 			display_system_uptime();
+		} else if(!strncmp(command,"date", 4)) {//date setup
+			value = (char*) malloc(9);
+			flag = 0;
+			strlcpy(value, command+5, 9);
+			if (strlen(command) == 4){
+				printf("Date: ");
+				print_date();
+				printf("\n");
+			} else if (strlen(command)>4 && strlen(command)<=13) {
+				set_datetime(value, flag);
+			} else {
+				printf("Invalid command: %s. Try example date 01/01/17.\n", command);
+			}
+		} else if(!strncmp(command,"time", 4)) {//time setup
+			value = (char*) malloc(9);
+			flag = 1;
+			strncpy(value, command+5, 9);
+			if (strlen(command) == 4){
+				printf("Time: ");
+				print_time();
+				printf("\n");
+			} else if (strlen(command)>4 && strlen(command)<=13) {
+				set_datetime(value, flag);
+			} else{
+				printf("Invalid command: %s. Try example time 13:01:56.\n", command);
+			}
 		} else {
 			printf("Invalid command %s. Try h for a list of commands\n", command);
 		}
@@ -142,6 +169,9 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	if( i2c_probed & I2C_CO2SA ) {
 		SENSORS_ACTIVATE(co2_sa_kxx_sensor);
 	}
+	if( i2c_probed & I2C_DS1307 ) {
+			SENSORS_ACTIVATE(ds1307_sensor);
+		}
 	while(1) {
 		etimer_set(&et, CLOCK_SECOND * time_interval);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
@@ -153,6 +183,9 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_DEACTIVATE(temp_mcu_sensor);
 	SENSORS_DEACTIVATE(battery_sensor);
 	SENSORS_DEACTIVATE(pulse_sensor);
+	SENSORS_DEACTIVATE(bme280_sensor);
+	SENSORS_DEACTIVATE(co2_sa_kxx_sensor);
+	SENSORS_ACTIVATE(ds1307_sensor);
 	
 	PROCESS_END();
 }
@@ -168,8 +201,8 @@ print_help_command_menu()
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
 	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>"); 
-	printf("\n Set Time\t time h:m:s");
-	printf("\n Set Date\t date d/m/yy");
+	printf("\n Set Time\t time hh:mm:ss");
+	printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
 	printf("\n Display Time\t time");
 	printf("\n Display Date\t date\n");
 	printf("---------------------------------------------------------------\n\n");
@@ -222,7 +255,7 @@ void
 change_node_name(char *value){
 	cli();
 	char new_name[NAME_LENGTH];
-	strncpy(new_name, value, NAME_LENGTH);
+	strlcpy(new_name, value, NAME_LENGTH);
     eeprom_update_block((const void *)&new_name, (void *)&eemem_node_name, NAME_LENGTH);
 	sei();
 	printf("Node Name changed to %s\n", new_name);
@@ -241,8 +274,11 @@ static void
 read_sensor_values(void){
 	int i;
 	
+	print_date();
+	printf(" ");
+	print_time();
 	/* Read out mote 64bit MAC address */
-	printf("E64=");
+	printf(" E64=");
 	for(i=0; i < 8; i++)
 		printf("%02x", linkaddr_node_addr.u8[i]);
 	  
@@ -279,3 +315,84 @@ read_sensor_values(void){
 	 printf("\n");
 }
 
+static void
+print_date(void){
+	printf("%d-%02d-%02d", ds1307_sensor.value(11), ds1307_sensor.value(10), ds1307_sensor.value(9));
+}
+
+static void
+set_date(uint8_t day, uint8_t month, uint8_t year){
+	ds1307_sensor.configure(3, day);
+	ds1307_sensor.configure(4, month);
+	ds1307_sensor.configure(5, year);
+}
+
+//set date or time
+void
+set_datetime(char *value, uint8_t choice){
+	int8_t i=0, datetime[3];
+	char new_datetime[9];
+	strlcpy(new_datetime, value, 9);
+	char *split_datetime=NULL;
+	if (choice == 0){
+		split_datetime = strtok (new_datetime, "/");
+		while (split_datetime != NULL && i < 3 )
+		{
+			datetime[i] = atoi(split_datetime);
+			split_datetime = strtok (NULL, "/");
+			i++;
+		}
+		if (datetime[0] <= 0 || datetime[0] > 31){
+			printf("Invalid command: date %s!. Try example date 01/01/17.\n", value);
+			return;
+		}
+		if (datetime[1] <= 0 || datetime[1] > 12){
+			printf("Invalid command: date %s!. Try example date 01/01/17.\n", value);
+			return;
+		}
+		if (datetime[2] > 99){
+			printf("Invalid command: date %s!. Try example date 01/01/17.\n", value);
+			return;
+		}
+		set_date(datetime[0], datetime[1], datetime[2]);
+		printf("Date set: ");
+		print_date();
+		printf("\n");
+		} else {
+			split_datetime = strtok (new_datetime, ":");
+			while (split_datetime != NULL && i < 3 )
+			{
+				datetime[i] = atoi(split_datetime);
+				split_datetime = strtok (NULL, ":");
+				i++;
+			}
+			if (datetime[0] < 0 || datetime[0] > 24){
+				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+				return;
+			}
+			if (datetime[1] < 0 || datetime[1] > 60){
+				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+				return;
+			}
+			if (datetime[2] < 0 || datetime[2] > 60){
+				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+				return;
+			}
+		set_time(datetime[0], datetime[1], datetime[2]);
+		printf("Time set: ");
+		print_time();
+		printf("\n");
+	}
+}
+
+static void
+set_time(uint8_t hours, uint8_t minutes, uint8_t seconds){
+	ds1307_sensor.configure(2, hours);
+	ds1307_sensor.configure(1, minutes);
+	ds1307_sensor.configure(0, seconds);
+}
+
+static void
+print_time(void){
+	printf("%02d:%02d:%02d", ds1307_sensor.value(8), ds1307_sensor.value(7), ds1307_sensor.value(6));
+}	

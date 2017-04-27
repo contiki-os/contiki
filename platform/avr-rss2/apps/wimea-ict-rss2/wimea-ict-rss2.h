@@ -6,3 +6,8 @@ void display_system_uptime();
 void change_node_name(char * value);
 void display_node_name();
 static void read_sensor_values(void);
+static void set_date(uint8_t day, uint8_t month, uint8_t year);
+static void set_time(uint8_t hours, uint8_t minutes, uint8_t seconds);
+static void print_date(void);
+static void print_time(void);
+void set_datetime(char *value, uint8_t choice);
