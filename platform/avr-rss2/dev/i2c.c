@@ -33,6 +33,9 @@
  *         i2c core functions
  * \author
  *         Robert Olsson <robert@radio-sensors.com>
+ * \changes
+ * 		   Flavia Nshemerirwe
+ *         
  */
 
 #include <avr/pgmspace.h>
@@ -167,7 +170,7 @@ print_delim(int p, char *s, const char *d)
 void
 i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value)
 {
-  i2c_start(addr | I2C_WRITE);
+  i2c_start(addr | TW_WRITE);
   i2c_write(reg);
   i2c_write(value);
   i2c_stop();
@@ -176,9 +179,9 @@ void
 i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes)
 {
   uint8_t i = 0;
-  i2c_start(addr | I2C_WRITE);
+  i2c_start(addr | TW_WRITE);
   i2c_write(reg);
-  i2c_start(addr | I2C_READ);
+  i2c_start(addr | TW_READ);
   for(i = 0; i < bytes; i++) {
     if(i == bytes - 1) {
       buf[i] = i2c_readNak();
@@ -229,6 +232,12 @@ i2c_probe(void)
     i2c_stop();
     probed |= I2C_BME280;
     print_delim(p++, "BME280", del);
+  }
+  watchdog_periodic();
+  if(!i2c_start(I2C_DS1307_ADDR)) {
+	i2c_stop();
+    probed |= I2C_DS1307;
+    print_delim(p++, "DS1307", del);
   }
   return probed;
 }

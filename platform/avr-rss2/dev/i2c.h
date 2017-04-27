@@ -32,7 +32,7 @@
  * \file
  *         includes for i2c core functions
  * \author
- *         Robert Olsson <robert@radio-sensors.com>
+ *         Robert Olsson <robert@radio-sensors.com>  
  */
 
 #include "contiki.h"
@@ -41,15 +41,23 @@
 #define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
 #define I2C_SHT2X_ADDR    (0x40 << 1) /* SHT2X ADDR */
 #define I2C_BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
+#define I2C_DS1307_ADDR    0xD0 /* DS1307 rtc */
 
 /* Here we define a enumration for devices */
 #define I2C_AT24MAC       (1<<0)
 #define I2C_SHT2X         (1<<1)
 #define I2C_CO2SA         (1<<2)  /* Sense-Air CO2 */
 #define I2C_BME280        (1<<3)
+#define I2C_DS1307		  (1<<4)
 
-#define I2C_READ    1
-#define I2C_WRITE   0
+/* define CPU frequency in Mhz here if not defined in Makefile */
+#ifndef F_CPU
+#define F_CPU 16000000L
+#endif
+
+/* I2C clock in Hz */
+#define F_SCL  100000L
+
 
 void i2c_init(uint32_t speed);
 uint8_t i2c_start(uint8_t addr);
