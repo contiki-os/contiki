@@ -226,6 +226,19 @@
 #define ti_lib_ddi_16_bit_read(...)        DDI16BitRead(__VA_ARGS__)
 #define ti_lib_ddi_16_bitfield_read(...)   DDI16BitfieldRead(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
+/* cpu.h */
+#include "driverlib/cpu.h"
+
+#define ti_lib_cpu_cpsid(...)        CPUcpsid(__VA_ARGS__)
+#define ti_lib_cpu_primask(...)      CPUprimask(__VA_ARGS__);
+#define ti_lib_cpu_cpsie(...)        CPUcpsie(__VA_ARGS__);
+#define ti_lib_cpu_wfi(...)          CPUwfi(__VA_ARGS__)
+#define ti_lib_cpu_wfe(...)          CPUwfe(__VA_ARGS__)
+#define ti_lib_cpu_sev(...)          CPUsev(__VA_ARGS__)
+#define ti_lib_cpu_basepri_set(...)  CPUbasepriSet(__VA_ARGS__)
+#define ti_lib_cpu_basepri_get(...)  CPUbasepriGet(__VA_ARGS__);
+#define ti_lib_cpu_delay(...)        CPUdelay(__VA_ARGS__);
+/*---------------------------------------------------------------------------*/
 /* gpio.h */
 #include "driverlib/gpio.h"
 
