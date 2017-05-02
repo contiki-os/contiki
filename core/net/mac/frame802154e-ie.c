@@ -202,13 +202,13 @@ frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
 int
 frame80215e_create_ie_ietf(uint8_t *buf, int len, struct ieee802154_ies *ies)
 {
-  int ie_len = ies->sixtop_ie_content_len;
-  if(len >= 2 + ie_len && ies != NULL) {
-    create_payload_ie_descriptor(buf, PAYLOAD_IE_IETF, ie_len);
-    return 2 + ie_len;
-  } else {
-    return -1;
+  if(len >= 2 && ies != NULL) {
+    create_payload_ie_descriptor(buf,
+                                 PAYLOAD_IE_IETF,
+                                 ies->sixtop_ie_content_len);
+    return 2 + ies->sixtop_ie_content_len;
   }
+  return -1;
 }
 
 /* Payload IE. MLME. Used to nest sub-IEs */
