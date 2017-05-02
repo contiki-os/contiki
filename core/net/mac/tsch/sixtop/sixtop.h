@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -47,44 +46,40 @@
 #define _SIXTOP_H_
 
 #include "net/mac/mac.h"
+#include "net/linkaddr.h"
+
+#include "sixp-pkt.h"
 
 /**
- * \brief The maximum number of Scheduling Functions in the system.
+ * \brief Input Handler of Scheduling Function
+ * \param type 6P Message Type of an input packet
+ * \param code Code, 6P Command Identifier or Return Code, of an input packet
+ * \param body Body, "Other Fields", of an input packet
+ * \param body_len The length of body
+ * \param body src_addr Source address of an input packet
  */
-#ifdef SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
-#define SIXTOP_MAX_SCHEDULE_FUNCTIONS SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS
-#else
-#define SIXTOP_MAX_SCHEDULE_FUNCTIONS 1
-#endif
+typedef void (* sixtop_sf_input)(sixp_pkt_type_t type,
+                                 sixp_pkt_code_t code,
+                                 const uint8_t *body,
+                                 uint16_t body_len,
+                                 const linkaddr_t *src_addr);
 
 /**
- * \brief The maximum number of transactions which the sixtop module can handle
- * at the same time.
+ * \brief Timeout Handler of Scheduling Function
+ * \param cmd 6P Command (Identifier) in process under the transaction
+ * \param peer_addr The peer address of the transaction
  */
-#ifdef SIXTOP_CONF_6P_MAX_TRANSACTIONS
-#define SIXTOP_6P_MAX_TRANSACTIONS SIXTOP_CONF_6P_MAX_TRANSACTIONS
-#else
-#define SIXTOP_6P_MAX_TRANSACTIONS 1
-#endif
-
-/**
- * \brief The initial sequence number used for 6P request
- */
-#define SIXTOP_6P_INITIAL_SEQUENCE_NUMBER 0
-
-#include "sixp.h"
-
+typedef void (* sixtop_sf_timeout)(sixp_pkt_cmd_t cmd,
+                                   const linkaddr_t *peer_addr);
 /**
  * /brief Scheduling Function Driver
  */
 typedef struct {
-  uint8_t sfid;                             /**< SFID */
-  clock_time_t timeout_interval;            /**< Timeout Value */
-  void (*init)(void);                       /**< Init Function */
-  sixp_request_input_t request_input;       /**< Request Handler */
-  sixp_response_input_t response_input;     /**< Response Handler */
-  sixp_response_input_t confirmation_input; /**< Confirm. Handler */
-  sixp_timeout_handler_t timeout_handler;   /**< Timeout Handler */
+  uint8_t sfid;                  /**< SFID */
+  clock_time_t timeout_interval; /**< Timeout Value */
+  void (*init)(void);            /**< Init Function */
+  sixtop_sf_input input;         /**< Input Handler */
+  sixtop_sf_timeout timeout;     /**< Transaction Timeout Handler */
 } sixtop_sf_t;
 /**
  * \var sixtop_sf_t::sfid
@@ -96,36 +91,35 @@ typedef struct {
 
 /**
  * \brief Add a Scheduling Function (SF) to 6top Sublayer
- * \param sf The pointer to a Scheduling Function driver
+ * \param sf The pointer to a Scheduling Function Driver
  * \return 0 on success, -1 on failure
  *
- * If a SF which has the same SFID as the specified one has already been added,
- * -1 will be returned.
- *
- * If there is no room to another SF, -1 will be returned as well. You can
- * specify how many SFs can be added with SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS.
+ * If there is a SF whose SF is identical to one of a SF specified to this API,
+ * the addition will fail and -1 will be returned. If there is no room to
+ * another SF, -1 will be returned as well. You can specify how many SFs can be
+ * added with SIXTOP_CONF_MAX_SCHEDULING_FUNCTIONS.
  */
 int sixtop_add_sf(const sixtop_sf_t *sf);
 
 /**
  * \brief Find a SF which has been added by SFID
- * \param sfid Scheduling Function Identifier for the concerned SF
- * \return The pointer to a SF having the specified SFID on success, NULL on
- *         failure (not found)
+ * \param sfid Scheduling Function Identifier of a SF
+ * \return The pointer to a SF driver having the specified SFID on success, NULL
+ *         on failure (not found)
  */
 const sixtop_sf_t *sixtop_find_sf(uint8_t sfid);
 
 /**
- * \brief Output a frame stored in packetbuf
- * \param dest_addr Destination address for the outgoing frame
- * \param callback MAC callback function to get the TX result
- * \param arg The pointer to an argument which is returned by the callback
+ * \brief Output a 6P packet which is supposestored in packetbuf
+ * \param dest_addr Destination address of the outgoing packet
+ * \param callback MAC callback function to get a TX result
+ * \param arg The pointer to an argument which is returned with the MAC callback
  */
 void sixtop_output(const linkaddr_t *dest_addr,
                    mac_callback_t callback, void *arg);
 
 /**
- * \brief Input a frame stored in packetbuf
+ * \brief Input a packet stored in packetbuf
  * \param llsec_input An upper layer input function which is called at the end
  *                    of sixtop_input()
  */
@@ -133,11 +127,14 @@ void sixtop_input(void (*llsec_input)(void));
 
 /**
  * \brief Initialize 6top module
+ * This initialization function removes all the SFs which has been installed
+ * into the 6top sub-layer. In addition, it invokes sixp_init().
  */
 void sixtop_init(void);
 
 /**
- * \brief Initialize SFs which has been added in the system
+ * \brief Initialize installed SFs which has been added in the system
+ * This function is supposed to be invoked every time the node gets associated.
  */
 void sixtop_init_sf(void);
 
