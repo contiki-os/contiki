@@ -91,6 +91,7 @@ typedef enum {
 /** \name Neighbor tables: register and loop through table elements */
 /** @{ */
 int nbr_table_register(nbr_table_t *table, nbr_table_callback *callback);
+int nbr_table_is_register(nbr_table_t *table);
 nbr_table_item_t *nbr_table_head(nbr_table_t *table);
 nbr_table_item_t *nbr_table_next(nbr_table_t *table, nbr_table_item_t *item);
 /** @} */
