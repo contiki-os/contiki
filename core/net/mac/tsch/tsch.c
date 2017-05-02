@@ -221,7 +221,6 @@ tsch_reset(void)
   tsch_set_eb_period(TSCH_EB_PERIOD);
 #endif
 }
-
 /* TSCH keep-alive functions */
 
 /*---------------------------------------------------------------------------*/
@@ -339,7 +338,6 @@ eb_input(struct input_packet *current_input)
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Process pending input packet(s) */
 static void
@@ -375,7 +373,6 @@ tsch_rx_process_pending()
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Pass sent packets to upper layer */
 static void
@@ -408,9 +405,6 @@ tsch_start_coordinator(void)
   ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
 #if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
   tsch_schedule_create_minimal();
-#endif
-#if TSCH_WITH_SIXTOP
-  sixtop_init_sf();
 #endif
 
   tsch_is_associated = 1;
@@ -458,7 +452,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
-  
 #if LLSEC802154_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
@@ -599,7 +592,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   PRINTF("TSCH:! did not associate.\n");
   return 0;
 }
-
 /* Processes and protothreads used by TSCH */
 
 /*---------------------------------------------------------------------------*/
@@ -861,15 +853,15 @@ tsch_init(void)
 
   tsch_is_initialized = 1;
 
-#if TSCH_WITH_SIXTOP
-  sixtop_init();
-#endif
-
 #if TSCH_AUTOSTART
   /* Start TSCH operation.
    * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
   NETSTACK_MAC.on();
 #endif /* TSCH_AUTOSTART */
+
+#if TSCH_WITH_SIXTOP
+  sixtop_init();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /* Function send for TSCH-MAC, puts the packet in packetbuf in the MAC queue */

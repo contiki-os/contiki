@@ -26,7 +26,7 @@ except for concurrent 6P transactions described in [Section
 
 ## Configuration Paramters
 
-- `SIXTOP_CONF_MAX_SCHEDULE_FUNCTIONS`: the maximum number of SFs in 6top
+- `SIXTOP_CONF_MAX_SCHEDULING_FUNCTIONS`: the maximum number of SFs in 6top
 - `SIXTOP_CONF_6P_MAX_TRANSACTIONS`: the maximum number of transactions in process
 - `SIXTOP_CONF_6P_MAX_NEIGHBORS`: the maximum number of 6P neighbor states
 
@@ -80,7 +80,7 @@ addition, a handler defined in `sixtop_sf_t` is invoked on a correspondent
 event, for example, reception of a 6P request or timeout of an ongoing
 transaction.
 
-SF can send a 6P packet by `sixp_send()`. After every Add or Delete operation,
+SF can send a 6P packet by `sixp_output()`. After every Add or Delete operation,
 SF needs to advance schedule generation counter associated with the peer by
 `sixp_advance_generation()`, counter which is maintaeind by 6P. Otherwise, SF
 will not able to perform any command request other than Clear due to schedule

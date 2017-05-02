@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -48,12 +47,15 @@
 #include "net/mac/frame802154e-ie.h"
 
 #include "sixtop.h"
+#include "sixtop-conf.h"
 #include "sixp.h"
 
 #define DEBUG DEBUG_PRINT
 #include "net/net-debug.h"
 
-const sixtop_sf_t *schedule_functions[SIXTOP_MAX_SCHEDULE_FUNCTIONS];
+const sixtop_sf_t *scheduling_functions[SIXTOP_MAX_SCHEDULING_FUNCTIONS];
+
+const sixtop_sf_t *sixtop_find_sf(uint8_t sfid);
 
 /*---------------------------------------------------------------------------*/
 int
@@ -63,15 +65,16 @@ sixtop_add_sf(const sixtop_sf_t *sf)
 
   assert(sf != NULL);
 
+  PRINTF("6top: sixtop_add_sf() is adding a SF [SFID:%u]\n", sf->sfid);
+
   if(sixtop_find_sf(sf->sfid) != NULL) {
-    PRINTF("6top: there is another SF installed with the same sfid [%u]\n",
-           sf->sfid);
+    PRINTF("6top: sixtop_add_sf() fails because of duplicate SF\n");
     return -1;
   }
 
-  for(i = 0; i < SIXTOP_MAX_SCHEDULE_FUNCTIONS; i++) {
-    if(schedule_functions[i] == NULL) {
-      schedule_functions[i] = sf;
+  for(i = 0; i < SIXTOP_MAX_SCHEDULING_FUNCTIONS; i++) {
+    if(scheduling_functions[i] == NULL) {
+      scheduling_functions[i] = sf;
       if(sf->init != NULL) {
         sf->init();
       }
@@ -79,12 +82,15 @@ sixtop_add_sf(const sixtop_sf_t *sf)
     }
   }
 
-  if(i == SIXTOP_MAX_SCHEDULE_FUNCTIONS) {
-    PRINTF("6top: no room to install the specified SF [sfid=%u]\n",
-           sf->sfid);
+  if(i == SIXTOP_MAX_SCHEDULING_FUNCTIONS) {
+    PRINTF("6top: sixtop_add_sf() fails because of no memory\n");
     return -1;
   }
 
+  if(sf->init != NULL) {
+    sf->init();
+  }
+  PRINTF("6top: SF [SFID:%u] has been added and initialized\n", sf->sfid);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -93,10 +99,10 @@ sixtop_find_sf(uint8_t sfid)
 {
   int i;
 
-  for(i = 0; i < SIXTOP_MAX_SCHEDULE_FUNCTIONS; i++) {
-    if(schedule_functions[i] != NULL &&
-       schedule_functions[i]->sfid == sfid) {
-      return (const sixtop_sf_t *)schedule_functions[i];
+  for(i = 0; i < SIXTOP_MAX_SCHEDULING_FUNCTIONS; i++) {
+    if(scheduling_functions[i] != NULL &&
+       scheduling_functions[i]->sfid == sfid) {
+      return (const sixtop_sf_t *)scheduling_functions[i];
     }
   }
 
@@ -106,13 +112,76 @@ sixtop_find_sf(uint8_t sfid)
 void
 sixtop_output(const linkaddr_t *dest_addr, mac_callback_t callback, void *arg)
 {
+  uint8_t *p;
+  struct ieee802154_ies ies;
+  int len;
+
   assert(dest_addr != NULL);
+  if(dest_addr == NULL) {
+    PRINTF("6top: sixtop_output() fails because dest_addr is NULL\n");
+    if(callback != NULL) {
+      callback(arg, MAC_TX_ERR_FATAL, 0);
+    }
+    return;
+  }
+
+  /* prepend 6top Sub-IE ID */
+  if(packetbuf_hdralloc(1) != 1) {
+    PRINTF("6top: sixtop_output() fails because of no room for Sub-IE ID\n");
+    return;
+  }
+  p = packetbuf_hdrptr();
+  p[0] = SIXP_SUBIE_ID;
+
+  /*
+   * prepend Payload IE header; 2 octets
+   * only sixtop_ie_content_len matters in frame80215e_create_ie_ietf().
+   */
+  memset(&ies, 0, sizeof(ies));
+  ies.sixtop_ie_content_len = packetbuf_totlen();
+  if(packetbuf_hdralloc(2) != 1 ||
+     (len = frame80215e_create_ie_ietf(packetbuf_hdrptr(),
+                                       2,
+                                       &ies)) < 0) {
+    PRINTF("6top: sixtop_output() fails because of Payload IE Header\n");
+    if(callback != NULL) {
+      callback(arg, MAC_TX_ERR_FATAL, 0);
+    }
+    return;
+  }
+
+  /* append Payload Termination IE to the data field; 2 octets */
+  memset(&ies, 0, sizeof(ies));
+  if((len = frame80215e_create_ie_payload_list_termination(
+       (uint8_t *)packetbuf_dataptr() + packetbuf_datalen(),
+       PACKETBUF_SIZE - packetbuf_totlen(),
+       &ies)) < 0) {
+    PRINTF("6top: sixtop_output() fails because of Payload Termination IE\n");
+    callback(arg, MAC_TX_ERR_FATAL, 0);
+    return;
+  }
+  packetbuf_set_datalen(packetbuf_datalen() + len);
+
+  /* prepend Termination 1 IE to the header field; 2 octets */
+  memset(&ies, 0, sizeof(ies));
+  if(packetbuf_hdralloc(2) &&
+     frame80215e_create_ie_header_list_termination_1(packetbuf_hdrptr(),
+                                                     2,
+                                                     &ies) < 0) {
+    PRINTF("6top: sixtop_output() fails because of Header Termination 1 IE\n");
+    callback(arg, MAC_TX_ERR_FATAL, 0);
+    return;
+  }
+
+  /* specify with PACKETBUF_ATTR_METADATA that packetbuf has IEs */
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_METADATA, 1);
+
+  /* 6P packet is data frame */
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
 
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest_addr);
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 
-  /* 6top assumes NETSTACK_MAC is set with tschmac_driver */
-  assert(&NETSTACK_MAC == &tschmac_driver);
   NETSTACK_MAC.send(callback, arg);
 }
 /*---------------------------------------------------------------------------*/
@@ -183,9 +252,11 @@ sixtop_init(void)
 
   sixp_init();
 
-  for(i = 0; i < SIXTOP_MAX_SCHEDULE_FUNCTIONS; i++) {
-    schedule_functions[i] = NULL;
+  for(i = 0; i < SIXTOP_MAX_SCHEDULING_FUNCTIONS; i++) {
+    scheduling_functions[i] = NULL;
   }
+
+  sixtop_init_sf();
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -193,10 +264,10 @@ sixtop_init_sf(void)
 {
   int i;
 
-  for(i = 0; i < SIXTOP_MAX_SCHEDULE_FUNCTIONS; i++) {
-    if(schedule_functions[i] != NULL &&
-       schedule_functions[i]->init != NULL) {
-      schedule_functions[i]->init();
+  for(i = 0; i < SIXTOP_MAX_SCHEDULING_FUNCTIONS; i++) {
+    if(scheduling_functions[i] != NULL &&
+       scheduling_functions[i]->init != NULL) {
+      scheduling_functions[i]->init();
     }
   }
 }

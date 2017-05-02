@@ -11,7 +11,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -44,7 +43,9 @@
 #include "net/mac/tsch/tsch-schedule.h"
 #include "net/mac/tsch/sixtop/sixtop.h"
 #include "net/mac/tsch/sixtop/sixp.h"
-#include "net/mac/tsch/sixtop/sixp-packet.h"
+#include "net/mac/tsch/sixtop/sixp-nbr.h"
+#include "net/mac/tsch/sixtop/sixp-pkt.h"
+#include "net/mac/tsch/sixtop/sixp-trans.h"
 
 #include "sf-simple.h"
 
@@ -59,6 +60,34 @@ typedef struct {
 static const uint16_t slotframe_handle = 0;
 static uint8_t res_storage[4 + SF_SIMPLE_MAX_LINKS * 4];
 static uint8_t req_storage[4 + SF_SIMPLE_MAX_LINKS * 4];
+
+static void read_cell(const uint8_t *buf, sf_simple_cell_t *cell);
+static void print_cell_list(const uint8_t *cell_list, uint16_t cell_list_len);
+static void add_links_to_schedule(const linkaddr_t *peer_addr,
+                                  uint8_t link_option,
+                                  const uint8_t *cell_list,
+                                  uint16_t cell_list_len);
+static void remove_links_to_schedule(const uint8_t *cell_list,
+                                     uint16_t cell_list_len);
+static void add_response_sent_callback(void *arg, uint16_t arg_len,
+                                       const linkaddr_t *dest_addr,
+                                       sixp_output_status_t status);
+static void delete_response_sent_callback(void *arg, uint16_t arg_len,
+                                          const linkaddr_t *dest_addr,
+                                          sixp_output_status_t status);
+static void add_req_input(const uint8_t *body, uint16_t body_len,
+                          const linkaddr_t *peer_addr);
+static void delete_req_input(const uint8_t *body, uint16_t body_len,
+                             const linkaddr_t *peer_addr);
+static void input(sixp_pkt_type_t type, sixp_pkt_code_t code,
+                  const uint8_t *body, uint16_t body_len,
+                  const linkaddr_t *src_addr);
+static void request_input(sixp_pkt_cmd_t cmd,
+                          const uint8_t *body, uint16_t body_len,
+                          const linkaddr_t *peer_addr);
+static void response_input(sixp_pkt_rc_t rc,
+                           const uint8_t *body, uint16_t body_len,
+                           const linkaddr_t *peer_addr);
 
 /*
  * scheduling policy:
@@ -151,45 +180,49 @@ remove_links_to_schedule(const uint8_t *cell_list, uint16_t cell_list_len)
 static void
 add_response_sent_callback(void *arg, uint16_t arg_len,
                            const linkaddr_t *dest_addr,
-                           sixp_send_status_t status)
+                           sixp_output_status_t status)
 {
   uint8_t *body = (uint8_t *)arg;
   uint16_t body_len = arg_len;
   const uint8_t *cell_list;
   uint16_t cell_list_len;
+  sixp_nbr_t *nbr;
 
   assert(body != NULL && dest_addr != NULL);
 
-  if(status == SIXP_SEND_STATUS_SUCCESS &&
-     sixp_packet_get_cell_list(SIXP_TYPE_RESPONSE,
-                               (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                               &cell_list, &cell_list_len,
-                               body, body_len) == 0) {
+  if(status == SIXP_OUTPUT_STATUS_SUCCESS &&
+     sixp_pkt_get_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                            &cell_list, &cell_list_len,
+                            body, body_len) == 0 &&
+     (nbr = sixp_nbr_find(dest_addr)) != NULL) {
     add_links_to_schedule(dest_addr, LINK_OPTION_RX,
                           cell_list, cell_list_len);
-    sixp_advance_generation(dest_addr, SIXP_GEN_TYPE_RX);
+    sixp_nbr_advance_grx(nbr);
   }
 }
 
 static void
 delete_response_sent_callback(void *arg, uint16_t arg_len,
                               const linkaddr_t *dest_addr,
-                              sixp_send_status_t status)
+                              sixp_output_status_t status)
 {
   uint8_t *body = (uint8_t *)arg;
   uint16_t body_len = arg_len;
   const uint8_t *cell_list;
   uint16_t cell_list_len;
+  sixp_nbr_t *nbr;
 
   assert(body != NULL && dest_addr != NULL);
 
-  if(status == SIXP_SEND_STATUS_SUCCESS &&
-     sixp_packet_get_cell_list(SIXP_TYPE_RESPONSE,
-                               (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                               &cell_list, &cell_list_len,
-                               body, body_len) == 0) {
+  if(status == SIXP_OUTPUT_STATUS_SUCCESS &&
+     sixp_pkt_get_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                            &cell_list, &cell_list_len,
+                            body, body_len) == 0 &&
+     (nbr = sixp_nbr_find(dest_addr)) != NULL) {
     remove_links_to_schedule(cell_list, cell_list_len);
-    sixp_advance_generation(dest_addr, SIXP_GEN_TYPE_RX);
+    sixp_nbr_advance_grx(nbr);
   }
 }
 
@@ -207,14 +240,14 @@ add_req_input(const uint8_t *body, uint16_t body_len, const linkaddr_t *peer_add
 
   assert(body != NULL && peer_addr != NULL);
 
-  if(sixp_packet_get_num_cells(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-                               &num_cells,
-                               body, body_len) != 0 ||
-     sixp_packet_get_cell_list(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-                               &cell_list, &cell_list_len,
-                               body, body_len) != 0) {
+  if(sixp_pkt_get_num_cells(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+                            &num_cells,
+                            body, body_len) != 0 ||
+     sixp_pkt_get_cell_list(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+                            &cell_list, &cell_list_len,
+                            body, body_len) != 0) {
     PRINTF("sf-simple: Parse error on add request\n");
     return;
   }
@@ -240,11 +273,11 @@ add_req_input(const uint8_t *body, uint16_t body_len, const linkaddr_t *peer_add
       read_cell(&cell_list[i], &cell);
       if(tsch_schedule_get_link_by_timeslot(slotframe,
                                             cell.timeslot_offset) == NULL) {
-        sixp_packet_set_cell_list(SIXP_TYPE_RESPONSE,
-                                  (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                                  (uint8_t *)&cell, sizeof(cell),
-                                  feasible_link,
-                                  res_storage, sizeof(res_storage));
+        sixp_pkt_set_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                               (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                               (uint8_t *)&cell, sizeof(cell),
+                               feasible_link,
+                               res_storage, sizeof(res_storage));
         res_len += sizeof(cell);
         feasible_link++;
       }
@@ -253,10 +286,11 @@ add_req_input(const uint8_t *body, uint16_t body_len, const linkaddr_t *peer_add
     if(feasible_link == num_cells) {
       /* Links are feasible. Create Link Response packet */
       PRINTF("sf-simple: Send a 6P Response to node %d\n", peer_addr->u8[7]);
-      sixp_send(SIXP_TYPE_RESPONSE, (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                SF_SIMPLE_SFID,
-                res_storage, res_len, peer_addr,
-                add_response_sent_callback, res_storage, res_len);
+      sixp_output(SIXP_PKT_TYPE_RESPONSE,
+                  (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                  SF_SIMPLE_SFID,
+                  res_storage, res_len, peer_addr,
+                  add_response_sent_callback, res_storage, res_len);
     }
   }
 }
@@ -276,14 +310,14 @@ delete_req_input(const uint8_t *body, uint16_t body_len,
 
   assert(body != NULL && peer_addr != NULL);
 
-  if(sixp_packet_get_num_cells(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_DELETE,
-                               &num_cells,
-                               body, body_len) != 0 ||
-     sixp_packet_get_cell_list(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_DELETE,
-                               &cell_list, &cell_list_len,
-                               body, body_len) != 0) {
+  if(sixp_pkt_get_num_cells(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_DELETE,
+                            &num_cells,
+                            body, body_len) != 0 ||
+     sixp_pkt_get_cell_list(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_DELETE,
+                            &cell_list, &cell_list_len,
+                            body, body_len) != 0) {
     PRINTF("sf-simple: Parse error on delete request\n");
     return;
   }
@@ -307,11 +341,11 @@ delete_req_input(const uint8_t *body, uint16_t body_len,
       read_cell(&cell_list[i], &cell);
       if(tsch_schedule_get_link_by_timeslot(slotframe,
                                             cell.timeslot_offset) != NULL) {
-        sixp_packet_set_cell_list(SIXP_TYPE_RESPONSE,
-                                  (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                                  (uint8_t *)&cell, sizeof(cell),
-                                  removed_link,
-                                  res_storage, sizeof(res_storage));
+        sixp_pkt_set_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                               (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                               (uint8_t *)&cell, sizeof(cell),
+                               removed_link,
+                               res_storage, sizeof(res_storage));
         res_len += sizeof(cell);
       }
     }
@@ -319,24 +353,43 @@ delete_req_input(const uint8_t *body, uint16_t body_len,
 
   /* Links are feasible. Create Link Response packet */
   PRINTF("sf-simple: Send a 6P Response to node %d\n", peer_addr->u8[7]);
-  sixp_send(SIXP_TYPE_RESPONSE, (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-            SF_SIMPLE_SFID,
-            res_storage, res_len, peer_addr,
-            delete_response_sent_callback, res_storage, res_len);
+  sixp_output(SIXP_PKT_TYPE_RESPONSE,
+              (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+              SF_SIMPLE_SFID,
+              res_storage, res_len, peer_addr,
+              delete_response_sent_callback, res_storage, res_len);
 }
 
 static void
-request_input(sixp_command_id_t cmd,
+input(sixp_pkt_type_t type, sixp_pkt_code_t code,
+      const uint8_t *body, uint16_t body_len, const linkaddr_t *src_addr)
+{
+  assert(body != NULL && body != NULL);
+  switch(type) {
+    case SIXP_PKT_TYPE_REQUEST:
+      request_input(code.cmd, body, body_len, src_addr);
+      break;
+    case SIXP_PKT_TYPE_RESPONSE:
+      response_input(code.cmd, body, body_len, src_addr);
+      break;
+    default:
+      /* unsupported */
+      break;
+  }
+}
+
+static void
+request_input(sixp_pkt_cmd_t cmd,
               const uint8_t *body, uint16_t body_len,
               const linkaddr_t *peer_addr)
 {
   assert(body != NULL && peer_addr != NULL);
 
   switch(cmd) {
-    case SIXP_CMD_ADD:
+    case SIXP_PKT_CMD_ADD:
       add_req_input(body, body_len, peer_addr);
       break;
-    case SIXP_CMD_DELETE:
+    case SIXP_PKT_CMD_DELETE:
       delete_req_input(body, body_len, peer_addr);
       break;
     default:
@@ -345,22 +398,29 @@ request_input(sixp_command_id_t cmd,
   }
 }
 static void
-response_input(sixp_command_id_t cmd, sixp_return_code_t return_code,
+response_input(sixp_pkt_rc_t rc,
                const uint8_t *body, uint16_t body_len,
                const linkaddr_t *peer_addr)
 {
   const uint8_t *cell_list;
   uint16_t cell_list_len;
+  sixp_nbr_t *nbr;
+  sixp_trans_t *trans;
 
   assert(body != NULL && peer_addr != NULL);
 
-  if(return_code == SIXP_RC_SUCCESS) {
-    switch(cmd) {
-      case SIXP_CMD_ADD:
-        if(sixp_packet_get_cell_list(SIXP_TYPE_RESPONSE,
-                                     (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                                     &cell_list, &cell_list_len,
-                                     body, body_len) != 0) {
+  if((nbr = sixp_nbr_find(peer_addr)) == NULL ||
+     (trans = sixp_trans_find(peer_addr)) == NULL) {
+    return;
+  }
+
+  if(rc == SIXP_PKT_RC_SUCCESS) {
+    switch(sixp_trans_get_cmd(trans)) {
+      case SIXP_PKT_CMD_ADD:
+        if(sixp_pkt_get_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                                  (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                                  &cell_list, &cell_list_len,
+                                  body, body_len) != 0) {
           PRINTF("sf-simple: Parse error on add response\n");
           return;
         }
@@ -369,13 +429,13 @@ response_input(sixp_command_id_t cmd, sixp_return_code_t return_code,
         PRINTF("\n");
         add_links_to_schedule(peer_addr, LINK_OPTION_TX,
                               cell_list, cell_list_len);
-        sixp_advance_generation(peer_addr, SIXP_GEN_TYPE_TX);
+        sixp_nbr_advance_gtx(nbr);
         break;
-      case SIXP_CMD_DELETE:
-        if(sixp_packet_get_cell_list(SIXP_TYPE_RESPONSE,
-                                     (sixp_code_t)(uint8_t)SIXP_RC_SUCCESS,
-                                     &cell_list, &cell_list_len,
-                                     body, body_len) != 0) {
+      case SIXP_PKT_CMD_DELETE:
+        if(sixp_pkt_get_cell_list(SIXP_PKT_TYPE_RESPONSE,
+                                  (sixp_pkt_code_t)(uint8_t)SIXP_PKT_RC_SUCCESS,
+                                  &cell_list, &cell_list_len,
+                                  body, body_len) != 0) {
           PRINTF("sf-simple: Parse error on add response\n");
           return;
         }
@@ -383,11 +443,11 @@ response_input(sixp_command_id_t cmd, sixp_return_code_t return_code,
         print_cell_list(cell_list, cell_list_len);
         PRINTF("\n");
         remove_links_to_schedule(cell_list, cell_list_len);
-        sixp_advance_generation(peer_addr, SIXP_GEN_TYPE_TX);
+        sixp_nbr_advance_gtx(nbr);
         break;
-      case SIXP_CMD_STATUS:
-      case SIXP_CMD_LIST:
-      case SIXP_CMD_CLEAR:
+      case SIXP_PKT_CMD_STATUS:
+      case SIXP_PKT_CMD_LIST:
+      case SIXP_PKT_CMD_CLEAR:
       default:
         PRINTF("sf-simple: unsupported response\n");
     }
@@ -454,31 +514,31 @@ sf_simple_add_links(linkaddr_t *peer_addr, uint8_t num_links)
   }
 
   memset(req_storage, 0, sizeof(req_storage));
-  if(sixp_packet_set_cell_options(SIXP_TYPE_REQUEST,
-                                  (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-                                  SIXP_CELL_OPTION_TX,
-                                  req_storage,
-                                  sizeof(req_storage)) != 0 ||
-     sixp_packet_set_num_cells(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-                               num_links,
+  if(sixp_pkt_set_cell_options(SIXP_PKT_TYPE_REQUEST,
+                               (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+                               SIXP_PKT_CELL_OPTION_TX,
                                req_storage,
                                sizeof(req_storage)) != 0 ||
-     sixp_packet_set_cell_list(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-                               (const uint8_t *)cell_list,
-                               index * sizeof(sf_simple_cell_t), 0,
-                               req_storage, sizeof(req_storage)) != 0) {
+     sixp_pkt_set_num_cells(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+                            num_links,
+                            req_storage,
+                            sizeof(req_storage)) != 0 ||
+     sixp_pkt_set_cell_list(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+                            (const uint8_t *)cell_list,
+                            index * sizeof(sf_simple_cell_t), 0,
+                            req_storage, sizeof(req_storage)) != 0) {
     PRINTF("sf-simple: Build error on add request\n");
     return -1;
   }
 
   /* The length of fixed part is 4 bytes: Metadata, CellOptions, and NumCells */
   req_len = 4 + index * sizeof(sf_simple_cell_t);
-  sixp_send(SIXP_TYPE_REQUEST, (sixp_code_t)(uint8_t)SIXP_CMD_ADD,
-            SF_SIMPLE_SFID,
-            req_storage, req_len, peer_addr,
-            NULL, NULL, 0);
+  sixp_output(SIXP_PKT_TYPE_REQUEST, (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_ADD,
+              SF_SIMPLE_SFID,
+              req_storage, req_len, peer_addr,
+              NULL, NULL, 0);
 
   PRINTF("sf-simple: Send a 6P Add Request for %d links to node %d with LinkList : ",
          num_links, peer_addr->u8[7]);
@@ -523,26 +583,26 @@ sf_simple_remove_links(linkaddr_t *peer_addr)
   }
 
   memset(req_storage, 0, sizeof(req_storage));
-  if(sixp_packet_set_num_cells(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_DELETE,
-                               1,
-                               req_storage,
-                               sizeof(req_storage)) != 0 ||
-     sixp_packet_set_cell_list(SIXP_TYPE_REQUEST,
-                               (sixp_code_t)(uint8_t)SIXP_CMD_DELETE,
-                               (const uint8_t *)&cell, sizeof(cell),
-                               0,
-                               req_storage, sizeof(req_storage)) != 0) {
+  if(sixp_pkt_set_num_cells(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_DELETE,
+                            1,
+                            req_storage,
+                            sizeof(req_storage)) != 0 ||
+     sixp_pkt_set_cell_list(SIXP_PKT_TYPE_REQUEST,
+                            (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_DELETE,
+                            (const uint8_t *)&cell, sizeof(cell),
+                            0,
+                            req_storage, sizeof(req_storage)) != 0) {
     PRINTF("sf-simple: Build error on add request\n");
     return -1;
   }
   /* The length of fixed part is 4 bytes: Metadata, CellOptions, and NumCells */
   req_len = 4 + sizeof(sf_simple_cell_t);
 
-  sixp_send(SIXP_TYPE_REQUEST, (sixp_code_t)(uint8_t)SIXP_CMD_DELETE,
-            SF_SIMPLE_SFID,
-            req_storage, req_len, peer_addr,
-            NULL, NULL, 0);
+  sixp_output(SIXP_PKT_TYPE_REQUEST, (sixp_pkt_code_t)(uint8_t)SIXP_PKT_CMD_DELETE,
+              SF_SIMPLE_SFID,
+              req_storage, req_len, peer_addr,
+              NULL, NULL, 0);
 
   PRINTF("sf-simple: Send a 6P Delete Request for %d links to node %d with LinkList : ",
          1, peer_addr->u8[7]);
@@ -556,7 +616,6 @@ const sixtop_sf_t sf_simple_driver = {
   SF_SIMPLE_SFID,
   CLOCK_SECOND,
   NULL,
-  request_input,
-  response_input,
+  input,
   NULL
 };
