@@ -40,6 +40,7 @@ summary
 .DS_Store
 obj_*
 symbols.*
+!core/loader/symbols.h
 Makefile.target
 doc/html
 doc/latex
