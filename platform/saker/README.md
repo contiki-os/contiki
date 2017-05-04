@@ -311,6 +311,8 @@ the Saker's web interface. So, for a device with the IPv6 address
 With your device ID, check out the data that the MQTT server has received. For
 IBM's server, go to <https://quickstart.internetofthings.ibmcloud.com>. 
 
+> Note: IBM's server uses websockets to display the device data. Many corporate networks block websockets in their firewall. While IBM will then correctly receive the device data, the webpage will not display it. Please check with your network administrator if websockets work in your environment if you experience trouble.
+
 Sensniff
 --------
 The Saker can be programmed to act as a sniffer to record wireless 802.15.4
