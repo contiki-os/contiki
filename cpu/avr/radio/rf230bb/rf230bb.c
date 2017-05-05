@@ -357,6 +357,35 @@ rf230_set_short_addr(uint16_t addr)
   hal_register_write(RG_SHORT_ADDR_1, (addr >> 8));
 }
 
+#define RSSI_BASE_VAL (-90)
+
+/* Returns the current CCA threshold in dBm */
+static radio_value_t
+rf230_get_cca_threshold()
+{
+  radio_value_t cca_thresh = 0;
+
+  cca_thresh = hal_subregister_read(SR_CCA_ED_THRES);
+  cca_thresh = RSSI_BASE_VAL + 2 * cca_thresh;
+  return cca_thresh;
+}
+
+/* Sets the CCA threshold in dBm */
+static radio_value_t
+rf230_set_cca_threshold(radio_value_t cca_thresh)
+{
+
+  if(cca_thresh > -60)  /* RSSI_BASE_VAL - 2 * 0xF */
+    cca_thresh = -60;
+  
+  cca_thresh = (RSSI_BASE_VAL - cca_thresh)/2;
+  if(cca_thresh < 0)
+    cca_thresh = - cca_thresh;
+
+  hal_subregister_write(SR_CCA_ED_THRES, cca_thresh);
+  return cca_thresh;
+}
+
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
@@ -399,7 +428,7 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = rf230_get_txpower();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
-    /* *value = get_cca_threshold(); */
+    *value = rf230_get_cca_threshold();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = rf230_get_raw_rssi();
@@ -475,7 +504,7 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
 
   case RADIO_PARAM_CCA_THRESHOLD:
-    /* set_cca_threshold(value); */
+    rf230_set_cca_threshold(value);
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
