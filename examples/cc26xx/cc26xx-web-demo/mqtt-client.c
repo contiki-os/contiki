@@ -64,6 +64,9 @@
  */
 static const char *broker_ip = "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd";
 /*---------------------------------------------------------------------------*/
+#define ADDRESS_CONVERSION_OK       1
+#define ADDRESS_CONVERSION_ERROR    0
+/*---------------------------------------------------------------------------*/
 /*
  * A timeout used when waiting for something to happen (e.g. to connect or to
  * disconnect)
@@ -350,13 +353,20 @@ ip_addr_post_handler(char *key, int key_len, char *val, int val_len)
 {
   int rv = HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
 
+  /*
+   * uiplib_ip6addrconv will immediately start writing into the supplied buffer
+   * even if it subsequently fails. Thus, pass an intermediate buffer
+   */
+  uip_ip6addr_t tmp_addr;
+
   if(key_len != strlen("broker_ip") ||
      strncasecmp(key, "broker_ip", strlen("broker_ip")) != 0) {
     /* Not ours */
     return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
   }
 
-  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN) {
+  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN
+          || uiplib_ip6addrconv(val, &tmp_addr) != ADDRESS_CONVERSION_OK) {
     /* Ours but bad value */
     rv = HTTPD_SIMPLE_POST_HANDLER_ERROR;
   } else {
