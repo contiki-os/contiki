@@ -10,6 +10,8 @@ adc_read(uint8_t pin);
 double
 adc_read_v_in(void);
 double
+adc_read_v_mcu(void);
+double
 adc_read_a1(void);
 double
 adc_read_a2(void);

@@ -31,11 +31,11 @@
 
 char str_t[127], year[4], report [200],e64[16],rtc_date[20];
 datetime_t datetime;
-float v_in;
+float v_in, v_mcu;
 int p1,p2,lines=0; //temporary upper and lower parts of floating point variables
 int prev_sec=0, curr_sec=0, secs_elapsed=0; /*Sleep function distorts timers. We'll use the rtc time to schedule transmissions after N seconds*/
 uint8_t rssi,lqi;
-uint16_t err=0; 
+uint16_t err=0,v_low=0; 
 
 struct broadcast_message {
 	uint8_t head; 
@@ -90,21 +90,21 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	/*write to sd card*/
 	if (f_open(fp, "data.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) 
 	{	// Open existing or create new file
-        leds_on(LEDS_RED);
+		leds_on(LEDS_RED);
 		if (f_lseek(fp, f_size(fp)) == FR_OK) 
 		{
 			f_write(fp, report, strlen(report), &bw);	// Write data to the file
 		} 	
 		if (bw == strlen(report))  //we wrote the entire string
 		{ 
-		    ++lines;
+			++lines;
 			leds_off(LEDS_RED);
 		}
- 
+
 	}else ++err;
 	f_close(fp);// close the file
 	
-    curr_sec = datetime.secs;
+	curr_sec = datetime.secs;
 	secs_elapsed = curr_sec - prev_sec;
 	if(secs_elapsed <0 ) secs_elapsed += 60;
 	if(secs_elapsed >= TRANSMIT_INTERVAL) {
@@ -124,10 +124,9 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	
 	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
 	PROCESS_BEGIN();
-	broadcast_open(&broadcast, 129, &broadcast_call);
-	
-	//NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
-	rf230_set_channel(26);
+	broadcast_open(&broadcast, 129, &broadcast_call);	
+	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
+	//rf230_set_channel(26);
 	NETSTACK_RADIO.off(); //for rpc change
 	rf230_set_rpc(0xFF); 
 	NETSTACK_RADIO.on();
@@ -143,29 +142,42 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		
 		PROCESS_YIELD_UNTIL(ev==0x10);	
 		leds_on(LEDS_YELLOW);
-			int len;	
-			v_in=adc_read_v_in();
-			p1 = (int)v_in; //e.g. 4.93 gives 4
-			p2 = (v_in*100)-(p1*100); // =93
-			
-			len=0;
-			/*get RTC datetime --this is part of the report*/
-			ds3231_get_datetime(&datetime);
-			sprintf(rtc_date, "20%d-%02d-%02d %02d:%02d:%02d",datetime.year,datetime.month,
-			datetime.day, datetime.hours,datetime.mins,datetime.secs);
-					
-			len += sprintf(&msg.buf[len],"TXT=mak-gen3 RTC_TIME=%s V_IN=%d.%02d SD.ERR=%d REPORTS=%d",rtc_date,p1, p2,err,lines);		
-			msg.buf[len++] = '\0';		/*null terminate the string*/
-			packetbuf_copyfrom(&msg, len+2);		
-			
-			msg.head = 1<<4; 
-			msg.head |= ttl;
-			msg.seqno = seqno;
-			
-			broadcast_send(&broadcast);
-			seqno++;
-			leds_off(LEDS_YELLOW);
-			printf("&: %s\n\r", msg.buf);
+		int len=0;	
+		/*get RTC datetime --this is part of the report*/
+		ds3231_get_datetime(&datetime);
+		sprintf(rtc_date, "20%d-%02d-%02d,%02d:%02d:%02d",datetime.year,datetime.month,
+		datetime.day, datetime.hours,datetime.mins,datetime.secs);
+		
+		len += sprintf(&msg.buf[len],"TXT=mak-gen3 RTC_T=%s",rtc_date);
+	
+		v_in=adc_read_v_in();
+		p1 = (int)v_in; //e.g. 4.93 gives 4
+		p2 = (v_in*100)-(p1*100); // =93	
+		len += sprintf(&msg.buf[len]," V_IN=%d.%02d",p1,p2);
+		
+		v_mcu = adc_read_v_mcu();
+		p1 = (int)v_mcu; //e.g. 4.93 gives 4
+		p2 = (v_mcu*100)-(p1*100); // =93	
+		len += sprintf(&msg.buf[len]," V_MCU=%d.%02d SD.ERR=%d REPORTS=%d",p1,p2,err,lines);	
+		if(v_in < 2.80){
+			v_low=1;
+			len += sprintf(&msg.buf[len]," V_LOW=1");
+		}
+		msg.buf[len++] = '\0';		/*null terminate the string*/
+		packetbuf_copyfrom(&msg, len+2);		
+		
+		msg.head = 1<<4; 
+		msg.head |= ttl;
+		msg.seqno = seqno;
+		
+		broadcast_send(&broadcast);
+		seqno++;
+		leds_off(LEDS_YELLOW);
+		printf("&: %s \n\r", msg.buf);
+		if(v_low==1)
+		{
+		  NETSTACK_RADIO.off();
+		}
 	}
 
 	PROCESS_END();
