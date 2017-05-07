@@ -122,13 +122,6 @@
 #define NETSTACK_CONF_WITH_IPV6 0
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
-/* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
-   for the uIP packet buffer. This sets an upper bound on the largest
-   IP packet that can be received by the system. */
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE 128
-#endif /* UIP_CONF_BUFFER_SIZE */
-
 /* UIP_CONF_ROUTER specifies if the IPv6 node should be a router or
    not. By default, all Contiki nodes are routers. */
 #ifndef UIP_CONF_ROUTER
