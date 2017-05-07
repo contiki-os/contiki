@@ -356,7 +356,7 @@ open_url(void)
   /* XXX: Here we should find the port part of the URL, but this isn't
      currently done because of laziness from the programmer's side
      :-) */
-  
+
   /* Find file part of the URL. */
   while(*urlptr != '/' && *urlptr != 0) {
     ++urlptr;
@@ -623,15 +623,15 @@ set_url(char *host, uint16_t port, char *file)
   char *urlptr;
 
   memset(url, 0, WWW_CONF_MAX_URLLEN);
-  
+
   if(strncmp(file, http_http, 7) == 0) {
     strncpy(url, file, sizeof(url));
   } else {
     strncpy(url, http_http, 7);
     urlptr = url + 7;
-    strcpy(urlptr, host);
+    strncpy(urlptr, host, sizeof(urlptr));
     urlptr += strlen(host);
-    strcpy(urlptr, file);
+    strncpy(urlptr, file, sizeof(urlptr));
   }
 
   show_url();
@@ -707,12 +707,15 @@ webclient_datahandler(char *data, uint16_t len)
 #if CTK_CONF_WINDOWS
       ctk_dialog_open(&wgetdialog);
 #else /* CTK_CONF_WINDOWS */
-      strcpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 5,
-	     (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 +
-	     "                       This web page cannot be displayed.");
-      strcpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 6,
-	     (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 +
-	     "                       Would you like to download instead?");
+      strncpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 5,
+	     			 (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 + "\nThis web page cannot be displayed.",
+			 			 sizeof(webpage));
+
+      strncpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 6,
+	     			 (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 +
+	     			 "Would you like to download instead?",
+							sizeof(webpage));
+
       CTK_WIDGET_ADD(&mainwindow, &wgetnobutton);
       CTK_WIDGET_ADD(&mainwindow, &wgetyesbutton);
       CTK_WIDGET_FOCUS(&mainwindow, &wgetyesbutton);
@@ -958,7 +961,7 @@ add_query(char delimiter, char *string)
   }
 
   *query++ = delimiter;
-  strcpy(query, string);
+  strncpy(query, string, sizeof(query));
   if(delimiter == ISO_eq) {
     char *space = query;
 
