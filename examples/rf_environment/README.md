@@ -48,7 +48,6 @@ cca_thresh=-60dBm   0   1   2   0   1   0   1   1  15  33   4   5  26   2   0   
 cca_thresh=-90dBm   0   1   0   2   2   0   1   1   0   1   6  12  24  10   2   1 Best=11 Worst=23 Ave=3.64 
 cca_thresh=-88dBm   0   0   0   2   0   1   0   2   0   2   2   9  10   0   0   1 Best=11 Worst=23 Ave=1.54 
 
-
 Electrum Kista Stockolm (KTH/SICS etc)
 
 cca_thresh=-62dBm   2  17  26   2   2   1  14  18  17   4   9   6   5  31  47   2 Best=16 Worst=25 Ave=12.07
