@@ -58,10 +58,10 @@ typedef uint32_t sixp_pkt_cell_t;
  * \brief 6P Message Types
  */
 typedef enum  {
-  SIXP_PKT_TYPE_REQUEST      = 0b00, /**< 6P Request */
-  SIXP_PKT_TYPE_RESPONSE     = 0b01, /**< 6P Response */
-  SIXP_PKT_TYPE_CONFIRMATION = 0b10, /**< 6P Confirmation */
-  SIXP_PKT_TYPE_RESERVED     = 0b11, /**< Reserved */
+  SIXP_PKT_TYPE_REQUEST      = 0x00, /**< 6P Request */
+  SIXP_PKT_TYPE_RESPONSE     = 0x01, /**< 6P Response */
+  SIXP_PKT_TYPE_CONFIRMATION = 0x02, /**< 6P Confirmation */
+  SIXP_PKT_TYPE_RESERVED     = 0x03, /**< Reserved */
 } sixp_pkt_type_t;
 
 /**
