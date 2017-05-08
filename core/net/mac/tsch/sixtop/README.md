@@ -19,22 +19,27 @@ except for concurrent 6P transactions described in [Section
 
 ## Code Structure
 
-6top is implemented in:
-- `core/net/mac/tsch/sixtop/sixtop.[ch]`: provides 6top APIs
-- `core/net/mac/tsch/sixtop/sixp.[ch]`: has charge of 6P other than packet manipulation
-- `core/net/mac/tsch/sixtop/sixp-packet[ch]`: provides 6P packet creater and parser
+| File            | Contents                       |
+|-----------------|--------------------------------|
+| sixtop.[ch]     | 6top external APIs             |
+| sixp.[ch]       | 6P I/O APIs                    |
+| sixp-nbr.[ch]   | 6P Neighbor Management APIs    |
+| sixp-pkt.[ch]   | 6P Packet Manipulation APIs    |
+| sixp-trans.[ch] | 6P Transaction Management APIs |
+| sixp-conf.h     | 6P Configuration Parameters    |
 
 ## Configuration Paramters
 
-- `SIXTOP_CONF_MAX_SCHEDULING_FUNCTIONS`: the maximum number of SFs in 6top
-- `SIXTOP_CONF_6P_MAX_TRANSACTIONS`: the maximum number of transactions in process
-- `SIXTOP_CONF_6P_MAX_NEIGHBORS`: the maximum number of 6P neighbor states
+| Parameter                            | Meaning                                      | Default Value |
+|--------------------------------------|----------------------------------------------|---------------|
+| SIXTOP_CONF_MAX_SCHEDULING_FUNCTIONS | The maximum number of SFs installed in 6top  |             1 |
+| SIXTOP_CONF_MAX_TRANSACTIONS         | The maximum number of transactions at a time |             1 |
 
 ## Caveat
 
 At this moment, allocated 6P neighbor states never be deleted since 6P has no
 way to decide to delete them. 6P neighbor state consists of SeqNum to be used
-for a next reqeust, GTX, and GRX.
+for a next reqeust, GTX, and GRX (defined in sixp-nbr.c).
 
 Once the number of 6P neighbor states reaches to the `SIXTOP_6P_MAX_NEIGHBORS`,
 a transaction with a new neighbor may fail due to failure in allocating a 6P
@@ -49,6 +54,10 @@ does not have bandwidth monitoring mechanism nor bandwidth adaptation
 mechanism. Instead, the SF provides APIs so that a user process can add or
 remove cells dynamically. A sample user process implementation using the SF is
 found in `node-sixtop.c`, which is tested with `rpl-tsch-sixtop-z1.csc`.
+
+## Test
+
+6top or 6P related tests are implemented under `regression-tests/26-6tisch`.
 
 ## Using 6top
 
