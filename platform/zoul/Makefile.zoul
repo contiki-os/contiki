@@ -50,9 +50,13 @@ endif
 CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538
 
-MODULES += core/net core/net/mac \
+MODULES += core/net core/net/mac core/net/ip \
            core/net/mac/contikimac \
            core/net/llsec core/net/llsec/noncoresec dev/cc1200
+
+ifeq ($(WITH_IP64),1)
+  MODULES += core/net/ip64
+endif
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 

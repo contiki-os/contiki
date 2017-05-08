@@ -132,7 +132,7 @@ tsch_log_prepare_add(void)
   int log_index = ringbufindex_peek_put(&log_ringbuf);
   if(log_index != -1) {
     struct tsch_log_t *log = &log_array[log_index];
-    log->asn = current_asn;
+    log->asn = tsch_current_asn;
     log->link = current_link;
     return log;
   } else {

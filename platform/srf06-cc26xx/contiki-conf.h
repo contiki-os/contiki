@@ -93,6 +93,11 @@
 #define RF_CORE_CONF_CHANNEL             RF_CHANNEL
 #endif
 
+/* Number of Prop Mode RX buffers */
+#ifndef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_CONF_RX_BUF_CNT        4
+#endif
+
 /*
  * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
  * project has specified otherwise. Depending on the final mode, determine a
@@ -120,8 +125,8 @@
 #define CONTIKIMAC_CONF_CCA_SLEEP_TIME            (RTIMER_ARCH_SECOND / 210)
 #define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
 #define CONTIKIMAC_CONF_SEND_SW_ACK               1
-#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 1000)
-#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 240)
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 920)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 220)
 #else
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 

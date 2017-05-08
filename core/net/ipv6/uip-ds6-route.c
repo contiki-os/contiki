@@ -573,6 +573,12 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *
+uip_ds6_defrt_head(void)
+{
+  return list_head(defaultrouterlist);
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_defrt_t *
 uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 {
   uip_ds6_defrt_t *d;

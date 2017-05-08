@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- * Generic module controlling sensors on CC26XX Sensortag
+ * Generic module controlling sensors on Sensortags
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
