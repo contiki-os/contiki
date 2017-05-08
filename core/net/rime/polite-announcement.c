@@ -129,7 +129,9 @@ adv_packet_received(struct ipolite_conn *ipolite, const linkaddr_t *from)
   ptr = packetbuf_dataptr();
 
   /* Copy number of announcements */
+  if(strlen(ptr)>=sizeof(struct announcement_msg)){
   memcpy(&adata, ptr, sizeof(struct announcement_msg));
+  }
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
 	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata.num);
@@ -144,7 +146,9 @@ adv_packet_received(struct ipolite_conn *ipolite, const linkaddr_t *from)
   ptr += ANNOUNCEMENT_MSG_HEADERLEN;
   for(i = 0; i < adata.num; ++i) {
     /* Copy announcements */
+    if(strlen(ptr)>=sizeof(struct announcement_data)){
     memcpy(&data, ptr, sizeof(struct announcement_data));
+    }
     announcement_heard(from, data.id, data.value);
     ptr += sizeof(struct announcement_data);
   }
