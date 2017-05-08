@@ -301,6 +301,16 @@ nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)
   }
 }
 /*---------------------------------------------------------------------------*/
+/* Test whether a specified table has been registered or not */
+int
+nbr_table_is_register(nbr_table_t *table)
+{
+  if(table != NULL && all_tables[table->index] == table) {
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 /* Returns the first item of the current table */
 nbr_table_item_t *
 nbr_table_head(nbr_table_t *table)

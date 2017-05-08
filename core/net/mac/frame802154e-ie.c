@@ -60,6 +60,8 @@ enum ieee802154e_header_ie_id {
 enum ieee802154e_payload_ie_id {
   PAYLOAD_IE_ESDU = 0,
   PAYLOAD_IE_MLME,
+  PAYLOAD_IE_VENDOR,
+  PAYLOAD_IE_IETF,
   PAYLOAD_IE_LIST_TERMINATION = 0xf,
 };
 
@@ -77,6 +79,10 @@ enum ieee802154e_mlme_short_subie_id {
 /* c.f. IEEE 802.15.4e Table 4e */
 enum ieee802154e_mlme_long_subie_id {
   MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE = 0x9,
+};
+
+enum ieee802154e_ietf_subie_id {
+  IETF_IE_6TOP = 0x00,
 };
 
 #define WRITE16(buf, val) \
@@ -190,6 +196,19 @@ frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
   } else {
     return -1;
   }
+}
+
+/* Payload IE. 6top. Used to nest sub-IEs */
+int
+frame80215e_create_ie_ietf(uint8_t *buf, int len, struct ieee802154_ies *ies)
+{
+  if(len >= 2 && ies != NULL) {
+    create_payload_ie_descriptor(buf,
+                                 PAYLOAD_IE_IETF,
+                                 ies->sixtop_ie_content_len);
+    return 2 + ies->sixtop_ie_content_len;
+  }
+  return -1;
 }
 
 /* Payload IE. MLME. Used to nest sub-IEs */
@@ -528,6 +547,27 @@ frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
             nested_mlme_len = len;
             len = 0; /* Reset len as we want to read subIEs and not jump over them */
             PRINTF("frame802154e: entering MLME ie with len %u\n", nested_mlme_len);
+            break;
+          case PAYLOAD_IE_IETF:
+            switch(*buf) {
+              case IETF_IE_6TOP:
+                /*
+                 * buf points to the Sub-ID field, a one-octet field, now;
+                 * advance it by one and use the result as the head pointer of
+                 * 6top IE Content.
+                 */
+                ies->sixtop_ie_content_ptr = buf + 1;
+                /*
+                 * Similarly as above, subtract 1 (one octet) from len, which
+                 * includes the length of Sub-ID field, and use the result as
+                 * the length of 6top IE Content.
+                 */
+                ies->sixtop_ie_content_len = len - 1;
+                break;
+              default:
+                PRINTF("frame802154e: unsupported IETF sub-IE %u\n", *buf);
+                break;
+            }
             break;
           case PAYLOAD_IE_LIST_TERMINATION:
             PRINTF("frame802154e: payload ie list termination %u\n", len);

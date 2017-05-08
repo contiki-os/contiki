@@ -80,6 +80,9 @@ struct ieee802154_ies {
   /* We include and parse only the sequence len and list and omit unused fields */
   uint16_t ie_hopping_sequence_len;
   uint8_t ie_hopping_sequence_list[TSCH_HOPPING_SEQUENCE_MAX_LEN];
+  /* Payload Sixtop IE */
+  const uint8_t *sixtop_ie_content_ptr;
+  uint16_t sixtop_ie_content_len;
 };
 
 /** Insert various Information Elements **/
@@ -96,6 +99,9 @@ int frame80215e_create_ie_header_list_termination_2(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 /* Payload IE. List termination */
 int frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+/* Payload IE. 6top. Used to nest sub-IEs */
+int frame80215e_create_ie_ietf(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 /* Payload IE. MLME. Used to nest sub-IEs */
 int frame80215e_create_ie_mlme(uint8_t *buf, int len,

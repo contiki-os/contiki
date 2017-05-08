@@ -76,20 +76,22 @@ typedef struct nbr_table {
 #define NBR_TABLE_DECLARE(name) extern nbr_table_t *name
 
 typedef enum {
-	NBR_TABLE_REASON_UNDEFINED,
-	NBR_TABLE_REASON_RPL_DIO,
-	NBR_TABLE_REASON_RPL_DAO,
-	NBR_TABLE_REASON_RPL_DIS,
-	NBR_TABLE_REASON_ROUTE,
-	NBR_TABLE_REASON_IPV6_ND,
-	NBR_TABLE_REASON_MAC,
-	NBR_TABLE_REASON_LLSEC,
-	NBR_TABLE_REASON_LINK_STATS,
+  NBR_TABLE_REASON_UNDEFINED,
+  NBR_TABLE_REASON_RPL_DIO,
+  NBR_TABLE_REASON_RPL_DAO,
+  NBR_TABLE_REASON_RPL_DIS,
+  NBR_TABLE_REASON_ROUTE,
+  NBR_TABLE_REASON_IPV6_ND,
+  NBR_TABLE_REASON_MAC,
+  NBR_TABLE_REASON_LLSEC,
+  NBR_TABLE_REASON_LINK_STATS,
+  NBR_TABLE_REASON_SIXTOP,
 } nbr_table_reason_t;
 
 /** \name Neighbor tables: register and loop through table elements */
 /** @{ */
 int nbr_table_register(nbr_table_t *table, nbr_table_callback *callback);
+int nbr_table_is_register(nbr_table_t *table);
 nbr_table_item_t *nbr_table_head(nbr_table_t *table);
 nbr_table_item_t *nbr_table_next(nbr_table_t *table, nbr_table_item_t *item);
 /** @} */

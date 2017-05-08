@@ -57,6 +57,10 @@
 #include "net/mac/mac-sequence.h"
 #include "lib/random.h"
 
+#if TSCH_WITH_SIXTOP
+#include "net/mac/tsch/sixtop/sixtop.h"
+#endif
+
 #if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
@@ -217,7 +221,6 @@ tsch_reset(void)
   tsch_set_eb_period(TSCH_EB_PERIOD);
 #endif
 }
-
 /* TSCH keep-alive functions */
 
 /*---------------------------------------------------------------------------*/
@@ -335,7 +338,6 @@ eb_input(struct input_packet *current_input)
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Process pending input packet(s) */
 static void
@@ -371,7 +373,6 @@ tsch_rx_process_pending()
     }
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Pass sent packets to upper layer */
 static void
@@ -451,7 +452,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
-  
 #if LLSEC802154_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
@@ -592,7 +592,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   PRINTF("TSCH:! did not associate.\n");
   return 0;
 }
-
 /* Processes and protothreads used by TSCH */
 
 /*---------------------------------------------------------------------------*/
@@ -859,6 +858,10 @@ tsch_init(void)
    * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
   NETSTACK_MAC.on();
 #endif /* TSCH_AUTOSTART */
+
+#if TSCH_WITH_SIXTOP
+  sixtop_init();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /* Function send for TSCH-MAC, puts the packet in packetbuf in the MAC queue */
@@ -978,7 +981,11 @@ packet_input(void)
       PRINTF("TSCH: received from %u with seqno %u\n",
              TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
              packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+#if TSCH_WITH_SIXTOP
+      sixtop_input(NETSTACK_LLSEC.input);
+#else
       NETSTACK_LLSEC.input();
+#endif /* TSCH_WITH_SIXTOP */
     }
   }
 }
