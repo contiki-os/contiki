@@ -14,7 +14,7 @@ before_script:
 
   ## Install doxygen
   - if [ ${BUILD_CATEGORY:-0} = doxygen ] ; then
-      sudo add-apt-repository ppa:libreoffice/libreoffice-4-4 -y && sudo apt-get -qq update &&
+      sudo add-apt-repository ppa:libreoffice/ppa -y && sudo apt-get -qq update &&
       sudo apt-get --no-install-suggests --no-install-recommends -qq install doxygen  &&
       doxygen --version ;
     fi
