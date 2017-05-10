@@ -515,7 +515,6 @@ dis_input(void)
     if(instance->used == 1) {
       if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
 #if RPL_LEAF_ONLY
-      if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: LEAF ONLY Multicast DIS will NOT reset DIO timer\n");
 #else /* !RPL_LEAF_ONLY */
         PRINTF("RPL: Multicast DIS => reset DIO timer\n");
@@ -538,11 +537,14 @@ dis_input(void)
       }
     }
   }
+  uip_clear_buf();
+
 #if RPL_SECURITY
 discard:
-#endif
   uip_clear_buf();
+#endif
 }
+
 /*---------------------------------------------------------------------------*/
 void
 dis_output(uip_ipaddr_t *addr)
