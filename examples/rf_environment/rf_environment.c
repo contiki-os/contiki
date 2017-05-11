@@ -69,7 +69,7 @@ AUTOSTART_PROCESSES(&rf_scan_process);
  */
 
 static struct etimer et;
-static int cca[27], cca_thresh, chan, i, j, k;
+static int cca[16], cca_thresh, chan, i, j, k;
 static uint16_t best, best_sum;
 static uint16_t worst, worst_sum;
 static double ave;
@@ -155,8 +155,8 @@ PROCESS_THREAD(rf_scan_process, ev, data)
 
     for(k = -90; k <= -60; k += 2) {
       set_cca_thresh(k);
-      for(j = 11; j <= 26; j++) {
-        set_chan(j);
+      for(j = 0; j < 16; j++) {
+        set_chan(j+11);
         cca[j] = 0;
 #ifdef CONTIKI_TARGET_AVR_RSS2
         watchdog_periodic();
@@ -175,7 +175,7 @@ PROCESS_THREAD(rf_scan_process, ev, data)
       best_sum = 0;
       ave = 0;
 
-      for(j = 11; j <= 26; j++) {
+      for(j = 0; j < 16; j++) {
         ave += cca[j];
         printf(" %3d", 100 - (100 * cca[j]) / SAMPLES);
         if(cca[j] > best_sum) {
@@ -187,7 +187,7 @@ PROCESS_THREAD(rf_scan_process, ev, data)
           worst = j;
         }
       }
-      printf(" Best=%d Worst=%d Ave=%-5.2f\n", best, worst, 100 - (100 * (ave / 16) / SAMPLES));
+      printf(" Best=%d Worst=%d Ave=%-5.2f\n", (best+11) , (worst+11), 100 - (100 * (ave / 16) / SAMPLES));
     }
     etimer_set(&et, CLOCK_SECOND / 2);
   }
