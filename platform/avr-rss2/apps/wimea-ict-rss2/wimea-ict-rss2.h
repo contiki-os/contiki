@@ -11,3 +11,6 @@ static void set_time(uint8_t hours, uint8_t minutes, uint8_t seconds);
 static void print_date(void);
 static void print_time(void);
 void set_datetime(char *value, uint8_t choice);
+void display_tagmask(void);
+void change_tagmask(char * value);
+char *trim(char * string);
