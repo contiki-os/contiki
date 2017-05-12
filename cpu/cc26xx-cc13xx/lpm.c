@@ -51,6 +51,7 @@
 #include "dev/watchdog.h"
 #include "dev/soc-rtc.h"
 #include "dev/oscillators.h"
+#include "cc26xx-uart.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -387,6 +388,9 @@ setup_sleep_mode(void)
 void
 lpm_sleep(void)
 {
+  /* Make sure UART buffers are flushed */
+  while(cc26xx_uart_busy() == UART_BUSY);
+
   ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
   /* We are only interested in IRQ energest while idle or in LPM */
