@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2017, Peter Sjodin, KTH Royal Institute of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,43 +26,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ *
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Peter Sjodin, KTH Royal Institute of Technology
+ * Created : 2017-04-21
  */
 
-/**
- * \file
- *         includes for i2c core functions
- * \author
- *         Robert Olsson <robert@radio-sensors.com>
- */
+#ifndef PMS5003_SENSOR_H_
+#define PMS5003_SENSOR_H_
 
-#include "contiki.h"
+#include "lib/sensors.h"
 
-/* Here we define the i2c address for dev we support */
-#define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
-#define I2C_SHT2X_ADDR    (0x40 << 1) /* SHT2X ADDR */
-#define I2C_BME280_ADDR   (0x77 << 1) /* Alternative 0x76 */
-#define I2C_PMS5003_ADDR  (0x12 << 1) /* PM sensor */
+extern const struct sensors_sensor pms5003_sensor;
 
-/* Here we define a enumration for devices */
-#define I2C_AT24MAC       (1<<0)
-#define I2C_SHT2X         (1<<1)
-#define I2C_CO2SA         (1<<2)  /* Sense-Air CO2 */
-#define I2C_BME280        (1<<3)
-#define I2C_PMS5003       (1<<4)
+#define PMS5003_SENSOR_PM1           0
+#define PMS5003_SENSOR_PM2_5         1
+#define PMS5003_SENSOR_PM10          2
+#define PMS5003_SENSOR_PM1_ATM       3
+#define PMS5003_SENSOR_PM2_5_ATM     4
+#define PMS5003_SENSOR_PM10_ATM      5
+#define PMS5003_SENSOR_TIMESTAMP     6
 
-#define I2C_READ    1
-#define I2C_WRITE   0
-
-void i2c_init(uint32_t speed);
-uint8_t i2c_start(uint8_t addr);
-void i2c_start_wait(uint8_t addr);
-void i2c_stop(void);
-void i2c_write(uint8_t u8data);
-uint8_t i2c_readAck(void);
-uint8_t i2c_readNak(void);
-uint8_t i2c_getstatus(void);
-uint16_t i2c_probe(void);
-void i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes);
-void i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value);
-void i2c_at24mac_read(char *buf, uint8_t eui64);
-extern uint16_t i2c_probed; /* i2c devices we have probed */
+#endif /* PMS5003_SENSOR_H_ */
