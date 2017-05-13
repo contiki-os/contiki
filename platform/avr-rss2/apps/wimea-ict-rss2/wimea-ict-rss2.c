@@ -219,13 +219,14 @@ print_help_command_menu()
 	printf("\n Display System Uptime \t Usage: u");
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
-	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>"); 
+	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <default>"); 
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");
 		printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
 		printf("\n Display Time\t time");
-		printf("\n Display Date\t date\n");
+		printf("\n Display Date\t date");
 	}
+	printf("\n");
 	printf("---------------------------------------------------------------\n\n");
 }
 /*---------------------------------------------------------------------------*/
@@ -447,7 +448,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[9]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "LIGHT", "PULSE_0", "PULSE_1"}; //array of available sensors 
+	char *sensors[9]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "LIGHT", "PULSE_0", "PULSE_1"}; //array of available sensors
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -474,7 +475,7 @@ change_tagmask(char *value){
 	eeprom_update_block((const void *)&save_tagmask, (void *)&eemem_tagmask, TAGMASK_LENGTH);
 	sei();
 	free(tagmask);
-	display_tagmask(); 
+	display_tagmask();
 }
 
 /*Display the tagmask stored in eeprom*/
