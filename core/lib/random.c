@@ -30,17 +30,28 @@
  *
  */
 
-
 #include "lib/random.h"
 #include "sys/clock.h"
 
 #include <stdlib.h>
 
+#ifdef CONTIKI_CONF_CUSTOM_SRAND
+#define SRAND CONTIKI_CONF_CUSTOM_SRAND
+#else
+#define SRAND srand
+#endif
+
+#ifdef CONTIKI_CONF_CUSTOM_RAND
+#define RAND CONTIKI_CONF_CUSTOM_RAND
+#else
+#define RAND rand
+#endif
+
 /*---------------------------------------------------------------------------*/
 void
 random_init(unsigned short seed)
 {
-  srand(seed);
+  SRAND(seed);
 }
 /*---------------------------------------------------------------------------*/
 unsigned short
@@ -48,7 +59,6 @@ random_rand(void)
 {
 /* In gcc int rand() uses RAND_MAX and long random() uses RANDOM_MAX=0x7FFFFFFF */
 /* RAND_MAX varies depending on the architecture */
-
-  return (unsigned short)rand();
+  return (unsigned short)RAND();
 }
 /*---------------------------------------------------------------------------*/
