@@ -39,4 +39,4 @@
 uint8_t set_status_leds(const bt_size_t *new_value);
 uint8_t get_status_leds(bt_size_t *database);
 /*---------------------------------------------------------------------------*/
-#endif  /* LED_H_ */
+#endif /* LED_H_ */

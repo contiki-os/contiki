@@ -36,10 +36,12 @@
 #include <stdint.h>
 #include "util.h"
 /*---------------------------------------------------------------------------*/
+/* Struct for 128 bits uuids */
 typedef struct {
   uint8_t data[16];
 } uint128_t;
 
+/* Struct for holding differents types of gatt values */
 typedef struct {
   enum {
     BT_SIZE8 = 1,
@@ -61,8 +63,15 @@ typedef struct {
   } value;
 } bt_size_t;
 /*---------------------------------------------------------------------------*/
+/* Transform 16 bts uuid to 128 bits */
 uint128_t uuid_16_to_128(uint16_t uuid_16);
+/* Transform 128 bts uuid to 16 bits */
 uint16_t uuid_128_to_16(const uint128_t uuid_128);
+/* Compare 128 bits uuids */
 uint8_t uuid_128_compare(const uint128_t u1, const uint128_t u2);
+/* Compare 16 bits uuids */
+uint8_t uuid_16_compare(const uint16_t u1, const uint16_t u2);
+/* Swap custom 128 bits uuids */
 uint128_t swap128(const uint128_t *input);
-#endif
+
+#endif /* UUID_H_ */

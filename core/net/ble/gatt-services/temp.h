@@ -38,7 +38,8 @@
 #include "process.h"
 /*---------------------------------------------------------------------------*/
 
-uint8_t get_value_temp(bt_size_t *value);
+uint8_t get_value_temp_ambiant(bt_size_t *value);
+uint8_t get_value_temp_object(bt_size_t *value);
 uint8_t set_status_temp_sensor(const bt_size_t *new_value);
 uint8_t get_status_temp_sensor(bt_size_t *database);
 /* notification functions */
@@ -50,4 +51,4 @@ uint8_t get_status_temp_notify(bt_size_t *database);
 PROCESS_NAME(temp_notify_process);
 PROCESS_NAME(temp_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* TEMP_H_ */
+#endif /* TEMP_H_ */

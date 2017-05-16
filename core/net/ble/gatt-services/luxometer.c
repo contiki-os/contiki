@@ -54,22 +54,32 @@ PROCESS(luxometer_disconnect_process, "Disconnect luxometer notify");
 static uint16_t handle_to_notify;
 static bt_size_t previous_value;
 static uint32_t period_notify;
+static uint8_t g_sensor_activated;
+static inline void enable_sensor();
+static inline void disable_sensor();
 /*---------------------------------------------------------------------------*/
 uint8_t
 get_value_luxometer(bt_size_t *database)
 {
   int value;
 
-  value = GATT_SENSORS_LUXOMETER.value(0);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    PRINTF("OPT: Light=%d.%02d lux Raw : %X\n", value / 100, value % 100, value);
-  } else {
-    PRINTF("OPT: Light Read Error\n");
-    return ATT_ECODE_SENSOR_READINGS;
+  if(g_sensor_activated) {
+    value = GATT_SENSORS_LUXOMETER.value(0);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      PRINTF("OPT: Light=%d.%02d lux Raw : %X\n", value / 100, value % 100, value);
+    } else {
+      PRINTF("OPT: Light Read Error\n");
+      return ATT_ECODE_SENSOR_READINGS;
+    }
+    database->type = BT_SIZE32;
+    database->value.u32 = (uint32_t)value;
+
+    /* disable/enable otherwise sensor value doesn't change... */
+    disable_sensor();
+    enable_sensor();
+    return SUCCESS;
   }
-  database->type = BT_SIZE32;
-  database->value.u32 = (uint32_t)value;
-  return SUCCESS;
+  return ATT_ECODE_SENSOR_READINGS;
 }
 /*---------------------------------------------------------------------------*/
 static inline void
@@ -89,11 +99,13 @@ set_status_luxometer_sensor(const bt_size_t *new_value)
 {
   switch(new_value->value.u8) {
   case 1:
-    PRINTF("ACTIVATION CAPTEUR\n");
+    PRINTF("SENSOR ACTIVATION\n");
+    g_sensor_activated = 1;
     enable_sensor();
     break;
   case 0:
-    PRINTF("DESACTIVATION CAPTEUR");
+    PRINTF("SENSOR DEACTIVATION\n");
+    g_sensor_activated = 0;
     disable_sensor();
     break;
   default:
@@ -128,7 +140,7 @@ static inline void
 enable_notification()
 {
   PRINTF("ACTIVATION luxometer NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&luxometer_notify_process, NULL);
   process_start(&luxometer_disconnect_process, NULL);
 }
@@ -136,7 +148,7 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION luxometer NOTIFICATIONS\n");
+  PRINTF("DEACTIVATION luxometer NOTIFICATIONS\n");
   process_exit(&luxometer_notify_process);
   process_exit(&luxometer_disconnect_process);
 }
@@ -215,9 +227,6 @@ PROCESS_THREAD(luxometer_notify_process, ev, data)
 
       send_notify();
     }
-    /* disable/enable otherwise sensor value doesn't change... */
-    disable_sensor();
-    enable_sensor();
   }
   PROCESS_END();
 }

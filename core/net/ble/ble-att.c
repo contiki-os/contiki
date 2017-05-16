@@ -38,7 +38,7 @@
 #include "net/ble/gatt.h"
 #include "notify.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -64,6 +64,15 @@ send()
   NETSTACK_MAC.send(NULL, NULL);
 }
 /*---------------------------------------------------------------------------*/
+/*
+   MTU request packet (specV5 p 2184)
+ +------------------------+
+ | Opcode | Client Rx MTU |
+ +------------------------+
+   Opcode : 1 octet
+   Client RX MTU : 2 octets
+
+ */
 static uint8_t
 prepare_mtu_resp()
 {
@@ -76,15 +85,6 @@ prepare_mtu_resp()
   return SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
-/*
-   MTU request packet
- +------------------------+
- | Opcode | Client Rx MTU |
- +------------------------+
-   Opcode : 1 octet
-   Client RX MTU : 2 octets
-
- */
 static uint8_t
 mtu_handle(uint8_t *data)
 {
@@ -101,6 +101,16 @@ mtu_handle(uint8_t *data)
   return SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
+/*
+   error response packet (specV5 p 2182)
+ +-------------------------------------------------------------------+
+ | Opcode | Opcode in error | Attribute handle in error | Error Code |
+ +-------------------------------------------------------------------+
+   Opcode : 1 octet
+   Opcode in error : 1 octet
+   Attribute handle in error : 2 octets
+   Error Code : 1 octet
+ */
 static void
 prepare_error_resp(uint8_t *opcode, uint8_t error)
 {
@@ -167,7 +177,7 @@ error(uint8_t status)
 }
 /*---------------------------------------------------------------------------*/
 /*
-   Read request packet
+   Read request packet (specV5 p 2194)
  +----------------+
  | Opcode | Handle|
  +----------------+
@@ -215,6 +225,7 @@ prepare_read(const uint8_t *data)
    handle : 2 octets
    Value : 0 to serveur_mtu - 3
  */
+#define OP_VALUE_OFFSET                    0x03
 static uint8_t
 prepare_write(uint8_t *data, const uint16_t len)
 {
@@ -225,8 +236,8 @@ prepare_write(uint8_t *data, const uint16_t len)
   memcpy(&handle, &data[1], 2);
 
   /* Copy new value */
-  memcpy(&new_value.value, &data[3], len - OP_DATA_OFFSET);
-  new_value.type = len - 3;
+  memcpy(&new_value.value, &data[3], len - OP_VALUE_OFFSET);
+  new_value.type = len - OP_VALUE_OFFSET;
   PRINTF("Handle : 0x%X || Value : 0x%X", handle, new_value.value.u16);
   error = set_value(handle, &new_value);
 
@@ -242,6 +253,7 @@ prepare_write(uint8_t *data, const uint16_t len)
   return SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
+#define NULL_HANDLE                       0x0000
 static uint8_t
 parse_start_stop_handle(const uint8_t *data, uint16_t *starting_handle, uint16_t *ending_handle)
 {
@@ -294,7 +306,6 @@ parse_type_req(const uint8_t *data, const uint16_t len, uint16_t *starting_handl
 static uint8_t
 prepare_type(const uint8_t *data, const uint16_t len)
 {
-  PRINTF("READ BY TYPE\n");
   uint128_t uuid_to_match;
   uint16_t starting_handle, ending_handle;
   uint8_t error;
@@ -304,7 +315,7 @@ prepare_type(const uint8_t *data, const uint16_t len)
     g_error_handle = starting_handle;
     return error;
   }
-
+  PRINTF("starting_handle : 0x%X || ending_handle : 0x%X || uuid_to_match : 0x%X\n", starting_handle, ending_handle, uuid_128_to_16(uuid_to_match));
   /* Prepare payload */
   /* Response code */
   g_tx_buffer.sdu_length = 1;
@@ -340,7 +351,6 @@ prepare_find_info(uint8_t *data, uint16_t len)
 {
   uint16_t starting_handle, ending_handle;
   uint8_t error;
-  PRINTF("FIND INFO\n");
   error = parse_start_stop_handle(&data[1], &starting_handle, &ending_handle);
 
   if(error != SUCCESS) {
@@ -367,9 +377,10 @@ input(void)
 
   uint8_t *data = (uint8_t *)packetbuf_dataptr();
   uint16_t len = packetbuf_datalen();
-  /* for(uint8_t i=0; i < len; i++){ */
-  /*   PRINTF("data input : 0x%X\n", data[i]); */
-  /* } */
+  /*  for(uint8_t i=0; i < len; i++){ */
+  /*    PRINTF("data input : 0x%X\n", data[i]); */
+  /*  } */
+  PRINTF("request : 0x%X\n", data[0]);
   switch(data[0]) {
   case ATT_ERROR_RESPONSE:
     PRINTF("%s", error(data[4]));

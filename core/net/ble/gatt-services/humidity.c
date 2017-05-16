@@ -54,35 +54,57 @@ PROCESS(humidity_disconnect_process, "Disconnect humidity notify");
 static uint16_t handle_to_notify;
 static bt_size_t previous_value;
 static uint32_t period_notify;
+static uint8_t g_sensor_activated;
+static inline void enable_sensor();
+static inline void disable_sensor();
 
 /*---------------------------------------------------------------------------*/
 uint8_t
-get_value_humidity(bt_size_t *database)
+get_value_humidity_hum(bt_size_t *database)
 {
-  uint32_t value;
   uint16_t hum;
 
-  value = GATT_SENSORS_HUM.value(HDC_1000_SENSOR_TYPE_TEMP);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    PRINTF("HDC: Temp=%d.%02d C\n", ((uint16_t)value) / 100, ((uint16_t)value) % 100);
-  } else {
-    PRINTF("HDC: Temp Read Error\n");
-    return ATT_ECODE_SENSOR_READINGS;
-  }
-  /* let space for humidity value */
-  value = value << 16;
+  if(g_sensor_activated) {
+    hum = GATT_SENSORS_HUM.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
+    if(hum != CC26XX_SENSOR_READING_ERROR) {
+      PRINTF("HDC: Humidity=%d.%02d %%RH\n", hum / 100, hum % 100);
+    } else {
+      PRINTF("HDC: Humidity Read Error\n");
+      return ATT_ECODE_SENSOR_READINGS;
+    }
+    database->type = BT_SIZE32;
+    database->value.u16 = (uint16_t)hum;
+    /* I need to disable/enable the sensor otherwise it doesn't work */
+    disable_sensor();
+    enable_sensor();
 
-  hum = GATT_SENSORS_HUM.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
-  if(hum != CC26XX_SENSOR_READING_ERROR) {
-    PRINTF("HDC: Humidity=%d.%02d %%RH\n", hum / 100, hum % 100);
-    value += hum;
-  } else {
-    PRINTF("HDC: Humidity Read Error\n");
-    return ATT_ECODE_SENSOR_READINGS;
+    return SUCCESS;
   }
-  database->type = BT_SIZE32;
-  database->value.u32 = (uint32_t)value;
-  return SUCCESS;
+  return ATT_ECODE_SENSOR_READINGS;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+get_value_humidity_temp(bt_size_t *database)
+{
+  uint16_t temp;
+  if(g_sensor_activated) {
+    temp = GATT_SENSORS_HUM.value(HDC_1000_SENSOR_TYPE_TEMP);
+    if(temp != CC26XX_SENSOR_READING_ERROR) {
+      PRINTF("HDC: Temp=%d.%02d C\n", ((uint16_t)temp) / 100, ((uint16_t)temp) % 100);
+    } else {
+      PRINTF("HDC: Temp Read Error\n");
+      return ATT_ECODE_SENSOR_READINGS;
+    }
+
+    database->type = BT_SIZE32;
+    database->value.u16 = (uint16_t)temp;
+    /* I need to disable/enable the sensor otherwise it doesn't work */
+    disable_sensor();
+    enable_sensor();
+
+    return SUCCESS;
+  }
+  return ATT_ECODE_SENSOR_READINGS;
 }
 /*---------------------------------------------------------------------------*/
 static inline void
@@ -102,12 +124,14 @@ set_status_humidity_sensor(const bt_size_t *new_value)
 {
   switch(new_value->value.u8) {
   case 1:
-    PRINTF("ACTIVATION CAPTEUR\n");
+    PRINTF("SENSOR ACTIVATION\n");
     enable_sensor();
+    g_sensor_activated = 1;
     break;
   case 0:
-    PRINTF("DESACTIVATION CAPTEUR");
+    PRINTF("SENSOR DEACTIVATION\n");
     disable_sensor();
+    g_sensor_activated = 0;
     break;
   default:
     return ATT_ECODE_BAD_NUMBER;
@@ -141,7 +165,7 @@ static inline void
 enable_notification()
 {
   PRINTF("ACTIVATION HUMIDITY NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&humidity_notify_process, NULL);
   process_start(&humidity_disconnect_process, NULL);
 }
@@ -149,7 +173,7 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION HUMIDITY NOTIFICATIONS\n");
+  PRINTF("DEACTIVATION HUMIDITY NOTIFICATIONS\n");
   process_exit(&humidity_notify_process);
   process_exit(&humidity_disconnect_process);
 }
@@ -216,7 +240,7 @@ PROCESS_THREAD(humidity_notify_process, ev, data)
     /* update notification period with possible new period */
     etimer_reset_with_new_interval(&notify_timer, (clock_time_t)period_notify);
 
-    error = get_value_humidity(&sensor_value);
+    error = get_value_humidity_hum(&sensor_value);
     if(is_values_equals(&sensor_value, &previous_value) != 0) {
       if(error != SUCCESS) {
         prepare_error_resp_notif(handle_to_notify, error);
@@ -229,8 +253,6 @@ PROCESS_THREAD(humidity_notify_process, ev, data)
 
       send_notify();
     }
-    disable_sensor();
-    enable_sensor();
   }
   PROCESS_END();
 }

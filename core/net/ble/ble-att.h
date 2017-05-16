@@ -39,8 +39,8 @@
 #define ATT_ERROR_RESPONSE                0x01 /* IMPLEMENTED*/
 #define ATT_MTU_REQUEST                   0x02 /* IMPLEMENTED*/
 #define ATT_MTU_RESPONSE                  0x03 /* IMPLEMENTED*/
-#define ATT_INFORMATION_REQUEST           0x04 /* NOT IMPLEMENTED*/
-#define ATT_INFORMATION_RESPONSE          0x05 /* NOT IMPLEMENTED*/
+#define ATT_INFORMATION_REQUEST           0x04 /* IMPLEMENTED*/
+#define ATT_INFORMATION_RESPONSE          0x05 /* IMPLEMENTED*/
 #define ATT_FIND_INFO_BY_TYPE_REQUEST     0x06 /* NOT IMPLEMENTED*/
 #define ATT_FIND_INFO_BY_TYPE_RESPONSE    0x07 /* NOT IMPLEMENTED*/
 #define ATT_READ_BY_TYPE_REQUEST          0x08 /* IMPLEMENTED*/
@@ -61,11 +61,11 @@
 #define ATT_EXECUTE_WRITE_REQUEST         0x18 /* NOT IMPLEMENTED*/
 #define ATT_EXECUTE_WRITE_RESPONSE        0x19 /* NOT IMPLEMENTED*/
 #define ATT_HANDLE_VALUE_NOTIFICATION     0x1B /* NOT IMPLEMENTED*/
-#define ATT_HANDLE_VALUE_INDICATION       0x1D /* NOT IMPLEMENTED*/
+#define ATT_HANDLE_VALUE_INDICATION       0x1D /* IMPLEMENTED*/
 #define ATT_HANDLE_VALUE_CONFIRMATION     0x1E /* NOT IMPLEMENTED*/
 #define ATT_SIGNED_WRITE_COMMAND          0xD2 /* NOT IMPLEMENTED*/
 /*---------------------------------------------------------------------------*/
-/* Error codes for Error response PDU */
+/* Error codes for Error response PDU see spec V5 p 2182*/
 #define ATT_ECODE_INVALID_HANDLE          0x01
 #define ATT_ECODE_READ_NOT_PERM           0x02
 #define ATT_ECODE_WRITE_NOT_PERM          0x03
@@ -84,7 +84,7 @@
 #define ATT_ECODE_UNSUPP_GRP_TYPE         0x10
 #define ATT_ECODE_INSUFF_RESOURCES        0x11
 /*---------------------------------------------------------------------------*/
-/* Application error */
+/* Application error, custom errors */
 #define ATT_ECODE_IO                      0x80
 #define ATT_ECODE_TIMEOUT                 0x81
 #define ATT_ECODE_ABORTED                 0x82
@@ -92,19 +92,12 @@
 #define ATT_ECODE_ACTION_NOT_SET          0x84
 #define ATT_ECODE_BAD_NUMBER              0x85
 /*---------------------------------------------------------------------------*/
-
-#define ATT_MTU_RESPONSE_LEN              0x03
-#define ATT_ERROR_RESPONSE_LEN            0x05
-
-#define ATT_DEFAULT_SERVER_MTU            0x1E
-#define GROUP_RESPONSE_HEADER             0x02
-#define GROUP_RESPONSE_MAX_LENGTH         0x14
+/* ATT default server MTU */
+#define ATT_DEFAULT_SERVER_MTU            0x10
+/* This SUCCESS isused for control in some functions*/
 #define SUCCESS                           0xFF
-#define PRIMARY_GROUP_TYPE                0x2800
-#define CHARACTERISTIC_DECLARATION        0x2803
-#define NULL_HANDLE                       0x0000
-#define OP_DATA_OFFSET                    0x03
-#define LENGHT_ATT_HEADER_NOTIFICATION    0x03
+/* My GATT implementation only works if notify attribute is placed 2 attributes after data sensor attribute*/
+#define HANDLE_SPACE_TO_DATA_ATTRIBUTE    2
 /*---------------------------------------------------------------------------*/
 uint16_t serveur_mtu;
 
@@ -115,4 +108,4 @@ typedef struct {
   uint16_t sdu_length;
 } att_buffer_t;
 
-#endif /*BLE_ATT_H_ */
+#endif /* BLE_ATT_H_ */

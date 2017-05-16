@@ -54,35 +54,70 @@ PROCESS(on_disconnect_barometer_process, "Disconnect barometer notify");
 static uint16_t handle_to_notify;
 static bt_size_t previous_value;
 static uint32_t period_notify;
-
+static uint8_t g_sensor_activated;
+static inline void enable_sensor();
+static inline void disable_sensor();
 /*---------------------------------------------------------------------------*/
 uint8_t
-get_value_barometer(bt_size_t *database)
+get_value_barometer_pressure(bt_size_t *database)
 {
-  uint64_t value;
-  uint16_t tmp;
+  uint32_t value;
+  if(g_sensor_activated) {
+    value = GATT_SENSORS_BAROMETER.value(BMP_280_SENSOR_TYPE_PRESS);
 
-  value = bmp_280_sensor.value(BMP_280_SENSOR_TYPE_PRESS);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    PRINTF("BAR: Pressure=%ld.%02ld hPa\n", (uint32_t)(value) / 100, (uint32_t)(value) % 100);
-  } else {
-    PRINTF("BAR: Pressure Read Error\n");
-    return ATT_ECODE_SENSOR_READINGS;
-  }
-  /* let space for temp value */
-  value = value << 32;
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      PRINTF("BAR: Pressure=%ld.%02ld hPa\n", value / 100, value % 100);
+    } else {
+      PRINTF("BAR: Pressure Read Error\n");
+      return ATT_ECODE_SENSOR_READINGS;
+    }
 
-  tmp = bmp_280_sensor.value(BMP_280_SENSOR_TYPE_TEMP);
-  if(tmp != CC26XX_SENSOR_READING_ERROR) {
-    PRINTF("BAR: Temp=%d.%02d C\n", tmp / 100, tmp % 100);
-    value += tmp;
-  } else {
-    PRINTF("BAR: Temperature Read Error\n");
-    return ATT_ECODE_SENSOR_READINGS;
+    database->type = BT_SIZE32;
+    database->value.u32 = value;
+    /* I need to disable/enable the sensor otherwise it doesn't work */
+    disable_sensor();
+    enable_sensor();
+
+    return SUCCESS;
   }
-  database->type = BT_SIZE64;
-  database->value.u64 = value;
-  return SUCCESS;
+  return ATT_ECODE_SENSOR_READINGS;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+get_value_barometer_temp(bt_size_t *database)
+{
+  uint16_t temp;
+  if(g_sensor_activated) {
+    temp = GATT_SENSORS_BAROMETER.value(BMP_280_SENSOR_TYPE_TEMP);
+
+    if(temp != CC26XX_SENSOR_READING_ERROR) {
+      PRINTF("BAR: Temp=%d.%02d C\n", temp / 100, temp % 100);
+    } else {
+      PRINTF("BAR: Temperature Read Error\n");
+      return ATT_ECODE_SENSOR_READINGS;
+    }
+    database->type = BT_SIZE16;
+    database->value.u16 = temp;
+
+    /* I need to disable/enable the sensor otherwise it doesn't work */
+    disable_sensor();
+    enable_sensor();
+
+    return SUCCESS;
+  }
+  return ATT_ECODE_SENSOR_READINGS;
+}
+/*---------------------------------------------------------------------------*/
+static inline void
+enable_sensor()
+{
+  SENSORS_ACTIVATE(GATT_SENSORS_BAROMETER);
+}
+/*---------------------------------------------------------------------------*/
+static inline void
+disable_sensor()
+{
+  SENSORS_DEACTIVATE(GATT_SENSORS_BAROMETER);
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -90,12 +125,14 @@ set_status_barometer_sensor(const bt_size_t *new_value)
 {
   switch(new_value->value.u8) {
   case 1:
-    PRINTF("ACTIVATION CAPTEUR\n");
-    SENSORS_ACTIVATE(bmp_280_sensor);
+    PRINTF("SENSOR ACTIVATION\n");
+    enable_sensor();
+    g_sensor_activated = 1;
     break;
   case 0:
-    PRINTF("DESACTIVATION CAPTEUR");
-    SENSORS_DEACTIVATE(bmp_280_sensor);
+    PRINTF("SENSOR DEACTIVATION\n");
+    disable_sensor();
+    g_sensor_activated = 0;
     break;
   default:
     return ATT_ECODE_BAD_NUMBER;
@@ -107,8 +144,8 @@ uint8_t
 get_status_barometer_sensor(bt_size_t *database)
 {
   database->type = BT_SIZE8;
-  database->value.u8 = (uint8_t)bmp_280_sensor.status(SENSORS_ACTIVE);
-  PRINTF("status temp barometer : 0x%X\n", bmp_280_sensor.status(SENSORS_ACTIVE));
+  database->value.u8 = (uint8_t)GATT_SENSORS_BAROMETER.status(SENSORS_ACTIVE);
+  PRINTF("status temp barometer : 0x%X\n", GATT_SENSORS_BAROMETER.status(SENSORS_ACTIVE));
   return SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
@@ -129,7 +166,7 @@ static inline void
 enable_notification()
 {
   PRINTF("ACTIVATION barometer NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&barometer_notify_process, NULL);
   process_start(&on_disconnect_barometer_process, NULL);
 }
@@ -137,7 +174,7 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION barometer NOTIFICATIONS\n");
+  PRINTF("DEACTIVATION barometer NOTIFICATIONS\n");
   process_exit(&barometer_notify_process);
   process_exit(&on_disconnect_barometer_process);
 }
@@ -204,7 +241,7 @@ PROCESS_THREAD(barometer_notify_process, ev, data)
     /* update notification period with possible new period */
     etimer_reset_with_new_interval(&notify_timer, (clock_time_t)period_notify);
 
-    error = get_value_barometer(&sensor_value);
+    error = get_value_barometer_pressure(&sensor_value);
     if(is_values_equals(&sensor_value, &previous_value) != 0) {
       if(error != SUCCESS) {
         prepare_error_resp_notif(handle_to_notify, error);

@@ -33,7 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "gatt_config.h"
 #ifdef GATT_SENSORS_TEMP1
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -57,9 +57,9 @@ static uint32_t period_notify;
 
 /*---------------------------------------------------------------------------*/
 uint8_t
-get_value_temp(bt_size_t *value)
+get_value_temp_ambiant(bt_size_t *value)
 {
-  int temp, tobj;
+  uint16_t temp;
   temp = GATT_SENSORS_TEMP1.value(TMP_007_SENSOR_TYPE_ALL);
 
   if(temp == CC26XX_SENSOR_READING_ERROR) {
@@ -68,13 +68,26 @@ get_value_temp(bt_size_t *value)
   temp = GATT_SENSORS_TEMP1.value(TMP_007_SENSOR_TYPE_AMBIENT);
   PRINTF("TEMP Ambiant: %02X\n", temp);
 
-  temp = temp << 16;
+  value->type = BT_SIZE16;
+  value->value.u16 = temp;
+  return SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+get_value_temp_object(bt_size_t *value)
+{
+  uint16_t temp;
+  temp = GATT_SENSORS_TEMP1.value(TMP_007_SENSOR_TYPE_ALL);
 
-  tobj = GATT_SENSORS_TEMP1.value(TMP_007_SENSOR_TYPE_OBJECT);
-  PRINTF("TEMP Ambiant: %02X\n", tobj);
-  temp += tobj;
-  value->type = BT_SIZE32;
-  value->value.u32 = temp;
+  if(temp == CC26XX_SENSOR_READING_ERROR) {
+    return ATT_ECODE_SENSOR_READINGS; /*ERROR */
+  }
+
+  temp = GATT_SENSORS_TEMP1.value(TMP_007_SENSOR_TYPE_OBJECT);
+  PRINTF("TEMP object: %02X\n", temp);
+
+  value->type = BT_SIZE16;
+  value->value.u16 = temp;
   return SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
@@ -83,11 +96,11 @@ set_status_temp_sensor(const bt_size_t *new_value)
 {
   switch(new_value->value.u8) {
   case 1:
-    PRINTF("ACTIVATION CAPTEUR\n");
+    PRINTF("SENSOR ACTIVATION\n");
     SENSORS_ACTIVATE(GATT_SENSORS_TEMP1);
     break;
   case 0:
-    PRINTF("DESACTIVATION CAPTEUR");
+    PRINTF("SENSOR DEACTIVATION");
     SENSORS_DEACTIVATE(GATT_SENSORS_TEMP1);
     break;
   default:
@@ -122,7 +135,7 @@ static inline void
 enable_notification()
 {
   PRINTF("ACTIVATION TEMP NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&temp_notify_process, NULL);
   process_start(&temp_disconnect_process, NULL);
 }
@@ -130,7 +143,7 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION TEMP NOTIFICATIONS\n");
+  PRINTF("DEACTIVATION TEMP NOTIFICATIONS\n");
   process_exit(&temp_notify_process);
   process_exit(&temp_disconnect_process);
 }
@@ -197,7 +210,7 @@ PROCESS_THREAD(temp_notify_process, ev, data)
     /* update notification period with possible new period */
     etimer_reset_with_new_interval(&notify_timer, (clock_time_t)period_notify);
 
-    error = get_value_temp(&sensor_value);
+    error = get_value_temp_ambiant(&sensor_value);
     if(is_values_equals(&sensor_value, &previous_value) != 0) {
       if(error != SUCCESS) {
         prepare_error_resp_notif(handle_to_notify, error);

@@ -46,18 +46,29 @@
 #include "net/ble/gatt-services/buttons.h"
 #include "net/ble/gatt-services/reedrelay.h"
 /*---------------------------------------------------------------------------*/
+/* Store the current selectioned attribute */
 attribute_t *g_current_att;
 /*---------------------------------------------------------------------------*/
+/* See read response SpecV5 p 2194 */
 uint8_t get_value(const uint16_t handle, bt_size_t *value_ptr);
+/* See write response SpecV5 p 2204 */
 uint8_t set_value(const uint16_t handle, const bt_size_t *new_value);
+/* See read by group type response SpecV5 p 2200 */
 uint8_t get_group_type_response_values(const uint16_t starting_handle, const uint16_t ending_handle, const uint128_t *uuid_to_match, att_buffer_t *g_tx_buffer);
+/* See read by type response SpecV5 p 2193 */
 uint8_t get_type_response_values(const uint16_t starting_handle, const uint16_t ending_handle, const uint128_t *uuid_to_match, att_buffer_t *g_tx_buffer);
+/* See find information response SpecV5 p 2187 */
 uint8_t get_find_info_values(const uint16_t starting_handle, const uint16_t ending_handle, att_buffer_t *g_tx_buffer);
 
-uint8_t get_generic_access_service(bt_size_t * value_ptr);
-uint8_t get_generic_information_service(bt_size_t *value_ptr);
+/* See characteristic descriptor discovery SpecV5 p 2256 */
+uint8_t get_description(bt_size_t *value_ptr);
+/* See characteristic discovery SpecV5 p 2253 */
 uint8_t get_char_declaration(bt_size_t *value_ptr);
+/* See primary service discovery SpecV5 p 2249 */
+uint8_t get_primary_service(bt_size_t *value_ptr);
+/* return the device name */
 uint8_t get_device_name(bt_size_t *value_ptr);
+/* return the contiki version */
 uint8_t get_contiki_version(bt_size_t *value_ptr);
 /*---------------------------------------------------------------------------*/
-#endif /*GATT_H_ */
+#endif /* GATT_H_ */

@@ -49,4 +49,4 @@ uint8_t get_status_luxometer_notify(bt_size_t *database);
 PROCESS_NAME(luxometer_notify_process);
 PROCESS_NAME(luxometer_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* LUXOMETER_H_ */
+#endif /* LUXOMETER_H_ */

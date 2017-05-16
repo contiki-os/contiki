@@ -716,12 +716,6 @@ state_advertising(process_event_t ev, process_data_t data,
     if(entry->status != DATA_ENTRY_FINISHED) {
       return;
     }
-
-    //test
-    /*for(int i=0;i<45;i++){
-      PRINTF("Data %d : 0x%x\n",i,current_rx_entry[i]);
-    }*/
-
     if((current_rx_entry[9] & 0x0F) == 5) {
       /* CONN REQ received */
 
@@ -738,15 +732,14 @@ state_advertising(process_event_t ev, process_data_t data,
       conn_param.interval = conn_param.interval * 5000;
       conn_param.window_widening = CONN_EVENT_WINDOW_WIDENING;
       /* set connection timeout timer see coreV5 p2639*/
-      timer_set(&conn_timeout_timer, (conn_param.timeout*CLOCK_SECOND)/100);
+      timer_set(&conn_timeout_timer, (conn_param.timeout * CLOCK_SECOND) / 100);
 
       conn_event.counter = 0;
       conn_event.unmapped_channel = 0;
       update_data_channel();
       first_conn_event_anchor = conn_param.timestamp + conn_param.win_offset + CONN_EVENT_DELAY;
-      timer_set(&conn_timeout_timer, (conn_param.timeout*CLOCK_SECOND)/100);
+      timer_set(&conn_timeout_timer, (conn_param.timeout * CLOCK_SECOND) / 100);
       if(conn_param.win_offset <= 60000) {
-        //printf("too early");
         /* in this case the first anchor point starts too early,
          * ignore the first conn event and start with the 2nd */
         conn_event.counter++;
@@ -773,7 +766,6 @@ state_advertising(process_event_t ev, process_data_t data,
         set_adv_enable(1);
         return;
       }
-      //PRINTF("init connection\n");
       /* setup timer interrupt for first connection event */
       conn_event.next_start = first_conn_event_anchor + conn_param.interval;
 
@@ -866,7 +858,7 @@ process_rx_entry_data_channel(void)
     return;
   }
 
-  PRINTF("Data de type : %x\n",entry->config.type);
+  PRINTF("Data type : %x\n", entry->config.type);
 
   while(entry->status == DATA_ENTRY_FINISHED) {
     /* the last 6 bytes of the data are status and timestamp bytes */
@@ -935,10 +927,10 @@ state_conn_slave(process_event_t ev, process_data_t data,
       PRINTF("command_status_flags: crc_err: %d, ignored: %d, md: %d, ack: %d\n",
              o->pktStatus.bLastCrcErr, o->pktStatus.bLastIgnored,
              o->pktStatus.bLastMd, o->pktStatus.bLastAck);
-      if(timer_expired(&conn_timeout_timer)){
+      if(timer_expired(&conn_timeout_timer)) {
         disconnect(0, BLE_ECODE_CONNECTION_TIMEOUT);
       }
-    }else{
+    } else {
       timer_restart(&conn_timeout_timer);
     }
 
@@ -972,17 +964,15 @@ state_conn_slave(process_event_t ev, process_data_t data,
                                 output,
                                 (conn_event.start - conn_param.window_widening));
 
-
     if(rf_ble_cmd_send(cmd) != RF_BLE_CMD_OK) {
       PRINTF("connection error; event counter: %u\n", conn_event.counter);
     }
     PRINTF("Slave command\n");
     /* calculate next anchor point*/
     conn_event.next_start = conn_event.start + conn_param.interval;
-  } else
-  if(ev == rf_core_data_rx_event) {
+  } else if(ev == rf_core_data_rx_event) {
     process_rx_entry_data_channel();
-   }
+  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ble_hal_process, ev, data)

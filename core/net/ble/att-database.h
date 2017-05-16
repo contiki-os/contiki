@@ -34,26 +34,40 @@
 #ifndef ATT_DATABASE_H_
 #define ATT_DATABASE_H_
 #include "uuid.h"
+/* Struct of each ATT attributes */
+typedef const struct attribute_s {
+  /* action attached in order to get the attribute value */
+  uint8_t (*get_action)(bt_size_t *value);
+  /* action attached in order to set the attribute value */
+  uint8_t (*set_action)(const bt_size_t *value);
+  /* size of the value, used for checking the new value size in set fuction */
+  uint8_t att_value_len;
+  /* current UUID of the attribute */
+  uint16_t att_uuid;
+  /* current handle of the attribute */
+  uint16_t att_handle;
 
-typedef const struct attribute_s{
-    uint8_t (*get_action)(bt_size_t* value);
-    uint8_t (*set_action)(const bt_size_t* value);
-    uint8_t att_value_len;
-    uint128_t att_uuid;
-    union{
-      struct{
-        uint8_t broadcast:1;
-        uint8_t read:1;
-        uint8_t write_without_response:1;
-        uint8_t write:1;
-        uint8_t notify:1;
-        uint8_t indicate:1;
-        uint8_t authenticated_signed_writes:1;
-        uint8_t extended_properties:1;
-      };
-      uint8_t raw;
-    }properties;
-  	uint16_t att_handle;
+  /* Specific parameters for attributes */
+  union {
+    /* desctiption used for Descriptor attributes */
+    const char *description;
+    /* current_service used in primary declaration attributes */
+    uint16_t current_service;
+  }specific;
 
+/* Properties */
+  union {
+    struct {
+      uint8_t broadcast : 1;
+      uint8_t read : 1;
+      uint8_t write_without_response : 1;
+      uint8_t write : 1;
+      uint8_t notify : 1;
+      uint8_t indicate : 1;
+      uint8_t authenticated_signed_writes : 1;
+      uint8_t extended_properties : 1;
+    };
+    uint8_t raw;
+  }properties;
 } attribute_t;
-#endif
+#endif /* ATT_DATABASE_H_ */

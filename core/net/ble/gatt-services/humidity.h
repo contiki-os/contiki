@@ -38,7 +38,8 @@
 #include "process.h"
 /*---------------------------------------------------------------------------*/
 
-uint8_t get_value_humidity(bt_size_t *value);
+uint8_t get_value_humidity_hum(bt_size_t *value);
+uint8_t get_value_humidity_temp(bt_size_t *value);
 uint8_t set_status_humidity_sensor(const bt_size_t *new_value);
 uint8_t get_status_humidity_sensor(bt_size_t *database);
 /* notification functions */
@@ -50,4 +51,4 @@ uint8_t get_status_humidity_notify(bt_size_t *database);
 PROCESS_NAME(humidity_notify_process);
 PROCESS_NAME(humidity_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* HUMIDITY_H_ */
+#endif /* HUMIDITY_H_ */

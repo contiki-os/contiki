@@ -103,11 +103,11 @@ set_status_mpu_sensor(const bt_size_t *new_value)
 {
   switch(new_value->value.u8) {
   case 1:
-    PRINTF("ACTIVATION CAPTEUR\n");
+    PRINTF("SENSOR ACTIVATION\n");
     GATT_SENSORS_MPU.configure(SENSORS_ACTIVE, MPU_9250_SENSOR_TYPE_ALL);
     break;
   case 0:
-    PRINTF("DESACTIVATION CAPTEUR");
+    PRINTF("SENSOR DEACTIVATION\n");
     SENSORS_DEACTIVATE(GATT_SENSORS_MPU);
     break;
   default:
@@ -142,7 +142,7 @@ static inline void
 enable_notification()
 {
   PRINTF("ACTIVATION mpu NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&mpu_notify_process, NULL);
   process_start(&mpu_disconnect_process, NULL);
 }
@@ -150,7 +150,7 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION mpu NOTIFICATIONS\n");
+  PRINTF("DEACTIVATION mpu NOTIFICATIONS\n");
   process_exit(&mpu_notify_process);
   process_exit(&mpu_disconnect_process);
 }

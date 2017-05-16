@@ -30,19 +30,19 @@
  * Author: Arthur Courtel <arthurcourtel@gmail.com>
  *
  */
-/* Comment in order to innactive GATT sensors -> not working until todo in gatt-table.h is not fixed*/
+/* Comment in order to innactive some GATT sensors */
 #ifndef GATT_CONFIG_H_
 #define GATT_CONFIG_H_
 #define SOURCE_LL_DISCONNECT_EVENT "ble-hal-cc26xx.h"
-// #define GATT_SENSORS_TEMP1 tmp_007_sensor
-// #define GATT_SENSORS_HUM hdc_1000_sensor
-// #define GATT_SENSORS_BAROMETER bmp_280_sensor
-// #define GATT_SENSORS_LUXOMETER opt_3001_sensor
-// #define GATT_SENSORS_MPU mpu_9250_sensor
-// #define GATT_LEDS
-// #define GATT_SENSORS_BATTERY batmon_sensor
-// #define GATT_SENSORS_BUTTONS
-// #define GATT_SENSORS_BUTTONS_LEFT button_left_sensor
-// #define GATT_SENSORS_BUTTONS_RIGHT button_right_sensor
-// #define GATT_SENSORS_REED_RELAY reed_relay_sensor
-#endif //GATT_CONFIG_H_
+#define GATT_SENSORS_TEMP1 tmp_007_sensor
+#define GATT_SENSORS_HUM hdc_1000_sensor
+#define GATT_SENSORS_BAROMETER bmp_280_sensor
+#define GATT_SENSORS_LUXOMETER opt_3001_sensor
+#define GATT_SENSORS_MPU mpu_9250_sensor
+#define GATT_LEDS
+#define GATT_SENSORS_BATTERY batmon_sensor
+#define GATT_SENSORS_BUTTONS
+#define GATT_SENSORS_BUTTONS_LEFT button_left_sensor
+#define GATT_SENSORS_BUTTONS_RIGHT button_right_sensor
+#define GATT_SENSORS_REED_RELAY reed_relay_sensor
+#endif /* GATT_CONFIG_H_ */

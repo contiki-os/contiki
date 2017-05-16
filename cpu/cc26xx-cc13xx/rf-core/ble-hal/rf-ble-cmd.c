@@ -206,7 +206,7 @@ rf_ble_cmd_setup_ble_mode(void)
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  txPower_t *txPower = &cmd.txPower;
+  txPower_t *txPower = (txPower_t*) &cmd.txPower;
   txPower->IB = tx_power.register_ib;
   txPower->GC = tx_power.register_gc;
   txPower->tempCoeff = tx_power.temp_coeff;

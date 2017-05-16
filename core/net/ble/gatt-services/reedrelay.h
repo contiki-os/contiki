@@ -49,4 +49,4 @@ uint8_t get_status_reed_relay_notify(bt_size_t *database);
 PROCESS_NAME(reed_relay_notify_process);
 PROCESS_NAME(reed_relay_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* REED_RELAY_H_ */
+#endif /* REED_RELAY_H_ */

@@ -48,4 +48,4 @@
                  | (((x) & 0x000000ffull) << 24)))
 
 #define swap16(x) (((x) >> 8) | ((x) << 8))
-#endif /*UTIL_H_ */
+#endif /* UTIL_H_ */

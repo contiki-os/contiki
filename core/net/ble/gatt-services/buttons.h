@@ -50,4 +50,4 @@ uint8_t get_status_buttons_notify(bt_size_t *database);
 PROCESS_NAME(buttons_notify_process);
 PROCESS_NAME(buttons_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* BUTTONS_H_ */
+#endif /* BUTTONS_H_ */

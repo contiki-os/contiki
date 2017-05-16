@@ -49,4 +49,4 @@ uint8_t get_status_mpu_notify(bt_size_t *database);
 PROCESS_NAME(mpu_notify_process);
 PROCESS_NAME(mpu_disconnect_process);
 /*---------------------------------------------------------------------------*/
-#endif  /* MPU_H_ */
+#endif /* MPU_H_ */

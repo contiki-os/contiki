@@ -112,8 +112,7 @@ get_status_reed_relay_notify(bt_size_t *status_value)
 static inline void
 enable_notification()
 {
-  PRINTF("ACTIVATION reed_relay NOTIFICATIONS\n");
-  handle_to_notify = g_current_att->att_value.value.u16;
+  handle_to_notify = g_current_att->att_handle - HANDLE_SPACE_TO_DATA_ATTRIBUTE;
   process_start(&reed_relay_notify_process, NULL);
   process_start(&reed_relay_disconnect_process, NULL);
 }
@@ -121,7 +120,6 @@ enable_notification()
 static inline void
 disable_notification()
 {
-  PRINTF("DESACTIVATION reed_relay NOTIFICATIONS\n");
   process_exit(&reed_relay_notify_process);
   process_exit(&reed_relay_disconnect_process);
 }
@@ -133,9 +131,11 @@ set_status_reed_relay_notify(const bt_size_t *new_value)
   error = SUCCESS;
   switch(new_value->value.u16) {
   case 1:
+    PRINTF("SENSOR ACTIVATION\n");
     enable_notification();
     break;
   case 0:
+    PRINTF("SENSOR DEACTIVATION\n");
     disable_notification();
     break;
   default:

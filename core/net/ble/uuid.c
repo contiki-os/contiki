@@ -43,6 +43,7 @@
 
 #define BASE_UUID16_OFFSET  2
 
+/* Base BLE UUID */
 static uint128_t bluetooth_base_uuid = {
   .data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
             0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB }
@@ -78,6 +79,15 @@ uuid_128_compare(const uint128_t u1, const uint128_t u2)
       return 0;
     }
   }
+  return 1;
+}
+inline uint8_t
+uuid_16_compare(const uint16_t u1, const uint16_t u2)
+{
+  if(u1 != u2) {
+    return 0;
+  }
+
   return 1;
 }
 inline uint128_t

@@ -45,10 +45,8 @@
 
 #include <string.h>
 
-
-
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -132,6 +130,13 @@ init_adv_data(char *adv_data)
   adv_data[adv_data_len++] = 2;
   adv_data[adv_data_len++] = 0x0A;
   adv_data[adv_data_len++] = 0;        /* 0 dBm */
+  /* Custom */
+  adv_data[adv_data_len++] = 5;
+  adv_data[adv_data_len++] = 0x16;
+  adv_data[adv_data_len++] = 0x01;
+  adv_data[adv_data_len++] = 0xAA;
+  adv_data[adv_data_len++] = 0x00;
+  adv_data[adv_data_len++] = 0xBB;
   return adv_data_len;
 }
 /*---------------------------------------------------------------------------*/
@@ -219,7 +224,7 @@ send(mac_callback_t sent_callback, void *ptr)
   PRINTF("ble_mac send() sending %d bytes\n", data_len);
 
   tx_buffer.sdu_length = data_len;
-  tx_buffer.cid = (uint16_t) packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
+  tx_buffer.cid = (uint16_t)packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
   memcpy(tx_buffer.sdu, packetbuf_dataptr(), data_len);
 
   mac_call_sent_callback(sent_callback, ptr, MAC_TX_DEFERRED, 1);
@@ -393,7 +398,7 @@ send_l2cap_credit()
 }
 /*---------------------------------------------------------------------------*/
 static void
-l2cap_frame_att_channel(uint8_t* data, uint8_t data_len)
+l2cap_frame_att_channel(uint8_t *data, uint8_t data_len)
 {
   if(data_len < 4) {
     PRINTF("l2cap_frame: illegal L2CAP frame data_len: %d\n", data_len);
@@ -401,13 +406,12 @@ l2cap_frame_att_channel(uint8_t* data, uint8_t data_len)
     return;
   }
   /* Prepare packetbuffer with ATT datas */
-  memcpy(packetbuf_dataptr(), &data[4], data_len-4);
-  packetbuf_set_datalen(data_len-4);
+  memcpy(packetbuf_dataptr(), &data[4], data_len - 4);
+  packetbuf_set_datalen(data_len - 4);
 
   packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, L2CAP_ATT_CHANNEL);
   NETSTACK_LLSEC.input();
 }
-
 static void
 input(void)
 {
@@ -416,9 +420,6 @@ input(void)
   uint16_t channel_id;
 
   memcpy(&channel_id, &data[2], 2);
-  // for(int i = 0;i<=len;i++){
-  //   printf("DATA : 0x%x\n",*data++);
-  // }
   PRINTF("ble-mac input: %d bytes\n", len);
 
   if(len > 0) {
@@ -432,12 +433,11 @@ input(void)
         send_l2cap_credit();
         l2cap_node.credits += L2CAP_NODE_INIT_CREDITS;
       }
-    }else if (channel_id == L2CAP_ATT_CHANNEL) {
+    } else if(channel_id == L2CAP_ATT_CHANNEL) {
       l2cap_frame_att_channel(data, len);
-
-    }else {
-     PRINTF("ble-mac input: unknown L2CAP channel: %x\n", channel_id);
-     return;
+    } else {
+      PRINTF("ble-mac input: unknown L2CAP channel: %x\n", channel_id);
+      return;
     }
   }
 }
@@ -509,7 +509,7 @@ PROCESS_THREAD(ble_mac_process, ev, data)
           /* send L2CAP fragment */
           NETSTACK_RDC.send(NULL, NULL);
           /* decrement the packets available at the router by 1 */
-          //l2cap_router.credits--;
+          /*l2cap_router.credits--; */
 
           if(tx_buffer.current_index == tx_buffer.sdu_length) {
             tx_buffer.current_index = 0;
