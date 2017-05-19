@@ -14,6 +14,7 @@ Probability for not passing a CCA check in percent per channel.
 3-minute samples. Of course this just snapshots to illustrate 
 functionality
 
+<pre>
              Chan:  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26
              ---------------------------------------------------------------------
 cca_thresh=-82dBm   0   0   7   0   1   2   2   0   0   0   0   6  30   5   0   1 Best=11 Worst=23 Ave=3.09 
@@ -61,3 +62,5 @@ cca_thresh=-78dBm  16   9  25   3   3   1   9   8  12   2   7   2   3   2   1   
 cca_thresh=-76dBm  12   9  23   4   4   0  36   9  10   2  32  14   7   4   1   3 Best=16 Worst=17 Ave=10.13
 cca_thresh=-74dBm   8  24   9   8   5   0  16   6  10   2   3  31  27  18   1   3 Best=16 Worst=22 Ave=10.32
 cca_thresh=-72dBm   4   7  18   4   2   0   6  11   7   1   3   6   3   9   1   2 Best=16 Worst=13 Ave=4.80 
+
+</pre>
