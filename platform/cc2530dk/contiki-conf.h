@@ -181,6 +181,9 @@
 
 #define NETSTACK_CONF_RADIO   cc2530_rf_driver
 
+#define AES_128_CONF cc2530_aes_128_driver
+#define CCM_STAR_CONF cc2530_ccm_star_driver
+
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID 0xABCD
