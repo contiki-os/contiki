@@ -388,6 +388,7 @@ nbr_table_remove(nbr_table_t *table, void *item)
 {
   int ret = nbr_set_bit(used_map, table, item, 0);
   nbr_set_bit(locked_map, table, item, 0);
+  list_remove(nbr_table_keys,key_from_item(table, item));
   return ret;
 }
 /*---------------------------------------------------------------------------*/
