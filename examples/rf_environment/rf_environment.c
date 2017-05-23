@@ -132,6 +132,25 @@ set_cca_thresh(radio_value_t thresh)
   }
   return 0;
 }
+ 
+void 
+do_all_chan_cca(int *cca, int try)
+{
+  int j;
+  for(j = 0; j < 16; j++) {
+    set_chan(j+11);
+    cca[j] = 0;
+#ifdef CONTIKI_TARGET_AVR_RSS2
+    watchdog_periodic();
+#endif
+    NETSTACK_RADIO.on();
+    for(i = 0; i < try; i++) {
+      cca[j] += NETSTACK_RADIO.channel_clear();
+    }
+    NETSTACK_RADIO.off();
+  }
+}
+
 PROCESS_THREAD(rf_scan_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -155,18 +174,9 @@ PROCESS_THREAD(rf_scan_process, ev, data)
 
     for(k = -90; k <= -60; k += 2) {
       set_cca_thresh(k);
-      for(j = 0; j < 16; j++) {
-        set_chan(j+11);
-        cca[j] = 0;
-#ifdef CONTIKI_TARGET_AVR_RSS2
-        watchdog_periodic();
-#endif
-	NETSTACK_RADIO.on();
-        for(i = 0; i < SAMPLES; i++) {
-          cca[j] += NETSTACK_RADIO.channel_clear();
-        }
-	NETSTACK_RADIO.off();
-      }
+
+      do_all_chan_cca(cca, SAMPLES);
+
       printf("cca_thresh=%-3ddBm", get_cca_thresh());
 
       worst = 0;
