@@ -27,6 +27,7 @@
 #define OW_BUS_0     PD7 /* One-Wire bus w temp/ID Pulled Up. Separate Vcc */
 #define OW_BUS_1     PD6 /* One-Wire bus extra Pulled Up. Separate Vcc */
 
+
 /* AVR ISP standard connected */
 /* 16 MHz  xtal */
 /* RTC 32.768 Hz  xtal */

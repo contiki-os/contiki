@@ -28,7 +28,7 @@
 char str_t[127], report [200];
 float v_in, v_mcu;
 int p1,p2,lines=0; //temporary upper and lower parts of floating point variables
-uint8_t rssi,lqi,v_low=0; 
+uint8_t rssi,lqi,v_low=0, count=0;
 
 struct broadcast_message {
 	uint8_t head; 
@@ -41,15 +41,15 @@ uint8_t ttl = DEF_TTL;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sinknode_process, "Sink Node Process");
-PROCESS(sleep_process,   "Sleep process");
-AUTOSTART_PROCESSES(&sinknode_process, &sleep_process);
+PROCESS(post_process, "post Process");
+AUTOSTART_PROCESSES(&sinknode_process, &post_process);
 
 
 static void
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
 	struct broadcast_message *msg;
-	
+	leds_on(LEDS_RED);
 	msg = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
@@ -57,6 +57,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	sprintf(report, "%s [ADDR=%-d.%-d SEQ=%-d TTL=%-u RSSI=%-u LQI=%-u]\n",msg->buf,
 	from->u8[0], from->u8[1],msg->seqno, msg->head & 0xF, rssi,lqi); //datetime string
 	printf("%s",report);
+	count++;
 }
 
 
@@ -73,18 +74,21 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	PROCESS_BEGIN();
 	broadcast_open(&broadcast, 129, &broadcast_call);	
 	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
-	NETSTACK_RADIO.off(); //for rpc change
-	rf230_set_rpc(0xFF); 
-	NETSTACK_RADIO.on();
-
+	//NETSTACK_RADIO.off(); //for rpc change
+	//rf230_set_rpc(0xFF); 
+	//NETSTACK_RADIO.on();
+	printf("tx0 called\n");
+	// etimer_set(&et, CLOCK_SECOND * 2);
 	while(1) {
 		/* Delay 4 seconds */
-    etimer_set(&et, CLOCK_SECOND * 4);
-	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-	
+		//PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+		//  etimer_set(&et, CLOCK_SECOND * 3);
+		PROCESS_WAIT_EVENT_UNTIL(ev==0x10);	
+		leds_on(LEDS_YELLOW);
+		
 		int len=0;	
 		len += sprintf(&msg.buf[len],"&: TXT=mak-gen3");
-	
+		
 		v_in=adc_read_v_in();
 		p1 = (int)v_in; //e.g. 4.93 gives 4
 		p2 = (v_in*100)-(p1*100); // =93	
@@ -93,14 +97,14 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		v_mcu = adc_read_v_mcu();
 		p1 = (int)v_mcu; //e.g. 4.93 gives 4
 		p2 = (v_mcu*100)-(p1*100); // =93	
-		len += sprintf(&msg.buf[len]," V_MCU=%d.%02d ",p1,p2);	
+		len += sprintf(&msg.buf[len]," V_MCU=%d.%02d\n",p1,p2);	
 		
-		if(v_in < 2.80){
+		/*if(v_in < 2.80){
 			v_low=1;
 			len += sprintf(&msg.buf[len]," V_LOW=1");
-		}
+		}*/
 		
-		msg.buf[len++] = '\0';		/*null terminate the string*/
+		msg.buf[len++] = 0;		/*null terminate the string*/
 		packetbuf_copyfrom(&msg, len+2);		
 		
 		msg.head = 1<<4; 
@@ -109,25 +113,23 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		
 		broadcast_send(&broadcast);
 		seqno++;
-		printf("&: %s \n\r", msg.buf);
+		printf("%s", msg.buf);
 	}
 
 	PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(sleep_process, ev, data)
+
+PROCESS_THREAD(post_process, ev, data)
 {
 	PROCESS_BEGIN();
-	while(1) {
-		watchdog_periodic(); 
-		set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-		cli();
-		sleep_enable();
-		sei();  
-		sleep_cpu();
-		sleep_disable();
-		sei();
-		PROCESS_PAUSE();
+	static struct etimer et;
+	while(1){
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    etimer_set(&et, CLOCK_SECOND * 1);
+		if(count>3){
+			count=0;
+			process_post(&sinknode_process, 0x10, NULL);
+		}
 	}
 	PROCESS_END();
 }

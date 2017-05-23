@@ -108,7 +108,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 /* Default baud rare on RS232 port */
 #ifndef RS232_BAUDRATE
-#define RS232_BAUDRATE USART_BAUD_38400
+#define RS232_BAUDRATE USART_BAUD_115200
 #endif 
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
