@@ -8,7 +8,7 @@ PROJECTDIRS += pool $(TARGET)
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
-    TARGET=srf06-cc26xx
+    TARGET=cc26xx
     $(info TARGET not defined, using target $(TARGET))
   endif
 endif
