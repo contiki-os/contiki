@@ -68,7 +68,7 @@ void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
 
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t rpl_of0, rpl_mrhof;
-static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
+static rpl_of_t *const objective_functions[] = RPL_SUPPORTED_OFS;
 
 /*---------------------------------------------------------------------------*/
 /* RPL definitions. */
@@ -82,6 +82,9 @@ static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
 /*---------------------------------------------------------------------------*/
 /* Per-parent RPL information */
 NBR_TABLE_GLOBAL(rpl_parent_t, rpl_parents);
+#if RPL_SECURITY
+NBR_TABLE_GLOBAL(rpl_sec_node_t, rpl_sec_nodes);
+#endif
 /*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
@@ -92,26 +95,26 @@ void
 rpl_print_neighbor_list(void)
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
-      default_instance->of != NULL) {
+     default_instance->of != NULL) {
     int curr_dio_interval = default_instance->dio_intcurrent;
     int curr_rank = default_instance->current_dag->rank;
     rpl_parent_t *p = nbr_table_head(rpl_parents);
     clock_time_t clock_now = clock_time();
 
     printf("RPL: MOP %u OCP %u rank %u dioint %u, nbr count %u\n",
-        default_instance->mop, default_instance->of->ocp, curr_rank, curr_dio_interval, uip_ds6_nbr_num());
+           default_instance->mop, default_instance->of->ocp, curr_rank, curr_dio_interval, uip_ds6_nbr_num());
     while(p != NULL) {
       const struct link_stats *stats = rpl_get_parent_link_stats(p);
       printf("RPL: nbr %3u %5u, %5u => %5u -- %2u %c%c (last tx %u min ago)\n",
-          rpl_get_parent_ipaddr(p)->u8[15],
-          p->rank,
-          rpl_get_parent_link_metric(p),
-          rpl_rank_via_parent(p),
-          stats != NULL ? stats->freshness : 0,
-          link_stats_is_fresh(stats) ? 'f' : ' ',
-          p == default_instance->current_dag->preferred_parent ? 'p' : ' ',
-          (unsigned)((clock_now - stats->last_tx_time) / (60 * CLOCK_SECOND))
-      );
+             rpl_get_parent_ipaddr(p)->u8[15],
+             p->rank,
+             rpl_get_parent_link_metric(p),
+             rpl_rank_via_parent(p),
+             stats != NULL ? stats->freshness : 0,
+             link_stats_is_fresh(stats) ? 'f' : ' ',
+             p == default_instance->current_dag->preferred_parent ? 'p' : ' ',
+             (unsigned)((clock_now - stats->last_tx_time) / (60 * CLOCK_SECOND))
+             );
       p = nbr_table_next(rpl_parents, p);
     }
     printf("RPL: end of list\n");
@@ -134,11 +137,21 @@ nbr_callback(void *ptr)
 {
   rpl_remove_parent(ptr);
 }
+#if RPL_SECURITY && RPL_SEC_REPLAY_PROTECTION
+static void
+sec_nodes_callback(void *ptr)
+{
+  nbr_table_remove(rpl_sec_nodes, (rpl_sec_node_t *)ptr);
+}
+#endif
 
 void
 rpl_dag_init(void)
 {
   nbr_table_register(rpl_parents, (nbr_table_callback *)nbr_callback);
+#if (RPL_SECURITY)&RPL_SEC_REPLAY_PROTECTION
+  nbr_table_register(rpl_sec_nodes, (nbr_table_callback *)sec_nodes_callback);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *
@@ -211,7 +224,8 @@ rpl_parent_is_fresh(rpl_parent_t *p)
 }
 /*---------------------------------------------------------------------------*/
 int
-rpl_parent_is_reachable(rpl_parent_t *p) {
+rpl_parent_is_reachable(rpl_parent_t *p)
+{
   if(p == NULL || p->dag == NULL || p->dag->instance == NULL || p->dag->instance->of == NULL) {
     return 0;
   } else {
@@ -269,8 +283,8 @@ lollipop_greater_than(int a, int b)
   /* Otherwise check if a > b and comparable => ok, or
      if they have wrapped and are still comparable */
   return (a > b && (a - b) < RPL_LOLLIPOP_SEQUENCE_WINDOWS) ||
-    (a < b && (b - a) > (RPL_LOLLIPOP_CIRCULAR_REGION + 1-
-			 RPL_LOLLIPOP_SEQUENCE_WINDOWS));
+         (a < b && (b - a) > (RPL_LOLLIPOP_CIRCULAR_REGION + 1 -
+                              RPL_LOLLIPOP_SEQUENCE_WINDOWS));
 }
 /*---------------------------------------------------------------------------*/
 /* Remove DAG parents with a rank that is at least the same as minimum_rank. */
@@ -280,7 +294,7 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
   rpl_parent_t *p;
 
   PRINTF("RPL: Removing parents (minimum rank %u)\n",
-	minimum_rank);
+         minimum_rank);
 
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
@@ -297,7 +311,7 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
   rpl_parent_t *p;
 
   PRINTF("RPL: Nullifying parents (minimum rank %u)\n",
-	minimum_rank);
+         minimum_rank);
 
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
@@ -317,15 +331,15 @@ should_refresh_routes(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   }
   /* check if the new DTSN is more recent */
   return p == instance->current_dag->preferred_parent &&
-    (lollipop_greater_than(dio->dtsn, p->dtsn));
+         (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /*---------------------------------------------------------------------------*/
 static int
 acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
 {
   return rank != INFINITE_RANK &&
-    ((dag->instance->max_rankinc == 0) ||
-     DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
+         ((dag->instance->max_rankinc == 0) ||
+          DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
 }
 /*---------------------------------------------------------------------------*/
 static rpl_dag_t *
@@ -550,7 +564,7 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     PRINT6ADDR(from);
     PRINTF("\n");
     instance->def_route = uip_ds6_defrt_add(from,
-        RPL_DEFAULT_ROUTE_INFINITE_LIFETIME ? 0 : RPL_LIFETIME(instance, instance->default_lifetime));
+                                            RPL_DEFAULT_ROUTE_INFINITE_LIFETIME ? 0 : RPL_LIFETIME(instance, instance->default_lifetime));
     if(instance->def_route == NULL) {
       return 0;
     }
@@ -573,6 +587,9 @@ rpl_alloc_instance(uint8_t instance_id)
 #if RPL_WITH_PROBING
       rpl_schedule_probing(instance);
 #endif /* RPL_WITH_PROBING */
+#if RPL_WITH_SECURITY && RPL_WITH_NON_STORING
+      instance->root_counter_trusted = 0;
+#endif
       return instance;
     }
   }
@@ -666,7 +683,7 @@ rpl_free_dag(rpl_dag_t *dag)
       rpl_remove_routes(dag);
     }
 
-   /* Remove autoconfigured address */
+    /* Remove autoconfigured address */
     if((dag->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
       check_prefix(&dag->prefix_info, NULL);
     }
@@ -825,7 +842,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   if(best_dag->preferred_parent != last_parent) {
     rpl_set_default_route(instance, rpl_get_parent_ipaddr(best_dag->preferred_parent));
     PRINTF("RPL: Changed preferred parent, rank changed from %u to %u\n",
-  	(unsigned)old_rank, best_dag->rank);
+           (unsigned)old_rank, best_dag->rank);
     RPL_STAT(rpl_stats.parent_switch++);
     if(RPL_IS_STORING(instance)) {
       if(last_parent != NULL) {
@@ -844,7 +861,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 #endif
   } else if(best_dag->rank != old_rank) {
     PRINTF("RPL: Preferred parent update, rank changed from %u to %u\n",
-  	(unsigned)old_rank, best_dag->rank);
+           (unsigned)old_rank, best_dag->rank);
   }
   return best_dag;
 }
@@ -879,11 +896,11 @@ best_parent(rpl_dag_t *dag, int fresh_only)
 
 #if UIP_ND6_SEND_NS
     {
-    uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
-    /* Exclude links to a neighbor that is not reachable at a NUD level */
-    if(nbr == NULL || nbr->state != NBR_REACHABLE) {
-      continue;
-    }
+      uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
+      /* Exclude links to a neighbor that is not reachable at a NUD level */
+      if(nbr == NULL || nbr->state != NBR_REACHABLE) {
+        continue;
+      }
     }
 #endif /* UIP_ND6_SEND_NS */
 
@@ -977,8 +994,8 @@ void
 rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
 {
   if(parent == dag_src->preferred_parent) {
-      rpl_set_preferred_parent(dag_src, NULL);
-      dag_src->rank = INFINITE_RANK;
+    rpl_set_preferred_parent(dag_src, NULL);
+    dag_src->rank = INFINITE_RANK;
     if(dag_src->joined && dag_src->instance->def_route != NULL) {
       PRINTF("RPL: Removing default route ");
       PRINT6ADDR(rpl_get_parent_ipaddr(parent));
@@ -1022,8 +1039,8 @@ rpl_get_dag(const uip_ipaddr_t *addr)
     if(instance_table[i].used) {
       for(j = 0; j < RPL_MAX_DAG_PER_INSTANCE; ++j) {
         if(instance_table[i].dag_table[j].joined
-            && uip_ipaddr_prefixcmp(&instance_table[i].dag_table[j].dag_id, addr,
-                instance_table[i].dag_table[j].prefix_info.length)) {
+           && uip_ipaddr_prefixcmp(&instance_table[i].dag_table[j].dag_id, addr,
+                                   instance_table[i].dag_table[j].prefix_info.length)) {
           return &instance_table[i].dag_table[j];
         }
       }
@@ -1073,6 +1090,63 @@ rpl_find_of(rpl_ocp_t ocp)
 
   return NULL;
 }
+#if RPL_SECURITY
+/*---------------------------------------------------------------------------*/
+rpl_sec_node_t *
+rpl_add_sec_node(uip_ipaddr_t *addr, const uip_lladdr_t *lladdr)
+{
+  rpl_sec_node_t *p = NULL;
+
+  PRINTF("RPL: rpl_sec_node lladdr ");
+  PRINTLLADDR(lladdr);
+  PRINTF(", IP: ");
+  PRINT6ADDR(addr);
+  PRINTF("\n");
+
+  if(lladdr != NULL) {
+    p = nbr_table_add_lladdr(rpl_sec_nodes, (linkaddr_t *)lladdr,
+                             NBR_TABLE_REASON_RPL_REPLAY_PROTECTION, NULL);
+    if(p == NULL) {
+      PRINTF("RPL: rpl_add_sec_node p NULL\n");
+    } else {
+      p->lifetime = RPL_DEFAULT_LIFETIME;
+    }
+  }
+  return p;
+}
+/*---------------------------------------------------------------------------*/
+rpl_sec_node_t *
+rpl_find_sec_node(uip_ipaddr_t *addr)
+{
+  uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
+  const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
+  return nbr_table_get_from_lladdr(rpl_sec_nodes, (linkaddr_t *)lladdr);
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_remove_dead_sec_nodes(void)
+{
+  rpl_sec_node_t *p;
+  linkaddr_t *addr;
+
+  p = nbr_table_head(rpl_sec_nodes);
+  while(p != NULL) {
+    p->lifetime--;
+    if(p->lifetime == 0) {
+      addr = nbr_table_get_lladdr(rpl_sec_nodes, p);
+      if(nbr_table_get_from_lladdr(ds6_neighbors, addr) == NULL) {
+        PRINTF("RPL: Removing dead node ");
+        PRINTLLADDR((uip_lladdr_t *)addr);
+        PRINTF(" from secure nodes table\n");
+        nbr_table_remove(rpl_sec_nodes, p);
+      } else {
+        p->lifetime = RPL_DEFAULT_LIFETIME;
+      }
+    }
+    p = nbr_table_next(rpl_sec_nodes, p);
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 void
 rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
@@ -1083,8 +1157,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_of_t *of;
 
   if((!RPL_WITH_NON_STORING && dio->mop == RPL_MOP_NON_STORING)
-      || (!RPL_WITH_STORING && (dio->mop == RPL_MOP_STORING_NO_MULTICAST
-          || dio->mop == RPL_MOP_STORING_MULTICAST))) {
+     || (!RPL_WITH_STORING && (dio->mop == RPL_MOP_STORING_NO_MULTICAST
+                               || dio->mop == RPL_MOP_STORING_MULTICAST))) {
     PRINTF("RPL: DIO advertising a non-supported MOP %u\n", dio->mop);
     return;
   }
@@ -1180,7 +1254,6 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->of->reset(dag);
 }
-
 #if RPL_MAX_DAG_PER_INSTANCE > 1
 /*---------------------------------------------------------------------------*/
 rpl_dag_t *
@@ -1232,7 +1305,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
      instance->default_lifetime != dio->default_lifetime ||
      instance->lifetime_unit != dio->lifetime_unit) {
     PRINTF("RPL: DIO for DAG instance %u incompatible with previous DIO\n",
-	   dio->instance_id);
+           dio->instance_id);
     rpl_remove_parent(p);
     dag->used = 0;
     return NULL;
@@ -1302,7 +1375,6 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   RPL_STAT(rpl_stats.global_repairs++);
 }
-
 /*---------------------------------------------------------------------------*/
 void
 rpl_local_repair(rpl_instance_t *instance)
@@ -1372,8 +1444,8 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   return_value = 1;
 
   if(RPL_IS_STORING(instance)
-      && uip_ds6_route_is_nexthop(rpl_get_parent_ipaddr(p))
-      && !rpl_parent_is_reachable(p) && instance->mop > RPL_MOP_NON_STORING) {
+     && uip_ds6_route_is_nexthop(rpl_get_parent_ipaddr(p))
+     && !rpl_parent_is_reachable(p) && instance->mop > RPL_MOP_NON_STORING) {
     PRINTF("RPL: Unacceptable link %u, removing routes via: ", rpl_get_parent_link_metric(p));
     PRINT6ADDR(rpl_get_parent_ipaddr(p));
     PRINTF("\n");
@@ -1384,7 +1456,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     /* The candidate parent is no longer valid: the rank increase resulting
        from the choice of it as a parent would be too high. */
     PRINTF("RPL: Unacceptable rank %u (Current min %u, MaxRankInc %u)\n", (unsigned)p->rank,
-        p->dag->min_rank, p->dag->instance->max_rankinc);
+           p->dag->min_rank, p->dag->instance->max_rankinc);
     rpl_nullify_parent(p);
     if(p != instance->current_dag->preferred_parent) {
       return 0;
@@ -1405,12 +1477,12 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 #if DEBUG
   if(DAG_RANK(old_rank, instance) != DAG_RANK(instance->current_dag->rank, instance)) {
     PRINTF("RPL: Moving in the instance from rank %hu to %hu\n",
-	   DAG_RANK(old_rank, instance), DAG_RANK(instance->current_dag->rank, instance));
+           DAG_RANK(old_rank, instance), DAG_RANK(instance->current_dag->rank, instance));
     if(instance->current_dag->rank != INFINITE_RANK) {
       PRINTF("RPL: The preferred parent is ");
       PRINT6ADDR(rpl_get_parent_ipaddr(instance->current_dag->preferred_parent));
       PRINTF(" (rank %u)\n",
-           (unsigned)DAG_RANK(instance->current_dag->preferred_parent->rank, instance));
+             (unsigned)DAG_RANK(instance->current_dag->preferred_parent->rank, instance));
     } else {
       PRINTF("RPL: We don't have any parent");
     }
@@ -1517,7 +1589,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 #endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
   }
 
-
   if(dio->rank < ROOT_RANK(instance)) {
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
            (unsigned)dio->rank);
@@ -1599,9 +1670,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("RPL: preferred DAG ");
   PRINT6ADDR(&instance->current_dag->dag_id);
   PRINTF(", rank %u, min_rank %u, ",
-	 instance->current_dag->rank, instance->current_dag->min_rank);
+         instance->current_dag->rank, instance->current_dag->min_rank);
   PRINTF("parent rank %u, link metric %u\n",
-	 p->rank, rpl_get_parent_link_metric(p));
+         p->rank, rpl_get_parent_link_metric(p));
 
   /* We have allocated a candidate parent; process the DIO further. */
 

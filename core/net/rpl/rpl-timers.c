@@ -102,6 +102,11 @@ handle_periodic_timer(void *ptr)
     dis_output(NULL);
   }
 #endif
+
+#if RPL_SECURITY
+  rpl_remove_dead_sec_nodes();
+#endif
+
   ctimer_reset(&periodic_timer);
 }
 /*---------------------------------------------------------------------------*/

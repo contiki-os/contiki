@@ -79,6 +79,11 @@
 #define RPL_CODE_SEC_DAO_ACK           0x83   /* Secure DAO ACK */
 #define RPL_CODE_CC                    0x8A   /* Consistency Check */
 
+#if RPL_SECURITY
+#define RPL_CC_RESPONSE                0x80
+#define RPL_CC_REQUEST                 0x00
+#endif /* RPL_SECURITY */
+
 /* RPL control message options. */
 #define RPL_OPTION_PAD1                  0
 #define RPL_OPTION_PADN                  1
@@ -103,7 +108,7 @@
 
 /*---------------------------------------------------------------------------*/
 /* RPL IPv6 extension header option. */
-#define RPL_HDR_OPT_LEN        		  4
+#define RPL_HDR_OPT_LEN             4
 #define RPL_HOP_BY_HOP_LEN            (RPL_HDR_OPT_LEN + 2 + 2)
 #define RPL_RH_LEN                    4
 #define RPL_SRH_LEN                   4
@@ -348,9 +353,19 @@ void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
+#if RPL_SECURITY
+void cc_output(uip_ipaddr_t *, uint8_t, uint16_t, uint32_t);
+#endif
 void rpl_icmp6_register_handlers(void);
 uip_ds6_nbr_t *rpl_icmp6_update_nbr_table(uip_ipaddr_t *from,
                                           nbr_table_reason_t r, void *data);
+
+/* RPL Replay Protection management function */
+#if RPL_SECURITY
+rpl_sec_node_t *rpl_add_sec_node(uip_ipaddr_t *addr, const uip_lladdr_t *lladdr);
+rpl_sec_node_t *rpl_find_sec_node(uip_ipaddr_t *addr);
+void rpl_remove_dead_sec_nodes(void);
+#endif
 
 /* RPL logic functions. */
 void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);

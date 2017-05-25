@@ -161,6 +161,12 @@ struct rpl_sec_section {
   uint8_t key_index;
 };
 typedef struct rpl_sec_section rpl_sec_section_t;
+
+struct rpl_sec_node {
+  uint32_t sec_counter;
+  uint16_t lifetime;
+};
+typedef struct rpl_sec_node rpl_sec_node_t;
 #endif
 /*---------------------------------------------------------------------------*/
 /*
@@ -273,6 +279,10 @@ struct rpl_instance {
   rpl_parent_t *unicast_dio_target;
 #if RPL_WITH_DAO_ACK
   struct ctimer dao_retransmit_timer;
+#if RPL_SECURITY
+  uint8_t root_counter_trusted;
+  uint32_t root_sec_counter;
+#endif
 #endif /* RPL_WITH_DAO_ACK */
 };
 
@@ -309,6 +319,10 @@ int rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr);
 
 /* Per-parent RPL information */
 NBR_TABLE_DECLARE(rpl_parents);
+
+#if RPL_SECURITY
+NBR_TABLE_DECLARE(rpl_sec_nodes);
+#endif
 
 /**
  * RPL modes
