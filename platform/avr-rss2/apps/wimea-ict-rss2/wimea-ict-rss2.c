@@ -66,25 +66,85 @@
 uint16_t EEMEM eemem_transmission_interval;
 uint8_t EEMEM eemem_node_name[NAME_LENGTH];
 uint8_t EEMEM eemem_tagmask[TAGMASK_LENGTH];
+/*flags to check if eeprom has valid values*/
+uint16_t EEMEM eemem_interval_flag;
+uint16_t EEMEM eemem_name_flag;
+uint16_t EEMEM eemem_tagmask_flag;
 
 PROCESS(serial_input_process, "Serial line input commands");
 PROCESS(default_config_process, "Default configurations");
+PROCESS(broadcast_data_process, "Broadcast sensor data");
 PROCESS(sensor_data_process, "Read sensor data");
 
 uint16_t time_interval;
 struct etimer et;
+unsigned char eui64_addr[8];
+uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
+static struct broadcast_conn broadcast;
 
-AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process, &serial_input_process);
+AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process, &broadcast_data_process, &serial_input_process);
 
 PROCESS_THREAD(default_config_process, ev, data)
 {
-	uint16_t eeprom_interval;
+	uint16_t interval_flag, tagmask_flag;
+	
 	PROCESS_BEGIN();
+	i2c_at24mac_read((char *) &eui64_addr, 1);
 	cli();
-	eeprom_interval = eeprom_read_word(&eemem_transmission_interval);
-	time_interval = (eeprom_interval == 0) ? 60 : eeprom_interval;
-	eeprom_update_word(&eemem_transmission_interval, time_interval);  
+	interval_flag = eeprom_read_word(&eemem_interval_flag);
+	tagmask_flag = eeprom_read_word(&eemem_tagmask_flag);
+	
+	if (interval_flag != 1) {
+		time_interval = 60;
+		eeprom_update_word(&eemem_transmission_interval, time_interval); 
+		interval_flag=1;
+		eeprom_update_word(&eemem_interval_flag, interval_flag);  
+	}
+	
+	if (tagmask_flag != 1) {
+		set_default_tagmask();
+		tagmask_flag=1;
+		eeprom_update_word(&eemem_tagmask_flag, tagmask_flag);
+	}
 	sei();
+	PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(sensor_data_process, ev, data)
+{
+	PROCESS_BEGIN();
+	SENSORS_ACTIVATE(temp_sensor);
+	SENSORS_ACTIVATE(light_sensor);
+	SENSORS_ACTIVATE(temp_mcu_sensor);
+	SENSORS_ACTIVATE(battery_sensor);
+	SENSORS_ACTIVATE(pulse_sensor);
+	
+	if( i2c_probed & I2C_BME280 ) {
+		SENSORS_ACTIVATE(bme280_sensor);
+	}
+	if( i2c_probed & I2C_CO2SA ) {
+		SENSORS_ACTIVATE(co2_sa_kxx_sensor);
+	}
+	if( i2c_probed & I2C_DS1307 ) {
+			DS1307_init();
+			SENSORS_ACTIVATE(ds1307_sensor);
+		}
+	while(1) {
+		time_interval=eeprom_read_word(&eemem_transmission_interval);
+		etimer_set(&et, CLOCK_SECOND * time_interval);
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+		read_sensor_values(); 
+	}
+	
+	SENSORS_DEACTIVATE(temp_sensor);
+	SENSORS_DEACTIVATE(light_sensor);
+	SENSORS_DEACTIVATE(temp_mcu_sensor);
+	SENSORS_DEACTIVATE(battery_sensor);
+	SENSORS_DEACTIVATE(pulse_sensor);
+	SENSORS_DEACTIVATE(bme280_sensor);
+	SENSORS_DEACTIVATE(co2_sa_kxx_sensor);
+	SENSORS_DEACTIVATE(ds1307_sensor);
+	
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -100,7 +160,11 @@ PROCESS_THREAD(serial_input_process, ev, data)
 		PROCESS_YIELD_UNTIL(ev == serial_line_event_message);
 		command = (char*)strtok((char*)data, (const char*)delimiter);
 		if(!strncmp(command, "h", 1)) {
-			print_help_command_menu();
+			if (strlen(command) == 1){
+				print_help_command_menu();
+			} else {
+				printf("Invalid command %s. Try h for a list of commands\n", command);
+			}
 		} else if (!strncmp(command,"ri",2)) {
 			if(strlen(command)>2) {
 				value=(char*) malloc(6);
@@ -153,16 +217,19 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			} else {
 				value=(char*) malloc(TAGMASK_LENGTH);
 				strlcpy(value, command+8, TAGMASK_LENGTH);
-				if (!strncmp(value, "default", 7)){
-					char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT PULSE_0 PULSE_1";
-					cli();
-						eeprom_update_block((const void *)&default_sensors, (void *)&eemem_tagmask, TAGMASK_LENGTH);
-						display_tagmask();
-					sei();
-				} else {
-				change_tagmask(value);
+				if (!strncmp(value, "auto", 4)){
+					set_default_tagmask();
+					display_tagmask();
+				} else if(strlen(value)>0) {
+					change_tagmask(value);
 				}
 				free(value);
+			}
+		} else if(!strncmp(command, "alias", 5)) {
+			value=(char*) malloc(10);
+			strlcpy(value, command+6, 10);
+			if (strlen(value)>0){
+				printf("%s\n", value);
 			}
 		} else {
 			printf("Invalid command %s. Try h for a list of commands\n", command);
@@ -171,41 +238,46 @@ PROCESS_THREAD(serial_input_process, ev, data)
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-
-PROCESS_THREAD(sensor_data_process, ev, data)
+static void
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
-	PROCESS_BEGIN();
-	SENSORS_ACTIVATE(temp_sensor);
-	SENSORS_ACTIVATE(light_sensor);
-	SENSORS_ACTIVATE(temp_mcu_sensor);
-	SENSORS_ACTIVATE(battery_sensor);
-	SENSORS_ACTIVATE(pulse_sensor);
-	
-	if( i2c_probed & I2C_BME280 ) {
-		SENSORS_ACTIVATE(bme280_sensor);
-	}
-	if( i2c_probed & I2C_CO2SA ) {
-		SENSORS_ACTIVATE(co2_sa_kxx_sensor);
-	}
-	if( i2c_probed & I2C_DS1307 ) {
-			DS1307_init();
-			SENSORS_ACTIVATE(ds1307_sensor);
-		}
+	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
+	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
+    printf("%s [RSSI=%u LQI=%u]\n", (char *)packetbuf_dataptr(), rssi, lqi);
+}
+static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
+
+
+/*---------------------------------------------------------------------------*/
+/*This process waits for a synchronous event and broadcasts the data received from the sender process*/
+PROCESS_THREAD(broadcast_data_process, ev, data)
+{
+	char report[150], node[NAME_LENGTH];
+	uint8_t node_name[NAME_LENGTH];
+	int len, i=0;
+	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
+    PROCESS_BEGIN();
+	broadcast_open(&broadcast, 129, &broadcast_call);
 	while(1) {
-		etimer_set(&et, CLOCK_SECOND * time_interval);
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-		printf("%s\n", read_sensor_values()); 
+		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+		cli();
+		eeprom_read_block((void*)&node_name, (const void*)&eemem_node_name, NAME_LENGTH);
+		sei();
+		len=strlen(data);
+		if( i2c_probed & I2C_DS1307 ) {
+				i += snprintf(report+i, 30, "%s %s ", return_date(), return_time());
+		}
+		if (node_name>0){
+			strlcpy(node, (char*)node_name, NAME_LENGTH);
+			i += snprintf(report+i, NAME_LENGTH, "TXT=%s ", node);
+		}
+		/* Read out mote 64bit MAC address */
+		len+=30;
+		i += snprintf(report+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
+		printf("%s\n", report);
+		packetbuf_copyfrom(report, i+2);
+		broadcast_send(&broadcast);
 	}
-	
-	SENSORS_DEACTIVATE(temp_sensor);
-	SENSORS_DEACTIVATE(light_sensor);
-	SENSORS_DEACTIVATE(temp_mcu_sensor);
-	SENSORS_DEACTIVATE(battery_sensor);
-	SENSORS_DEACTIVATE(pulse_sensor);
-	SENSORS_DEACTIVATE(bme280_sensor);
-	SENSORS_DEACTIVATE(co2_sa_kxx_sensor);
-	SENSORS_ACTIVATE(ds1307_sensor);
-	
 	PROCESS_END();
 }
 
@@ -219,7 +291,8 @@ print_help_command_menu()
 	printf("\n Display System Uptime \t Usage: u");
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
-	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <default>"); 
+	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <auto>"); 
+	printf("\n Set alias name \t Usage: alias <sensor=alias_name>. For example alias T=temp");
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");
 		printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
@@ -276,37 +349,39 @@ display_system_uptime()
 //change node name
 void
 change_node_name(char *value){
-	cli();
+	uint16_t name_flag=1;
 	char new_name[NAME_LENGTH];
 	strlcpy(new_name, value, NAME_LENGTH);
+	cli();
     eeprom_update_block((const void *)&new_name, (void *)&eemem_node_name, NAME_LENGTH);
+    eeprom_update_word(&eemem_name_flag, name_flag);
 	sei();
-	printf("Node Name changed to %s\n", new_name);
+	printf("Node name changed to %s\n", new_name);
 }
 
 //display node name
 void
 display_node_name(){
-	cli();
+	uint16_t name_flag;
 	uint8_t node_name[NAME_LENGTH];
-	eeprom_read_block((void*)&node_name, (const void*)&eemem_node_name, NAME_LENGTH);
+	cli();
+	name_flag = eeprom_read_word(&eemem_name_flag);
+	if (name_flag != 1) {
+		printf("Node name not set.\n");
+	} else {
+		eeprom_read_block((void*)&node_name, (const void*)&eemem_node_name, NAME_LENGTH);
+		printf("Node name = %s\n", (char *)node_name);
+	}
 	sei();
-	printf("Node Name = %s\n", (char *)node_name);
 }
 
 /*
  * Function to return the report mask using data frim various sensors
  */
-char 
-*read_sensor_values(void){
-	static char result[200], *sensors;
+void
+read_sensor_values(void){
+	char result[150], *sensors;
 	uint8_t tagmask[TAGMASK_LENGTH], i=0;
-	if( i2c_probed & I2C_DS1307 ) {
-		i = snprintf(result, 30, "%s %s ", return_date(), return_time());
-	}
-	/* Read out mote 64bit MAC address */
-	i += snprintf(result+i, 21, "E64=%02x%02x%02x%02x%02x%02x%02x%02x", linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], linkaddr_node_addr.u8[2], 
-			linkaddr_node_addr.u8[3], linkaddr_node_addr.u8[4], linkaddr_node_addr.u8[5], linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
 	cli();
 	eeprom_read_block((void*)&tagmask, (const void*)&eemem_tagmask, TAGMASK_LENGTH);
 	sei();
@@ -331,30 +406,14 @@ char
 		} else {
 			i += snprintf(result+i, 15, " PULSE_1=%-d", pulse_sensor.value(1));
 		}
+		if(i>45){//if the report is greater than 45bytes, send the current result, reset i and result
+			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
+			i=0;
+			result[0]='\0';
+		}
 		sensors = strtok(NULL, " ");
 	}
-	/*
-	if( i2c_probed & I2C_CO2SA ) {
-		printf(" CO2=%-d", co2_sa_kxx_sensor.value( CO2_SA_KXX_CO2));
-	}
-	if( i2c_probed & I2C_BME280 ) {
-		#if STD_API
-	 		printf(" BME280_TEMP=%-d", bme280_sensor.value(BME280_SENSOR_TEMP));
-		  	printf(" BME280_RH=%-d", bme280_sensor.value(BME280_SENSOR_HUMIDITY));
-		  	printf(" BME280_P=%-d", bme280_sensor.value(BME280_SENSOR_PRESSURE));
-	    #else*/ 
-		    /* Trigger burst read */
-		/*    bme280_sensor.value(BME280_SENSOR_TEMP);
-		    printf(" T_BME280=%5.2f", (double)bme280_mea.t_overscale100 / 100.);
-		    printf(" RH_BME280=%5.2f", (double)bme280_mea.h_overscale1024 / 1024.);
-	  	#ifdef BME280_64BIT
-		  	printf(" P_BME280=%5.2f", (double)bme280_mea.p_overscale256 / 256.);
-	  	#else
-		  	printf(" P_BME280=%5.2f", (double)bme280_mea.p);
-	  	#endif
-	    #endif
-	 }*/
-	return result;
+	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
 }
 
 //return time form rtc
@@ -471,11 +530,22 @@ change_tagmask(char *value){
 		}
 		split_tagmask = strtok(NULL, ",");
 	}
-	cli();
-	eeprom_update_block((const void *)&save_tagmask, (void *)&eemem_tagmask, TAGMASK_LENGTH);
-	sei();
+	if (strlen(save_tagmask)>0) {//check if tagmask is not empty after validation
+		cli();
+		eeprom_update_block((const void *)&save_tagmask, (void *)&eemem_tagmask, TAGMASK_LENGTH);
+		sei();
+	}
 	free(tagmask);
 	display_tagmask();
+}
+
+/*set tagmask to default*/
+void
+set_default_tagmask(void){
+	char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT PULSE_0 PULSE_1";
+	cli();
+	eeprom_update_block((const void *)&default_sensors, (void *)&eemem_tagmask, TAGMASK_LENGTH);
+	sei();
 }
 
 /*Display the tagmask stored in eeprom*/
