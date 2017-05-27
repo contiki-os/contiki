@@ -37,6 +37,7 @@
 #include "contiki.h"
 #include "wimea-ict-rss2.h"
 #include <stdio.h>
+#include <avr/io.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -54,9 +55,9 @@
 #include "dev/bme280/bme280-sensor.h"
 #include "dev/co2_sa_kxx-sensor.h"
 #include "dev/ds1307.h"
+#include "dev/diskio.h"
+#include "dev/ff.h"
 #include "net/rime/rime.h"
-
-
 
 #define NAME_LENGTH 10
 #define TAGMASK_LENGTH 100
@@ -81,32 +82,49 @@ struct etimer et;
 unsigned char eui64_addr[8];
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 static struct broadcast_conn broadcast;
+FATFS FatFs;
+FIL *fp;
+UINT bw;
+
+DWORD get_fattime (void)
+{
+	return	  ((DWORD)(2013 - 1980) << 25)	/* Year 2013 */
+				| ((DWORD)7 << 21)				/* Month 7 */
+				| ((DWORD)28 << 16)				/* Mday 28 */
+				| ((DWORD)0 << 11)				/* Hour 0 */
+				| ((DWORD)0 << 5)				/* Min 0 */
+				| ((DWORD)0 >> 1);				/* Sec 0 */
+}
 
 AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process, &broadcast_data_process, &serial_input_process);
 
 PROCESS_THREAD(default_config_process, ev, data)
 {
 	uint16_t interval_flag, tagmask_flag;
-	
+
 	PROCESS_BEGIN();
 	i2c_at24mac_read((char *) &eui64_addr, 1);
 	cli();
 	interval_flag = eeprom_read_word(&eemem_interval_flag);
 	tagmask_flag = eeprom_read_word(&eemem_tagmask_flag);
-	
+
 	if (interval_flag != 1) {
 		time_interval = 60;
-		eeprom_update_word(&eemem_transmission_interval, time_interval); 
+		eeprom_update_word(&eemem_transmission_interval, time_interval);
 		interval_flag=1;
-		eeprom_update_word(&eemem_interval_flag, interval_flag);  
+		eeprom_update_word(&eemem_interval_flag, interval_flag);
 	}
-	
+
 	if (tagmask_flag != 1) {
 		set_default_tagmask();
 		tagmask_flag=1;
 		eeprom_update_word(&eemem_tagmask_flag, tagmask_flag);
 	}
 	sei();
+	/*** init sdcard ****/
+	f_mount(0, &FatFs);		// Give a work area to the FatFs module 
+	fp = (FIL *)malloc(sizeof (FIL)); 
+	
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -118,7 +136,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
 	SENSORS_ACTIVATE(pulse_sensor);
-	
+
 	if( i2c_probed & I2C_BME280 ) {
 		SENSORS_ACTIVATE(bme280_sensor);
 	}
@@ -133,9 +151,9 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 		time_interval=eeprom_read_word(&eemem_transmission_interval);
 		etimer_set(&et, CLOCK_SECOND * time_interval);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-		read_sensor_values(); 
+		read_sensor_values();
 	}
-	
+
 	SENSORS_DEACTIVATE(temp_sensor);
 	SENSORS_DEACTIVATE(light_sensor);
 	SENSORS_DEACTIVATE(temp_mcu_sensor);
@@ -144,7 +162,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_DEACTIVATE(bme280_sensor);
 	SENSORS_DEACTIVATE(co2_sa_kxx_sensor);
 	SENSORS_DEACTIVATE(ds1307_sensor);
-	
+
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -275,6 +293,24 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		len+=30;
 		i += snprintf(report+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		printf("%s\n", report);
+		/*write to sd card*/
+		if (f_open(fp, "data.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
+			if (f_lseek(fp, f_size(fp)) == FR_OK) {
+					f_write(fp, report, i+2, &bw);	// Write data to the file
+				} 	
+			if (bw == strlen(report)) {//we wrote the entire string 
+					leds_off(LEDS_RED);
+					leds_on(LEDS_YELLOW);
+					printf("Success.\n");
+			} else {
+				leds_off(LEDS_YELLOW);
+				leds_on(LEDS_RED);
+				printf("Error writing.\n");
+			}
+			f_close(fp);// close the file	
+		} else {
+			printf("File not opened\n");
+		}
 		packetbuf_copyfrom(report, i+2);
 		broadcast_send(&broadcast);
 	}
@@ -291,7 +327,7 @@ print_help_command_menu()
 	printf("\n Display System Uptime \t Usage: u");
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
-	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <auto>"); 
+	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <auto>");
 	printf("\n Set alias name \t Usage: alias <sensor=alias_name>. For example alias T=temp");
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");

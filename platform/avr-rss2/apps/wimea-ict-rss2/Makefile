@@ -1,5 +1,7 @@
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 CONTIKI_PROJECT = wimea-ict-rss2
+
+APPS=serial-shell
 all: $(CONTIKI_PROJECT)
 
 # We use floating vars. Add library.
@@ -16,5 +18,5 @@ CUSTOM_RULE_LINK = 1
 
 CONTIKI = ../../../..
 
-#CONTIKI_WITH_RIME = 1
+CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include
