@@ -76,6 +76,7 @@ PROCESS(serial_input_process, "Serial line input commands");
 PROCESS(default_config_process, "Default configurations");
 PROCESS(broadcast_data_process, "Broadcast sensor data");
 PROCESS(sensor_data_process, "Read sensor data");
+PROCESS(buffer_process, "Buffer sensor data");
 
 uint16_t time_interval;
 struct etimer et;
@@ -88,15 +89,24 @@ UINT bw;
 
 DWORD get_fattime (void)
 {
-	return	  ((DWORD)(2013 - 1980) << 25)	/* Year 2013 */
-				| ((DWORD)7 << 21)				/* Month 7 */
-				| ((DWORD)28 << 16)				/* Mday 28 */
-				| ((DWORD)0 << 11)				/* Hour 0 */
-				| ((DWORD)0 << 5)				/* Min 0 */
-				| ((DWORD)0 >> 1);				/* Sec 0 */
+	if( i2c_probed & I2C_DS1307 ) {
+		return ((DWORD)(ds1307_sensor.value(11) - 1980) << 25)	/* RTC Year */
+			| ((DWORD)ds1307_sensor.value(10) << 21)				/* RTC Month*/
+			| ((DWORD)ds1307_sensor.value(9) << 16)				/* RTC day*/
+			| ((DWORD)ds1307_sensor.value(8) << 11)				/* RTC Hours*/
+			| ((DWORD)ds1307_sensor.value(7) << 5)				/* RTC Mins*/
+			| ((DWORD)ds1307_sensor.value(6)/2 >> 1);				/* RTC Sec*/
+	} else {
+		return ((DWORD)(2017 - 1980) << 25)	/* Year 2017 */
+			| ((DWORD)1 << 21)				/* Month 1 */
+			| ((DWORD)1 << 16)				/* Mday 1 */
+			| ((DWORD)0 << 11)				/* Hour 0 */
+			| ((DWORD)0 << 5)				/* Min 0 */
+			| ((DWORD)0 >> 1);				/* Sec 0 */
+	}
 }
 
-AUTOSTART_PROCESSES(&default_config_process, &sensor_data_process, &broadcast_data_process, &serial_input_process);
+AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &sensor_data_process, &broadcast_data_process, &serial_input_process);
 
 PROCESS_THREAD(default_config_process, ev, data)
 {
@@ -121,10 +131,34 @@ PROCESS_THREAD(default_config_process, ev, data)
 		eeprom_update_word(&eemem_tagmask_flag, tagmask_flag);
 	}
 	sei();
+	PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(buffer_process, ev, data)
+{
+	int i;
+	PROCESS_BEGIN();
 	/*** init sdcard ****/
 	f_mount(0, &FatFs);		// Give a work area to the FatFs module 
-	fp = (FIL *)malloc(sizeof (FIL)); 
-	
+	fp = (FIL *)malloc(sizeof (FIL));
+	while(1) {
+		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+		i=strlen(data);
+		/*write to sd card*/
+		if (f_open(fp, "sensor27.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
+			if (f_lseek(fp, f_size(fp)) == FR_OK) {
+				f_write(fp, (char*)data, i+2, &bw);	// Write data to the file
+			} 	
+			if (bw == i+2) {//we wrote the entire string 
+				leds_on(LEDS_YELLOW);
+			} else {
+				leds_on(LEDS_RED);
+			}
+			f_close(fp);// close the file	
+			} else {
+				leds_on(LEDS_RED);
+			}
+    }
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -293,26 +327,10 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		len+=30;
 		i += snprintf(report+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		printf("%s\n", report);
-		/*write to sd card*/
-		if (f_open(fp, "data.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
-			if (f_lseek(fp, f_size(fp)) == FR_OK) {
-					f_write(fp, report, i+2, &bw);	// Write data to the file
-				} 	
-			if (bw == strlen(report)) {//we wrote the entire string 
-					leds_off(LEDS_RED);
-					leds_on(LEDS_YELLOW);
-					printf("Success.\n");
-			} else {
-				leds_off(LEDS_YELLOW);
-				leds_on(LEDS_RED);
-				printf("Error writing.\n");
-			}
-			f_close(fp);// close the file	
-		} else {
-			printf("File not opened\n");
-		}
 		packetbuf_copyfrom(report, i+2);
 		broadcast_send(&broadcast);
+		i += snprintf(report+i, 1, "\n");
+		process_post_synch(&buffer_process, PROCESS_EVENT_CONTINUE, report);
 	}
 	PROCESS_END();
 }

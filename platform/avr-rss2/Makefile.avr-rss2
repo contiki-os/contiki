@@ -7,12 +7,14 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c params.c battery-sensor.c i2c.c
 CONTIKI_TARGET_SOURCEFILES += sensors.c button-sensor.c slip_uart0.c slip.c leds.c temp_mcu-sensor.c light-sensor.c adc.c cfs-eeprom.c eeprom.c pulse-sensor.c 
 
 CONTIKI_TARGET_SOURCEFILES += temp-sensor.c
-CONTIKI_TARGET_SOURCEFILES += ds3231.c diskio.c ff.c
+CONTIKI_TARGET_SOURCEFILES += ds3231.c
 
 CONTIKI_TARGET_SOURCEFILES += enc28j60_avr.c
 CONTIKI_TARGET_SOURCEFILES += co2_sa_kxx-sensor.c
 CONTIKI_TARGET_SOURCEFILES += bme280-arch.c
 CONTIKI_TARGET_SOURCEFILES += ds1307.c
+CONTIKI_TARGET_SOURCEFILES += diskio.c
+CONTIKI_TARGET_SOURCEFILES += ff.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
