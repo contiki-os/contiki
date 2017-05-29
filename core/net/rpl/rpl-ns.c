@@ -74,11 +74,11 @@ static int
 node_matches_address(const rpl_dag_t *dag, const rpl_ns_node_t *node, const uip_ipaddr_t *addr)
 {
   return addr != NULL
-      && node != NULL
-      && dag != NULL
-      && dag == node->dag
-      && !memcmp(addr, &node->dag->dag_id, 8)
-      && !memcmp(((const unsigned char *)addr) + 8, node->link_identifier, 8);
+         && node != NULL
+         && dag != NULL
+         && dag == node->dag
+         && !memcmp(addr, &node->dag->dag_id, 8)
+         && !memcmp(((const unsigned char *)addr) + 8, node->link_identifier, 8);
 }
 /*---------------------------------------------------------------------------*/
 rpl_ns_node_t *
@@ -226,5 +226,4 @@ rpl_ns_periodic(void)
     }
   }
 }
-
 #endif /* RPL_WITH_NON_STORING */
