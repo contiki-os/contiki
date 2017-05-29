@@ -100,7 +100,7 @@ else
     CFLAGS += -DUIP_CONF_IPV6_RPL=0
 endif
 
-CONTIKI_SOURCEFILES += $(CONTIKIFILES)
+CONTIKI_SOURCEFILES += $(sort $(CONTIKIFILES))
 
 CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/llsec net/mac net/rime \
                  net/rpl sys cfs ctk lib/ctk loader . }
@@ -115,8 +115,6 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 $(OBJECTDIR):
 	mkdir $@
 
-uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
-
 ### Include application makefiles
 
 ifdef APPS
@@ -128,7 +126,7 @@ ifdef APPS
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
-  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
+  CONTIKI_SOURCEFILES += $(sort $(APP_SOURCES)) $(sort $(DSC_SOURCES))
 endif
 
 ### Include target makefile (TODO Unsafe?)
@@ -146,10 +144,10 @@ else
 endif
 
 ifdef MODULES
-  UNIQUEMODULES = $(call uniq,$(MODULES))
+  UNIQUEMODULES = $(sort $(MODULES))
   MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
   MODULES_SOURCES = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
-  CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
+  CONTIKI_SOURCEFILES += $(sort $(MODULES_SOURCES))
   APPDS += $(MODULEDIRS)
 endif
 
