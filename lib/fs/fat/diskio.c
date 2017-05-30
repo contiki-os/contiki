@@ -4,26 +4,21 @@
 /
 /  Copyright (C) 2013, ChaN, all right reserved.
 /
-/  This software is a free software and there is NO WARRANTY.
-/  No restriction on use. You can use, modify and redistribute it for
-/  personal, non-profit or commercial products UNDER YOUR RESPONSIBILITY.
-/  Redistributions of source code must retain the above copyright notice.
+/ * This software is a free software and there is NO WARRANTY.
+/ * No restriction on use. You can use, modify and redistribute it for
+/   personal, non-profit or commercial products UNDER YOUR RESPONSIBILITY.
+/ * Redistributions of source code must retain the above copyright notice.
 /
-/
-/ Platform dependent macros and functions needed to be modified          
-
-/-------------------------------------------------------------------------/
-/   Low level disk interface implementation for avr-rss2 mote
-/-------------------------------------------------------------------------/
-/   AUTHOR: Maximus Byamukama <maximus.byamukama@cedat.mak.ac.ug>
-    DATE:   25-04-2017
 /-------------------------------------------------------------------------*/
+#define F_CPU 16000000UL  //AVR-rss2 CPU Frequency
+#include "diskio.h"		/* Common include file for FatFs and disk I/O layer */
 
-#define F_CPU 16000000UL  //avr-rss2 (256RFR2) CPU Frequency
-#include "lib/fs/fat/diskio.h"	/* Common include file for FatFs and disk I/O layer */
 
+/*-------------------------------------------------------------------------*/
+/* Platform dependent macros and functions needed to be modified           */
+/*-------------------------------------------------------------------------*/
 
-#include <avr/io.h>			/* Include device specific declaration file here */
+#include <avr/io.h>			/* Include device specific declareation file here */
 #include <util/delay.h>
 
 // Set DQ as AVR MISO
@@ -44,7 +39,7 @@
 #define	CK_L()		PORTB &= ~(1<<CK_DQ)	/* Set MMC SCLK "low" */
 
 // Use a pin for CS
-#define CS_DQ		PD6   //chip select on mote is OW1 pin (middle pin on temp. sensor connector)
+#define CS_DQ		PD6   //chip select is OW1 pin. middle pin on temp. sensor connector
 #define CS_INIT()	DDRD  |= (1<<CS_DQ)	/* Initialize port MMC CS as output */
 #define	CS_H()		PORTD |= (1<<CS_DQ)	/* Set MMC CS "high" */
 #define CS_L()		PORTD &= ~(1<<CS_DQ)	/* Set MMC CS "low" */
