@@ -16,3 +16,5 @@ void change_tagmask(char * value);
 char *trim(char * string);
 char *return_date(void);
 char *return_time(void);
+void set_alias(uint8_t sensor, char *value);
+char* return_alias(uint8_t sensor);

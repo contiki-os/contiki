@@ -52,20 +52,23 @@
 #include "dev/temp_mcu-sensor.h"
 #include "dev/light-sensor.h"
 #include "dev/pulse-sensor.h"
-#include "dev/bme280/bme280-sensor.h"
-#include "dev/co2_sa_kxx-sensor.h"
 #include "dev/ds1307.h"
 #include "dev/diskio.h"
 #include "dev/ff.h"
 #include "net/rime/rime.h"
+#include "netstack.h"
 
 #define NAME_LENGTH 10
 #define TAGMASK_LENGTH 100
 #define NO_SENSORS 10
+#define MAX_BCAST_SIZE 99
+#define DEF_TTL 0xF
 
 //Configuration Parameters
 uint16_t EEMEM eemem_transmission_interval;
 uint8_t EEMEM eemem_node_name[NAME_LENGTH];
+uint8_t EEMEM eemem_adc1[NAME_LENGTH];
+uint8_t EEMEM eemem_adc2[NAME_LENGTH];
 uint8_t EEMEM eemem_tagmask[TAGMASK_LENGTH];
 /*flags to check if eeprom has valid values*/
 uint16_t EEMEM eemem_interval_flag;
@@ -81,21 +84,30 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
+static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT PULSE_0 PULSE_1";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
+struct broadcast_message {
+	uint8_t head;
+	uint8_t seqno;
+	char buf[MAX_BCAST_SIZE+20];
+};
 static struct broadcast_conn broadcast;
+uint8_t ttl=DEF_TTL;
+
 FATFS FatFs;
 FIL *fp;
 UINT bw;
 
+/*function to time stamp files on the SD card, using date and time from RTC or hard coded incase RTC is absent. */
 DWORD get_fattime (void)
 {
 	if( i2c_probed & I2C_DS1307 ) {
 		return ((DWORD)(ds1307_sensor.value(11) - 1980) << 25)	/* RTC Year */
-			| ((DWORD)ds1307_sensor.value(10) << 21)				/* RTC Month*/
+			| ((DWORD)ds1307_sensor.value(10) << 21)			/* RTC Month*/
 			| ((DWORD)ds1307_sensor.value(9) << 16)				/* RTC day*/
 			| ((DWORD)ds1307_sensor.value(8) << 11)				/* RTC Hours*/
 			| ((DWORD)ds1307_sensor.value(7) << 5)				/* RTC Mins*/
-			| ((DWORD)ds1307_sensor.value(6)/2 >> 1);				/* RTC Sec*/
+			| ((DWORD)ds1307_sensor.value(6)/2 >> 1);			/* RTC Sec*/
 	} else {
 		return ((DWORD)(2017 - 1980) << 25)	/* Year 2017 */
 			| ((DWORD)1 << 21)				/* Month 1 */
@@ -117,6 +129,8 @@ PROCESS_THREAD(default_config_process, ev, data)
 	cli();
 	interval_flag = eeprom_read_word(&eemem_interval_flag);
 	tagmask_flag = eeprom_read_word(&eemem_tagmask_flag);
+	char adc1[NAME_LENGTH]="V_AD1";
+	char adc2[NAME_LENGTH]="V_AD2";
 
 	if (interval_flag != 1) {
 		time_interval = 60;
@@ -129,6 +143,8 @@ PROCESS_THREAD(default_config_process, ev, data)
 		set_default_tagmask();
 		tagmask_flag=1;
 		eeprom_update_word(&eemem_tagmask_flag, tagmask_flag);
+		eeprom_update_block((const void *)&adc1, (void *)&eemem_adc1, NAME_LENGTH);
+		eeprom_update_block((const void *)&adc2, (void *)&eemem_adc2, NAME_LENGTH);
 	}
 	sei();
 	PROCESS_END();
@@ -148,13 +164,13 @@ PROCESS_THREAD(buffer_process, ev, data)
 		if (f_open(fp, "sensor27.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
 			if (f_lseek(fp, f_size(fp)) == FR_OK) {
 				f_write(fp, (char*)data, i+2, &bw);	// Write data to the file
-			} 	
+			}
 			if (bw == i+2) {//we wrote the entire string 
 				leds_on(LEDS_YELLOW);
 			} else {
 				leds_on(LEDS_RED);
 			}
-			f_close(fp);// close the file	
+			f_close(fp);// close the file
 			} else {
 				leds_on(LEDS_RED);
 			}
@@ -171,12 +187,6 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_ACTIVATE(battery_sensor);
 	SENSORS_ACTIVATE(pulse_sensor);
 
-	if( i2c_probed & I2C_BME280 ) {
-		SENSORS_ACTIVATE(bme280_sensor);
-	}
-	if( i2c_probed & I2C_CO2SA ) {
-		SENSORS_ACTIVATE(co2_sa_kxx_sensor);
-	}
 	if( i2c_probed & I2C_DS1307 ) {
 			DS1307_init();
 			SENSORS_ACTIVATE(ds1307_sensor);
@@ -193,8 +203,6 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_DEACTIVATE(temp_mcu_sensor);
 	SENSORS_DEACTIVATE(battery_sensor);
 	SENSORS_DEACTIVATE(pulse_sensor);
-	SENSORS_DEACTIVATE(bme280_sensor);
-	SENSORS_DEACTIVATE(co2_sa_kxx_sensor);
 	SENSORS_DEACTIVATE(ds1307_sensor);
 
 	PROCESS_END();
@@ -278,10 +286,30 @@ PROCESS_THREAD(serial_input_process, ev, data)
 				free(value);
 			}
 		} else if(!strncmp(command, "alias", 5)) {
-			value=(char*) malloc(10);
-			strlcpy(value, command+6, 10);
-			if (strlen(value)>0){
-				printf("%s\n", value);
+			if (strlen(command) == 5){
+				printf("V_AD1=%s\n", return_alias(1));
+				printf("V_AD2=%s\n", return_alias(2));
+			} else {
+				value=(char*) malloc(20);
+				strlcpy(value, command+6, 20);
+				if (strlen(value)>0){
+					char *alias_split, *alias_value[2];
+					int i=0;
+					alias_split = strtok (value, "=");
+					while (alias_split != NULL)
+					{
+						alias_value[i++]=trim(alias_split);
+						alias_split = strtok(NULL, "=");
+					}
+					if (!strncmp("V_AD1", alias_value[0], 5) && strlen(alias_value[1])>0) {
+						set_alias(1, alias_value[1]);
+					} else if (!strncmp("V_AD2", alias_value[0], 5) && strlen(alias_value[1])>0) {
+						set_alias(2, alias_value[1]);
+					} else {
+						printf("Can not set alias name for sensor %s. Try 'alias V_AD1=soil'\n", alias_value[0]);
+					}
+				}
+				free(value);
 			}
 		} else {
 			printf("Invalid command %s. Try h for a list of commands\n", command);
@@ -293,23 +321,26 @@ PROCESS_THREAD(serial_input_process, ev, data)
 static void
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
+	struct broadcast_message *msg_recv;
+	msg_recv = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
-    printf("%s [RSSI=%u LQI=%u]\n", (char *)packetbuf_dataptr(), rssi, lqi);
+    printf("%s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u, SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
 }
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
-
-
 /*---------------------------------------------------------------------------*/
 /*This process waits for a synchronous event and broadcasts the data received from the sender process*/
 PROCESS_THREAD(broadcast_data_process, ev, data)
 {
-	char report[150], node[NAME_LENGTH];
+	char node[NAME_LENGTH];
 	uint8_t node_name[NAME_LENGTH];
-	int len, i=0;
+	uint8_t len, i=0;
+	static uint8_t seqno;
+	struct broadcast_message msg;
 	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
     PROCESS_BEGIN();
 	broadcast_open(&broadcast, 129, &broadcast_call);
+	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
 	while(1) {
 		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
 		cli();
@@ -317,20 +348,25 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		sei();
 		len=strlen(data);
 		if( i2c_probed & I2C_DS1307 ) {
-				i += snprintf(report+i, 30, "%s %s ", return_date(), return_time());
+				i += snprintf(msg.buf+i, 30, "%s %s ", return_date(), return_time());
 		}
 		if (node_name>0){
 			strlcpy(node, (char*)node_name, NAME_LENGTH);
-			i += snprintf(report+i, NAME_LENGTH, "TXT=%s ", node);
+			i += snprintf(msg.buf+i, NAME_LENGTH, "NAME=%s ", node);
 		}
 		/* Read out mote 64bit MAC address */
 		len+=30;
-		i += snprintf(report+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
-		printf("%s\n", report);
-		packetbuf_copyfrom(report, i+2);
+		i += snprintf(msg.buf+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
+		msg.buf[i++]='\0';//null terminate report.
+		printf("%s\n", msg.buf);
+		msg.head = 1<<4; 
+		msg.head |= ttl;
+		msg.seqno = seqno;
+		packetbuf_copyfrom(&msg, i+2);
 		broadcast_send(&broadcast);
-		i += snprintf(report+i, 1, "\n");
-		process_post_synch(&buffer_process, PROCESS_EVENT_CONTINUE, report);
+		seqno++;
+		i += snprintf(msg.buf+i, 2, "\n\r"); //append new line before data is buffered
+		process_post_synch(&buffer_process, PROCESS_EVENT_CONTINUE, msg.buf);
 	}
 	PROCESS_END();
 }
@@ -346,7 +382,7 @@ print_help_command_menu()
 	printf("\n Set/Display Node Name \t Usage: name <node name>");
 	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
 	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <auto>");
-	printf("\n Set alias name \t Usage: alias <sensor=alias_name>. For example alias T=temp");
+	printf("\n Set alias name \t Usage: alias <sensor=alias_name>. For example alias V_AD1=soil");
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");
 		printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
@@ -366,7 +402,7 @@ display_reporting_interval()
 	cli();
 	saved_interval = eeprom_read_word(&eemem_transmission_interval);
 	sei();
-	printf("Current Interval is %d\n",saved_interval);
+	printf("Current Reporting Interval is %d\n",saved_interval);
 }
 
 //changing reporting interval
@@ -390,14 +426,27 @@ change_reporting_interval(char* value)
 void
 display_system_information()
 {
-	printf("System Information");
+	uint32_t time=clock_seconds();
+	printf("\n------------------System Information---------------------\n") ;
+	printf("Alias names set:\n  V_AD1=%s \n  V_AD2=%s. \n", return_alias(1), return_alias(2));
+	printf("Active sensors: %s.\n", default_sensors);
+	display_reporting_interval();
+	display_node_name();
+	if( i2c_probed & I2C_DS1307 ) {
+		printf("System date: %s.\n", return_date());
+		printf("System time: %s.\n", return_time());
+	}
+	printf("System uptime: %ld days %ld hours %ld minutes %ld seconds .\n", (time/86400), (time/3600)%24, (time/60)%60, time%60);
+	display_tagmask();//print tagmask
+	
 }
 
 //display system uptime
 void
 display_system_uptime()
 {
-    printf("System has been up for %ld seconds \n", clock_seconds());// clock_time()
+	uint32_t time=clock_seconds();
+    printf("System has been up for %ld days %ld hours %ld minutes %ld seconds. \n", (time/86400), (time/3600)%24, (time/60)%60, time%60);// clock_time()
 }
 
 //change node name
@@ -430,11 +479,11 @@ display_node_name(){
 }
 
 /*
- * Function to return the report mask using data frim various sensors
+ * Function to return the report mask using data from various sensors
  */
 void
 read_sensor_values(void){
-	char result[150], *sensors;
+	char result[200], *sensors;
 	uint8_t tagmask[TAGMASK_LENGTH], i=0;
 	cli();
 	eeprom_read_block((void*)&tagmask, (const void*)&eemem_tagmask, TAGMASK_LENGTH);
@@ -448,9 +497,9 @@ read_sensor_values(void){
 		} else if (!strncmp(trim(sensors), "V_IN", 4)) {
 			i += snprintf(result+i, 15, " V_IN=%-4.2f", adc_read_v_in());
 		} else if (!strncmp(trim(sensors), "V_AD1", 5)) {
-			i += snprintf(result+i, 15, " V_AD1=%-4.2f", adc_read_a1());
+			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(1), adc_read_a1());
 		} else if (!strncmp(trim(sensors), "V_AD2", 5)) {
-			i += snprintf(result+i, 15, " V_AD2=%-4.2f", adc_read_a2());
+			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
 		} else if (!strncmp(trim(sensors), "T", 1)) {
 			i += snprintf(result+i, 15, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
 		} else if (!strncmp(trim(sensors), "LIGHT", 5)) {
@@ -461,12 +510,14 @@ read_sensor_values(void){
 			i += snprintf(result+i, 15, " PULSE_1=%-d", pulse_sensor.value(1));
 		}
 		if(i>45){//if the report is greater than 45bytes, send the current result, reset i and result
+			result[i++]='\0';//null terminate result before sending
 			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
 			i=0;
 			result[0]='\0';
 		}
 		sensors = strtok(NULL, " ");
 	}
+	result[i++]='\0';//null terminate result before sending
 	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
 }
 
@@ -531,26 +582,26 @@ set_datetime(char *value, uint8_t choice){
 		}
 		set_date(datetime[0], datetime[1], datetime[2]);
 		printf("Date set: %s\n", return_date());
-		} else {
-			split_datetime = strtok (new_datetime, ":");
-			while (split_datetime != NULL && i < 3 )
-			{
-				datetime[i] = atoi(split_datetime);
-				split_datetime = strtok (NULL, ":");
-				i++;
-			}
-			if (datetime[0] < 0 || datetime[0] > 24){
-				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
-				return;
-			}
-			if (datetime[1] < 0 || datetime[1] > 60){
-				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
-				return;
-			}
-			if (datetime[2] < 0 || datetime[2] > 60){
-				printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
-				return;
-			}
+	} else {
+		split_datetime = strtok (new_datetime, ":");
+		while (split_datetime != NULL && i < 3 )
+		{
+			datetime[i] = atoi(split_datetime);
+			split_datetime = strtok (NULL, ":");
+			i++;
+		}
+		if (datetime[0] < 0 || datetime[0] > 24){
+			printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+			return;
+		}
+		if (datetime[1] < 0 || datetime[1] > 60){
+			printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+			return;
+		}
+		if (datetime[2] < 0 || datetime[2] > 60){
+			printf("Invalid command: time %s!. Try example time 13:01:56.\n", value);
+			return;
+		}
 		set_time(datetime[0], datetime[1], datetime[2]);
 		printf("Time set: %s\n", return_time());
 	}
@@ -596,7 +647,6 @@ change_tagmask(char *value){
 /*set tagmask to default*/
 void
 set_default_tagmask(void){
-	char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT PULSE_0 PULSE_1";
 	cli();
 	eeprom_update_block((const void *)&default_sensors, (void *)&eemem_tagmask, TAGMASK_LENGTH);
 	sei();
@@ -632,4 +682,33 @@ char
   *(end+1) = 0;
 
   return str;
+}
+
+// set alias name
+void
+set_alias(uint8_t sensor, char *value){
+	char alias_name[NAME_LENGTH];
+	strlcpy(alias_name, value, NAME_LENGTH);
+	cli();
+	if (sensor == 1){
+		eeprom_update_block((const void *)&alias_name, (void *)&eemem_adc1, NAME_LENGTH);
+	}
+	else {
+		eeprom_update_block((const void *)&alias_name, (void *)&eemem_adc2, NAME_LENGTH);
+	}
+	sei();
+}
+
+//return alias name
+char*
+return_alias(uint8_t sensor){
+	static uint8_t name[NAME_LENGTH];
+	cli();
+	if (sensor == 1){
+		eeprom_read_block((void*)&name, (const void*)&eemem_adc1, NAME_LENGTH);
+	} else {
+		eeprom_read_block((void*)&name, (const void*)&eemem_adc2, NAME_LENGTH);
+	}
+	sei();
+	return (char*)name;
 }
