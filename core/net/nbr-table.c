@@ -57,7 +57,10 @@ static void print_table();
  *  nbr-policy active
  **/
 #ifdef NBR_TABLE_FIND_REMOVABLE
-const linkaddr_t *NBR_TABLE_FIND_REMOVABLE(nbr_table_reason_t reason, void *data);
+void NBR_TABLE_FIND_REMOVABLE(nbr_table_reason_t reason,
+    void *data,
+    const linkaddr_t **to_be_removed,
+    int *resort_to_normal_policy);
 #endif /* NBR_TABLE_FIND_REMOVABLE */
 
 
@@ -210,23 +213,27 @@ nbr_table_allocate(nbr_table_reason_t reason, void *data)
   } else {
 #ifdef NBR_TABLE_FIND_REMOVABLE
     const linkaddr_t *lladdr;
-    lladdr = NBR_TABLE_FIND_REMOVABLE(reason, data);
-    if(lladdr == NULL) {
-      /* Nothing found that can be deleted - return NULL to indicate failure */
-      PRINTF("*** Not removing entry to allocate new\n");
-      return NULL;
-    } else {
-      /* used least_used_key to indicate what is the least useful entry */
-      int index;
-      int locked = 0;
-      if((index = index_from_lladdr(lladdr)) != -1) {
-        least_used_key = key_from_index(index);
-        locked = locked_map[index];
-      }
-      /* Allow delete of locked item? */
-      if(least_used_key != NULL && locked) {
-        PRINTF("Deleting locked item!\n");
-        locked_map[index] = 0;
+    int resort_to_normal_policy;
+
+    NBR_TABLE_FIND_REMOVABLE(reason, data, &lladdr, &resort_to_normal_policy);
+    if(!resort_to_normal_policy) {
+      if(lladdr == NULL) {
+        /* Nothing found that can be deleted - return NULL to indicate failure */
+        PRINTF("*** Not removing entry to allocate new\n");
+        return NULL;
+      } else {
+        /* used least_used_key to indicate what is the least useful entry */
+        int index;
+        int locked = 0;
+        if((index = index_from_lladdr(lladdr)) != -1) {
+          least_used_key = key_from_index(index);
+          locked = locked_map[index];
+        }
+        /* Allow delete of locked item? */
+        if(least_used_key != NULL && locked) {
+          PRINTF("Deleting locked item!\n");
+          locked_map[index] = 0;
+        }
       }
     }
 #endif /* NBR_TABLE_FIND_REMOVABLE */
