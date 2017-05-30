@@ -236,20 +236,29 @@ find_removable_dao(uip_ipaddr_t *from, rpl_instance_t *instance)
   return worst_rank_nbr;
 }
 /*---------------------------------------------------------------------------*/
-const linkaddr_t *
-rpl_nbr_policy_find_removable(nbr_table_reason_t reason,void * data)
+void
+rpl_nbr_policy_find_removable(nbr_table_reason_t reason,
+    void * data,
+    const linkaddr_t **to_be_removed,
+    int *resort_to_normal_policy)
 {
   /* When we get the DIO/DAO/DIS we know that UIP contains the
      incoming packet */
+  *resort_to_normal_policy = 0;
   switch(reason) {
   case NBR_TABLE_REASON_RPL_DIO:
-    return find_removable_dio(&UIP_IP_BUF->srcipaddr, data);
+    *to_be_removed = find_removable_dio(&UIP_IP_BUF->srcipaddr, data);
+    break;
   case NBR_TABLE_REASON_RPL_DAO:
-    return find_removable_dao(&UIP_IP_BUF->srcipaddr, data);
+    *to_be_removed = find_removable_dao(&UIP_IP_BUF->srcipaddr, data);
+    break;
   case NBR_TABLE_REASON_RPL_DIS:
-    return find_removable_dis(&UIP_IP_BUF->srcipaddr);
+    *to_be_removed = find_removable_dis(&UIP_IP_BUF->srcipaddr);
+    break;
   default:
-    return NULL;
+    *to_be_removed = NULL;
+    *resort_to_normal_policy = 1;
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
