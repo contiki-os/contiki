@@ -223,7 +223,7 @@ uint8_t rf230_get_rpc(void);
 
 void rf230_set_promiscuous_mode(bool isPromiscuous);
 bool rf230_is_ready_to_send();
-
+static bool rf230_is_sleeping(void);
 extern uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
 uint8_t rf230_get_raw_rssi(void);
