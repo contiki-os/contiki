@@ -396,13 +396,10 @@ get_value(radio_param_t param, radio_value_t *value)
 
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
-    /* *value = (REG(RFCORE_XREG_RXENABLE) && RFCORE_XREG_RXENABLE_RXENMASK) == 0 )? 
-       RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON;  */
+    *value = rf230_is_sleeping() ?  RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON; 
     return RADIO_RESULT_OK;
-
   case RADIO_PARAM_TX_MODE:
     return RADIO_RESULT_OK;
-
   case RADIO_PARAM_CHANNEL:
     *value = (radio_value_t)rf230_get_channel();
     return RADIO_RESULT_OK;
@@ -613,8 +610,7 @@ radio_get_trx_state(void)
  *                      states.
  *  \retval     false   The radio transceiver is not sleeping.
  */
-#if 0
-static bool radio_is_sleeping(void)
+static bool rf230_is_sleeping(void)
 {
     bool sleeping = false;
 
@@ -626,7 +622,6 @@ static bool radio_is_sleeping(void)
 
     return sleeping;
 }
-#endif
 /*----------------------------------------------------------------------------*/
 /** \brief  This function will reset the state machine (to TRX_OFF) from any of
  *          its states, except for the SLEEP state.
