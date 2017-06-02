@@ -53,6 +53,11 @@
 #else
 #define RF_BLE_ENABLED 1
 #endif
+#ifdef IBEACON_CONF_ENABLED
+#define IBEACON_ENABLED IBEACON_CONF_ENABLED
+#else
+#define IBEACON_ENABLED 0
+#endif
 /*---------------------------------------------------------------------------*/
 #define RF_BLE_IDLE   0
 #define RF_BLE_ACTIVE 1
@@ -66,8 +71,11 @@
  * this function can be used to configure a single parameter at a time if so
  * desired.
  */
+#ifndef IBEACON_ENABLED
 void rf_ble_beacond_config(clock_time_t interval, const char *name);
-
+#else
+void rf_ble_beacond_config(clock_time_t interval, uint16_t major, uint16_t minor);
+#endif
 /**
  * \brief Start the BLE advertisement/beacon daemon
  * \return RF_CORE_CMD_OK: Success, RF_CORE_CMD_ERROR: Failure

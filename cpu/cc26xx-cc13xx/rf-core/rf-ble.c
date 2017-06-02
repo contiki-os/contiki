@@ -74,6 +74,9 @@
 #define BLE_ADV_NAME_BUF_LEN        32
 #define BLE_ADV_PAYLOAD_BUF_LEN     64
 #define BLE_UUID_SIZE               16
+/**iBeacons macros*/
+#define IBEACON_ADV_HEAD              {0x02,0x01,0x06,0x1A,0xFF,0x4C,0x00,0x02,0x15} /*iBeacon Header, 9 bytes*/
+#define IBEACON_ADV_HEAD_LEN          9
 /*---------------------------------------------------------------------------*/
 static unsigned char ble_params_buf[32] CC_ALIGN(4);
 static uint8_t ble_mode_on = RF_BLE_IDLE;
@@ -81,6 +84,9 @@ static struct etimer ble_adv_et;
 static uint8_t payload[BLE_ADV_PAYLOAD_BUF_LEN];
 static int p = 0;
 static int i;
+#ifdef IBEACON_ENABLED
+static uint8_t uuid[BLE_UUID_SIZE] = IBEACON_CONF_UUID;
+#endif
 /*---------------------------------------------------------------------------*/
 static uint16_t tx_power = 0x9330;
 /*---------------------------------------------------------------------------*/
@@ -88,6 +94,10 @@ static uint16_t tx_power = 0x9330;
 static struct ble_beacond_config {
   clock_time_t interval;
   char adv_name[BLE_ADV_NAME_BUF_LEN];
+#ifdef IBEACON_ENABLED
+  uint16_t major;
+  uint16_t minor;
+#endif
 } beacond_config = { .interval = BLE_ADV_INTERVAL };
 /*---------------------------------------------------------------------------*/
 #ifdef RF_BLE_CONF_BOARD_OVERRIDES
@@ -157,6 +167,7 @@ send_ble_adv_nc(int channel, uint8_t *adv_payload, int adv_payload_len)
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
+#ifndef IBEACON_ENABLED
 void
 rf_ble_beacond_config(clock_time_t interval, const char *name)
 {
@@ -177,6 +188,23 @@ rf_ble_beacond_config(clock_time_t interval, const char *name)
     beacond_config.interval = interval;
   }
 }
+#else
+/*---------------------------------------------------------------------------*/
+void
+rf_ble_beacond_config(clock_time_t interval, uint16_t major, uint16_t minor)
+{
+  if(RF_BLE_ENABLED == 0) {
+    return;
+  }
+
+  beacond_config.major=major;
+  beacond_config.minor=minor;
+
+  if(interval != 0) {
+    beacond_config.interval = interval;
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf_ble_beacond_start()
@@ -189,9 +217,11 @@ rf_ble_beacond_start()
     return RF_CORE_CMD_ERROR;
   }
 
+#ifndef IBEACON_ENABLED
   if(beacond_config.adv_name[0] == 0) {
     return RF_CORE_CMD_ERROR;
   }
+#endif
 
   ble_mode_on = RF_BLE_IDLE;
 
@@ -252,14 +282,14 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
   int j;
   uint32_t cmd_status;
   bool interrupts_disabled;
-
+  uint8_t ibeacon_head[IBEACON_ADV_HEAD_LEN]= IBEACON_ADV_HEAD;
+  int tx_power;
   PROCESS_BEGIN();
 
   while(1) {
     etimer_set(&ble_adv_et, beacond_config.interval);
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&ble_adv_et) || ev == PROCESS_EVENT_EXIT);
-
     if(ev == PROCESS_EVENT_EXIT) {
       PROCESS_EXIT();
     }
@@ -269,6 +299,7 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
 
     /* device info */
     memset(payload, 0, BLE_ADV_PAYLOAD_BUF_LEN);
+#ifndef IBEACON_ENABLED
     payload[p++] = 0x02;          /* 2 bytes */
     payload[p++] = BLE_ADV_TYPE_DEVINFO;
     payload[p++] = 0x1a;          /* LE general discoverable + BR/EDR */
@@ -277,7 +308,21 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
     memcpy(&payload[p], beacond_config.adv_name,
            strlen(beacond_config.adv_name));
     p += strlen(beacond_config.adv_name);
-
+#else
+    for(i = 0; i < IBEACON_ADV_HEAD_LEN; i++) {
+        payload[p++] = ( ibeacon_head[i] );
+    }
+    for(i = 0; i < BLE_UUID_SIZE ; i++) {
+        payload[p++] = uuid[i];
+    }
+    payload[p++] = beacond_config.major;
+    payload[p++] = (beacond_config.major << 8);
+    payload[p++] = beacond_config.minor;
+    payload[p++] = (beacond_config.minor << 8);
+    NETSTACK_RADIO.get_value(RADIO_PARAM_TXPOWER, &tx_power);
+    payload[p++] = tx_power;
+    PRINTF("rf_ble_beacon_process: power tx %i\n",tx_power);
+#endif
     for(i = 0; i < BLE_ADV_MESSAGES; i++) {
       /*
        * Under ContikiMAC, some IEEE-related operations will be called from an
