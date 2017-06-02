@@ -494,7 +494,8 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
 
   case RADIO_PARAM_TXPOWER:
-    if(value < TX_PWR_MIN || value > TX_PWR_MAX) {
+    /* MIN = 15, MAX = 0 */
+    if(value > TX_PWR_MIN || value < TX_PWR_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
     }
     rf230_set_txpower(value);
