@@ -357,6 +357,35 @@ rf230_set_short_addr(uint16_t addr)
   hal_register_write(RG_SHORT_ADDR_1, (addr >> 8));
 }
 
+#define RSSI_BASE_VAL (-90)
+
+/* Returns the current CCA threshold in dBm */
+static radio_value_t
+rf230_get_cca_threshold()
+{
+  radio_value_t cca_thresh = 0;
+
+  cca_thresh = hal_subregister_read(SR_CCA_ED_THRES);
+  cca_thresh = RSSI_BASE_VAL + 2 * cca_thresh;
+  return cca_thresh;
+}
+
+/* Sets the CCA threshold in dBm */
+static radio_value_t
+rf230_set_cca_threshold(radio_value_t cca_thresh)
+{
+
+  if(cca_thresh > -60)  /* RSSI_BASE_VAL - 2 * 0xF */
+    cca_thresh = -60;
+  
+  cca_thresh = (RSSI_BASE_VAL - cca_thresh)/2;
+  if(cca_thresh < 0)
+    cca_thresh = - cca_thresh;
+
+  hal_subregister_write(SR_CCA_ED_THRES, cca_thresh);
+  return cca_thresh;
+}
+
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
@@ -367,13 +396,10 @@ get_value(radio_param_t param, radio_value_t *value)
 
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
-    /* *value = (REG(RFCORE_XREG_RXENABLE) && RFCORE_XREG_RXENABLE_RXENMASK) == 0 )? 
-       RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON;  */
+    *value = rf230_is_sleeping() ?  RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON; 
     return RADIO_RESULT_OK;
-
   case RADIO_PARAM_TX_MODE:
     return RADIO_RESULT_OK;
-
   case RADIO_PARAM_CHANNEL:
     *value = (radio_value_t)rf230_get_channel();
     return RADIO_RESULT_OK;
@@ -399,7 +425,7 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = rf230_get_txpower();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
-    /* *value = get_cca_threshold(); */
+    *value = rf230_get_cca_threshold();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = rf230_get_raw_rssi();
@@ -468,14 +494,15 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
 
   case RADIO_PARAM_TXPOWER:
-    if(value < TX_PWR_MIN || value > TX_PWR_MAX) {
+    /* MIN = 15, MAX = 0 */
+    if(value > TX_PWR_MIN || value < TX_PWR_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
     }
     rf230_set_txpower(value);
     return RADIO_RESULT_OK;
 
   case RADIO_PARAM_CCA_THRESHOLD:
-    /* set_cca_threshold(value); */
+    rf230_set_cca_threshold(value);
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -584,8 +611,7 @@ radio_get_trx_state(void)
  *                      states.
  *  \retval     false   The radio transceiver is not sleeping.
  */
-#if 0
-static bool radio_is_sleeping(void)
+static bool rf230_is_sleeping(void)
 {
     bool sleeping = false;
 
@@ -597,7 +623,6 @@ static bool radio_is_sleeping(void)
 
     return sleeping;
 }
-#endif
 /*----------------------------------------------------------------------------*/
 /** \brief  This function will reset the state machine (to TRX_OFF) from any of
  *          its states, except for the SLEEP state.
