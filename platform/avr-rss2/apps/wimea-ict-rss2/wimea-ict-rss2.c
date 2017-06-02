@@ -53,8 +53,8 @@
 #include "dev/light-sensor.h"
 #include "dev/pulse-sensor.h"
 #include "dev/ds1307.h"
-#include "dev/diskio.h"
-#include "dev/ff.h"
+#include "lib/fs/fat/diskio.h"
+#include "lib/fs/fat/ff.h"
 #include "net/rime/rime.h"
 #include "netstack.h"
 
@@ -161,7 +161,7 @@ PROCESS_THREAD(buffer_process, ev, data)
 		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
 		i=strlen(data);
 		/*write to sd card*/
-		if (f_open(fp, "sensor27.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
+		if (f_open(fp, "sensor.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {	// Open existing or create new file
 			if (f_lseek(fp, f_size(fp)) == FR_OK) {
 				f_write(fp, (char*)data, i+2, &bw);	// Write data to the file
 			}
@@ -289,25 +289,14 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			if (strlen(command) == 5){
 				printf("V_AD1=%s\n", return_alias(1));
 				printf("V_AD2=%s\n", return_alias(2));
-			} else {
+			} else { 
 				value=(char*) malloc(20);
-				strlcpy(value, command+6, 20);
+				strlcpy(value, command+6, 19);
 				if (strlen(value)>0){
-					char *alias_split, *alias_value[2];
-					int i=0;
-					alias_split = strtok (value, "=");
-					while (alias_split != NULL)
-					{
-						alias_value[i++]=trim(alias_split);
-						alias_split = strtok(NULL, "=");
-					}
-					if (!strncmp("V_AD1", alias_value[0], 5) && strlen(alias_value[1])>0) {
-						set_alias(1, alias_value[1]);
-					} else if (!strncmp("V_AD2", alias_value[0], 5) && strlen(alias_value[1])>0) {
-						set_alias(2, alias_value[1]);
-					} else {
-						printf("Can not set alias name for sensor %s. Try 'alias V_AD1=soil'\n", alias_value[0]);
-					}
+					change_alias(value);
+					printf("Alias set successfully\n");
+				} else {
+					printf("Can not set alias name: %s. Try 'alias V_AD1=soil'\n", value);
 				}
 				free(value);
 			}
@@ -348,18 +337,18 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		sei();
 		len=strlen(data);
 		if( i2c_probed & I2C_DS1307 ) {
-				i += snprintf(msg.buf+i, 30, "%s %s ", return_date(), return_time());
+				i += snprintf(msg.buf+i, 25, "%s %s ", return_date(), return_time());
 		}
 		if (node_name>0){
 			strlcpy(node, (char*)node_name, NAME_LENGTH);
-			i += snprintf(msg.buf+i, NAME_LENGTH, "NAME=%s ", node);
+			i += snprintf(msg.buf+i, 15, "NAME=%s ", node);
 		}
 		/* Read out mote 64bit MAC address */
-		len+=30;
+		len+=25;
 		i += snprintf(msg.buf+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		msg.buf[i++]='\0';//null terminate report.
 		printf("%s\n", msg.buf);
-		msg.head = 1<<4; 
+		msg.head = 1<<4;
 		msg.head |= ttl;
 		msg.seqno = seqno;
 		packetbuf_copyfrom(&msg, i+2);
@@ -375,19 +364,17 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 void
 print_help_command_menu()
 {
-	printf("\n------------------ Menu--------------------------------\n") ;
-	printf("\n Prints a list of supported commands \t Usage: h") ;
-	printf("\n Display System Summary \t Usage: ss");
-	printf("\n Display System Uptime \t Usage: u");
-	printf("\n Set/Display Node Name \t Usage: name <node name>");
-	printf("\n Set/Display reporting interval \t  Usage: ri <period in seconds>");
-	printf("\n Set the report tag mask \t Usage: tagmask <var1,var2>, <auto>");
-	printf("\n Set alias name \t Usage: alias <sensor=alias_name>. For example alias V_AD1=soil");
+	printf("\n-----------------------Menu----------------------------------\n") ;
+	printf("\n Prints a list of supported commands Usage: h") ;
+	printf("\n Display System Summary Usage: ss");
+	printf("\n Display System Uptime Usage: u");
+	printf("\n Set/Display Node Name Usage: name <node name>");
+	printf("\n Set/Display reporting interval Usage: ri <period in seconds>");
+	printf("\n Set the report tag mask Usage: tagmask <var1,var2>, <auto>");
+	printf("\n Set alias name Usage: alias <sensor=alias_name>.\n \t\t For example alias V_AD1=soil");
 	if( i2c_probed & I2C_DS1307 ) {
-		printf("\n Set Time\t time hh:mm:ss. For example time 13:01:56");
-		printf("\n Set Date\t date dd/mm/yy. For example date 01/01/17");
-		printf("\n Display Time\t time");
-		printf("\n Display Date\t date");
+		printf("\n Set/Display Time Usage: time hh:mm:ss.\n \t\t For example time 13:01:56");
+		printf("\n Set Date/Display Usage: date dd/mm/yy.\n \t\t For example date 01/01/17");
 	}
 	printf("\n");
 	printf("---------------------------------------------------------------\n\n");
@@ -427,18 +414,21 @@ void
 display_system_information()
 {
 	uint32_t time=clock_seconds();
-	printf("\n------------------System Information---------------------\n") ;
-	printf("Alias names set:\n  V_AD1=%s \n  V_AD2=%s. \n", return_alias(1), return_alias(2));
+	printf("\n-------------------------System Information----------------------------\n") ;
+	printf("Alias names set:\n  V_AD1=%s. \n  V_AD2=%s. \n", return_alias(1), return_alias(2));
 	printf("Active sensors: %s.\n", default_sensors);
 	display_reporting_interval();
+	if (f_open(fp, "sensor.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK){
+		printf("Memory card mounted.\n");
+	} else printf("Memory card not present.\n");
 	display_node_name();
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("System date: %s.\n", return_date());
 		printf("System time: %s.\n", return_time());
 	}
-	printf("System uptime: %ld days %ld hours %ld minutes %ld seconds .\n", (time/86400), (time/3600)%24, (time/60)%60, time%60);
+	printf("System uptime: %ld days %ld hours %ld minutes %ld seconds.\n", (time/86400), (time/3600)%24, (time/60)%60, time%60);
 	display_tagmask();//print tagmask
-	
+	printf("\n-----------------------------------------------------------------------\n");
 }
 
 //display system uptime
@@ -483,7 +473,7 @@ display_node_name(){
  */
 void
 read_sensor_values(void){
-	char result[200], *sensors;
+	char result[TAGMASK_LENGTH], *sensors;
 	uint8_t tagmask[TAGMASK_LENGTH], i=0;
 	cli();
 	eeprom_read_block((void*)&tagmask, (const void*)&eemem_tagmask, TAGMASK_LENGTH);
@@ -491,25 +481,25 @@ read_sensor_values(void){
 	sensors=strtok ((char*)tagmask, " ");
 	while (sensors != NULL){
 		if (!strncmp(trim(sensors), "T_MCU", 5)) {
-			i += snprintf(result+i, 15, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
+			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {
-			i += snprintf(result+i, 15, " V_MCU=%-3.1f", ((double) battery_sensor.value(0))/1000.);
+			i += snprintf(result+i, 11, " V_MCU=%-3.1f", ((double) battery_sensor.value(0))/1000.);
 		} else if (!strncmp(trim(sensors), "V_IN", 4)) {
-			i += snprintf(result+i, 15, " V_IN=%-4.2f", adc_read_v_in());
+			i += snprintf(result+i, 11, " V_IN=%-4.2f", adc_read_v_in());
 		} else if (!strncmp(trim(sensors), "V_AD1", 5)) {
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(1), adc_read_a1());
 		} else if (!strncmp(trim(sensors), "V_AD2", 5)) {
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
 		} else if (!strncmp(trim(sensors), "T", 1)) {
-			i += snprintf(result+i, 15, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
+			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
 		} else if (!strncmp(trim(sensors), "LIGHT", 5)) {
-			i += snprintf(result+i, 15, " LIGHT=%-d", light_sensor.value(0));
-		} else if (!strncmp(trim(sensors), "PULSE_0", 5)) {
-			i += snprintf(result+i, 15, " PULSE_0=%-d", pulse_sensor.value(0));
-		} else {
-			i += snprintf(result+i, 15, " PULSE_1=%-d", pulse_sensor.value(1));
+			i += snprintf(result+i, 10, " LIGHT=%-d", light_sensor.value(0));
+		} else if (!strncmp(trim(sensors), "PULSE_0", 7)) {
+			i += snprintf(result+i, 12, " PULSE_0=%-d", pulse_sensor.value(0));
+		} else if (!strncmp(trim(sensors), "PULSE_1", 7)) {
+			i += snprintf(result+i, 12, " PULSE_1=%-d", pulse_sensor.value(1));
 		}
-		if(i>45){//if the report is greater than 45bytes, send the current result, reset i and result
+		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
 			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
 			i=0;
@@ -702,13 +692,32 @@ set_alias(uint8_t sensor, char *value){
 //return alias name
 char*
 return_alias(uint8_t sensor){
-	static uint8_t name[NAME_LENGTH];
-	cli();
+	static uint8_t name1[NAME_LENGTH], name2[NAME_LENGTH];
 	if (sensor == 1){
-		eeprom_read_block((void*)&name, (const void*)&eemem_adc1, NAME_LENGTH);
+		cli();
+		eeprom_read_block((void*)&name1, (const void*)&eemem_adc1, NAME_LENGTH);
+		sei();
+		return (char*)name1;
 	} else {
-		eeprom_read_block((void*)&name, (const void*)&eemem_adc2, NAME_LENGTH);
+		cli();
+		eeprom_read_block((void*)&name2, (const void*)&eemem_adc2, NAME_LENGTH);
+		sei();
+		return (char*)name2;
 	}
-	sei();
-	return (char*)name;
+}
+
+//change alias name using value from menu
+void
+change_alias(char * value){
+	char sensor[NAME_LENGTH], alias[NAME_LENGTH];
+	char *alias_value=(char*) malloc(20); //store alias value from the user
+	strlcpy(alias_value, value, 19);
+	strlcpy(sensor, strtok (alias_value, "="), NAME_LENGTH-1);
+	strlcpy(alias, strtok(NULL, "="), NAME_LENGTH-1);
+	if (!strncmp("V_AD1", sensor, 5) && strlen(alias)>0) {
+		set_alias(1, alias);
+	} else if (!strncmp("V_AD2", sensor, 5) && strlen(alias)>0) {
+		set_alias(2, alias);
+	}
+	free(alias_value);
 }
