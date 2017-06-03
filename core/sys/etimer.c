@@ -236,7 +236,11 @@ etimer_pending(void)
 clock_time_t
 etimer_next_expiration_time(void)
 {
-  return etimer_pending() ? next_expiration : 0;
+  if(etimer_pending()){
+  	update_time();
+	return next_expiration;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 void
