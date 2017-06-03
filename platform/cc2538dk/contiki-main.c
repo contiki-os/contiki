@@ -233,12 +233,24 @@ main(void)
 
   while(1) {
     uint8_t r;
+    struct process* p;
+
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();
 
       r = process_run();
     } while(r > 0);
+
+    /* Poll all processes before going to sleep in case some are pending on PROCESS_WAIT_UNTIL() or PT_SEM_WAIT(): */
+    for (p = process_list; p != NULL; p = p->next) process_poll(p);
+
+    /* Service any events that the polled processes may have posted: */
+    r = process_nevents();
+    while (r > 0) {
+      watchdog_periodic();
+      r = process_run();
+    }
 
     /* We have serviced all pending events. Enter a Low-Power mode. */
     lpm_enter();
