@@ -199,7 +199,8 @@ int
 tsch_get_lock(void)
 {
   if(!tsch_locked) {
-    rtimer_clock_t busy_wait_time;
+    rtimer_clock_t busy_wait_time=0;
+    
     int busy_wait = 0; /* Flag used for logging purposes */
     /* Make sure no new slot operation will start */
     tsch_lock_requested = 1;
