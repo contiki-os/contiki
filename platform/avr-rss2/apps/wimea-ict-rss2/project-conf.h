@@ -45,6 +45,8 @@
 #define NETSTACK_CONF_RDC nullrdc_driver
 #define NETSTACK_CONF_MAC nullmac_driver
 
+#define RS232_BAUDRATE USART_BAUD_38400
+
 //#define NETSTACK_CONF_MAC         csma_driver
 //#define NETSTACK_CONF_RDC         contikimac_driver
 

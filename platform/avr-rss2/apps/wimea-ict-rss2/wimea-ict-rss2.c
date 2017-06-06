@@ -289,12 +289,11 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			if (strlen(command) == 5){
 				printf("V_AD1=%s\n", return_alias(1));
 				printf("V_AD2=%s\n", return_alias(2));
-			} else { 
+			} else {
 				value=(char*) malloc(20);
 				strlcpy(value, command+6, 19);
 				if (strlen(value)>0){
 					change_alias(value);
-					printf("Alias set successfully\n");
 				} else {
 					printf("Can not set alias name: %s. Try 'alias V_AD1=soil'\n", value);
 				}
@@ -314,7 +313,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	msg_recv = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
-    printf("%s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u, SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
+    printf("%s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
 }
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
 /*---------------------------------------------------------------------------*/
@@ -419,8 +418,8 @@ display_system_information()
 	printf("Active sensors: %s.\n", default_sensors);
 	display_reporting_interval();
 	if (f_open(fp, "sensor.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK){
-		printf("Memory card mounted.\n");
-	} else printf("Memory card not present.\n");
+		printf("Memory card mounted: Yes.\n");
+	} else printf("Memory card mounted: Yes.\n");
 	display_node_name();
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("System date: %s.\n", return_date());
@@ -718,6 +717,8 @@ change_alias(char * value){
 		set_alias(1, alias);
 	} else if (!strncmp("V_AD2", sensor, 5) && strlen(alias)>0) {
 		set_alias(2, alias);
+	} else {
+		printf("Alias can not be set for %s\n.", sensor);
 	}
 	free(alias_value);
 }
