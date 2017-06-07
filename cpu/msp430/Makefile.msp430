@@ -37,7 +37,7 @@ CONTIKI_CPU_DIRS = $(CONTIKI_CPU_FAM_DIR) . dev
 MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
              watchdog.c lpm.c rtimer-arch.c
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
-ELFLOADER  = elfloader.c elfloader-msp430.c symtab.c
+ELFLOADER  ?= elfloader.c elfloader-msp430.c symtab.c
 
 ifndef CPU_HAS_MSP430X
 # include mtarch.c only in the non-large memory model case, because
@@ -47,7 +47,7 @@ MSP430 += mtarch.c
 endif
 
 ifeq ($(TARGET_MEMORY_MODEL),large)
-ELFLOADER = elfloader-msp430x.c symtab.c
+ELFLOADER ?= elfloader-msp430x.c symtab.c
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
