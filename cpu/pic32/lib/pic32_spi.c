@@ -123,7 +123,7 @@
   pic32_spi##XX##_write(const uint8_t *data, uint32_t len)  \
   {                                                         \
     uint32_t i;                                             \
-    uint32_t dummy;                                         \
+    volatile uint32_t dummy;                                \
                                                             \
     for(i = 0; i < len; ++i) {                              \
       SPI##XX##STATCLR = _SPI##XX##STAT_SPIROV_MASK;        \
@@ -138,6 +138,7 @@
       }                                                     \
       SPI##XX##STATCLR = _SPI##XX##STAT_SPIROV_MASK;        \
       dummy = SPI##XX##BUF;                                 \
+      (void)dummy;                                          \
     }                                                       \
                                                             \
     return SPI_NO_ERRORS;                                   \
