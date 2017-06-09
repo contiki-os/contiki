@@ -419,7 +419,7 @@ display_system_information()
 	display_reporting_interval();
 	if (f_open(fp, "sensor.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK){
 		printf("Memory card mounted: Yes.\n");
-	} else printf("Memory card mounted: Yes.\n");
+	} else printf("Memory card mounted: No.\n");
 	display_node_name();
 	if( i2c_probed & I2C_DS1307 ) {
 		printf("System date: %s.\n", return_date());
