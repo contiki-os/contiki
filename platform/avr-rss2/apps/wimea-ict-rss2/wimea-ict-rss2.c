@@ -123,14 +123,14 @@ AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &sensor_data_proce
 PROCESS_THREAD(default_config_process, ev, data)
 {
 	uint16_t interval_flag, tagmask_flag;
-
+	char adc1[NAME_LENGTH]="V_AD1";
+	char adc2[NAME_LENGTH]="V_AD2";
+	
 	PROCESS_BEGIN();
 	i2c_at24mac_read((char *) &eui64_addr, 1);
 	cli();
 	interval_flag = eeprom_read_word(&eemem_interval_flag);
 	tagmask_flag = eeprom_read_word(&eemem_tagmask_flag);
-	char adc1[NAME_LENGTH]="V_AD1";
-	char adc2[NAME_LENGTH]="V_AD2";
 
 	if (interval_flag != 1) {
 		time_interval = 60;
