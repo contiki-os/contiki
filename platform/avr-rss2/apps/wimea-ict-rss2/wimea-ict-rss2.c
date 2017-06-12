@@ -715,8 +715,10 @@ change_alias(char * value){
 	strlcpy(alias, strtok(NULL, "="), NAME_LENGTH-1);
 	if (!strncmp("V_AD1", sensor, 5) && strlen(alias)>0) {
 		set_alias(1, alias);
+		printf("Successful V_AD1 = %s\n", alias);
 	} else if (!strncmp("V_AD2", sensor, 5) && strlen(alias)>0) {
 		set_alias(2, alias);
+		printf("Successful V_AD2 = %s\n", alias);
 	} else {
 		printf("Alias can not be set for %s\n.", sensor);
 	}
