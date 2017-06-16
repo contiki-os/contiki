@@ -206,6 +206,7 @@ check_pmsframe(uint8_t *buf)
   return pmssum == sum;
 }
 /*---------------------------------------------------------------------------*/
+#ifdef DEBUG
 static void
 printpm()
 {
@@ -215,6 +216,7 @@ printpm()
   printf("PM1_ATM = %04d, PM2.5_ATM = %04d, PM10_ATM = %04d\n",
          PM1_ATM, PM2_5_ATM, PM10_ATM);
 }
+#endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
 /**
  * Frame received from PMS sensor. Validate and update sensor data.
