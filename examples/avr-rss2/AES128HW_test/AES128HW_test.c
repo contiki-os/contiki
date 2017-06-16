@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Copyright Robert Olsson 
+ * Copyright (c) 2017, Robert Olsson 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
