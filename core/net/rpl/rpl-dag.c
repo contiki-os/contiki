@@ -525,10 +525,10 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. Otherwise, update the prefix */
   if(last_len == 0) {
-    PRINTF("rpl_set_prefix - prefix NULL\n");
+    PRINTF("RPL: rpl_set_prefix - prefix NULL\n");
     check_prefix(NULL, &dag->prefix_info);
   } else {
-    PRINTF("rpl_set_prefix - prefix NON-NULL\n");
+    PRINTF("RPL: rpl_set_prefix - prefix NON-NULL\n");
     check_prefix(&last_prefix, &dag->prefix_info);
   }
   return 1;
@@ -983,7 +983,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
       PRINTF("RPL: Removing default route ");
       PRINT6ADDR(rpl_get_parent_ipaddr(parent));
       PRINTF("\n");
-      PRINTF("rpl_move_parent\n");
+      PRINTF("RPL: rpl_move_parent\n");
       uip_ds6_defrt_rm(dag_src->instance->def_route);
       dag_src->instance->def_route = NULL;
     }
@@ -1546,7 +1546,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* The DIO comes from a valid DAG, we can refresh its lifetime */
   dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) * RPL_DAG_LIFETIME / 1000;
-  PRINTF("Set dag ");
+  PRINTF("RPL: Set dag ");
   PRINT6ADDR(&dag->dag_id);
   PRINTF(" lifetime to %ld\n", dag->lifetime);
 

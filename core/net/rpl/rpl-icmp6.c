@@ -1151,30 +1151,30 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
   }
 
   if(parent == NULL) {
-    PRINTF("RPL dao_output_target error parent NULL\n");
+    PRINTF("RPL: dao_output_target error parent NULL\n");
     return;
   }
 
   parent_ipaddr = rpl_get_parent_ipaddr(parent);
   if(parent_ipaddr == NULL) {
-    PRINTF("RPL dao_output_target error parent IP address NULL\n");
+    PRINTF("RPL: dao_output_target error parent IP address NULL\n");
     return;
   }
 
   dag = parent->dag;
   if(dag == NULL) {
-    PRINTF("RPL dao_output_target error dag NULL\n");
+    PRINTF("RPL: dao_output_target error dag NULL\n");
     return;
   }
 
   instance = dag->instance;
 
   if(instance == NULL) {
-    PRINTF("RPL dao_output_target error instance NULL\n");
+    PRINTF("RPL: dao_output_target error instance NULL\n");
     return;
   }
   if(prefix == NULL) {
-    PRINTF("RPL dao_output_target error prefix NULL\n");
+    PRINTF("RPL: dao_output_target error prefix NULL\n");
     return;
   }
 #ifdef RPL_DEBUG_DAO_OUTPUT
