@@ -62,7 +62,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   leds_init();
   leds_on(BLINKER_PIN);
 #else
-  printf("Platform does not support LED. Unique ID: %u", OTA_EXAMPLE_UNIQUE_ID);
+  printf("Platform does not support LED. Unique ID: %u\n", OTA_EXAMPLE_UNIQUE_ID);
 #endif
 
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
