@@ -66,7 +66,7 @@ import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.ContikiMoteCompileDialog;
-import org.contikios.cooja.dialogs.MessageListUI;
+import org.contikios.cooja.dialogs.MessageList;
 import org.contikios.cooja.dialogs.MessageContainer;
 import org.contikios.cooja.mote.memory.ArrayMemory;
 import org.contikios.cooja.mote.memory.MemoryInterface;
@@ -317,7 +317,7 @@ public class ContikiMoteType implements MoteType {
       if (getCompileCommands() == null) {
         throw new MoteTypeCreationException("No compile commands specified");
       }
-      final MessageListUI compilationOutput = new MessageListUI();
+      final MessageList compilationOutput = MessageContainer.createMessageList(visAvailable);
       String[] arr = getCompileCommands().split("\n");
       for (String cmd : arr) {
         if (cmd.trim().isEmpty()) {
@@ -401,7 +401,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     // Allocate core communicator class
-    logger.info("Creating core communicator between Java class " + javaClassName + " and Contiki library '" + getContikiFirmwareFile().getPath() + "");
+    logger.info("Creating core communicator between Java class " + javaClassName + " and Contiki library '" + getContikiFirmwareFile().getPath() + "'");
     myCoreComm = CoreComm.createCoreComm(this.javaClassName, getContikiFirmwareFile());
 
     /* Parse addresses using map file

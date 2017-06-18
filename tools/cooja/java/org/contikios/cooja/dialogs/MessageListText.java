@@ -1,7 +1,12 @@
 package org.contikios.cooja.dialogs;
 
+import java.io.OutputStream;
+
 public class MessageListText implements MessageList {
 
+    public MessageListText() {
+    }
+    
     @Override
     public void addMessage(String string, int type) {
         System.out.println("Message:" + string);
@@ -24,4 +29,12 @@ public class MessageListText implements MessageList {
         addMessage(string, MessageList.NORMAL);
     }
 
+    @Override
+    public OutputStream getInputStream(int type) {
+        // TODO Auto-generated method stub
+        return System.out;
+    }
+
+    
+    
 }

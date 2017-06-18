@@ -108,15 +108,8 @@ Tested applications and examples
 * `rime`
 * `ipv6/multicast`
 * `examples/powertrace`
+* `examples/sensniff` use 500kBAUD
 * `example-shell`
-
-Note that the shell example needs file `symbols.c` to be added to project also seems like
-in `core/dev/serial-line.c` the function `process_poll` must be replaced with `process_post`:
-
-     /* Wake up consumer process */
-    -  process_poll(&serial_line_process);
-    +  process_post(&serial_line_process, 0, 0);
-
 
 Platform tutorial applications
 -----------------------------

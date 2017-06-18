@@ -236,18 +236,6 @@
 #endif
 
 /*
- * Hop-by-hop option
- * This option control the insertion of the RPL Hop-by-Hop extension header
- * into packets originating from this node. Incoming Hop-by-hop extension
- * header are still processed and forwarded.
- */
-#ifdef RPL_CONF_INSERT_HBH_OPTION
-#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
-#else
-#define RPL_INSERT_HBH_OPTION       1
-#endif
-
-/*
  * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.
  * This will also enable retransmission of DAO when no ack is received.
  * */
@@ -269,15 +257,16 @@
 #endif /* RPL_CONF_RPL_REPAIR_ON_DAO_NACK */
 
 /*
- * Setting the DIO_REFRESH_DAO_ROUTES will make RPL always increase
- * the DTSN (Destination Advertisement Trigger Sequence Number) when
- * sending broadcast DIO. This is to get all children to re-register
- * their DAO route.
+ * Setting the DIO_REFRESH_DAO_ROUTES will make the RPL root always
+ * increase the DTSN (Destination Advertisement Trigger Sequence Number)
+ * when sending multicast DIO. This is to get all children to re-register
+ * their DAO route. This is needed when DAO-ACK is not enabled to add
+ * reliability to route maintenance.
  * */
 #ifdef RPL_CONF_DIO_REFRESH_DAO_ROUTES
 #define RPL_DIO_REFRESH_DAO_ROUTES RPL_CONF_DIO_REFRESH_DAO_ROUTES
 #else
-#define RPL_DIO_REFRESH_DAO_ROUTES 0
+#define RPL_DIO_REFRESH_DAO_ROUTES 1
 #endif /* RPL_CONF_DIO_REFRESH_DAO_ROUTES */
 
 /*

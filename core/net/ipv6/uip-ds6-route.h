@@ -50,7 +50,7 @@ NBR_TABLE_DECLARE(nbr_routes);
 void uip_ds6_route_init(void);
 
 #ifndef UIP_CONF_UIP_DS6_NOTIFICATIONS
-#define UIP_DS6_NOTIFICATIONS 1
+#define UIP_DS6_NOTIFICATIONS (UIP_CONF_MAX_ROUTES != 0)
 #else
 #define UIP_DS6_NOTIFICATIONS UIP_CONF_UIP_DS6_NOTIFICATIONS
 #endif
@@ -82,14 +82,10 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #endif
 
 /* Routing table */
-#ifndef UIP_CONF_MAX_ROUTES
-#ifdef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_DS6_ROUTE_NB UIP_CONF_DS6_ROUTE_NBU
-#else /* UIP_CONF_DS6_ROUTE_NBU */
-#define UIP_DS6_ROUTE_NB 4
-#endif /* UIP_CONF_DS6_ROUTE_NBU */
-#else /* UIP_CONF_MAX_ROUTES */
+#ifdef UIP_CONF_MAX_ROUTES
 #define UIP_DS6_ROUTE_NB UIP_CONF_MAX_ROUTES
+#else /* UIP_CONF_MAX_ROUTES */
+#define UIP_DS6_ROUTE_NB 4
 #endif /* UIP_CONF_MAX_ROUTES */
 
 /** \brief define some additional RPL related route state and
@@ -181,6 +177,7 @@ typedef struct uip_ds6_defrt {
 
 /** \name Default router list basic routines */
 /** @{ */
+uip_ds6_defrt_t *uip_ds6_defrt_head(void);
 uip_ds6_defrt_t *uip_ds6_defrt_add(uip_ipaddr_t *ipaddr,
                                    unsigned long interval);
 void uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt);

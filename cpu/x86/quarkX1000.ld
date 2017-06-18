@@ -52,14 +52,26 @@ SECTIONS {
     */
     . = 1M + 0x220;
 
-    .text ALIGN (32) :
+    .text : ALIGN (32)
     {
         KEEP(*(.multiboot))
         *(.boot_text)
         *(.text*)
     }
 
-    .rodata ALIGN (32) :
+    /*
+       The alignment directive must be placed after the colon so that the desired
+       alignment is indicated in the ELF section metadata.  This metadata is used
+       by the UEFI GenFw program.  It is necessary to avoid specifying a smaller
+       alignment value in the ELF metadata for some section "B" that follows some
+       section "A" with an ending address that is not aligned on a 32-byte boundary.
+       In that case, GenFw may place section "B" at a lower starting address in the
+       EFI binary than section "B" had in the input ELF file.  This may result in
+       incorrect program behavior.  Note that this situation is not directly visible
+       in the EFI binary metadata, since GenFw combines the ELF .rodata, .data, and
+       .bss sections into a single .data section in the EFI binary.
+    */
+    .rodata : ALIGN (32)
     {
         *(.rodata*)
 
@@ -72,12 +84,12 @@ SECTIONS {
         _edata_shared_isr = .;
     }
 
-    .data ALIGN (32) :
+    .data : ALIGN (32)
     {
         *(.data*)
     }
 
-    .bss ALIGN (32) :
+    .bss : ALIGN (32)
     {
         *(COMMON)
         *(.main_stack)

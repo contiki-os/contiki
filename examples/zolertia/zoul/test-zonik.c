@@ -29,22 +29,23 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup remote-examples
+ * \addtogroup zoul-examples
  * @{
+ *
  * \defgroup remote-zonik-test Zolertia Zonik sonometer test application
  *
  *  Example of Zonik board implementation and simple operation: Infinite loop
  *  enablinkg the sensor and rading few times, acquiring the dBA of sensor
  *  The first value acquired is invalid, because it's in hw init state awaiting
- *  a valid internal reading.Once the driver is initialized, posterior readings 
+ *  a valid internal reading.Once the driver is initialized, posterior readings
  *  are valid.Finally in the loop disables the board with standard call and
  *  shows the error, and loop again enabling it.
  *
  * @{
  * \file
- * RE-Mote test application of Zolertia Zonik sound sensor
+ *         RE-Mote test application of Zolertia Zonik sound sensor
  * \author
- * Aitor Mejias <amejias@zolertia.com>
+ *         Aitor Mejias <amejias@zolertia.com>
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -70,17 +71,17 @@ PROCESS_THREAD(test_remote_zonik_process, ev, data)
   PROCESS_BEGIN();
 
   printf("Initial status of sensor is: 0x%04X\n",
-          zonik.status(SENSORS_ACTIVE));
+         zonik.status(SENSORS_ACTIVE));
 
   while(1) {
     /* Configure Zonik and activate the internal process readings */
     SENSORS_ACTIVATE(zonik);
 
     printf("Initialized. Sensor status: 0x%04X\n",
-            zonik.status(SENSORS_ACTIVE));
+           zonik.status(SENSORS_ACTIVE));
 
     /* Read sensor value dBA multiple times */
-    for(i=0; i<MAX_VALID_READINGS; i++) {
+    for(i = 0; i < MAX_VALID_READINGS; i++) {
       /* Wait a bit */
       etimer_set(&et, CLOCK_SECOND);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
@@ -92,13 +93,13 @@ PROCESS_THREAD(test_remote_zonik_process, ev, data)
     }
 
     printf("Sensor status is: 0x%04X\n",
-            zonik.status(SENSORS_ACTIVE));
+           zonik.status(SENSORS_ACTIVE));
 
     /* Disable Zonik sensor */
     SENSORS_DEACTIVATE(zonik);
     printf("Process Stopped: 0x%04X\n", zonik.status(SENSORS_ACTIVE));
 
-    for(i=0; i<MAX_INVALID_READINGS; i++) {
+    for(i = 0; i < MAX_INVALID_READINGS; i++) {
       /* Wait a bit */
       etimer_set(&et, CLOCK_SECOND);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
@@ -108,7 +109,7 @@ PROCESS_THREAD(test_remote_zonik_process, ev, data)
       leds_toggle(LEDS_GREEN);
       printf("Value (dBA): %d\n", zonik_val);
     }
-    
+
     etimer_set(&et, CLOCK_SECOND);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }

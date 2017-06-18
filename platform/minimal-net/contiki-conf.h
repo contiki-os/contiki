@@ -64,7 +64,6 @@ typedef  int32_t s32_t;
 
 typedef unsigned short uip_stats_t;
 
-
 #if NETSTACK_CONF_WITH_IPV6
 /* The Windows build uses wpcap to connect to a host interface. It finds the interface by scanning for
  * an address, which can be specified here and overridden with the command line.
@@ -148,6 +147,7 @@ typedef unsigned short uip_stats_t;
 #endif
 
 #define UIP_CONF_LLH_LEN              14
+#define LINKADDR_CONF_SIZE             6
 #define UIP_CONF_MAX_LISTENPORTS      40
 #define UIP_CONF_MAX_CONNECTIONS      40
 #define UIP_CONF_BYTE_ORDER           UIP_LITTLE_ENDIAN

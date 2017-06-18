@@ -85,17 +85,6 @@
 #define UART0_CONF_WITH_INPUT 1
 #endif
 
-/* Output all captured frames over the UART in hexdump format */
-#ifndef CC2530_RF_CONF_HEXDUMP
-#define CC2530_RF_CONF_HEXDUMP 0
-#endif
-
-#if CC2530_RF_CONF_HEXDUMP
-/* We need UART1 output */
-#undef UART_ZERO_CONF_ENABLE
-#define UART_ZERO_CONF_ENABLE   1
-#endif
-
 /* Code Shortcuts */
 /*
  * When set, this directive also configures the following bypasses:
@@ -197,6 +186,10 @@
 #define IEEE802154_CONF_PANID 0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2530_RF_CONF_CHANNEL RF_CHANNEL
+#endif
+
 #ifndef CC2530_RF_CONF_CHANNEL
 #define CC2530_RF_CONF_CHANNEL    25
 #endif /* CC2530_RF_CONF_CHANNEL */
@@ -226,10 +219,6 @@
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000

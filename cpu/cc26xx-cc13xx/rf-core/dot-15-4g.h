@@ -45,6 +45,8 @@
 #define DOT_15_4G_H_
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
+
+#include "driverlib/rf_mailbox.h"
 /*---------------------------------------------------------------------------*/
 /* IEEE 802.15.4g frequency band identifiers (Table 68f) */
 #define DOT_15_4G_FREQUENCY_BAND_169  0 /* 169.400–169.475 (Europe) - 169 MHz band */
@@ -81,6 +83,8 @@
 #define DOT_15_4G_CHANNEL_SPACING    200
 #define DOT_15_4G_CHAN0_FREQUENCY 470200
 #define PROP_MODE_CONF_LO_DIVIDER   0x0A
+#define SMARTRF_SETTINGS_CONF_BAND_OVERRIDES HW32_ARRAY_OVERRIDE(0x405C,1), \
+                                             (uint32_t)0x18000280,
 
 #elif DOT_15_4G_FREQUENCY_BAND_ID==DOT_15_4G_FREQUENCY_BAND_780
 #define DOT_15_4G_CHANNEL_MAX         38

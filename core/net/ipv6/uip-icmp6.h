@@ -69,6 +69,7 @@
 #define ICMP6_PRIV_EXP_200              200  /**< Private Experimentation */
 #define ICMP6_PRIV_EXP_201              201  /**< Private Experimentation */
 #define ICMP6_ROLL_TM    ICMP6_PRIV_EXP_200  /**< ROLL Trickle Multicast */
+#define ICMP6_ESMRF      ICMP6_PRIV_EXP_201  /**< ESMRF Multicast */
 /** @} */
 
 

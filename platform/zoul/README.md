@@ -60,6 +60,7 @@ In terms of hardware support, the following drivers have been implemented for th
     * Built-in core temperature and battery sensor.
   * CC1200 sub-1GHz radio interface.
   * Real Time Clock Calendar (on the RE-Mote platform).
+  * SD
 
 There is a Zoul powering the RE-Mote and Firefly platforms, check out its specific README files for more information about on-board features.
 
@@ -76,7 +77,11 @@ Install a Toolchain
 -------------------
 The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you may have a version pre-installed in your system.
 
-The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors" (<https://launchpad.net/gcc-arm-embedded>). The current recommended version and the one being used by Contiki's regression tests on Travis is shown below.
+The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors" (<https://launchpad.net/gcc-arm-embedded>).
+
+Always check which version [Travis currently uses for the ARM regression testing](https://github.com/contiki-os/contiki/blob/master/.travis.yml#L54)
+
+To find out which version your system has:
 
     $ arm-none-eabi-gcc --version
     arm-none-eabi-gcc (GNU Tools for ARM Embedded Processors) 5.2.1 20151202 (release) [ARM/embedded-5-branch revision 231848]
@@ -252,17 +257,19 @@ If you prefer this guide in other formats, use the excellent [pandoc] to convert
 More Reading
 ============
 1. [Zolertia website][zolertia-site]
-2. [CC2538 System-on-Chip Solution][cc2538]
-3. [CC1200 sub-1GHz RF transceiver][cc1200]
-4. [Zolertia Hackster channel][hackster]
-5. [IoT in five days open source and online book][IoT5days]
+2. [Zolertia Wiki page][zolertia-wiki]
+3. [CC2538 System-on-Chip Solution][cc2538]
+4. [CC1200 sub-1GHz RF transceiver][cc1200]
+5. [Zolertia Hackster channel][hackster]
+6. [IoT in five days open source and online book][IoT5days]
 
 Maintainers
 ===========
 The Zoul and derived platforms (as well as the Z1 mote) are maintained by Zolertia.
-Main contributor: Antonio Lignan <alignan@zolertia.com>
+Main contributor: Antonio Lignan <alinan@zolertia.com> <antonio.lignan@gmail.com>
 
 [zolertia-site]: http://www.zolertia.io/products "Zolertia"
+[zolertia-wiki]: https://github.com/Zolertia/Resources/wiki "Zolertia Wiki"
 [cc1200]: http://www.ti.com/product/cc1200 "CC1200"
 [smart-rf-studio]: http://www.ti.com/tool/smartrftm-studio "SmartRF Studio"
 [smart-rf-flashprog]: http://www.ti.com/tool/flash-programmer "SmartRF Flash Programmer"

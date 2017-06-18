@@ -111,13 +111,17 @@ PROCESS_THREAD(udp_server_process, ev, data)
          NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
 
 #if UIP_CONF_ROUTER
-/* The choice of server address determines its 6LoPAN header compression.
+/* The choice of server address determines its 6LoWPAN header compression.
  * Obviously the choice made here must also be selected in udp-client.c.
  *
- * For correct Wireshark decoding using a sniffer, add the /64 prefix to the 6LowPAN protocol preferences,
- * e.g. set Context 0 to fd00::.  At present Wireshark copies Context/128 and then overwrites it.
- * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit compressed address of fd00::1111:22ff:fe33:xxxx)
- * Note Wireshark's IPCMV6 checksum verification depends on the correct uncompressed addresses.
+ * For correct Wireshark decoding using a sniffer, add the /64 prefix to the
+ * 6LowPAN protocol preferences,
+ * e.g. set Context 0 to fd00::. At present Wireshark copies Context/128 and
+ * then overwrites it.
+ * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit
+ * compressed address of fd00::1111:22ff:fe33:xxxx)
+ * Note Wireshark's IPCMV6 checksum verification depends on the correct
+ * uncompressed addresses.
  */
  
 #if 0

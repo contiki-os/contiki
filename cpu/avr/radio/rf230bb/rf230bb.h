@@ -215,6 +215,7 @@ void rf230_set_channel(uint8_t channel);
 void rf230_listen_channel(uint8_t channel);
 uint8_t rf230_get_channel(void);
 void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t ieee_addr[8]);
+unsigned rf230_get_panid(void);
 void rf230_set_txpower(uint8_t power);
 uint8_t rf230_get_txpower(void);
 void rf230_set_rpc(uint8_t rpc);
@@ -222,7 +223,7 @@ uint8_t rf230_get_rpc(void);
 
 void rf230_set_promiscuous_mode(bool isPromiscuous);
 bool rf230_is_ready_to_send();
-
+static bool rf230_is_sleeping(void);
 extern uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
 uint8_t rf230_get_raw_rssi(void);

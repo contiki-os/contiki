@@ -109,17 +109,17 @@
 /*---------------------------------------------------------------------------*/
 /* New API macros */
 #define SPIX_WAITFORTxREADY(spi) do { \
-    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_TNF)) ; \
+    while(!(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_TNF)) ; \
 } while(0)
-#define SPIX_BUF(spi)                   REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_DR)
+#define SPIX_BUF(spi)                   REG(SSI_BASE(spi) + SSI_DR)
 #define SPIX_WAITFOREOTx(spi) do { \
-    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_BSY) ; \
+    while(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_BSY) ; \
 } while(0)
 #define SPIX_WAITFOREORx(spi) do { \
-    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE)) ; \
+    while(!(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_RNE)) ; \
 } while(0)
 #define SPIX_FLUSH(spi) do { \
-    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE) { \
+    while(REG(SSI_BASE(spi) + SSI_SR) & SSI_SR_RNE) { \
         SPIX_BUF(spi);                                           \
     } \
 } while(0)
@@ -196,6 +196,14 @@ void spix_disable(uint8_t spi);
 void spix_set_mode(uint8_t spi, uint32_t frame_format,
                    uint32_t clock_polarity, uint32_t clock_phase,
                    uint32_t data_size);
+
+/**
+ * \brief Sets the SPI clock frequency of the given SSI instance.
+ *
+ * \param spi SSI instance
+ * \param freq Frequency (Hz)
+ */
+void spix_set_clock_freq(uint8_t spi, uint32_t freq);
 
 /**
  * \brief Configure a GPIO to be the chip select pin.

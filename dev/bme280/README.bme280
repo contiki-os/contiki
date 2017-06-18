@@ -1,0 +1,26 @@
+
+Contiki implementation for Bosch Sensortec BME280 sensor. 
+BME280 is compact and fast and includes temp, RH, and pressure. 
+Chip uses I2C or SPI. This implementation and follow Contiki 
+device API and I2C.
+
+For better performance and less chip warm up and less I2C transactions
+burst read is recommended. Here all T/RH/P is read in one single 
+I2C read and kept the measurements have the same time. 
+
+The burst read is stored in struct bme280_mea which accessible from 
+the Contiki. Also note that the full chip resolution is available. 
+The variables are overscaled to give the app full controlover resolution.
+
+See bme280.h
+
+The pressure can be calculated with 32 or 64. The define BME280_64BIT
+controls this. Typically in your project-conf.h
+ 
+Implemented according to datasheet Rev 1.1.
+
+Limitations:
+Implementation implements Weather Mode which uses forced one-shot 
+mode no oversampling nor filters and reads all T/RH/P in one read.
+
+

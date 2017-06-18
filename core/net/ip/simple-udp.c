@@ -119,7 +119,7 @@ simple_udp_register(struct simple_udp_connection *c,
 
   PROCESS_CONTEXT_BEGIN(&simple_udp_process);
   c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c);
-  if(c->udp_conn != NULL) {
+  if(c->udp_conn != NULL && local_port) {
     udp_bind(c->udp_conn, UIP_HTONS(local_port));
   }
   PROCESS_CONTEXT_END();

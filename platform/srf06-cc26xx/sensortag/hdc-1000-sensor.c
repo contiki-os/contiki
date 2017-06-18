@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx HDC sensor
+ *  Driver for the Sensortag HDC sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
@@ -186,7 +186,7 @@ static void
 convert(float *temp, float *hum)
 {
   /* Convert temperature to degrees C */
-  *temp = ((double)(int16_t)raw_temp / 65536) * 165 - 40;
+  *temp = ((double)raw_temp / 65536) * 165 - 40;
 
   /* Convert relative humidity to a %RH value */
   *hum = ((double)raw_hum / 65536) * 100;

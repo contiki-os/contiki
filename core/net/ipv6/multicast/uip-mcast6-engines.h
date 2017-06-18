@@ -50,6 +50,7 @@
 #define UIP_MCAST6_ENGINE_NONE        0 /**< Selecting this disables mcast */
 #define UIP_MCAST6_ENGINE_SMRF        1 /**< The SMRF engine */
 #define UIP_MCAST6_ENGINE_ROLL_TM     2 /**< The ROLL TM engine */
+#define UIP_MCAST6_ENGINE_ESMRF       3 /**< The ESMRF engine */
 
 #endif /* UIP_MCAST6_ENGINES_H_ */
 /** @} */

@@ -222,13 +222,20 @@ public class ExecuteJAR {
 
     /* Check dependencies: mote type */
     for (MoteType t: simulation.getMoteTypes()) {
-      if (!t.getClass().getName().contains("SkyMoteType")) {
-        throw new RuntimeException(
-            "You simulation contains the mote type: " + Cooja.getDescriptionOf(t.getClass()) + "\n" + 
-            "Only the Sky Mote Type is currently supported.\n"
-        );
-      }
       logger.info("Checking mote types: '" + Cooja.getDescriptionOf(t.getClass()) + "'");
+      if (t.getClass().getName().endsWith("SkyMoteType")) {
+          continue;
+      }
+      if (t.getClass().getName().endsWith("WismoteMoteType")) {
+          continue;
+      }
+      if (t.getClass().getName().endsWith("Z1MoteType")) {
+          continue;
+      }
+      throw new RuntimeException(
+         "Your simulation contains the mote type: " + Cooja.getDescriptionOf(t.getClass()) + "\n" +
+         "Only the Sky, Wismote, and Z1 mote types are currently supported.\n"
+                                 );
     }
 
     /* Check dependencies: Contiki Control Plugin */

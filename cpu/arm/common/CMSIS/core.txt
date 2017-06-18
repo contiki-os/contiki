@@ -1,50 +1,59 @@
 /**
- * @addtogroup  CMSIS_Core_FunctionInterface
- * @ingroup     cmsis
+ * \addtogroup  CMSIS_Core_FunctionInterface
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_core_register
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_core_register
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_glob_defs
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_glob_defs
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_MISRA_Exceptions
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_MISRA_Exceptions
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_core_definitions
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_core_definitions
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_SIMD_intrinsics
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_SIMD_intrinsics
+ * \ingroup     cmsis
  */
 
 /**
- * @addtogroup    CMSIS_Core_InstructionInterface
- * @ingroup     cmsis
+ * \addtogroup    CMSIS_Core_InstructionInterface
+ * \ingroup     cmsis
  */
 
 /**
- * @defgroup Cortex_M0 Cortex-M0
- * @ingroup cmsis
+ * \defgroup Cortex_M0 Cortex-M0
+ * \ingroup cmsis
  */
 
 /**
- * @defgroup Cortex_M3 Cortex-M3
- * @ingroup cmsis
+ * \defgroup Cortex-M0+ Cortex-M0+
+ * \ingroup cmsis
  */
 
 /**
- * @defgroup Cortex_M4 Cortex-M4
- * @ingroup cmsis
+ * \defgroup Cortex_M3 Cortex-M3
+ * \ingroup cmsis
  */
 
+/**
+ * \defgroup Cortex_M4 Cortex-M4
+ * \ingroup cmsis
+ */
+
+/**
+ * \defgroup Cortex_M7 Cortex-M7
+ * \ingroup cmsis
+ */
