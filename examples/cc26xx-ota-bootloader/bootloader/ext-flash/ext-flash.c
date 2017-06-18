@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the LaunchPad Flash and the Sensortag WinBond W25X20CL/W25X40CL
+ * Sensortag/LaunchPad External Flash Driver
  */
 /*---------------------------------------------------------------------------*/
 //#include "contiki.h"
@@ -41,6 +41,9 @@
 #include "ti-lib.h"
 #include "board-spi.h"
 #include "spi-pins.h"
+
+#include <stdint.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 /* Instruction codes */
 
@@ -74,6 +77,7 @@
 #define BLS_DEVICE_ID_W25X20CL    0x11
 #define BLS_DEVICE_ID_W25X40CL    0x12
 #define BLS_DEVICE_ID_MX25R8035F  0x14
+#define BLS_DEVICE_ID_MX25R1635F  0x15
 
 #define BLS_WINBOND_MID           0xEF
 #define BLS_MACRONIX_MID          0xC2
@@ -180,7 +184,8 @@ verify_part(void)
 
   if((rbuf[0] != BLS_WINBOND_MID && rbuf[0] != BLS_MACRONIX_MID) ||
      (rbuf[1] != BLS_DEVICE_ID_W25X20CL && rbuf[1] != BLS_DEVICE_ID_W25X40CL
-      && rbuf[1] != BLS_DEVICE_ID_MX25R8035F)) {
+      && rbuf[1] != BLS_DEVICE_ID_MX25R8035F
+      && rbuf[1] != BLS_DEVICE_ID_MX25R1635F)) {
     return VERIFY_PART_POWERED_DOWN;
   }
   return VERIFY_PART_OK;
