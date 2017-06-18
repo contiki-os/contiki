@@ -7,7 +7,6 @@
 #include "ioc.h"
 
 #define BOARD_IOID_FLASH_CS       IOID_14
-#define BOARD_FLASH_CS            (1 << BOARD_IOID_FLASH_CS)
 
 /**
  *  For srf06 board:
