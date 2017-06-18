@@ -599,6 +599,7 @@ erase_extflash_page( uint32_t ext_address )
     ext_flash_close();
     return -1;
   }
+  ext_flash_close();
 
   return 0;
 }
