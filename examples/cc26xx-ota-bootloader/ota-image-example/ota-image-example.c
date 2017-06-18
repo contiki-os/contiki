@@ -16,10 +16,15 @@
 #include "gpio.h"
 #include "sys/ctimer.h"
 #include "sys/timer.h"
+#include "dev/leds.h"
 
 #include "ota-download.h"
 
-#define BLINKER_PIN	BOARD_LED_1
+#if PLATFORM_HAS_LEDS
+#define BLINKER_PIN BOARD_IOID_LED_1
+#else
+#define OTA_EXAMPLE_UNIQUE_ID   1
+#endif
 
 PROCESS(blinker_test_loop, "GPIO Blinker Lifecycle");
 AUTOSTART_PROCESSES(&blinker_test_loop);
@@ -30,7 +35,17 @@ bool blink_state = false;
 void
 blink_looper()
 {
-  GPIOPinWrite( BLINKER_PIN, blink_state );
+#if PLATFORM_HAS_LEDS
+  if(blink_state){
+    leds_off(BLINKER_PIN);
+  }
+  else {
+    leds_on(BLINKER_PIN);
+  }
+#else
+  printf("Platform does not support LED. Unique ID: %u", OTA_EXAMPLE_UNIQUE_ID);
+#endif
+
   blink_state = !blink_state;
   ctimer_reset( &blink_timer );
 }
@@ -42,9 +57,14 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
 
   //	(1)	UART Output
   printf("OTA Image Example: Starting\n");
-
+#if PLATFORM_HAS_LEDS
   //	(2)	Start blinking green LED
-	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
+  leds_init();
+  leds_on(BLINKER_PIN);
+#else
+  printf("Platform does not support LED. Unique ID: %u", OTA_EXAMPLE_UNIQUE_ID);
+#endif
+
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
 
   //  (3) Get metadata about the current firmware version
