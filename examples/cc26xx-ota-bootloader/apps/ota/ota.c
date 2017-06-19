@@ -593,12 +593,17 @@ erase_extflash_page( uint32_t ext_address )
     return -1;
   }
 
+  // Kick the watchdog. Use watchdog library instead? (beware of bootloader size)
+  ti_lib_watchdog_reload_set(0xFFFFF);
+  ti_lib_watchdog_int_clear();
+
   eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
     ext_flash_close();
     return -1;
   }
+
   ext_flash_close();
 
   return 0;
