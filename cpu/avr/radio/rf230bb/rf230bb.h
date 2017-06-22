@@ -227,6 +227,10 @@ static bool rf230_is_sleeping(void);
 extern uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
 uint8_t rf230_get_raw_rssi(void);
+int rf230_aes_encrypt_ebc(unsigned char *key, unsigned char *plain, unsigned char *cipher);
+int rf230_aes_decrypt_ebc(unsigned char *key, unsigned char *cipher, unsigned char *plain);
+int rf230_aes_decrypt_ebc(unsigned char *key, unsigned char *cipher, unsigned char *plain);
+
 
 #define rf230_rssi	rf230_get_raw_rssi
 
