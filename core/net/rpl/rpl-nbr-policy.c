@@ -177,7 +177,7 @@ find_removable_dis(uip_ipaddr_t *from)
   if(num_free > 0) {
     /* there are free entries (e.g. unsused by RPL and ND6) but since it is
        used by other modules we can not pick these entries for removal. */
-    PRINTF("Num-free > 0 = %d - Other for RPL/ND6 unused NBR entry exists .",
+    PRINTF("NBR-POLICY: Num-free > 0 = %d - Other for RPL/ND6 unused NBR entry exists .",
            num_free);
   }
   if(num_children < MAX_CHILDREN) {
@@ -195,20 +195,20 @@ find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance = rpl_get_instance(dio->instance_id);
   if(instance == NULL || instance->current_dag == NULL) {
-    PRINTF("Did not find instance id: %d\n", dio->instance_id);
+    PRINTF("NBR-POLICY: Did not find instance id: %d\n", dio->instance_id);
     return NULL;
   }
 
   /* Add the new neighbor only if it is better than the worst parent. */
   if(dio->rank + instance->min_hoprankinc < worst_rank - instance->min_hoprankinc / 2) {
     /* Found *great* neighbor - add! */
-    PRINTF("Found better neighbor %d < %d - add to cache...\n",
+    PRINTF("NBR-POLICY: Found better neighbor %d < %d - add to cache...\n",
            dio->rank, worst_rank);
 
     return worst_rank_nbr;
   }
 
-  PRINTF("Found worse neighbor with new %d and old %d - NOT add to cache.\n",
+  PRINTF("NBR-POLICY: Found worse neighbor with new %d and old %d - NOT add to cache.\n",
          dio->rank, worst_rank);
   return NULL;
 }
@@ -229,7 +229,7 @@ find_removable_dao(uip_ipaddr_t *from, rpl_instance_t *instance)
   /* Check if this DAO sender is not yet neighbor and there is already too
      many children. */
   if(num_children >= max) {
-    PRINTF("Can not add another child - already at max.\n");
+    PRINTF("NBR-POLICY: Can not add another child - already at max.\n");
     return NULL;
   }
   /* remove the worst ranked nbr */
