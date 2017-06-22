@@ -507,10 +507,10 @@ update_hbh_header(void)
       if((UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN)) {
         if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
           UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
-          PRINTF("RPL: RPL forwarding error\n");
+          PRINTF("RPL: Forwarding error\n");
           /* We should send back the packet to the originating parent,
                 but it is not feasible yet, so we send a No-Path DAO instead */
-          PRINTF("RPL: RPL generate No-Path DAO\n");
+          PRINTF("RPL: Generate No-Path DAO\n");
           parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
           if(parent != NULL) {
             dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
@@ -526,11 +526,11 @@ update_hbh_header(void)
           /* No route was found, so this packet will go towards the RPL
                 root. If so, we should not set the down flag. */
           UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_DOWN;
-          PRINTF("RPL: RPL option going up\n");
+          PRINTF("RPL: Option going up\n");
         } else {
           /* A DAO route was found so we set the down flag. */
           UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_DOWN;
-          PRINTF("RPL: RPL option going down\n");
+          PRINTF("RPL: Option going down\n");
         }
       }
     }
