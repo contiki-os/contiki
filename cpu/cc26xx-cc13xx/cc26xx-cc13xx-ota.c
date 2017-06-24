@@ -29,7 +29,7 @@
  */
 
 /**
- *  CC26XX linker script for OTA images
+ *  CC26XX-CC13XX linker script for OTA images
  *  arm-none-eabi-gcc does not allow variables to be used in the memory
  *  region definitions.  Therefore, this C file will be used to generate
  *  linker scripts for OTA images at compile-time by the preprocesser.

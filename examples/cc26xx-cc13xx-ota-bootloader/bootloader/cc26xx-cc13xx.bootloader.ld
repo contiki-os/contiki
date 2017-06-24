@@ -28,7 +28,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* CC26XX linker script */
+/* CC26XX-CC13XX linker script */
 
 /* Entry Point */
 ENTRY(ResetISR)

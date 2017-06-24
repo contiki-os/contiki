@@ -23,7 +23,7 @@ OBJECTDIR=obj_$(TARGET)
 
 CPU_FAMILY=$(notdir $(BOARD))
 
-LDSCRIPT = cc26xx.bootloader.ld
+LDSCRIPT = cc26xx-cc13xx.bootloader.ld
 LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
 LDFLAGS += -g
