@@ -272,7 +272,7 @@ verify_current_firmware( OTAMetadata_t *current_firmware_metadata )
   PRINTF("Recomputing CRC16 on internal flash image within range [0x2000, 0x1B000).\n");
 
   //  (1) Determine the external flash address corresponding to the OTA slot
-  uint32_t firmware_address = 0x2000 + OTA_METADATA_SPACE;
+  uint32_t firmware_address = (CURRENT_FIRMWARE<<12) + OTA_METADATA_SPACE;
   uint32_t firmware_end_address = firmware_address + (current_firmware_metadata->size);
 
   //  (3) Compute the CRC16 over the entire image
