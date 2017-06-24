@@ -15,7 +15,7 @@ OTA=1
 CONTIKI_WITH_IPV6 = 1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-CFLAGS += -g -DDEBUG=1
+CFLAGS += -g -DOTA_DEBUG=1
 
 clean:
 	-rm -f *~ *core core *.srec \

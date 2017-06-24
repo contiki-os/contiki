@@ -6,12 +6,7 @@
 #ifndef OTA_DOWNLOAD_H
 #define OTA_DOWNLOAD_H
 
-#include "contiki.h"
-#include "contiki-lib.h"
-#include "contiki-net.h"
-#include "ip64-addr.h"
-#include "er-coap-engine.h"
-
+#include "net/ip/uip.h"
 #include "ota.h"
 
 static uip_ipaddr_t ota_server_ipaddr;

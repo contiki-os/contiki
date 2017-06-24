@@ -18,6 +18,7 @@
 #include "sys/timer.h"
 #include "dev/leds.h"
 
+#include "ext-flash.h"
 #include "ota-download.h"
 
 #if PLATFORM_HAS_LEDS
@@ -89,7 +90,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   print_metadata( &ota_metadata );
 
   int empty_slot = find_empty_ota_slot();
-  PRINTF("\nEmpty OTA slot: #%u\n", empty_slot);
+  printf("\nEmpty OTA slot: #%u\n", empty_slot);
 
   //  (4) OTA Download!
   process_start(ota_download_th_p, NULL);

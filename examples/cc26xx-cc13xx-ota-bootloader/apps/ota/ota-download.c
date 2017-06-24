@@ -4,6 +4,17 @@
  */
 
 #include "ota-download.h"
+#include "ti-lib.h"
+#include "er-coap-engine.h"
+
+#include "ota.h"
+
+#if OTA_DEBUG
+  #include <stdio.h>
+  #define PRINTF(...) printf(__VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
 
 PROCESS(ota_download_th, "OTA Download Agent");
 ota_download_th_p = &ota_download_th;
@@ -37,7 +48,7 @@ firmware_chunk_handler(void *response)
 
   //  (2) Copy the CoAP payload into the ota_buffer
   ota_bytes_received += len;
-  printf("Downloaded %u bytes\t(%#x)", len, ota_bytes_received);
+  PRINTF("Downloaded %u bytes\t(%#x)", len, ota_bytes_received);
   while (len--) {
     ota_buffer[ img_req_position++ ] = *chunk++;
   }

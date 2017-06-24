@@ -6,16 +6,9 @@
 #ifndef OTA_H
 #define OTA_H
 
-#if DEBUG
-  #include <stdio.h>
-  #define PRINTF(...) printf(__VA_ARGS__)
-#else
-  #define PRINTF(...)
-#endif
-
-#include "ti-lib.h"
-#include "ext-flash.h"
-#include "driverlib/flash.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 /**
  *    OTA Image Memory Map
@@ -92,6 +85,9 @@ find_oldest_ota_image();
 
 extern int
 find_newest_ota_image();
+
+extern int
+erase_extflash_page( uint32_t ext_address );
 
 extern int
 update_firmware( uint8_t ota_slot );

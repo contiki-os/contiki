@@ -8,6 +8,18 @@
 
 #include "ota.h"
 
+#include "ti-lib.h"
+#include "ext-flash.h"
+#include "driverlib/flash.h"
+
+#if OTA_DEBUG
+  #include <stdio.h>
+  #define PRINTF(...) printf(__VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
+
+
 uint8_t ota_images[3] = OTA_ADDRESSES;
 
 /**
