@@ -150,7 +150,7 @@ main(int argc, char *argv[]) {
     metadata.crc_shadow = 0;
   }
   metadata.size = firmware_size;
-  sscanf( argv[2], "%xu", &(metadata.version) );
+  sscanf( argv[2], "%hxu", &(metadata.version) );
   sscanf( argv[3], "%xu", &(metadata.uuid) );
   uint8_t output_buffer[ sizeof(OTAMetadata_t) ];
   memcpy( output_buffer, (uint8_t *)&metadata, sizeof(OTAMetadata_t) );
