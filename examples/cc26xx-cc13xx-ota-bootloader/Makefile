@@ -1,3 +1,9 @@
+ifndef BOARD
+BOARD=sensortag/cc2650
+#BOARD=srf06/cc26xx
+#BOARD=launchpad/cc1310
+endif
+
 %.o: %.c
 	gcc -std=c99 -c $< -o $@
 
@@ -11,14 +17,14 @@ bootloader:
 	printf "Making OTA Bootloader\n";
 	cd ./bootloader; 				\
 		make clean;						\
-		make bootloader.hex;	\
+		make bootloader.hex BOARD=$(BOARD);	\
 
 ota-image-example: generate-metadata
 	rm -f firmware*.hex firmware*.bin;
 	printf "\nMaking OTA Example Image\n"
 	cd ./ota-image-example;		\
 		make clean;								\
-		make ota-image-example;		\
+		make ota-image-example BOARD=$(BOARD); 		\
 	printf "\nAdding metadata to OTA Example Image\n";
 	./generate-metadata ota-image-example/ota-image-example.bin 0x0 0xabcd1234 1 # create golden image
 	#./generate-metadata ota-image-example/ota-image-example.bin 0x1 0xdeadbeef 0 # create ota update

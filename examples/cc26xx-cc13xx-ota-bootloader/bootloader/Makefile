@@ -1,3 +1,10 @@
+TARGET=srf06-cc26xx
+ifndef BOARD
+BOARD=sensortag/cc2650
+#BOARD=srf06/cc26xx
+#BOARD=launchpad/cc1310
+endif
+
 CC      = arm-none-eabi-gcc
 CPP     = arm-none-eabi-cpp
 LD      = arm-none-eabi-gcc
