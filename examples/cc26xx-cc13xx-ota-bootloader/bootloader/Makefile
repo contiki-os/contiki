@@ -21,6 +21,9 @@ CPU_ABS_PATH = $(CONTIKI)/cpu/cc26xx-cc13xx
 TARGET=srf06-cc26xx
 OBJECTDIR=obj_$(TARGET)
 
+# Optimize for code size
+CFLAGS += -Os
+
 CPU_FAMILY=$(notdir $(BOARD))
 
 LDSCRIPT = cc26xx-cc13xx.bootloader.ld
