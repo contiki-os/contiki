@@ -60,7 +60,7 @@ int backup_golden_image();
 
 int verify_current_firmware( OTAMetadata_t *current_firmware_metadata );
 
-int sverify_ota_slot( uint8_t ota_slot );
+int verify_ota_slot( uint8_t ota_slot );
 
 bool validate_ota_metadata( OTAMetadata_t *metadata );
 
