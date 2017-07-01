@@ -51,7 +51,6 @@
 #include "dev/temp-sensor.h"
 #include "dev/temp_mcu-sensor.h"
 #include "dev/light-sensor.h"
-#include "dev/pulse-sensor.h"
 #include "dev/ds1307.h"
 #include "lib/fs/fat/diskio.h"
 #include "lib/fs/fat/ff.h"
@@ -59,7 +58,7 @@
 #include "netstack.h"
 
 #define NAME_LENGTH 10
-#define TAGMASK_LENGTH 100
+#define TAGMASK_LENGTH 50
 #define NO_SENSORS 10
 #define MAX_BCAST_SIZE 99
 #define DEF_TTL 0xF
@@ -84,7 +83,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT PULSE_0 PULSE_1";
+static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -185,7 +184,6 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_ACTIVATE(light_sensor);
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
-	SENSORS_ACTIVATE(pulse_sensor);
 
 	if( i2c_probed & I2C_DS1307 ) {
 			DS1307_init();
@@ -202,7 +200,6 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_DEACTIVATE(light_sensor);
 	SENSORS_DEACTIVATE(temp_mcu_sensor);
 	SENSORS_DEACTIVATE(battery_sensor);
-	SENSORS_DEACTIVATE(pulse_sensor);
 	SENSORS_DEACTIVATE(ds1307_sensor);
 
 	PROCESS_END();
@@ -493,10 +490,6 @@ read_sensor_values(void){
 			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
 		} else if (!strncmp(trim(sensors), "LIGHT", 5)) {
 			i += snprintf(result+i, 10, " LIGHT=%-d", light_sensor.value(0));
-		} else if (!strncmp(trim(sensors), "PULSE_0", 7)) {
-			i += snprintf(result+i, 12, " PULSE_0=%-d", pulse_sensor.value(0));
-		} else if (!strncmp(trim(sensors), "PULSE_1", 7)) {
-			i += snprintf(result+i, 12, " PULSE_1=%-d", pulse_sensor.value(1));
 		}
 		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
@@ -601,7 +594,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[9]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "LIGHT", "PULSE_0", "PULSE_1"}; //array of available sensors
+	char *sensors[9]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "LIGHT"}; //array of available sensors
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
