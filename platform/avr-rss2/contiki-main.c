@@ -178,6 +178,29 @@ rng_get_uint8(void)
   PRINTD("rng issues %d\n", j);
   return j;
 }
+
+void
+print_mcusr(uint8_t reg)
+{
+  printf("Boot cause: ");
+
+  if(reg & (1 << PORF)) {
+    printf("Power-on reset\n");
+  }
+  if(reg & (1 << EXTRF)) {
+    printf("External reset\n");
+  }
+  if(reg & (1 << BORF)) {
+    printf("Brownout reset\n");
+  }
+  if(reg & (1 << WDRF)) {
+    printf("Watchdog reset\n");
+  }
+  if(reg & (1 << JTRF)) {
+    printf("JTAG reset\n");
+  }
+}
+
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void
@@ -198,22 +221,6 @@ initialize(void)
 #endif
 
   clock_init();
-
-  if(MCUSR & (1 << PORF)) {
-    PRINTD("Power-on reset.\n");
-  }
-  if(MCUSR & (1 << EXTRF)) {
-    PRINTD("External reset!\n");
-  }
-  if(MCUSR & (1 << BORF)) {
-    PRINTD("Brownout reset!\n");
-  }
-  if(MCUSR & (1 << WDRF)) {
-    PRINTD("Watchdog reset!\n");
-  }
-  if(MCUSR & (1 << JTRF)) {
-    PRINTD("JTAG reset!\n");
-  }
 
   i2c_init(100000); /* 100 bit/s */
 
@@ -252,7 +259,9 @@ initialize(void)
 
   PRINTA("\n*******Booting %s*******\n", CONTIKI_VERSION_STRING);
 
-/* rtimers needed for radio cycling */
+  print_mcusr(GPIOR0); /* MCUSR passed from bootloader in GPIOR0 */
+
+  /* rtimers needed for radio cycling */
   rtimer_init();
 
 /* we can initialize the energest arrays here */
