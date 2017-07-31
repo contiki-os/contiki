@@ -176,6 +176,7 @@ tsch_set_coordinator(int enable)
       return;
   }
 #endif
+  if (tsch_current_eb_period <= 0)
   tsch_set_eb_period(TSCH_EB_PERIOD);
 }
 /*---------------------------------------------------------------------------*/
@@ -743,11 +744,13 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
     etimer_reset(&eb_timer);
   }
 
+#if (TSCH_EB_PERIOD > 0)
   /* Set an initial delay except for coordinator, which should send an EB asap */
   if(!tsch_is_coordinator) {
     etimer_set(&eb_timer, random_rand() % TSCH_EB_PERIOD);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
+#endif
 
   while(1) {
     unsigned long delay;
@@ -792,6 +795,8 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         + random_rand() % (tsch_current_eb_period / 4);
     } else {
       delay = TSCH_EB_PERIOD;
+      if (delay == 0)
+          delay = TSCH_MAX_EB_PERIOD;
     }
     etimer_set(&eb_timer, delay);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
@@ -1013,8 +1018,10 @@ turn_on(void)
     tsch_is_started = 1;
     /* Process tx/rx callback and log messages whenever polled */
     process_start(&tsch_pending_events_process, NULL);
+#if TSCH_EB_PERIOD > 0
     /* periodically send TSCH EBs */
     process_start(&tsch_send_eb_process, NULL);
+#endif
     /* try to associate to a network or start one if setup as coordinator */
     process_start(&tsch_process, NULL);
     PRINTF("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
