@@ -912,11 +912,11 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
           /* Poll process for processing of pending input and logs */
           process_poll(&tsch_pending_events_process);
-        }
-      }
+        }//if(frame_valid)
+      }//if(NETSTACK_RADIO.pending_packet())
 
       tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
-    }
+    }//else(!packet_seen)
 
     if(input_queue_drop != 0) {
       TSCH_LOG_ADD(tsch_log_message,
@@ -1017,8 +1017,9 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
       /* Schedule next wakeup skipping slots if missed deadline */
       do {
         if(current_link != NULL
-            && current_link->link_options & LINK_OPTION_TX
-            && current_link->link_options & LINK_OPTION_SHARED) {
+            && (current_link->link_options & LINK_OPTION_TX)
+            && (current_link->link_options & LINK_OPTION_SHARED) )
+        {
           /* Decrement the backoff window for all neighbors able to transmit over
            * this Tx, Shared link. */
           tsch_queue_update_all_backoff_windows(&current_link->addr);

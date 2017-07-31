@@ -197,6 +197,7 @@ tsch_set_eb_period(uint32_t period)
 static void
 tsch_reset(void)
 {
+  ANNOTATE("TSCH:reset");
   int i;
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
@@ -278,6 +279,7 @@ eb_input(struct input_packet *current_input)
   if(tsch_packet_parse_eb(current_input->payload, current_input->len,
                           &frame, &eb_ies, NULL, 1)) {
     /* PAN ID check and authentication done at rx time */
+    ANNOTATE("TSCH: got EB\n");
 
 #if TSCH_AUTOSELECT_TIME_SOURCE
     if(!tsch_is_coordinator) {
@@ -339,7 +341,7 @@ eb_input(struct input_packet *current_input)
 #endif /* TSCH_AUTOSELECT_TIME_SOURCE */
       }
     }
-  }
+  }//if(tsch_packet_parse_eb
 }
 
 /*---------------------------------------------------------------------------*/
@@ -678,6 +680,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
   }
+  ANNOTATE("TSCH: scanning complete\n");
 
   PT_END(pt);
 }
