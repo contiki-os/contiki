@@ -56,6 +56,7 @@
 #endif /* TSCH_LOG_ID_FROM_LINKADDR */
 
 /* TSCH log levels:
+ * -1: no any print, even failure reports
  * 0: no log
  * 1: basic PRINTF enabled
  * 2: basic PRINTF enabled and tsch-log module enabled */
