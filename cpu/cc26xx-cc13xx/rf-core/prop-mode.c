@@ -475,7 +475,6 @@ int rf_cmd_execute(rfc_radioOp_t *cmd, const char* name )
 static int
 prop_div_radio_setup(void)
 {
-  uint32_t cmd_status;
   rfc_radioOp_t *cmd = (rfc_radioOp_t *)&smartrf_settings_cmd_prop_radio_div_setup;
 
   rf_switch_select_path(RF_SWITCH_PATH_SUBGHZ);
@@ -626,6 +625,19 @@ prop_fs(void)
   rfc_radioOp_t *cmd = (rfc_radioOp_t *)&smartrf_settings_cmd_fs;
   return rf_cmd_execute(cmd, "prop_fs: CMD_FS");
 }
+
+static
+int prop_txpower(void){
+    rfc_CMD_SET_TX_POWER_t cmd_power =
+    {
+      .commandNo    = CMD_SET_TX_POWER,
+      .txPower      = tx_power_current->tx_power,
+    };
+
+    rfc_radioOp_t *cmd = (rfc_radioOp_t *)&cmd_power;
+    return rf_cmd_execute(cmd, "prop_txpower: CMD_SET_TX_POWER");
+}
+
 /*---------------------------------------------------------------------------*/
 static void
 soft_off_prop(void)
@@ -1222,16 +1234,9 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
-    soft_off_prop();
-
     set_tx_power(value);
+    return update_prop(&(prop_txpower));
 
-    if(soft_on_prop() != RF_CORE_CMD_OK) {
-      PRINTF("set_value: soft_on_prop() failed\n");
-      rv = RADIO_RESULT_ERROR;
-    }
-
-    return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
       if(value & ~(RADIO_RX_MODE_POLL_MODE)) {
         return RADIO_RESULT_INVALID_VALUE;
