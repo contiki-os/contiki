@@ -91,6 +91,14 @@
 #define TSCH_CONF_RX_WAIT 2200
 #endif /* TSCH_CONF_RX_WAIT */
 
+#ifndef TSCH_CONF_TS_MAX_TX
+#define TSCH_CONF_TS_MAX_TX 4256
+#endif /* TSCH_CONF_RX_WAIT */
+
+#ifndef TSCH_CONF_TS_MAX_ACK
+#define TSCH_CONF_TS_MAX_ACK 2400
+#endif /* TSCH_CONF_RX_WAIT */
+
 /* The default timeslot timing in the standard is a guard time of
  * 2200 us, a Tx offset of 2120 us and a Rx offset of 1120 us.
  * As a result, the listening device has a guard time not centered
@@ -118,7 +126,7 @@
 #define TSCH_DEFAULT_TS_ACK_WAIT           400
 #define TSCH_DEFAULT_TS_RX_TX              192
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
-#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_MAX_TX             TSCH_CONF_TS_MAX_TX
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    10000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 15000
@@ -128,13 +136,13 @@
 #define TSCH_DEFAULT_TS_CCA                128
 #define TSCH_DEFAULT_TS_TX_OFFSET          4000
 #define TSCH_DEFAULT_TS_RX_OFFSET          (TSCH_DEFAULT_TS_TX_OFFSET - (TSCH_CONF_RX_WAIT / 2))
-#define TSCH_DEFAULT_TS_RX_ACK_DELAY       3600
 #define TSCH_DEFAULT_TS_TX_ACK_DELAY       4000
 #define TSCH_DEFAULT_TS_RX_WAIT            TSCH_CONF_RX_WAIT
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       (TSCH_DEFAULT_TS_TX_ACK_DELAY - (TSCH_DEFAULT_TS_ACK_WAIT/2))
 #define TSCH_DEFAULT_TS_RX_TX              2072
-#define TSCH_DEFAULT_TS_MAX_ACK            2400
-#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_MAX_ACK            TSCH_CONF_TS_MAX_ACK
+#define TSCH_DEFAULT_TS_MAX_TX             TSCH_CONF_TS_MAX_TX
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 65000U
@@ -155,7 +163,7 @@
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
 #define TSCH_DEFAULT_TS_RX_TX              2072
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
-#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_MAX_TX             TSCH_CONF_TS_MAX_TX
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    65000
 
 #else
