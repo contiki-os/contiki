@@ -176,6 +176,25 @@ static rfc_propRxOutput_t rx_stats;
 
 /* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
 #define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+/*---------------------------------------------------------------------------*/
+/* How long to wait for an ongoing ACK TX to finish before starting frame TX */
+#define TX_WAIT_TIMEOUT       (RTIMER_SECOND >> 11)
+
+/* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
+#define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+/* How long to wait for the RF to react on CMD_ABORT: around 1 msec */
+#define RF_TURN_OFF_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+#define LIMITED_BUSYWAIT(cond, timeout) do {                         \
+    rtimer_clock_t end_time = RTIMER_NOW() + timeout;                \
+    while(cond) {                                                    \
+      if(!RTIMER_CLOCK_LT(RTIMER_NOW(), end_time)) {                 \
+        break;                                                       \
+      }                                                              \
+    }                                                                \
+  } while(0)
 /*---------------------------------------------------------------------------*/
 /* TX power table for the 431-527MHz band */
 #ifdef PROP_MODE_CONF_TX_POWER_431_527
@@ -399,6 +418,51 @@ set_tx_power(radio_value_t power)
   }
 }
 /*---------------------------------------------------------------------------*/
+static
+bool rf_cmd_status_is_running(volatile rfc_radioOp_t *cmd){
+    uint32_t now_status = (cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS);
+    return (now_status == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING);
+}
+
+#if DEBUG == 0
+static
+int rf_cmd_exec(rfc_radioOp_t *cmd)
+{
+    uint32_t cmd_status;
+    /* Send Radio setup to RF Core */
+    if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
+      return RF_CORE_CMD_ERROR;
+    }
+
+    /* Wait until radio setup is done */
+    if(rf_core_wait_cmd_done(cmd) != RF_CORE_CMD_OK) {
+      return RF_CORE_CMD_ERROR;
+    }
+    return RF_CORE_CMD_OK;
+}
+#define rf_cmd_execute(cmd, name) rf_cmd_exec(cmd)
+#else
+static
+int rf_cmd_execute(rfc_radioOp_t *cmd, const char* name )
+{
+    uint32_t cmd_status;
+    /* Send Radio setup to RF Core */
+    if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
+      PRINTF("%s: CMDSTA=0x%08lx, status=0x%04x\n"
+              ,name, cmd_status, cmd->status);
+      return RF_CORE_CMD_ERROR;
+    }
+
+    /* Wait until radio setup is done */
+    if(rf_core_wait_cmd_done(cmd) != RF_CORE_CMD_OK) {
+      PRINTF("%s wait, CMDSTA=0x%08lx, status=0x%04x\n"
+              ,name, cmd_status, cmd->status);
+      return RF_CORE_CMD_ERROR;
+    }
+    return RF_CORE_CMD_OK;
+}
+#endif
+/*---------------------------------------------------------------------------*/
 static int
 prop_div_radio_setup(void)
 {
@@ -419,21 +483,7 @@ prop_div_radio_setup(void)
   smartrf_settings_cmd_prop_radio_div_setup.config.biasMode =
     RF_CORE_PROP_BIAS_MODE;
 
-  /* Send Radio setup to RF Core */
-  if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
-    PRINTF("prop_div_radio_setup: DIV_SETUP, CMDSTA=0x%08lx, status=0x%04x\n",
-           cmd_status, cmd->status);
-    return RF_CORE_CMD_ERROR;
-  }
-
-  /* Wait until radio setup is done */
-  if(rf_core_wait_cmd_done(cmd) != RF_CORE_CMD_OK) {
-    PRINTF("prop_div_radio_setup: DIV_SETUP wait, CMDSTA=0x%08lx,"
-           "status=0x%04x\n", cmd_status, cmd->status);
-    return RF_CORE_CMD_ERROR;
-  }
-
-  return RF_CORE_CMD_OK;
+  return rf_cmd_execute(cmd, "prop_div_radio_setup: DIV_SETUP");
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -529,7 +579,7 @@ rx_off_prop(void)
     /* Continue nonetheless */
   }
 
-  while(rf_is_on());
+  LIMITED_BUSYWAIT(rf_is_on(), RF_TURN_OFF_WAIT_TIMEOUT);
 
   if(smartrf_settings_cmd_prop_rx_adv.status == PROP_DONE_STOPPED ||
      smartrf_settings_cmd_prop_rx_adv.status == PROP_DONE_ABORT) {
@@ -564,24 +614,8 @@ LPM_MODULE(prop_lpm_module, request, NULL, NULL, LPM_DOMAIN_NONE);
 static int
 prop_fs(void)
 {
-  uint32_t cmd_status;
   rfc_radioOp_t *cmd = (rfc_radioOp_t *)&smartrf_settings_cmd_fs;
-
-  /* Send the command to the RF Core */
-  if(rf_core_send_cmd((uint32_t)cmd, &cmd_status) != RF_CORE_CMD_OK) {
-    PRINTF("prop_fs: CMD_FS, CMDSTA=0x%08lx, status=0x%04x\n",
-           cmd_status, cmd->status);
-    return RF_CORE_CMD_ERROR;
-  }
-
-  /* Wait until the command is done */
-  if(rf_core_wait_cmd_done(cmd) != RF_CORE_CMD_OK) {
-    PRINTF("prop_fs: CMD_FS wait, CMDSTA=0x%08lx, status=0x%04x\n",
-           cmd_status, cmd->status);
-    return RF_CORE_CMD_ERROR;
-  }
-
-  return RF_CORE_CMD_OK;
+  return rf_cmd_execute(cmd, "prop_fs: CMD_FS");
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -600,8 +634,7 @@ soft_off_prop(void)
     return;
   }
 
-  while((cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS) ==
-        RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING);
+  LIMITED_BUSYWAIT(rf_cmd_status_is_running(cmd), RF_TURN_OFF_WAIT_TIMEOUT);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
