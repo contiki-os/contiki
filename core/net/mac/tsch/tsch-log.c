@@ -118,6 +118,11 @@ tsch_log_process_pending(void)
       case tsch_log_message:
         printf("%s\n", log->message);
         break;
+      case tsch_log_rx_drift:
+       printf("RX : fantastic drift %ld = %lu[expect time] - %lu[rx time]\n"
+              , log->rx_drift.drift
+              , log->rx_drift.expect_us, log->rx_drift.start_us);
+       break;
     }
     /* Remove input from ringbuf */
     ringbufindex_get(&log_ringbuf);

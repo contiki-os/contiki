@@ -66,6 +66,8 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/net-debug.h"
 
+#include <stdlib.h>
+
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
 #ifndef TSCH_DEBUG_INIT
@@ -834,6 +836,15 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
              || linkaddr_cmp(&destination_address, &linkaddr_null)) {
             int do_nack = 0;
             estimated_drift = RTIMER_CLOCK_DIFF(expected_rx_time, rx_start_time);
+
+            if (abs(estimated_drift) > tsch_timing[tsch_ts_timeslot_length]){
+                TSCH_LOG_ADD(tsch_log_rx_drift,
+                    log->rx_drift.drift     = estimated_drift;
+                    log->rx_drift.expect_us = expected_rx_time;
+                    log->rx_drift.start_us  = rx_start_time;
+                );
+                estimated_drift = 0;
+            }
 
 #if TSCH_TIMESYNC_REMOVE_JITTER
             /* remove jitter due to measurement errors */
