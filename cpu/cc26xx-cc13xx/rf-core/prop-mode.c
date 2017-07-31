@@ -264,14 +264,34 @@ bool transmitting(void)
   return smartrf_settings_cmd_prop_tx_adv.status == RF_CORE_RADIO_OP_STATUS_ACTIVE;
 }
 /*---------------------------------------------------------------------------*/
+static
+int_fast8_t read_rssi(void){
+    uint32_t cmd_status;
+    unsigned char attempts = 0;
+    rfc_CMD_GET_RSSI_t cmd;
+    int_fast8_t rssi;
+    rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+
+    while((rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) && ++attempts < 10) {
+      cmd.commandNo = CMD_GET_RSSI;
+
+      if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+        PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
+        break;
+      } else {
+        /* Current RSSI in bits 23:16 of cmd_status */
+        rssi = (int8_t)((cmd_status >> 16) & 0xFF);
+      }
+    }
+    return rssi;
+}
+
+
 static radio_value_t
 get_rssi(void)
 {
-  uint32_t cmd_status;
-  int8_t rssi;
-  uint8_t attempts = 0;
+  int_fast8_t rssi;
   uint8_t was_off = 0;
-  rfc_CMD_GET_RSSI_t cmd;
 
   /* If we are off, turn on first */
   if(!rf_is_on()) {
@@ -282,20 +302,7 @@ get_rssi(void)
     }
   }
 
-  rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
-
-  while((rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) && ++attempts < 10) {
-    memset(&cmd, 0x00, sizeof(cmd));
-    cmd.commandNo = CMD_GET_RSSI;
-
-    if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
-      PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
-      break;
-    } else {
-      /* Current RSSI in bits 23:16 of cmd_status */
-      rssi = (cmd_status >> 16) & 0xFF;
-    }
-  }
+  rssi = read_rssi();
 
   /* If we were off, turn back off */
   if(was_off) {
@@ -809,7 +816,6 @@ static int
 channel_clear(void)
 {
   uint8_t was_off = 0;
-  uint32_t cmd_status;
   int8_t rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
 
   /*
@@ -836,14 +842,7 @@ channel_clear(void)
     }
   }
 
-  while(rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) {
-    if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_GET_RSSI), &cmd_status)
-       != RF_CORE_CMD_OK) {
-      break;
-    }
-    /* Current RSSI in bits 23:16 of cmd_status */
-    rssi = (cmd_status >> 16) & 0xFF;
-  }
+  rssi = read_rssi();
 
   if(was_off) {
     off();
@@ -859,15 +858,15 @@ channel_clear(void)
 static int
 receiving_packet(void)
 {
-  if(!rf_is_on()) {
+    int_fast8_t rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+
+  if(!rx_is_on()) {
     return 0;
   }
 
-  if(channel_clear() == RF_CCA_CLEAR) {
-    return 0;
-  }
+  rssi = read_rssi();
 
-  return 1;
+  return (rssi >= rssi_threshold);
 }
 /*---------------------------------------------------------------------------*/
 static int
