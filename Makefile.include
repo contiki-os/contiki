@@ -208,12 +208,22 @@ endif
 
 ### See http://make.paulandlesley.org/autodep.html#advanced
 
+ifeq ([${WINDIR}],[])
 define FINALIZE_DEPENDENCY
 cp $(@:.o=.d) $(@:.o=.$$$$); \
-sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+sed -e 's/#.*//' -e 's/^[^:].*: *//' -e 's/ *\\$$//' \
     -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
 rm -f $(@:.o=.$$$$)
 endef
+else
+###  windows pathes can contain ':' char, so just allow it
+define FINALIZE_DEPENDENCY
+cp $(@:.o=.d) $(@:.o=.$$$$); \
+sed -e 's/#.*//' -e 's/^.*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+rm -f $(@:.o=.$$$$)
+endef
+endif
 
 clean:
 	-rm -f *~ *core core *.srec \
