@@ -310,10 +310,11 @@ tsch_schedule_get_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t ti
 /*---------------------------------------------------------------------------*/
 /* Returns the next active link after a given ASN, and a backup link (for the same ASN, with Rx flag) */
 struct tsch_link *
-tsch_schedule_get_next_active_link(struct tsch_asn_t *asn, uint16_t *time_offset,
+tsch_schedule_get_next_active_link(struct tsch_asn_t *asn
+    , tsch_slot_offset_t *time_offset,
     struct tsch_link **backup_link)
 {
-  uint16_t time_to_curr_best = 0;
+  tsch_slot_offset_t time_to_curr_best = 0;
   struct tsch_link *curr_best = NULL;
   struct tsch_link *curr_backup = NULL; /* Keep a back link in case the current link
   turns out useless when the time comes. For instance, for a Tx-only link, if there is
@@ -324,10 +325,10 @@ tsch_schedule_get_next_active_link(struct tsch_asn_t *asn, uint16_t *time_offset
     /* For each slotframe, look for the earliest occurring link */
     while(sf != NULL) {
       /* Get timeslot from ASN, given the slotframe length */
-      uint16_t timeslot = TSCH_ASN_MOD(*asn, sf->size);
+      tsch_slot_offset_t timeslot = TSCH_ASN_MOD(*asn, sf->size);
       struct tsch_link *l = list_head(sf->links_list);
       while(l != NULL) {
-        uint16_t time_to_timeslot =
+          tsch_slot_offset_t time_to_timeslot =
           l->timeslot > timeslot ?
           l->timeslot - timeslot :
           sf->size.val + l->timeslot - timeslot;

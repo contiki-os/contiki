@@ -1017,7 +1017,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
     } else {
       /* backup of drift correction for printing debug messages */
       /* int32_t drift_correction_backup = drift_correction; */
-      uint16_t timeslot_diff = 0;
+      tsch_slot_offset_t timeslot_diff = 0;
       rtimer_clock_t prev_slot_start;
       /* Time to next wake up */
       rtimer_clock_t time_to_next_active_slot;
@@ -1069,7 +1069,7 @@ tsch_slot_operation_start(void)
   rtimer_clock_t prev_slot_start;
   TSCH_DEBUG_INIT();
   do {
-    uint16_t timeslot_diff;
+    tsch_slot_offset_t timeslot_diff;
     /* Get next active link */
     current_link = tsch_schedule_get_next_active_link(&tsch_current_asn, &timeslot_diff, &backup_link);
     if(current_link == NULL) {
