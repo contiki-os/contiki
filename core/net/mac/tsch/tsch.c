@@ -442,7 +442,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
-  if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
+  if(input_eb == NULL){
+      PRINTF("TSCH:! failed EB - looks stack damaged\n");
+      return 0;
+  }
+  if(tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
     PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
     return 0;
