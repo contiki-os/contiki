@@ -80,7 +80,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -264,6 +264,18 @@ volatile static uint8_t *rx_read_entry;
 /* XXX: don't know what exactly is this, looks like the time to Tx 3 octets */
 #define TIMESTAMP_OFFSET  -(USEC_TO_RADIO(32 * 3) - 1) /* -95.75 usec */
 
+extern int32_t rat_offset;
+
+
+#if PROP_MODE_RAT_SYNC_STYLE >= PROP_MODE_RAT_SYNC_AGRESSIVE
+void   rat_sync_op_start(void);
+void   rat_sync_op_end(void);
+rtimer_clock_t   rat_sync_check(rtimer_clock_t stamp);
+#else
+#define   rat_sync_op_start(...)
+#define   rat_sync_op_end(...)
+#define   rat_sync_check(x) x
+#endif
 /*---------------------------------------------------------------------------*/
 /* Are we currently in poll mode? */
 #ifndef RF_CORE_POLL_MODE
@@ -510,6 +522,7 @@ rf_cmd_prop_rx()
    */
   cmd_rx_adv->maxPktLen = DOT_4G_MAX_FRAME_LEN - cmd_rx_adv->lenOffset;
 
+  rat_sync_op_start();
   ret = rf_core_send_cmd((uint32_t)cmd_rx_adv, &cmd_status);
 
   if(ret != RF_CORE_CMD_OK) {
@@ -578,6 +591,7 @@ rx_off_prop(void)
 
   /* If we are off, do nothing */
   if(!rf_is_on()) {
+    rat_sync_op_end();
     return RF_CORE_CMD_OK;
   }
 
@@ -599,6 +613,8 @@ rx_off_prop(void)
            smartrf_settings_cmd_prop_rx_adv.status);
     ret = RF_CORE_CMD_ERROR;
   }
+
+  rat_sync_op_end();
 
   return ret;
 }
@@ -1275,7 +1291,8 @@ get_object(radio_param_t param, void *dest, size_t size)
       if(size != sizeof(rtimer_clock_t) || !dest) {
         return RADIO_RESULT_INVALID_VALUE;
       }
-      *(rtimer_clock_t *)dest = rf_rat_calc_last_rttime();
+      rtimer_clock_t stamp = rf_rat_calc_last_rttime();
+      *(rtimer_clock_t *)dest = stamp;
 
       return RADIO_RESULT_OK;
     }
@@ -1306,6 +1323,99 @@ const struct radio_driver prop_mode_driver = {
   set_object,
 };
 /*---------------------------------------------------------------------------*/
+
+#if PROP_MODE_RAT_SYNC_STYLE >= PROP_MODE_RAT_SYNC_AGRESSIVE
+//static
+struct {
+    rtimer_clock_t     op_start;
+    rtimer_clock_t     op_end;
+}   rat_sync = {0, ~0};
+
+void   rat_sync_op_start(void){
+    if (rat_sync.op_end != rat_sync.op_start){
+        //* prev operation have finished
+    rat_sync.op_start = RTIMER_NOW();
+    rat_sync.op_end = rat_sync.op_start;
+}
+}
+
+void   rat_sync_op_end(void){
+    if (rat_sync.op_end == rat_sync.op_start){
+    rat_sync.op_end = RTIMER_NOW();
+}
+}
+
+bool rat_sync_validate(rtimer_clock_t stamp){
+    if ( RTIMER_CLOCK_LT(stamp, rat_sync.op_start) ){
+        //* looks RAT time points before rx start
+        PRINTF("rat_sync_check: stamp %lu violates rx start %lu\n"
+                , stamp, rat_sync.op_start);
+        return false;
+    }
+    else {
+        if (rat_sync.op_start == rat_sync.op_end){
+            rtimer_clock_t now = RTIMER_NOW();
+            if (RTIMER_CLOCK_LT(now, stamp)){
+                //* looks RAT time points after now
+                PRINTF("rat_sync_check: stamp %lu violates now %lu\n"
+                        , stamp, now);
+                return false;
+            }
+        }
+        else if (RTIMER_CLOCK_LT(rat_sync.op_end, stamp)){
+                //* looks RAT time points after rx end
+                PRINTF("rat_sync_check: stamp %lu violates rx end %lu\n"
+                    , stamp, rat_sync.op_end);
+                return false;
+        }
+    }
+    return true;
+}
+
+int32_t rat_sync_miss(void){
+    rf_rat_time_t rat = rf_rat_now();
+    rtimer_clock_t now = RTIMER_NOW();
+    rf_rat_last_timestamp(rat);
+    rtimer_clock_t rat_now = rf_rat_calc_last_rttime();
+    if (rat_now != now){
+        PRINTF("rat_sync_validate: RAT[%lu] unsync RT [%lu]\n"
+                , rat_now, now);
+    }
+    return rat_now - now;
+}
+
+rtimer_clock_t rat_sync_check(rtimer_clock_t stamp){
+    if (rat_sync_validate(stamp))
+        return stamp;
+    //* here cause RAT stamp have strange value.
+    //* resync RAT, and try correct stamp
+    rf_rat_debug_dump();
+    if(!rf_core_is_accessible()) {
+      return stamp;
+    }
+    int32_t rat_miss = rat_sync_miss();
+    if (rat_miss == 0){
+        PRINTF("rat_sync_check: failed sync\n");
+        rf_rat_debug_dump();
+        return stamp;
+    }
+    bool was_on = rx_is_on();
+    if (was_on)
+    rx_off_prop();
+    //int32_t last_offset = rat_offset;
+    if(rf_core_restart_rat() == RF_CORE_CMD_OK) {
+        rf_rat_check_overflow(true);
+    }
+    if (was_on)
+        rx_on_prop();
+    int32_t rat_remiss = rat_sync_miss();
+    if (rat_remiss != 0)
+        PRINTF("rat_sync_check: failed resync from %ld -> %ld\n", rat_miss , rat_remiss);
+    return stamp - rat_miss;
+}
+
+#endif
+
 /**
  * @}
  */
