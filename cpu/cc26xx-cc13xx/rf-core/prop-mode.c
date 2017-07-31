@@ -243,8 +243,8 @@ volatile static uint8_t *rx_read_entry;
 
 static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
-static uint8_t
-rf_is_on(void)
+static
+bool rx_is_on(void)
 {
   if(!rf_core_is_accessible()) {
     return 0;
@@ -252,9 +252,14 @@ rf_is_on(void)
 
   return smartrf_settings_cmd_prop_rx_adv.status == RF_CORE_RADIO_OP_STATUS_ACTIVE;
 }
+
+static inline
+uint8_t rf_is_on(void){
+    return rx_is_on();
+}
 /*---------------------------------------------------------------------------*/
-static uint8_t
-transmitting(void)
+static
+bool transmitting(void)
 {
   return smartrf_settings_cmd_prop_tx_adv.status == RF_CORE_RADIO_OP_STATUS_ACTIVE;
 }
@@ -421,7 +426,6 @@ static uint8_t
 rf_cmd_prop_rx()
 {
   uint32_t cmd_status;
-  rtimer_clock_t t0;
   volatile rfc_CMD_PROP_RX_ADV_t *cmd_rx_adv;
   int ret;
 
@@ -439,13 +443,11 @@ rf_cmd_prop_rx()
   if(ret != RF_CORE_CMD_OK) {
     PRINTF("rf_cmd_prop_rx: send_cmd ret=%d, CMDSTA=0x%08lx, status=0x%04x\n",
            ret, cmd_status, cmd_rx_adv->status);
-    return RF_CORE_CMD_ERROR;
+    return ret;
   }
 
-  t0 = RTIMER_NOW();
-
-  while(cmd_rx_adv->status != RF_CORE_RADIO_OP_STATUS_ACTIVE &&
-        (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ENTER_RX_WAIT_TIMEOUT)));
+  LIMITED_BUSYWAIT((cmd_rx_adv->status != RF_CORE_RADIO_OP_STATUS_ACTIVE)
+                   , ENTER_RX_WAIT_TIMEOUT);
 
   /* Wait to enter RX */
   if(cmd_rx_adv->status != RF_CORE_RADIO_OP_STATUS_ACTIVE) {
@@ -637,8 +639,8 @@ init(void)
     PRINTF("init: on() failed\n");
     return RF_CORE_CMD_ERROR;
   }
-
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  //* have probed that RFcore ok, turn it off for power-save
+  off();
 
   rf_core_primary_mode_register(&mode_prop);
 
@@ -964,17 +966,9 @@ on(void)
    */
   oscillators_switch_to_hf_xosc();
 
-  if(prop_div_radio_setup() != RF_CORE_CMD_OK) {
-    PRINTF("on: prop_div_radio_setup() failed\n");
-    return RF_CORE_CMD_ERROR;
-  }
-
-  if(prop_fs() != RF_CORE_CMD_OK) {
-    PRINTF("on: prop_fs() failed\n");
-    return RF_CORE_CMD_ERROR;
-  }
-
-  return rx_on_prop();
+  //* apply setup radio chanel settings
+  int ret = soft_on_prop();
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int

@@ -151,10 +151,10 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
   interrupts_disabled = ti_lib_int_master_disable();
 
   if(!rf_core_is_accessible()) {
-    PRINTF("rf_core_send_cmd: RF was off\n");
     if(!interrupts_disabled) {
       ti_lib_int_master_enable();
     }
+    PRINTF("rf_core_send_cmd: RF was off\n");
     return RF_CORE_CMD_ERROR;
   }
 
