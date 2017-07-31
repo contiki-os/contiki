@@ -106,7 +106,13 @@ void tsch_disassociate(void);
 /* Calculate packet tx/rx duration in rtimer ticks based on sent
  * packet len in bytes with 802.15.4 250kbps data rate.
  * One byte = 32us. Add two bytes for CRC and one for len field */
-#define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
+#ifdef RF_CORE_CONF_BAUD
+#define TSCH_BYTE_US (8000000ul/RF_CORE_CONF_BAUD)
+#else
+#define TSCH_BYTE_US 32
+#endif
+
+#define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(TSCH_BYTE_US * ((len) + 3))
 
 /* Convert rtimer ticks to clock and vice versa */
 #define TSCH_CLOCK_TO_TICKS(c) (((c) * RTIMER_SECOND) / CLOCK_SECOND)
