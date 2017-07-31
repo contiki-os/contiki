@@ -289,7 +289,9 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   int r;
   /* Subtract RTIMER_GUARD before checking for deadline miss
    * because we can not schedule rtimer less than RTIMER_GUARD in the future */
-  int missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
+  int missed = 0;
+  if (RTIMER_CLOCK_LT(ref_time + RTIMER_GUARD, now))
+      missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
 
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
@@ -759,7 +761,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     current_input = &input_array[input_index];
 
     /* Wait before starting to listen */
-    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start
+                            , tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX
+                            , "RxBeforeListen");
     TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
@@ -1041,6 +1045,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
         current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
+        time_to_next_active_slot -= tsch_timing[tsch_ts_rfon_prepslot_guard];
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
