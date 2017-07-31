@@ -619,7 +619,6 @@ PT_THREAD(tsch_scan(struct pt *pt))
     static uint8_t current_channel = 0;
 
     /* We are not coordinator, try to associate */
-    rtimer_clock_t t0;
     int is_packet_pending = 0;
     clock_time_t now_time = clock_time();
 
@@ -628,25 +627,28 @@ PT_THREAD(tsch_scan(struct pt *pt))
       /* Pick a channel at random in TSCH_JOIN_HOPPING_SEQUENCE */
       uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
           random_rand() % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
-      if(current_channel != scan_channel) {
         NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, scan_channel);
         current_channel = scan_channel;
+      current_channel_since = now_time;
         PRINTF("TSCH: scanning on channel %u\n", scan_channel);
       }
-      current_channel_since = now_time;
-    }
 
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
 
     is_packet_pending = NETSTACK_RADIO.pending_packet();
-    if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
+    while(!is_packet_pending) {
       /* If we are currently receiving a packet, wait until end of reception */
-      t0 = RTIMER_NOW();
-      BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, RTIMER_SECOND / 100);
+        //PROCESS_PAUSE();
+        process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);
+        PT_YIELD(pt);
+        is_packet_pending = NETSTACK_RADIO.pending_packet();
+        if ( (clock_time() - current_channel_since) >= TSCH_CHANNEL_SCAN_DURATION )
+            break;
     }
 
     if(is_packet_pending) {
+      rtimer_clock_t t0;
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
 
