@@ -1119,11 +1119,48 @@ set_send_on_cca(uint8_t enable)
   }
   return RADIO_RESULT_OK;
 }
+
+typedef int (*radio_prop_func)(void);
+static
+radio_result_t update_prop(radio_prop_func f){
+    bool is_rx = rx_is_on();
+    if (is_rx){
+        /* If we reach here we had no errors. Apply new settings */
+        if(rx_off_prop() != RF_CORE_CMD_OK) {
+        PRINTF("set_value: stop rf failed\n");
+        //* fails to stop currrent op, changes take effect on next on()
+        return RADIO_RESULT_ERROR;
+    }
+    }
+    else if (transmitting()){
+        while (transmitting());
+    }
+    else {
+        /* If off, the new configuration will be applied the next time radio is started */
+        return RADIO_RESULT_OK;
+    }
+
+    if(f() != RF_CORE_CMD_OK) {
+      PRINTF("update_prop: prop failed\n");
+      return RADIO_RESULT_ERROR;
+    }
+
+    if (is_rx){
+        if (rx_on_prop() == RF_CORE_CMD_OK)
+            return RADIO_RESULT_OK;
+        else {
+            PRINTF("set_value:rx restart failed\n");
+            return RADIO_RESULT_ERROR;
+        }
+    }
+    else
+        return RADIO_RESULT_OK;
+}
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  uint8_t was_off = 0;
+  //uint8_t was_off = 0;
   radio_result_t rv = RADIO_RESULT_OK;
 
   switch(param) {
@@ -1153,7 +1190,8 @@ set_value(radio_param_t param, radio_value_t value)
     }
 
     set_channel((uint8_t)value);
-    break;
+    return update_prop(&(prop_fs));
+
   case RADIO_PARAM_TXPOWER:
     if(value < TX_POWER_DRIVER[get_tx_power_array_last_element()].dbm ||
        value > OUTPUT_POWER_MAX) {
@@ -1197,30 +1235,7 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_NOT_SUPPORTED;
   }
 
-  /* If we reach here we had no errors. Apply new settings */
-  if(!rf_is_on()) {
-    was_off = 1;
-    if(on() != RF_CORE_CMD_OK) {
-      PRINTF("set_value: on() failed (2)\n");
-      return RADIO_RESULT_ERROR;
-    }
-  }
-
-  if(rx_off_prop() != RF_CORE_CMD_OK) {
-    PRINTF("set_value: rx_off_prop() failed\n");
-    rv = RADIO_RESULT_ERROR;
-  }
-
-  if(soft_on_prop() != RF_CORE_CMD_OK) {
-    PRINTF("set_value: rx_on_prop() failed\n");
-    rv = RADIO_RESULT_ERROR;
-  }
-
-  /* If we were off, turn back off */
-  if(was_off) {
-    off();
-  }
-
+  PRINTF("set_value: strange\n");
   return rv;
 }
 /*---------------------------------------------------------------------------*/
