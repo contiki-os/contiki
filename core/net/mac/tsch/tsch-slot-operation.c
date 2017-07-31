@@ -563,20 +563,21 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
           TSCH_DEBUG_TX_EVENT();
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(packet_len);
+          /* turn tadio off -- will turn on again to wait for ACK if needed */
+          tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
+
           /* Save tx timestamp */
           tx_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
           /* calculate TX duration based on sent packet len */
           tx_duration = TSCH_PACKET_DURATION(packet_len);
           /* limit tx_time to its max value */
           tx_duration = MIN(tx_duration, tsch_timing[tsch_ts_max_tx]);
-          /* turn tadio off -- will turn on again to wait for ACK if needed */
-          tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
               uint8_t ackbuf[TSCH_PACKET_MAX_LEN];
               int ack_len;
-              rtimer_clock_t ack_start_time;
+              static rtimer_clock_t ack_start_time;
               int is_time_source;
               struct ieee802154_ies ack_ies;
               uint8_t ack_hdrlen;
@@ -588,14 +589,24 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
 #endif /* TSCH_HW_FRAME_FILTERING */
+
+#if TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_IMMEDIATE
+              ack_start_time = RTIMER_NOW();
+#else // TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_OLD
+              ack_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset] + tx_duration;
+#endif
               /* Unicast: wait for ack after tx: sleep until ack time */
-              TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start,
-                  tsch_timing[tsch_ts_tx_offset] + tx_duration + tsch_timing[tsch_ts_rx_ack_delay] - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
+              TSCH_SCHEDULE_AND_YIELD(pt, t
+                  , ack_start_time
+                  , tsch_timing[tsch_ts_rx_ack_delay] - RADIO_DELAY_BEFORE_RX
+                  , "TxBeforeAck");
               TSCH_DEBUG_TX_EVENT();
               tsch_radio_on(TSCH_RADIO_CMD_ON_WITHIN_TIMESLOT);
               /* Wait for ACK to come */
-              BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
-                  tx_start_time, tx_duration + tsch_timing[tsch_ts_rx_ack_delay] + tsch_timing[tsch_ts_ack_wait] + RADIO_DELAY_BEFORE_DETECT);
+              BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet()
+                   , ack_start_time
+                   , tsch_timing[tsch_ts_rx_ack_delay] + tsch_timing[tsch_ts_ack_wait]
+                     + RADIO_DELAY_BEFORE_DETECT + RADIO_RSSI_DETECT_DELAY);
               TSCH_DEBUG_TX_EVENT();
 
               ack_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
@@ -748,6 +759,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     static int32_t estimated_drift;
     /* Rx timestamps */
     static rtimer_clock_t rx_start_time;
+    static rtimer_clock_t rx_end_time;
     static rtimer_clock_t expected_rx_time;
     static rtimer_clock_t packet_duration;
     uint8_t packet_seen;
@@ -782,6 +794,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
+
+      rx_end_time = RTIMER_NOW();
       tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
       if(NETSTACK_RADIO.pending_packet()) {
@@ -872,9 +886,14 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                 /* Copy to radio buffer */
                 NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
+#if TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_OLD
+                rx_end_time = rx_start_time + packet_duration;
+#endif
                 /* Wait for time to ACK and transmit ACK */
-                TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
-                                        packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+                TSCH_SCHEDULE_AND_YIELD(pt, t
+                         , rx_end_time
+                         , tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX
+                         , "RxBeforeAck");
                 TSCH_DEBUG_RX_EVENT();
                 NETSTACK_RADIO.transmit(ack_len);
                 tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
