@@ -67,9 +67,9 @@ LPM_MODULE(launchpad_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
 static void
 configure_unused_pins(void)
 {
-  uint32_t pins[] = BOARD_UNUSED_PINS;
+  const uint32_t pins[] = BOARD_UNUSED_PINS;
 
-  uint32_t *pin;
+  const uint32_t *pin;
 
   for(pin = pins; *pin != IOID_UNUSED; pin++) {
     ti_lib_ioc_pin_type_gpio_input(*pin);
