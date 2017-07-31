@@ -248,10 +248,17 @@ tsch_release_lock(void)
 
 /* Return channel from ASN and channel offset */
 uint8_t
-tsch_calculate_channel(struct tsch_asn_t *asn, uint8_t channel_offset)
+tsch_calculate_channel(struct tsch_asn_t *asn, int_fast8_t channel_offset)
 {
-  uint16_t index_of_0 = TSCH_ASN_MOD(*asn, tsch_hopping_sequence_length);
-  uint16_t index_of_offset = (index_of_0 + channel_offset) % tsch_hopping_sequence_length.val;
+    if (tsch_hopping_sequence_length.val <= 1){
+        return tsch_hopping_sequence[0];
+    }
+  uint_fast8_t index_of_0 = TSCH_ASN_MOD(*asn, tsch_hopping_sequence_length);
+  int_fast8_t index_of_offset = (index_of_0 + channel_offset);
+  if (index_of_offset > tsch_hopping_sequence_length.val)
+      index_of_offset -= tsch_hopping_sequence_length.val;
+  else if (index_of_offset < 0)
+      index_of_offset += tsch_hopping_sequence_length.val;
   return tsch_hopping_sequence[index_of_offset];
 }
 
