@@ -54,6 +54,7 @@
 #include "rf-core/rf-core.h"
 #include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
+#include "rf-core/rf-rat.h"
 #include "rf-core/prop-mode.h"
 #include "rf-core/dot-15-4g.h"
 /*---------------------------------------------------------------------------*/
@@ -256,6 +257,14 @@ static dataQueue_t rx_data_queue = { 0 };
 /* Receive entry pointer to keep track of read items */
 volatile static uint8_t *rx_read_entry;
 
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/* SFD timestamp in RTIMER ticks */
+//static volatile uint32_t last_packet_timestamp = 0;
+/* XXX: don't know what exactly is this, looks like the time to Tx 3 octets */
+#define TIMESTAMP_OFFSET  -(USEC_TO_RADIO(32 * 3) - 1) /* -95.75 usec */
+
+/*---------------------------------------------------------------------------*/
 /* Are we currently in poll mode? */
 #ifndef RF_CORE_POLL_MODE
 static uint8_t poll_mode = 0;
@@ -657,6 +666,9 @@ static const rf_core_primary_mode_t mode_prop = {
   soft_off_prop,
   soft_on_prop,
 };
+const struct rf_rat_controler rfrat_prop_mode = {
+    &(rf_is_on), &(on), &(off)
+};
 /*---------------------------------------------------------------------------*/
 static int
 init(void)
@@ -686,6 +698,7 @@ init(void)
     PRINTF("init: on() failed\n");
     return RF_CORE_CMD_ERROR;
   }
+  rf_rat_monitor_init(&rfrat_prop_mode);
   //* have probed that RFcore ok, turn it off for power-save
   off();
 
@@ -857,6 +870,10 @@ read_frame(void *buf, unsigned short buf_len)
       }//if(!poll_mode)
     }
 
+    //! TODO in PollMode rx_stats may inconsistent, when ISR looks over multiple IRQs
+    /* correct timestamp so that it refers to the end of the SFD */
+    rf_rat_last_timestamp(rx_stats.timeStamp + TIMESTAMP_OFFSET);
+
     /* Move read entry pointer to next entry */
     rx_read_entry = entry->pNextEntry;
     entry->status = DATA_ENTRY_STATUS_PENDING;
@@ -1007,6 +1024,7 @@ on(void)
 
       return RF_CORE_CMD_ERROR;
     }
+    rf_rat_check_overflow(true);
   }
 
   rf_core_setup_interrupts(poll_mode);
@@ -1145,6 +1163,12 @@ radio_result_t update_prop(radio_prop_func f){
       return RADIO_RESULT_ERROR;
     }
 
+    /* Restart the radio timer (RAT).
+       This causes resynchronization between RAT and RTC: useful for TSCH. */
+    if(rf_core_restart_rat() == RF_CORE_CMD_OK) {
+        rf_rat_check_overflow(false);
+    }
+
     if (is_rx){
         if (rx_on_prop() == RF_CORE_CMD_OK)
             return RADIO_RESULT_OK;
@@ -1242,6 +1266,15 @@ set_value(radio_param_t param, radio_value_t value)
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
+    if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+      if(size != sizeof(rtimer_clock_t) || !dest) {
+        return RADIO_RESULT_INVALID_VALUE;
+      }
+      *(rtimer_clock_t *)dest = rf_rat_calc_last_rttime();
+
+      return RADIO_RESULT_OK;
+    }
+
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
