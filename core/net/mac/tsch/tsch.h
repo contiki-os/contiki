@@ -134,6 +134,10 @@
 #define TSCH_INIT_SCHEDULE_FROM_EB 1
 #endif
 
+/* By default: TSCH loads slot timing from coordinator EB
+ * but for debug purposes it can be ommited by enabling this macro*/
+//#define TSCH_DEBUG_NO_TIMING_FROM_EB
+
 /* An ad-hoc mechanism to have TSCH select its time source without the
  * help of an upper-layer, simply by collecting statistics on received
  * EBs and their join priority. Disabled by default as we recomment
