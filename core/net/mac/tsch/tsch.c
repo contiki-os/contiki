@@ -130,8 +130,10 @@ const linkaddr_t tsch_eb_address = { { 0, 0 } };
 int tsch_is_started = 0;
 /* Has TSCH initialization failed? */
 int tsch_is_initialized = 0;
+#ifndef TSCH_IS_COORDINATOR
 /* Are we coordinator of the TSCH network? */
 int tsch_is_coordinator = 0;
+#endif
 /* Are we associated to a TSCH network? */
 int tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
@@ -166,7 +168,14 @@ static void packet_input(void);
 void
 tsch_set_coordinator(int enable)
 {
+#ifndef TSCH_IS_COORDINATOR
   tsch_is_coordinator = enable;
+#else
+  if (tsch_is_coordinator != enable){
+      PRINTF_FAIL("TCSH: missed coordinator request %d vs hardcoded", enable);
+      return;
+  }
+#endif
   tsch_set_eb_period(TSCH_EB_PERIOD);
 }
 /*---------------------------------------------------------------------------*/
