@@ -103,6 +103,16 @@
 #define RF_CORE_PROP_BIAS_MODE RF_CORE_BIAS_MODE_EXTERNAL
 #endif
 /*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End IRQ polling mode setup
+ * \value Not Defined - polling mode enabled by driver.set_value(RADIO_PARAM_RX_MODE)
+ * \value 0           - only ISR mode use.
+ * \value 1           - only Poling mode use.
+ */
+#ifdef RF_CORE_CONF_POLL_MODE
+#define RF_CORE_POLL_MODE RF_CORE_CONF_POLL_MODE
+#endif
+/*---------------------------------------------------------------------------*/
 #define RF_CORE_CMD_ERROR                     0
 #define RF_CORE_CMD_OK                        1
 /*---------------------------------------------------------------------------*/

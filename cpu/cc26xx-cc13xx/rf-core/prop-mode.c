@@ -236,6 +236,13 @@ static dataQueue_t rx_data_queue = { 0 };
 
 /* Receive entry pointer to keep track of read items */
 volatile static uint8_t *rx_read_entry;
+
+/* Are we currently in poll mode? */
+#ifndef RF_CORE_POLL_MODE
+static uint8_t poll_mode = 0;
+#else
+static const uint8_t poll_mode = RF_CORE_POLL_MODE;
+#endif
 /*---------------------------------------------------------------------------*/
 /* The outgoing frame buffer */
 #define TX_BUF_PAYLOAD_LEN 180
@@ -711,7 +718,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en(false, false);
+  rf_core_cmd_done_en(false, poll_mode);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -725,7 +732,15 @@ transmit(unsigned short transmit_len)
     /* Idle away while the command is running */
     while((cmd_tx_adv->status & RF_CORE_RADIO_OP_MASKED_STATUS)
           == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING) {
+        /* Note: import from ieee-mode:
+         * for now sleeping while Tx'ing in polling mode is disabled.
+         * To enable it:
+         *  1) make the `lpm_sleep()` call here unconditional;
+         *  2) change the radio ISR priority to allow radio ISR to interrupt rtimer ISR.
+         */
+        if(!poll_mode) {
       lpm_sleep();
+    }
     }
 
     if(cmd_tx_adv->status == RF_CORE_RADIO_OP_STATUS_PROP_DONE_OK) {
@@ -756,7 +771,7 @@ transmit(unsigned short transmit_len)
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
    * except when we are transmitting
    */
-  rf_core_cmd_done_dis(false);
+  rf_core_cmd_done_dis(poll_mode);
 
   /* Workaround. Set status to IDLE */
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
@@ -800,8 +815,13 @@ read_frame(void *buf, unsigned short buf_len)
         memcpy(buf, data_ptr, len);
       }
 
+      if(!poll_mode) {
+        /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+         * In poll mode, the last packet RSSI and link quality can be obtained through
+         * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
       packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
+      }//if(!poll_mode)
     }
 
     /* Move read entry pointer to next entry */
@@ -879,7 +899,9 @@ pending_packet(void)
   do {
     if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
       rv += 1;
+      if(poll_mode){
       process_poll(&rf_core_process);
+    }
     }
 
     entry = (rfc_dataEntry_t *)entry->pNextEntry;
@@ -954,7 +976,7 @@ on(void)
     }
   }
 
-  rf_core_setup_interrupts(false);
+  rf_core_setup_interrupts(poll_mode);
 
   init_rx_buffers();
 
@@ -1007,6 +1029,19 @@ get_value(radio_param_t param, radio_value_t *value)
     /* On / off */
     *value = rf_is_on() ? RADIO_POWER_MODE_ON : RADIO_POWER_MODE_OFF;
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    //*  filtering need to implements
+    //*  *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    //*  AUTOACK not supports in pop-mode
+    //*  *value |= RADIO_RX_MODE_AUTOACK;
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_CHANNEL:
     *value = (radio_value_t)get_channel();
     return RADIO_RESULT_OK;
@@ -1039,6 +1074,17 @@ get_value(radio_param_t param, radio_value_t *value)
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
+}
+/*---------------------------------------------------------------------------*/
+/* Enable or disable CCA before sending */
+static radio_result_t
+set_send_on_cca(uint8_t enable)
+{
+  if(enable) {
+    /* this driver does not have support for CCA on Tx */
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+  return RADIO_RESULT_OK;
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
@@ -1092,7 +1138,25 @@ set_value(radio_param_t param, radio_value_t value)
 
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
+      if(value & ~(RADIO_RX_MODE_POLL_MODE)) {
+        return RADIO_RESULT_INVALID_VALUE;
+      }
+#ifndef RF_CORE_POLL_MODE
+      poll_mode = (value & RADIO_RX_MODE_POLL_MODE) != 0;
     return RADIO_RESULT_OK;
+#else
+      if ( (poll_mode != 0) == ((value & RADIO_RX_MODE_POLL_MODE) != 0) )
+          return RADIO_RESULT_OK;
+      else
+          return RADIO_RESULT_INVALID_VALUE;
+#endif
+
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    return set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+
   case RADIO_PARAM_CCA_THRESHOLD:
     rssi_threshold = (int8_t)value;
     break;
