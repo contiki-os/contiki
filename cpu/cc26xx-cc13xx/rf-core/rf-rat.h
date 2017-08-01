@@ -1,3 +1,6 @@
+#ifndef CPU_RF_CORE_RF_RAT_H_
+#define CPU_RF_CORE_RF_RAT_H_
+
 /*
  * rfcore-rat.h
  *
@@ -17,9 +20,6 @@
  * Header file for the CC13xx RAT timer handling.
  * it provides monitor for RAT oveflow monitoring, and RAT timeStamps evaluate
  */
-
-#ifndef CPU_RF_CORE_RF_RAT_H_
-#define CPU_RF_CORE_RF_RAT_H_
 
 #include <stdint.h>
 #include <stdbool.h>
