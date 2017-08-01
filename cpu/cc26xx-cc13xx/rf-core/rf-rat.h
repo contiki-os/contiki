@@ -26,9 +26,9 @@
 /*---------------------------------------------------------------------------*/
 /**
  * RF RAT Front-End usage selection
- * \value 0           - time stamps not implements, it just retrieved as is
- * \value 1 (Default) - fully implements RAT timestamps at RTTimer domain
- * \value Not Defined - same
+ * 0:           time stamps not implements, it just retrieved as is
+ * 1 (Default): fully implements RAT timestamps at RTTimer domain
+ * Not Defined: same
  */
 #ifdef RF_RAT_CONF_STYLE
 #define RF_RAT_STYLE RF_RAT_CONF_STYLE
