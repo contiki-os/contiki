@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup rf-core-prop
+ * \addtogroup rf-core-prop CC13xx Prop mode driver
  * @{
  *
  * \file
- * Implementation of the CC13xx prop mode NETSTACK_RADIO driver
+ * Implementation of the CC26xx/CC13xx prop mode NETSTACK_RADIO driver
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"

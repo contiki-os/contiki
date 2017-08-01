@@ -12,21 +12,20 @@
  * \addtogroup rf-core
  * @{
  *
- * \defgroup rf-core-prop CC13xx Prop mode driver
- *
+ * \defgroup rf-core-rat CC26xx/CC13xx RAT synchronisation monitor
+ * \brief it provides monitor for RAT oveflow monitoring, and RAT timeStamps evaluate
  * @{
  *
  * \file
- * Header file for the CC13xx RAT timer handling.
- * it provides monitor for RAT oveflow monitoring, and RAT timeStamps evaluate
+ * Header file for the CC26xx/CC13xx RAT timer handling.
  */
 
 #include <stdint.h>
 #include <stdbool.h>
 
 /*---------------------------------------------------------------------------*/
-/*
- * FR RAT Front-End usage selection
+/**
+ * RF RAT Front-End usage selection
  * \value 0           - time stamps not implements, it just retrieved as is
  * \value 1 (Default) - fully implements RAT timestamps at RTTimer domain
  * \value Not Defined - same

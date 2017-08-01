@@ -12,12 +12,11 @@
  * \addtogroup rf-core
  * @{
  *
- * \defgroup rf-core-ieee CC13xx/CC26xx IEEE mode driver
- *
+ * \addtogroup rf-core-rat
  * @{
  *
  * \file
- * Implementation of the CC13xx/CC26xx IEEE mode NETSTACK_RADIO driver
+ * Implementation of the CC13xx/CC26xx RAT sync monitor for NETSTACK_RADIO driver
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -208,3 +207,7 @@ void rf_rat_debug_dump(void){
 rf_rat_time_t rf_rat_last_timestamp;
 #endif
 
+/**
+ * @}
+ * @}
+ */
