@@ -56,7 +56,7 @@ uint_fast8_t rf_rat_check_overflow(bool first_time);
 
 /**
  * \brief Initates and start RAT timer overflow monitor
- * \param rf_rat_controler - provide an interface for RFcore enabling/disabling
+ * \param rf       - provide an interface for RFcore enabling/disabling
  *  MUST call with powered RF - core
  */
 void rf_rat_monitor_init(const struct rf_rat_controler* rf);
@@ -98,5 +98,10 @@ uint32_t rf_rat_calc_last_rttime(void){
 
 #endif
 
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */
 
 #endif /* CPU_RF_CORE_RF_RAT_H_ */
