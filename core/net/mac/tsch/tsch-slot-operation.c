@@ -504,7 +504,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       static uint8_t seqno;
       /* is this a broadcast packet? (wait for ack?) */
       static uint8_t is_broadcast;
-      static rtimer_clock_t tx_start_time;
 
 #if CCA_ENABLED
       static uint8_t cca_status;
@@ -539,7 +538,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
       /* prepare packet to send: copy to radio buffer */
       if(packet_ready && NETSTACK_RADIO.prepare(packet, packet_len) == 0) { /* 0 means success */
-        static rtimer_clock_t tx_duration;
 
 #if CCA_ENABLED
         cca_status = 1;
@@ -566,13 +564,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
           /* turn tadio off -- will turn on again to wait for ACK if needed */
           tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
-          /* Save tx timestamp */
-          tx_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
-          /* calculate TX duration based on sent packet len */
-          tx_duration = TSCH_PACKET_DURATION(packet_len);
-          /* limit tx_time to its max value */
-          tx_duration = MIN(tx_duration, tsch_timing[tsch_ts_max_tx]);
-
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
               uint8_t ackbuf[TSCH_PACKET_MAX_LEN];
@@ -593,7 +584,14 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 #if TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_IMMEDIATE
               ack_start_time = RTIMER_NOW();
 #else // TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_OLD
-              ack_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset] + tx_duration;
+              /* Save tx timestamp */
+              rtimer_clock_t tx_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
+              rtimer_clock_t tx_duration;
+              /* calculate TX duration based on sent packet len */
+              tx_duration = TSCH_PACKET_DURATION(packet_len);
+              /* limit tx_time to its max value */
+              tx_duration = MIN(tx_duration, tsch_timing[tsch_ts_max_tx]);
+              ack_start_time = tx_start_time + tx_duration;
 #endif
               /* Unicast: wait for ack after tx: sleep until ack time */
               TSCH_SCHEDULE_AND_YIELD(pt, t
@@ -761,7 +759,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     static rtimer_clock_t rx_start_time;
     static rtimer_clock_t rx_end_time;
     static rtimer_clock_t expected_rx_time;
-    static rtimer_clock_t packet_duration;
     uint8_t packet_seen;
 
     expected_rx_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
@@ -819,8 +816,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         /* At the end of the reception, get an more accurate estimate of SFD arrival time */
         NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
 #endif
-
-        packet_duration = TSCH_PACKET_DURATION(current_input->len);
 
 #if LLSEC802154_ENABLED
         /* Decrypt and verify incoming frame */
@@ -887,6 +882,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                 NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
 #if TSCH_ACK_TIMING_STYLE == TSCH_ACK_TIMING_OLD
+                rtimer_clock_t packet_duration;
+                packet_duration = TSCH_PACKET_DURATION(current_input->len);
                 rx_end_time = rx_start_time + packet_duration;
 #endif
                 /* Wait for time to ACK and transmit ACK */
