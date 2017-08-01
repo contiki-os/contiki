@@ -43,8 +43,10 @@
 
 #if DEBUG > 1
 #define ANNOTATE(...) printf(__VA_ARGS__)
+#define WHEN_ANNOTATE(x)    x
 #else
 #define ANNOTATE(...)
+#define WHEN_ANNOTATE(x)
 #endif
 
 
@@ -136,9 +138,9 @@ static void
 handle_rat_overflow(void *unused)
 {
   if(rf_core_is_accessible()) {
-  uint_fast8_t success = 0;
       //* if RF is powerdown, nothing to check
-  success = rf_rat_check_overflow(false);
+      WHEN_ANNOTATE(uint_fast8_t success = )
+          rf_rat_check_overflow(false);
 
   ANNOTATE("RF RAT overflow check %d : overs=%d at %lu\n"
           , success
