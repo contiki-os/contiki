@@ -6,13 +6,13 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 NM      = arm-none-eabi-nm
 SIZE    = arm-none-eabi-size
-SREC_TEST = $(shell srec_cat --version > null && echo 1)
-ifeq ([${SREC_TEST}],[1])
 SREC_CAT = srec_cat
+
+SREC_TEST = $(shell $(SREC_CAT) --version > null && echo 1)
+ifeq ([${SREC_TEST}],[1])
 CAN_HEX  = %.hex
 else
-$(waring "install srecord to allow hex image generation")
-SREC_CAT =
+$(warning "install srecord to allow hex image generation")
 CAN_HEX  =
 endif
 
