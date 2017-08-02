@@ -8,8 +8,17 @@ NM      = arm-none-eabi-nm
 SIZE    = arm-none-eabi-size
 SREC_CAT = srec_cat
 
-SREC_TEST = $(shell $(SREC_CAT) --version > null && echo 1)
-ifeq ([${SREC_TEST}],[1])
+ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+$(info "shell is Windows cmd.exe")
+DEVNUL := NUL
+WHICH := where
+else
+$(info "shell is Bash")
+DEVNUL := /dev/null
+WHICH := which
+endif
+
+ifeq ([$(shell srec_cat --version > ${DEVNUL} && echo 1)],[1])
 CAN_HEX  = %.hex
 else
 $(warning "install srecord to allow hex image generation")
