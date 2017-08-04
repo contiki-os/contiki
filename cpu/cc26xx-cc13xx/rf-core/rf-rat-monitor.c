@@ -138,8 +138,8 @@ handle_rat_overflow(void *unused)
 {
   if(rf_core_is_accessible()) {
       //* if RF is powerdown, nothing to check
-      WHEN_ANNOTATE(uint_fast8_t success = )
-          rf_rat_check_overflow(false);
+      uint_fast8_t success = rf_rat_check_overflow(false);
+      (void) success;
 
   ANNOTATE("RF RAT overflow check %d : overs=%d at %lu\n"
           , success
