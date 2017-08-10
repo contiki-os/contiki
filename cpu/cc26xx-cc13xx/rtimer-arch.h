@@ -47,21 +47,58 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 /*---------------------------------------------------------------------------*/
-#define RTIMER_ARCH_SECOND 65536
+//* this is hardware specified default RTC sub-second resolution
+#define RTIMER_ARCH_SECOND_NORM 65536u
+
+#ifdef RTIMER_CONF_ARCH_SECOND
+#if RTIMER_CONF_ARCH_SECOND >= (RTIMER_ARCH_SECOND_NORM*2)
+#error  RTC inc value not support such high rate, use below 128k
+#endif
+#define RTIMER_ARCH_SECOND RTIMER_CONF_ARCH_SECOND
+#else
+#define RTIMER_ARCH_SECOND RTIMER_ARCH_SECOND_NORM
+#endif
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void);
 
 /* HW oscillator frequency is 32 kHz, not 64 kHz and RTIMER_NOW() never returns
  * an odd value; so US_TO_RTIMERTICKS always rounds to the nearest even number.
  */
-#define US_TO_RTIMERTICKS(US)  (2 * ((US) >= 0 ?                        \
-                               (((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) + 500000) / 1000000L) :      \
-                                ((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) - 500000) / 1000000L))
+#if RTIMER_ARCH_SECOND >= (RTIMER_ARCH_SECOND_NORM*3/4)
+#define RTIMER_ARCH_TOL  (RTIMER_ARCH_SECOND/0x8000ul)
+#else
+#define RTIMER_ARCH_TOL  1u
+#endif
 
-#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
-                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
-                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+//* this scale used for achieve maximum arguments range, avoiding overload on int32 value
+#define RTIMER_USCALC_SCALE     32u
+#define RTIMER_US               1000000ul
+#define RTIMER_SCALED_US        (RTIMER_US/RTIMER_USCALC_SCALE)
+#define RTIMER_SCALED_HALFUS    (RTIMER_US/RTIMER_USCALC_SCALE/2u)
+#define RTIMER_SCALED_SECOND    (RTIMER_ARCH_SECOND/RTIMER_USCALC_SCALE)
+#if ( (RTIMER_SCALED_SECOND/2u*RTIMER_USCALC_SCALE) != (RTIMER_ARCH_SECOND/2u) )
+    || ( (RTIMER_SCALED_HALFUS *RTIMER_USCALC_SCALE) != (RTIMER_US/2u) )
+#error please fix RTIMER_USCALC_SCALE selection for your RTIMER_ARCH_SECOND!!!
+#endif
 
+#define US_TO_RTIMERTICKS(US)  (RTIMER_ARCH_TOL * ( ((US) >= 0) ?                        \
+                               (((uint32_t)(US) * (RTIMER_SCALED_SECOND / RTIMER_ARCH_TOL) + RTIMER_SCALED_US/2u) / RTIMER_SCALED_US) :      \
+                                -(((uint32_t)(-US) * (RTIMER_SCALED_SECOND / RTIMER_ARCH_TOL) + RTIMER_SCALED_US/2u) / RTIMER_SCALED_US)\
+                                ) )
+
+#define RTIMERTICKS_TO_US(T)   (((T) >= 0) ?                     \
+                               (((uint32_t)(T) * RTIMER_SCALED_US + ((RTIMER_SCALED_SECOND) / 2u)) / (RTIMER_SCALED_SECOND)) : \
+                               -(((uint32_t)(-T) * RTIMER_SCALED_US + ((RTIMER_SCALED_SECOND) / 2u)) / (RTIMER_SCALED_SECOND))\
+                               )
+
+/*
+#if US_TO_RTIMERTICKS(RTIMERTICKS_TO_US(10000)) != 10000
+#error fix US_TO_RTIMERTICKS, RTIMERTICKS_TO_US functions !!!
+#endif
+#if US_TO_RTIMERTICKS(RTIMERTICKS_TO_US(-10000)) != -10000
+#error fix US_TO_RTIMERTICKS, RTIMERTICKS_TO_US functions !!!
+#endif
+*/
 /* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
    Intended only for positive values of T. */
 #define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))

@@ -43,8 +43,10 @@
 #include "dev/soc-rtc.h"
 
 #include "ti-lib.h"
+#include "driverlib/setup_rom.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 /**
  * \brief We don't need to do anything special here. The RTC is initialised
@@ -53,6 +55,28 @@
 void
 rtimer_arch_init(void)
 {
+#if RTIMER_ARCH_SECOND != RTIMER_ARCH_SECOND_NORM
+    //* normal RTC setup counts with 32kHz LF for RTIMER_ARCH_SECOND_NORM in 1 sec
+    const unsigned long RTIMER_ARCH_NORM_INC = 0x800000ul;
+    //* need increment that counts about RTIMER_ARCH_SECOND in 1sec with same LF freq
+    const unsigned long RTIMER_ARCH_USE_INC  = ((uint64_t)RTIMER_ARCH_NORM_INC*RTIMER_ARCH_SECOND)/RTIMER_ARCH_SECOND_NORM;
+    uint32_t pd_status = ti_lib_aon_wuc_power_status_get();
+    bool aux_on = (pd_status & AONWUC_AUX_POWER_ON) != 0; //AON_WUC_PWRSTAT_AUX_BUS_CONNECTED
+    if (!aux_on){
+
+        // Force AUX on and enable clocks
+        // At this point both AUX and AON should have been reset to 0x0.
+        HWREG(AON_WUC_BASE + AON_WUC_O_AUXCTL) = AON_WUC_AUXCTL_AUX_FORCE_ON;
+        // Wait for power on on the AUX domain
+        while( ! ( HWREGBITW( AON_WUC_BASE + AON_WUC_O_PWRSTAT, AON_WUC_PWRSTAT_AUX_PD_ON_BITN )));
+    }
+    SetupSetAonRtcSubSecInc(RTIMER_ARCH_USE_INC);
+    if (!aux_on){
+        // Allow AUX to power down
+        bool aux_down = true;//(pd_status & AONWUC_AUX_POWER_DOWN)!= 0;
+        AUXWUCPowerCtrl( (aux_down)? AUX_WUC_POWER_DOWN : AUX_WUC_POWER_OFF );
+    }
+#endif
   return;
 }
 /*---------------------------------------------------------------------------*/
