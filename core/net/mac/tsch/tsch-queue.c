@@ -122,21 +122,7 @@ tsch_queue_get_nbr(const linkaddr_t *addr)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
-/* Get a TSCH time source (we currently assume there is only one) */
-struct tsch_neighbor *
-tsch_queue_get_time_source(void)
-{
-  if(!tsch_is_locked()) {
-    struct tsch_neighbor *curr_nbr = list_head(neighbor_list);
-    while(curr_nbr != NULL) {
-      if(curr_nbr->is_time_source) {
-        return curr_nbr;
-      }
-      curr_nbr = list_item_next(curr_nbr);
-    }
-  }
-  return NULL;
-}
+struct tsch_neighbor *n_time_source = NULL;
 /*---------------------------------------------------------------------------*/
 /* Update TSCH time source */
 int
@@ -175,6 +161,7 @@ tsch_queue_update_time_source(const linkaddr_t *new_addr)
         if(old_time_src != NULL) {
           old_time_src->is_time_source = 0;
         }
+        n_time_source = new_time_src;
 
 #ifdef TSCH_CALLBACK_NEW_TIME_SOURCE
         TSCH_CALLBACK_NEW_TIME_SOURCE(old_time_src, new_time_src);
