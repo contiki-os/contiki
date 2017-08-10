@@ -203,7 +203,9 @@ endif
 
 ifneq ($(MAKECMDGOALS),clean)
 DEPS = $(CONTIKI_OBJECTFILES:.o=.d) \
-       $(PROJECT_OBJECTFILES:.o=.d)
+       $(PROJECT_OBJECTFILES:.o=.d) \
+       $(TARGET_STARTFILES:.o=.d)
+
 #$(info deps: ${DEPS})
 -include ${DEPS}
 endif
@@ -278,7 +280,7 @@ ifndef LD
 endif
 
 ifndef CUSTOM_RULE_LINK
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(TARGET_STARTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
 	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
