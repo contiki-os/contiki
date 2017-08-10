@@ -207,7 +207,7 @@ DEPS = $(CONTIKI_OBJECTFILES:${OEXT}=.d) \
        $(PROJECT_OBJECTFILES:${OEXT}=.d) \
        $(TARGET_STARTFILES:${OEXT}=.d)
 
-$(info deps: ${DEPS})
+#$(info deps: ${DEPS})
 -include ${DEPS}
 endif
 
