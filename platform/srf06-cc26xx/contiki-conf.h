@@ -343,7 +343,9 @@
  * Those values are not meant to be modified by the user
  * @{
  */
+#ifndef CLOCK_CONF_SECOND
 #define CLOCK_CONF_SECOND 128
+#endif
 
 /* Compiler configurations */
 #define CCIF
