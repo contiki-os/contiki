@@ -41,6 +41,19 @@ endif
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
+SERIALDUMP := $(CONTIKI)/tools/sky/serialdump-linux
+MOTELIST := $(CONTIKI)/tools/zolertia/motelist-zolertia
+MOTES := $(shell $(MOTELIST) -c 2>&- | cut -f 2 -d ,)
+
+motelist:
+	$(MOTELIST)
+
+wismote-motes:
+	@echo $(MOTES) 
+
+login: 
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES))
+
 %.hex: %.ihex
 	mv $< $@
 
