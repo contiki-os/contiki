@@ -51,6 +51,7 @@
 #include "sys/cooja_mt.h"
 #endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

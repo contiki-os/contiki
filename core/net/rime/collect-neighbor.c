@@ -69,6 +69,7 @@ MEMB(collect_neighbors_mem, struct collect_neighbor, MAX_COLLECT_NEIGHBORS);
 #define EXPECTED_CONGESTION_DURATION CLOCK_SECOND * 240
 #define CONGESTION_PENALTY           8 * COLLECT_LINK_ESTIMATE_UNIT
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

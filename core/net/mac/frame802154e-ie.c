@@ -40,6 +40,7 @@
 #include <string.h>
 #include "net/mac/frame802154e-ie.h"
 
+#undef DEBUG
 #define DEBUG DEBUG_NONE
 #include "net/net-debug.h"
 

@@ -53,6 +53,7 @@ struct data_hdr {
   uint8_t max_rexmits;
 };
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

@@ -39,6 +39,7 @@
 #include "net/mac/framer-nullmac.h"
 #include "net/packetbuf.h"
 
+#undef DEBUG
 #define DEBUG 0
 
 #if DEBUG

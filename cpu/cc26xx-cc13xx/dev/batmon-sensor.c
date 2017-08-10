@@ -45,6 +45,7 @@
 #include <stdint.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)

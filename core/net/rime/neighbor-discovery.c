@@ -63,6 +63,7 @@ struct adv_msg {
   uint16_t val;
 };
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

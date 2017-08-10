@@ -50,6 +50,7 @@ LIST(ctimer_list);
 
 static char initialized;
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

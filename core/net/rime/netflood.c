@@ -54,6 +54,7 @@ struct netflood_hdr {
   uint16_t hops;
 };
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

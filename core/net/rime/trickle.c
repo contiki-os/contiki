@@ -62,6 +62,7 @@ static const struct packetbuf_attrlist attributes[] =
   };
 
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

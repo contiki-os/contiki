@@ -51,6 +51,7 @@
 
 #define PACKET_TIMEOUT (CLOCK_SECOND * 10)
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

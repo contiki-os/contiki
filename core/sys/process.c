@@ -80,6 +80,7 @@ static volatile unsigned char poll_requested;
 
 static void call_process(struct process *p, process_event_t ev, process_data_t data);
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
