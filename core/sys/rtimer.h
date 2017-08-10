@@ -134,6 +134,22 @@ void rtimer_run_next(void);
  */
 #define RTIMER_NOW() rtimer_arch_now()
 
+#ifndef __rtimer_diff_t
+#define __rtimer_diff_t rtimer_diff_t
+typedef int32_t rtimer_diff_t;
+#endif
+
+//* rtimer-arch should provide this macro for TSCH net-stack module
+//* often us-ticks conversion uses mul/div ops,
+//* use of routines helps deruce code size.
+#ifdef US_TO_RTIMERTICKS
+rtimer_diff_t us_to_rtimerticks(rtimer_diff_t val);
+#endif
+
+#ifdef RTIMERTICKS_TO_US
+rtimer_diff_t rtimerticks_to_us(rtimer_diff_t val);
+#endif
+
 /**
  * \brief      Get the time that a task last was executed
  * \param task The task

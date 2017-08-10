@@ -104,5 +104,19 @@ rtimer_run_next(void)
   return;
 }
 /*---------------------------------------------------------------------------*/
+//* rtimer-arch should provide this macro for many net-stack modules
+//* often us-ticks conversion uses mul/div ops,
+//* use of routines helps deruce code size.
+#ifdef US_TO_RTIMERTICKS
+rtimer_diff_t us_to_rtimerticks(rtimer_diff_t val){
+    return US_TO_RTIMERTICKS(val);
+}
+#endif
+
+#ifdef RTIMERTICKS_TO_US
+rtimer_diff_t rtimerticks_to_us(rtimer_diff_t val){
+    return RTIMERTICKS_TO_US(val);
+}
+#endif
 
 /** @}*/

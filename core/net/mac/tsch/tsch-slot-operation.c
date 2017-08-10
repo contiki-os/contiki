@@ -643,7 +643,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
               if(ack_len != 0) {
                 if(is_time_source) {
-                  int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
+                  int32_t eack_time_correction = us_to_rtimerticks(ack_ies.ie_time_correction);
                   int32_t since_last_timesync = TSCH_ASN_DIFF(tsch_current_asn, last_sync_asn);
                   if(eack_time_correction > SYNC_IE_BOUND) {
                     drift_correction = SYNC_IE_BOUND;
