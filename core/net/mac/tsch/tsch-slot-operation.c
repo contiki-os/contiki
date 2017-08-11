@@ -302,7 +302,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
 
     return 0;
   }
-  ref_time += offset;
+  ref_time += offset - RTIMER_GUARD;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
   if(r != RTIMER_OK) {
     return 0;
@@ -315,7 +315,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
  * ahead of time and then busy wait to exactly hit the target. */
 #define TSCH_SCHEDULE_AND_YIELD(pt, tm, ref_time, offset, str) \
   do { \
-    if(tsch_schedule_slot_operation(tm, ref_time, offset - RTIMER_GUARD, str)) { \
+    if(tsch_schedule_slot_operation(tm, ref_time, offset, str)) { \
       PT_YIELD(pt); \
     } \
     BUSYWAIT_UNTIL_ABS(0, ref_time, offset); \
