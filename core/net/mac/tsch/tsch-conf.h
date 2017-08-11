@@ -44,6 +44,11 @@
 
 #include "contiki.h"
 
+/* Include Project Specific conf for TSCH*/
+#ifdef TSCH_CONF_H
+#include TSCH_CONF_H
+#endif /* PROJECT_CONF_H */
+
 /******** Configuration *******/
 
 /* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
@@ -159,7 +164,7 @@
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    65000
 
 #else
-#error "TSCH: Unsupported default timeslot length"
+//* should be user defined slot timing
 #endif
 
 /* A custom feature allowing upper layers to assign packets to
