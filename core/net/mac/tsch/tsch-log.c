@@ -70,6 +70,8 @@ static struct ringbufindex log_ringbuf;
 static struct tsch_log_t log_array[TSCH_LOG_QUEUE_LEN];
 static int log_dropped = 0;
 
+#define LOG_PRINTF(...) printf(__VA_ARGS__)
+
 /*---------------------------------------------------------------------------*/
 /* Process pending log messages */
 void
@@ -79,45 +81,74 @@ tsch_log_process_pending(void)
   int16_t log_index;
   /* Loop on accessing (without removing) a pending input packet */
   if(log_dropped != last_log_dropped) {
-    printf("TSCH:! logs dropped %u\n", log_dropped);
+      LOG_PRINTF("TSCH:! logs dropped %u\n", log_dropped);
     last_log_dropped = log_dropped;
   }
   while((log_index = ringbufindex_peek_get(&log_ringbuf)) != -1) {
     struct tsch_log_t *log = &log_array[log_index];
     if(log->link == NULL) {
-      printf("TSCH: {asn-%x.%lx link-NULL} ", log->asn.ms1b, log->asn.ls4b);
+        LOG_PRINTF("TSCH: {asn-%x.%lx link-NULL} ", log->asn.ms1b, log->asn.ls4b);
     } else {
       struct tsch_slotframe *sf = tsch_schedule_get_slotframe_by_handle(log->link->slotframe_handle);
-      printf("TSCH: {asn-%x.%lx link-%u-%u-%u-%u ch-%u} ",
+      LOG_PRINTF("TSCH: {asn-%x.%lx link-%u-%u-%u-%u ch-%u} ",
              log->asn.ms1b, log->asn.ls4b,
              log->link->slotframe_handle, sf ? sf->size.val : 0, log->link->timeslot, log->link->channel_offset,
              tsch_calculate_channel(&log->asn, log->link->channel_offset));
     }
     switch(log->type) {
       case tsch_log_tx:
-        printf("%s-%u-%u %u tx %d, st %d-%d",
+          LOG_PRINTF("%s-%u-%u %u tx %d, st %d-%d",
             log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data, log->tx.sec_level,
                 log->tx.datalen,
                 log->tx.dest,
                 log->tx.mac_tx_status, log->tx.num_tx);
         if(log->tx.drift_used) {
-          printf(", dr %d", log->tx.drift);
+            LOG_PRINTF(", dr %d", log->tx.drift);
         }
-        printf("\n");
+        LOG_PRINTF("\n");
         break;
       case tsch_log_rx:
-        printf("%s-%u-%u %u rx %d",
+          LOG_PRINTF("%s-%u-%u %u rx %d",
             log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->rx.sec_level,
                 log->rx.datalen,
                 log->rx.src);
         if(log->rx.drift_used) {
-          printf(", dr %d", log->rx.drift);
+            LOG_PRINTF(", dr %d", log->rx.drift);
         }
-        printf(", edr %d\n", (int)log->rx.estimated_drift);
+        LOG_PRINTF(", edr %d\n", (int)log->rx.estimated_drift);
         break;
       case tsch_log_message:
-        printf("%s\n", log->message);
+          LOG_PRINTF("%s\n", log->message);
         break;
+      case tsch_log_text:
+          LOG_PRINTF(log->text);
+        break;
+      case tsch_log_fmt:
+          LOG_PRINTF(log->fmt.text, log->fmt.arg1, log->fmt.arg2, log->fmt.arg3);
+        break;
+
+      case tsch_log_change_timesrc:
+          LOG_PRINTF("TSCH: update time source: %u -> %u\n"
+                  , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.was)
+                  , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.now)
+                  );
+          break;
+
+      case tsch_log_packet:
+          LOG_PRINTF(log->packet.fmt
+                  , log->packet.p
+                  , log->packet.index
+                  );
+          break;
+
+      case tsch_log_packet_verbose:
+          LOG_PRINTF("TSCH: %s locked(%u), n:%p p:%p[%u]->buf:%p\n"
+                  , log->packet.fmt, log->packet.locked
+                  , log->packet.n
+                  , log->packet.p, log->packet.index
+                  , log->packet.qb
+                  );
+          break;
     }
     /* Remove input from ringbuf */
     ringbufindex_get(&log_ringbuf);
