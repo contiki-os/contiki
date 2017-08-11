@@ -47,7 +47,7 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 /*---------------------------------------------------------------------------*/
-//* this is hardware specified default RTC sub-second resolution
+// this is hardware specified default RTC sub-second resolution
 #define RTIMER_ARCH_SECOND_NORM 65536u
 
 #ifdef RTIMER_CONF_ARCH_SECOND
@@ -70,7 +70,7 @@ rtimer_clock_t rtimer_arch_now(void);
 #define RTIMER_ARCH_TOL  1u
 #endif
 
-//* this scale used for achieve maximum arguments range, avoiding overload on int32 value
+// this scale used for achieve maximum arguments range, avoiding overload on int32 value
 #define RTIMER_USCALC_SCALE     32u
 #define RTIMER_US               1000000ul
 #define RTIMER_SCALED_US        (RTIMER_US/RTIMER_USCALC_SCALE)
