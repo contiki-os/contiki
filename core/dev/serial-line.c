@@ -31,7 +31,7 @@
  */
 #include "dev/serial-line.h"
 #include <string.h> /* for memcpy() */
-
+#include <stdio.h>
 #include "lib/ringbuf.h"
 
 #ifdef SERIAL_LINE_CONF_BUFSIZE
@@ -61,6 +61,11 @@ serial_line_input_byte(unsigned char c)
 {
   static uint8_t overflow = 0; /* Buffer overflow: ignore until END */
   
+#ifdef SERIAL_LINE_CONF_HUMAN
+  if(c == 0x0d)
+    c = END;
+#endif
+
   if(IGNORE_CHAR(c)) {
     return 0;
   }
@@ -97,11 +102,30 @@ PROCESS_THREAD(serial_line_process, ev, data)
   while(1) {
     /* Fill application buffer until newline or empty */
     int c = ringbuf_get(&rxbuf);
-    
+#ifdef SERIAL_LINE_CONF_HUMAN
+    if(c == 0x08) { /* Delete */
+      if(ptr) 
+	ptr--;
+      continue;
+    }
+    else if(c == 0x12) { /* Ctrl-R */
+      int i;
+      for(i=0; i < ptr; i++) 
+	printf("%c", buf[i]);
+      continue;
+    }
+    else if(c == 0x15) { /* Ctrl-U */
+      ptr = 0;
+      continue;
+  }
+#endif
     if(c == -1) {
       /* Buffer empty, wait for poll */
       PROCESS_YIELD();
     } else {
+#ifdef SERIAL_LINE_CONF_HUMAN
+  printf("%c", (unsigned char)c); /* Echo */
+#endif
       if(c != END) {
         if(ptr < BUFSIZE-1) {
           buf[ptr++] = (uint8_t)c;
