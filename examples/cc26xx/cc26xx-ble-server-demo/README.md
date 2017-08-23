@@ -13,6 +13,8 @@ To run this example, you will need a [RFC 7668](https://tools.ietf.org/html/rfc7
 A simple IPv6-over-BLE node is implemented under `examples/cc26xx/cc26xx-ble-client-demo`.
 
 ## Configuration
+Please configure the application as described in [BLEach README](../../../cpu/cc26xx-cc13xx/net/README.md).
+
 
 ## Running the example
 Deploy your border router and create the IPv6-over-BLE connection to the node device.

@@ -16,6 +16,8 @@ Another possible border router is the Raspberry Pi 3 with the Raspbian OS
 (for detailed instructions see the [Nordic Semiconductor guide](http://developer.nordicsemi.com/nRF5_IoT_SDK/doc/0.9.0/html/a00092.html)).
 
 ## Configuration
+In addition to the configuration described in [BLEach README](../../../cpu/cc26xx-cc13xx/net/README.md) the following configuration is needed.
+
 To successfully communicate with a UDP server, the `SERVER_IP` define in `client.c` needs to be configured 
 to the IPv6 address of the UDP server.
 For example:
