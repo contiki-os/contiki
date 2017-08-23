@@ -129,3 +129,7 @@ LOG_OPENOCD
 # nRF52 build artifacts
 *.jlink
 *.nrf52dk
+
+# Eclipse project artefacts
+*.cproject
+*.project

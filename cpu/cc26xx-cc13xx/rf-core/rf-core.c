@@ -82,24 +82,20 @@
 /*---------------------------------------------------------------------------*/
 /* RF interrupts */
 #define RX_FRAME_IRQ IRQ_RX_ENTRY_DONE
-#define COMMAND_IRQ  IRQ_COMMAND_DONE
 #define ERROR_IRQ    IRQ_INTERNAL_ERROR
 #define RX_NOK_IRQ   IRQ_RX_NOK
 
 /* Those IRQs are enabled all the time */
 #if RF_CORE_DEBUG_CRC
-#define ENABLED_IRQS (RX_FRAME_IRQ | ERROR_IRQ | RX_NOK_IRQ | COMMAND_IRQ)
+#define ENABLED_IRQS (RX_FRAME_IRQ | ERROR_IRQ | RX_NOK_IRQ)
 #else
-#define ENABLED_IRQS (RX_FRAME_IRQ | ERROR_IRQ | IRQ_COMMAND_DONE)
+#define ENABLED_IRQS (RX_FRAME_IRQ | ERROR_IRQ)
 #endif
 
 #define ENABLED_IRQS_POLL_MODE (ENABLED_IRQS & ~(RX_FRAME_IRQ | ERROR_IRQ))
 
 #define cc26xx_rf_cpe0_isr RFCCPE0IntHandler
 #define cc26xx_rf_cpe1_isr RFCCPE1IntHandler
-#define cc26xx_rf_hw_isr   RFCHardwareIntHandler
-/*---------------------------------------------------------------------------*/
-#define TIMESTAMP_LOCATION 0x40043004
 /*---------------------------------------------------------------------------*/
 typedef ChipType_t chip_type_t;
 /*---------------------------------------------------------------------------*/
@@ -114,10 +110,6 @@ int32_t rat_offset = 0;
 static bool rat_offset_known = false;
 /*---------------------------------------------------------------------------*/
 PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
-/*---------------------------------------------------------------------------*/
-process_event_t rf_core_data_rx_event;
-process_event_t rf_core_command_done_event;
-process_event_t rf_core_timer_event;
 /*---------------------------------------------------------------------------*/
 #define RF_CORE_CLOCKS_MASK (RFC_PWR_PWMCLKEN_RFC_M | RFC_PWR_PWMCLKEN_CPE_M \
                              | RFC_PWR_PWMCLKEN_CPERAM_M)
@@ -248,27 +240,22 @@ rf_core_power_up()
 
   ti_lib_int_pend_clear(INT_RFC_CPE_0);
   ti_lib_int_pend_clear(INT_RFC_CPE_1);
-  ti_lib_int_pend_clear(INT_RFC_HW_COMB);
   ti_lib_int_disable(INT_RFC_CPE_0);
   ti_lib_int_disable(INT_RFC_CPE_1);
-  ti_lib_int_disable(INT_RFC_HW_COMB);
 
   /* Enable RF Core power domain */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_RFCORE);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
-        != PRCM_DOMAIN_POWER_ON) ;
+        != PRCM_DOMAIN_POWER_ON);
 
   ti_lib_prcm_domain_enable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get()) ;
+  while(!ti_lib_prcm_load_get());
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIFG) = 0x0;
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIEN) = 0x0;
   ti_lib_int_enable(INT_RFC_CPE_0);
   ti_lib_int_enable(INT_RFC_CPE_1);
-  ti_lib_int_enable(INT_RFC_HW_COMB);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
@@ -333,7 +320,7 @@ rf_core_stop_rat(void)
   ret = rf_core_wait_cmd_done(&cmd_stop);
   if(ret != RF_CORE_CMD_OK) {
     PRINTF("rf_core_cmd_ok: SYNC_STOP_RAT wait, CMDSTA=0x%08lx, status=0x%04x\n",
-           cmd_status, cmd_stop.status);
+        cmd_status, cmd_stop.status);
     return ret;
   }
 
@@ -352,13 +339,10 @@ rf_core_power_down()
   bool interrupts_disabled = ti_lib_int_master_disable();
   ti_lib_int_disable(INT_RFC_CPE_0);
   ti_lib_int_disable(INT_RFC_CPE_1);
-  ti_lib_int_disable(INT_RFC_HW_COMB);
 
   if(rf_core_is_accessible()) {
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
-    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIFG) = 0x0;
-    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIEN) = 0x0;
 
     /* need to send FS_POWERDOWN or analog components will use power */
     fs_powerdown();
@@ -369,19 +353,17 @@ rf_core_power_down()
   /* Shut down the RFCORE clock domain in the MCU VD */
   ti_lib_prcm_domain_disable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get()) ;
+  while(!ti_lib_prcm_load_get());
 
   /* Turn off RFCORE PD */
   ti_lib_prcm_power_domain_off(PRCM_DOMAIN_RFCORE);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
-        != PRCM_DOMAIN_POWER_OFF) ;
+        != PRCM_DOMAIN_POWER_OFF);
 
   ti_lib_int_pend_clear(INT_RFC_CPE_0);
   ti_lib_int_pend_clear(INT_RFC_CPE_1);
-  ti_lib_int_pend_clear(INT_RFC_HW_COMB);
   ti_lib_int_enable(INT_RFC_CPE_0);
   ti_lib_int_enable(INT_RFC_CPE_1);
-  ti_lib_int_enable(INT_RFC_HW_COMB);
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
@@ -432,31 +414,6 @@ rf_core_boot()
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
-uint32_t
-rf_core_read_current_rf_ticks(void)
-{
-  uint32_t ticks;
-  memcpy(&ticks, (uint8_t *)TIMESTAMP_LOCATION, sizeof(uint32_t));
-  return ticks;
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
-rf_core_start_timer_comp(uint32_t time)
-{
-  uint32_t cmd_status;
-  rfc_CMD_SET_RAT_CMP_t cmd;
-
-  rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_SET_RAT_CMP);
-  cmd.ratCh = RF_CORE_TIMER_INTERRUPT;
-  cmd.compareTime = (ratmr_t)time;
-
-  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) != RF_CORE_CMD_OK) {
-    PRINTF("rf_core_start_timer_comp: CMDSTA=0x%08lx\n", cmd_status);
-    return RF_CORE_CMD_ERROR;
-  }
-  return RF_CORE_CMD_OK;
-}
-/*---------------------------------------------------------------------------*/
 uint8_t
 rf_core_restart_rat(void)
 {
@@ -501,22 +458,14 @@ rf_core_setup_interrupts(bool poll_mode)
   /* Clear interrupt flags, active low clear(?) */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
 
-  /* Set timer channel 7 of rf core as HW interrupt */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIEN) = RFC_DBELL_RFHWIFG_RATCH7;
-
   ti_lib_int_pend_clear(INT_RFC_CPE_0);
   ti_lib_int_pend_clear(INT_RFC_CPE_1);
-  ti_lib_int_pend_clear(INT_RFC_HW_COMB);
   ti_lib_int_enable(INT_RFC_CPE_0);
   ti_lib_int_enable(INT_RFC_CPE_1);
-  ti_lib_int_enable(INT_RFC_HW_COMB);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
-  rf_core_data_rx_event = process_alloc_event();
-  rf_core_command_done_event = process_alloc_event();
-  rf_core_timer_event = process_alloc_event();
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -586,7 +535,7 @@ PROCESS_THREAD(rf_core_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_YIELD_UNTIL(ev == rf_core_data_rx_event);
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
     do {
       watchdog_periodic();
       packetbuf_clear();
@@ -646,12 +595,7 @@ cc26xx_rf_cpe0_isr(void)
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_FRAME_IRQ) {
     /* Clear the RX_ENTRY_DONE interrupt flag */
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFF7FFFFF;
-    process_post(PROCESS_BROADCAST, rf_core_data_rx_event, NULL);
-  }
-
-  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & COMMAND_IRQ) {
-    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFFFFFFFE;
-    process_post(PROCESS_BROADCAST, rf_core_command_done_event, NULL);
+    process_poll(&rf_core_process);
   }
 
   if(RF_CORE_DEBUG_CRC) {
@@ -670,22 +614,6 @@ cc26xx_rf_cpe0_isr(void)
 
   ti_lib_int_master_enable();
 
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-/*---------------------------------------------------------------------------*/
-void
-cc26xx_rf_hw_isr(void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  ti_lib_int_master_disable();
-
-  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIFG) & RFC_DBELL_RFHWIFG_RATCH7) {
-    /* Clear the RAT channel 7 interrupt flag */
-    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFHWIFG) = 0xFFF7FFFF;
-    process_post(PROCESS_BROADCAST, rf_core_timer_event, NULL);
-  }
-
-  ti_lib_int_master_enable();
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/

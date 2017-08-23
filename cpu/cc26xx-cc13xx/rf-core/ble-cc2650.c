@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Graz University of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,14 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * 		BLE radio for the TI CC26xx platform
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
- *
+ * \author
+ * 		Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 
@@ -53,6 +58,18 @@ static ble_adv_type_t adv_type;
 static ble_addr_type_t adv_own_addr_type;
 static uint8_t adv_channel_map;
 static uint16_t buffer_size = 0;
+/*---------------------------------------------------------------------------*/
+static uint16_t scan_interval;
+static uint16_t scan_window;
+static ble_scan_type_t scan_type;
+static ble_addr_type_t scan_own_addr_type;
+/*---------------------------------------------------------------------------*/
+static ble_addr_type_t initiator_peer_addr_type;
+static uint8_t initiator_peer_addr[BLE_ADDR_SIZE];
+/*---------------------------------------------------------------------------*/
+static uint16_t connection_interval;
+static uint16_t connection_latency;
+static uint16_t connection_timeout;
 /*---------------------------------------------------------------------------*/
 static int
 init(void)
@@ -113,6 +130,9 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_CONST_BLE_BUFFER_AMOUNT:
     ble_hal.read_buffer_size(&temp, (unsigned int *)value);
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_CONN_INTERVAL:
+	  ble_hal.read_connection_interval(0, (unsigned int *) value);
+	  return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
@@ -145,6 +165,65 @@ set_value(radio_param_t param, radio_value_t value)
     }
     ble_hal.set_adv_enable(value);
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_SCAN_INTERVAL:
+	  if((value > BLE_SCAN_INTERVAL_MAX) || (value < BLE_SCAN_INTERVAL_MIN)) {
+		  return RADIO_RESULT_INVALID_VALUE;
+	  }
+	  scan_interval = (uint16_t) value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_SCAN_WINDOW:
+  	  if((value > BLE_SCAN_INTERVAL_MAX) || (value < BLE_SCAN_INTERVAL_MIN)) {
+  		  return RADIO_RESULT_INVALID_VALUE;
+  	  }
+  	  scan_window = (uint16_t) value;
+  	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_SCAN_TYPE:
+	  scan_type = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_SCAN_OWN_ADDR_TYPE:
+	  scan_own_addr_type = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_SCAN_ENABLE:
+	  if(value) {
+		  ble_hal.set_scan_param(scan_type, scan_interval,
+				  	  	  	  	 scan_window, scan_own_addr_type);
+	  }
+	  ble_hal.set_scan_enable(value, 0);
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_PEER_ADDR_TYPE:
+	  initiator_peer_addr_type = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_CONN_INTERVAL:
+	  connection_interval = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_CONN_LATENCY:
+	  connection_latency = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_CONN_SUPERVISION_TIMEOUT:
+	  connection_timeout = value;
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_INITIATOR_ENABLE:
+	  if(value) {
+		  ble_hal.create_connection(scan_interval, scan_window,
+				  	  	  	  	  	initiator_peer_addr_type,
+									initiator_peer_addr,
+									scan_own_addr_type,
+									connection_interval,
+									connection_latency,
+									connection_timeout);
+	  }
+	  else {
+		  ble_hal.create_connection_cancel();
+	  }
+	  return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_CONN_UPDATE:
+	  if(value) {
+		  // TODO use connection handle
+		  return ble_hal.connection_update(0, connection_interval, connection_latency, connection_timeout);
+	  }
+	  else {
+		  return RADIO_RESULT_INVALID_VALUE;
+	  }
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
@@ -180,11 +259,17 @@ set_object(radio_param_t param, const void *src, size_t size)
     }
     ble_hal.set_scan_resp_data((unsigned short)size, (char *)src);
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_BLE_PEER_ADDR:
+	if(size <= 0 || size > BLE_ADDR_SIZE || !src) {
+		return RADIO_RESULT_INVALID_VALUE;
+	}
+	memcpy(initiator_peer_addr, src, size);
+	return RADIO_RESULT_OK;
   }
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
-const struct radio_driver ble_mode_driver = {
+const struct radio_driver ble_cc2650_driver = {
   init,
   NULL,
   NULL,

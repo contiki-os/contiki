@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Graz University of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,14 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * 		hardware abstraction for a BLE controller
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
- *
+ * \author
+ * 		Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 
@@ -48,8 +53,10 @@
 #define BLE_ADV_CHANNEL_2_MASK   0b010
 #define BLE_ADV_CHANNEL_3        39
 #define BLE_ADV_CHANNEL_3_MASK   0b100
-#define BLE_ADV_INTERVAL_MIN     0x0020
+#define BLE_ADV_INTERVAL_MIN     20
 #define BLE_ADV_INTERVAL_MAX     0x4000
+#define BLE_SCAN_INTERVAL_MIN	 0x0004
+#define BLE_SCAN_INTERVAL_MAX	 0x4000
 /*---------------------------------------------------------------------------*/
 /* Data channel definitions                                                  */
 #define BLE_DATA_CHANNEL_MIN     0
@@ -58,6 +65,33 @@
 #define BLE_DATA_PDU_LLID_DATA_FRAGMENT     0b01
 #define BLE_DATA_PDU_LLID_DATA_MESSAGE      0b10
 #define BLE_DATA_PDU_LLID_CONTROL           0b11
+/*---------------------------------------------------------------------------*/
+/* Types of LL control PDUs                                                  */
+#define BLE_LL_CONN_UPDATE_REQ              0x00
+#define BLE_LL_CHANNEL_MAP_REQ              0x01
+#define BLE_LL_TERMINATE_IND                0x02
+#define BLE_LL_ENC_REQ                      0x03
+#define BLE_LL_ENC_RSP                      0x04
+#define BLE_LL_START_ENC_REQ                0x05
+#define BLE_LL_START_ENC_RSP                0x06
+#define BLE_LL_UNKNOWN_RSP                  0x07
+#define BLE_LL_FEATURE_REQ                  0x08
+#define BLE_LL_FEATURE_RSP                  0x09
+#define BLE_LL_PAUSE_ENC_REQ                0x0A
+#define BLE_LL_PAUSE_ENC_RSP                0x0B
+#define BLE_LL_VERSION_IND                  0x0C
+#define BLE_LL_REJECT_IND                   0x0D
+#define BLE_LL_SLAVE_FEATURE_REQ            0x0E
+#define BLE_LL_CONN_PARAM_REQ               0x0F
+#define BLE_LL_CONN_PARAM_RSP               0x10
+#define BLE_LL_REJECT_IND_EXT               0x11
+#define BLE_LL_PING_REQ                     0x12
+#define BLE_LL_PING_RSP                     0x13
+/*---------------------------------------------------------------------------*/
+#define FRAME_BLE_RX_EVENT					0x00	/* signaling that data was received (standard) */
+#define FRAME_BLE_TX_EVENT					0x10	/* signaling that data was successfully sent */
+#define FRAME_BLE_CONNECTION_EVENT			0x20	/* signaling that a new BLE connection was established */
+#define FRAME_BLE_CONNECTION_UPDATED		0x30	/* signaling that the BLE connection parameter were successfully updated */
 /*---------------------------------------------------------------------------*/
 /* Return values for functions of ble_controller_driver implementations      */
 typedef enum {
@@ -89,10 +123,20 @@ typedef enum {
 /*---------------------------------------------------------------------------*/
 /* Scanning modes of BLE */
 typedef enum {
+	/* no SCAN REQUESTS are sent */
   BLE_SCAN_PASSIVE,
+  /* SCAN REQUESTS may be sent */
   BLE_SCAN_ACTIVE
 } ble_scan_type_t;
 
+/*---------------------------------------------------------------------------*/
+/* Scanning filter policy */
+typedef enum {
+	/* accept all advertisement packets */
+	BLE_SCAN_FILTER_POLICY_ACCEPT,
+	/* ignore all advertisement packets from devices not on the white list */
+	BLE_SCAN_FILTER_POLICY_IGNORE
+} ble_scan_filter_policy_t;
 /*---------------------------------------------------------------------------*/
 /* List of packets to be sent by RDC layer */
 struct ble_buf_list {
@@ -105,7 +149,6 @@ struct ble_buf_list {
 /* Extension of the RADIO_PARAM fields for the BLE radios                    */
 enum {
   /* start with 100 to be sure to not interfere with the standard values*/
-
   /*-----------------------------------------------------------------------*/
   /* BLE controller general                                                */
   /* The bluetooth device address */
@@ -120,17 +163,8 @@ enum {
   /*-----------------------------------------------------------------------*/
   /* BLE advertisement                                                     */
 
-  /* minimum advertisement interval
-   * value can range from RADIO_CONST_BLE_ADV_INTERVAL_MIN to
-   * RADIO_CONST_BLE_ADV_INTERVAL_MAX and must not be greater than
-   * RADIO_RARAM_BLE_ADV_INTERVAL_MAX */
+  /* advertisement interval */
   RADIO_PARAM_BLE_ADV_INTERVAL,
-
-  /* minimum advertisement interval according to standard */
-  RADIO_CONST_BLE_ADV_INTERVAL_MIN,
-
-  /* maximum advertisement interval according to standard */
-  RADIO_CONST_BLE_ADV_INTERVAL_MAX,
 
   /* BLE advertisement type (directed/undirected, ...) */
   RADIO_PARAM_BLE_ADV_TYPE,
@@ -148,7 +182,53 @@ enum {
   RADIO_PARAM_BLE_ADV_SCAN_RESPONSE,
 
   /* 1: enable advertisement / 0: disable advertisement */
-  RADIO_PARAM_BLE_ADV_ENABLE
+  RADIO_PARAM_BLE_ADV_ENABLE,
+
+  /*-----------------------------------------------------------------------*/
+  /* BLE scanning                                                          */
+
+  /* scanning interval */
+  RADIO_PARAM_BLE_SCAN_INTERVAL,
+
+  /* scanning window */
+  RADIO_PARAM_BLE_SCAN_WINDOW,
+
+  /* BLE scanning type (active/passive) */
+  RADIO_PARAM_BLE_SCAN_TYPE,
+
+  /* type of own address during scanning */
+  RADIO_PARAM_BLE_SCAN_OWN_ADDR_TYPE,
+
+  /* scanning channel */
+  RADIO_PARAM_BLE_SCAN_CHANNEL,
+
+  /* 1: enable scanning / 0: disable scanning */
+  RADIO_PARAM_BLE_SCAN_ENABLE,
+
+  /*-----------------------------------------------------------------------*/
+  /* BLE initiating                                                        */
+  /* The initiating command uses some parameters from scanning 			   */
+  /* (scan interval, window, address type)								   */
+
+  /* address type of the advertising device */
+  RADIO_PARAM_BLE_PEER_ADDR_TYPE,
+
+  /* address of the advertising device */
+  RADIO_PARAM_BLE_PEER_ADDR,
+
+  /* connection interval */
+  RADIO_PARAM_BLE_CONN_INTERVAL,
+
+  /* slave latency */
+  RADIO_PARAM_BLE_CONN_LATENCY,
+
+  /* supervision timeout */
+  RADIO_PARAM_BLE_CONN_SUPERVISION_TIMEOUT,
+
+  /* 1: start connection / 0: cancel connection creation */
+  RADIO_PARAM_BLE_INITIATOR_ENABLE,
+
+  RADIO_PARAM_BLE_CONN_UPDATE
 };
 
 /*---------------------------------------------------------------------------*/
@@ -307,6 +387,9 @@ struct ble_hal_driver {
   ble_result_t (*send) (void *buf, unsigned short buf_len);
 
   ble_result_t (*send_list) (struct ble_buf_list *list);
+
+  ble_result_t (*read_connection_interval) (unsigned int conn_handle,
+		  	  	  	  	  	  	  	  	    unsigned int *conn_interval_ms);
 };
 
 #endif /* BLE_HAL_H_ */
