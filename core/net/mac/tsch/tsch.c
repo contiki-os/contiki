@@ -45,6 +45,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
+#include "net/nbr-table.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
@@ -53,6 +54,7 @@
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-security.h"
+#include "net/mac/mac-sequence.h"
 #include "lib/random.h"
 
 #if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
@@ -64,30 +66,16 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
+#if NETSTACK_CONF_WITH_IPV6
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 #define TSCH_LINK_NEIGHBOR_CALLBACK(dest, status, num) uip_ds6_link_neighbor_callback(status, num)
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* TSCH_LINK_NEIGHBOR_CALLBACK */
-
-/* 802.15.4 duplicate frame detection */
-struct seqno {
-  linkaddr_t sender;
-  uint8_t seqno;
-};
-
-/* Size of the sequence number history */
-#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
-#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
-#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-#define MAX_SEQNOS 8
-#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-
-/* Seqno history */
-static struct seqno received_seqnos[MAX_SEQNOS];
 
 /* Let TSCH select a time source with no help of an upper layer.
  * We do so using statistics from incoming EBs */
@@ -141,13 +129,13 @@ int tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
 int tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
-int tsch_is_pan_secured = TSCH_SECURITY_ENABLED;
+int tsch_is_pan_secured = LLSEC802154_ENABLED;
 /* The current Absolute Slot Number (ASN) */
 struct asn_t current_asn;
 /* Device rank or join priority:
  * For PAN coordinator: 0 -- lower is better */
 uint8_t tsch_join_priority;
-/* The current TSCH sequence number, used for both data and EBs */
+/* The current TSCH sequence number, used for unicast data frames only */
 static uint8_t tsch_packet_seqno = 0;
 /* Current period for EB output */
 static clock_time_t tsch_current_eb_period;
@@ -177,7 +165,7 @@ tsch_set_coordinator(int enable)
 void
 tsch_set_pan_secured(int enable)
 {
-  tsch_is_pan_secured = TSCH_SECURITY_ENABLED && enable;
+  tsch_is_pan_secured = LLSEC802154_ENABLED && enable;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -199,8 +187,8 @@ tsch_reset(void)
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
   process_post_synch(&tsch_pending_events_process, PROCESS_EVENT_POLL, NULL);
-  /* Empty all neighbor queues */
-  /* tsch_queue_flush_all(); */
+  /* Reset neighbor queues */
+  tsch_queue_reset();
   /* Remove unused neighbors */
   tsch_queue_free_unused_neighbors();
   tsch_queue_update_time_source(NULL);
@@ -280,13 +268,13 @@ eb_input(struct input_packet *current_input)
 #if TSCH_AUTOSELECT_TIME_SOURCE
     if(!tsch_is_coordinator) {
       /* Maintain EB received counter for every neighbor */
-      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, &frame.src_addr);
+      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, (linkaddr_t *)&frame.src_addr);
       if(stat == NULL) {
-        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, &frame.src_addr);
+        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, (linkaddr_t *)&frame.src_addr, NBR_TABLE_REASON_MAC, NULL);
       }
       if(stat != NULL) {
         stat->rx_count++;
-        stat->jp = eb_ies.join_priority;
+        stat->jp = eb_ies.ie_join_priority;
         best_neighbor_eb_count = MAX(best_neighbor_eb_count, stat->rx_count);
       }
       /* Select best time source */
@@ -361,6 +349,7 @@ tsch_rx_process_pending()
       /* Copy to packetbuf for processing */
       packetbuf_copyfrom(current_input->payload, current_input->len);
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, current_input->rssi);
+      packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, current_input->channel);
     }
 
     /* Remove input from ringbuf */
@@ -455,21 +444,21 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
   
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
       &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
     PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
 
-#if !TSCH_SECURITY_ENABLED
+#if !LLSEC802154_ENABLED
   if(frame.fcf.security_enabled == 1) {
     PRINTF("TSCH:! parse_eb: we do not support security, but EB is secured\n");
     return 0;
   }
-#endif /* !TSCH_SECURITY_ENABLED */
+#endif /* !LLSEC802154_ENABLED */
 
 #if TSCH_JOIN_MY_PANID_ONLY
   /* Check if the EB comes from the PAN ID we expect */
@@ -561,10 +550,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
 
-#ifdef TSCH_CALLBACK_JOINING_NETWORK
-      TSCH_CALLBACK_JOINING_NETWORK();
-#endif
-
       /* Set PANID */
       frame802154_set_pan_id(frame.src_pid);
 
@@ -575,8 +560,12 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       tsch_is_associated = 1;
       tsch_is_pan_secured = frame.fcf.security_enabled;
 
-      /* Association done, schedule keepalive messages */
+      /* Start sending keep-alives now that tsch_is_associated is set */
       tsch_schedule_keepalive();
+
+#ifdef TSCH_CALLBACK_JOINING_NETWORK
+      TSCH_CALLBACK_JOINING_NETWORK();
+#endif
 
       PRINTF("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from ",
              tsch_is_pan_secured,
@@ -609,24 +598,25 @@ PT_THREAD(tsch_scan(struct pt *pt))
 
   static struct input_packet input_eb;
   static struct etimer scan_timer;
+  /* Time when we started scanning on current_channel */
+  static clock_time_t current_channel_since;
 
   ASN_INIT(current_asn, 0, 0);
 
   etimer_set(&scan_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
+  current_channel_since = clock_time();
 
   while(!tsch_is_associated && !tsch_is_coordinator) {
     /* Hop to any channel offset */
-    static int current_channel = 0;
-    /* Time when we started scanning on current_channel */
-    static clock_time_t current_channel_since = 0;
+    static uint8_t current_channel = 0;
 
     /* We are not coordinator, try to associate */
     rtimer_clock_t t0;
     int is_packet_pending = 0;
-    clock_time_t now_seconds = clock_seconds();
+    clock_time_t now_time = clock_time();
 
     /* Switch to a (new) channel for scanning */
-    if(current_channel == 0 || now_seconds != current_channel_since) {
+    if(current_channel == 0 || now_time - current_channel_since > TSCH_CHANNEL_SCAN_DURATION) {
       /* Pick a channel at random in TSCH_JOIN_HOPPING_SEQUENCE */
       uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
           random_rand() % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
@@ -635,7 +625,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
         current_channel = scan_channel;
         PRINTF("TSCH: scanning on channel %u\n", scan_channel);
       }
-      current_channel_since = now_seconds;
+      current_channel_since = now_time;
     }
 
     /* Turn radio on and wait for EB */
@@ -649,11 +639,11 @@ PT_THREAD(tsch_scan(struct pt *pt))
     }
 
     if(is_packet_pending) {
-      /* Save packet timestamp */
-      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
+
+      /* Save packet timestamp */
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
@@ -740,22 +730,17 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         uint8_t tsch_sync_ie_offset;
         /* Prepare the EB packet and schedule it to be sent */
         packetbuf_clear();
-        /* We don't use seqno 0 */
-        if(++tsch_packet_seqno == 0) {
-          tsch_packet_seqno++;
-        }
         packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
-        packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
         if(tsch_is_pan_secured) {
           /* Set security level, key id and index */
           packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
           packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
           packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
         }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
-            tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
+            &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
@@ -888,14 +873,14 @@ send_packet(mac_callback_t sent, void *ptr)
     return;
   }
 
-  /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
-         in framer-802154.c. */
-  if(++tsch_packet_seqno == 0) {
-    tsch_packet_seqno++;
-  }
-
   /* Ask for ACK if we are sending anything other than broadcast */
   if(!linkaddr_cmp(addr, &linkaddr_null)) {
+    /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+           in framer-802154.c. */
+    if(++tsch_packet_seqno == 0) {
+      tsch_packet_seqno++;
+    }
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
   } else {
     /* Broadcast packets shall be added to broadcast queue
@@ -905,16 +890,15 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
     /* Set security level, key id and index */
     packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
   }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
 
   packet_count_before = tsch_queue_packet_count(addr);
 
@@ -926,7 +910,10 @@ send_packet(mac_callback_t sent, void *ptr)
     /* Enqueue packet */
     p = tsch_queue_add_packet(addr, sent, ptr);
     if(p == NULL) {
-      PRINTF("TSCH:! can't send packet !tsch_queue_add_packet\n");
+      PRINTF("TSCH:! can't send packet to %u with seqno %u, queue %u %u\n",
+          TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+          packet_count_before,
+          tsch_queue_packet_count(addr));
       ret = MAC_TX_ERR;
     } else {
       p->header_len = hdr_len;
@@ -936,6 +923,7 @@ send_packet(mac_callback_t sent, void *ptr)
              tsch_queue_packet_count(addr),
              p->header_len,
              queuebuf_datalen(p->qb));
+      (void)packet_count_before; /* Discard "variable set but unused" warning in case of TSCH_LOG_LEVEL of 0 */
     }
   }
   if(ret != MAC_TX_DEFERRED) {
@@ -957,28 +945,15 @@ packet_input(void)
 
     /* Seqno of 0xffff means no seqno */
     if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) != 0xffff) {
-      /* Check for duplicate packet by comparing the sequence number
-         of the incoming packet with the last few ones we saw. */
-      int i;
-      for(i = 0; i < MAX_SEQNOS; ++i) {
-        if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno &&
-           linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                        &received_seqnos[i].sender)) {
-          /* Drop the packet. */
-          PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
-                 TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
-                 packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
-          duplicate = 1;
-        }
-      }
-      if(!duplicate) {
-        for(i = MAX_SEQNOS - 1; i > 0; --i) {
-          memcpy(&received_seqnos[i], &received_seqnos[i - 1],
-                 sizeof(struct seqno));
-        }
-        received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-        linkaddr_copy(&received_seqnos[0].sender,
-                      packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      /* Check for duplicates */
+      duplicate = mac_sequence_is_duplicate();
+      if(duplicate) {
+        /* Drop the packet. */
+        PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
+               TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
+               packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+      } else {
+        mac_sequence_register_seqno();
       }
     }
 
@@ -1011,6 +986,11 @@ turn_on(void)
 static int
 turn_off(int keep_radio_on)
 {
+  if(keep_radio_on) {
+    NETSTACK_RADIO.on();
+  } else {
+    NETSTACK_RADIO.off();
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/

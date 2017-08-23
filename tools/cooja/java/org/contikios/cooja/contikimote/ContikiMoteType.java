@@ -45,13 +45,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import org.apache.log4j.Level;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -68,8 +66,8 @@ import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.ContikiMoteCompileDialog;
-import org.contikios.cooja.dialogs.MessageList;
-import org.contikios.cooja.dialogs.MessageList.MessageContainer;
+import org.contikios.cooja.dialogs.MessageListUI;
+import org.contikios.cooja.dialogs.MessageContainer;
 import org.contikios.cooja.mote.memory.ArrayMemory;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
@@ -319,7 +317,7 @@ public class ContikiMoteType implements MoteType {
       if (getCompileCommands() == null) {
         throw new MoteTypeCreationException("No compile commands specified");
       }
-      final MessageList compilationOutput = new MessageList();
+      final MessageListUI compilationOutput = new MessageListUI();
       String[] arr = getCompileCommands().split("\n");
       for (String cmd : arr) {
         if (cmd.trim().isEmpty()) {

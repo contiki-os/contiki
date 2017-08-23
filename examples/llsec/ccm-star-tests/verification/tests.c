@@ -48,6 +48,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SEC_LVL 2
+#define MIC_LEN LLSEC802154_MIC_LEN(2)
+
 /*---------------------------------------------------------------------------*/
 /* Test vector C.1 from FIPS Pub 197 */
 static void
@@ -97,10 +100,10 @@ test_sec_lvl_2()
                        0x05 , 0x00 , 0x00 , 0x00 ,
                        /* Payload */
                        0x55 , 0xCF , 0x00 , 0x00 , 0x51 , 0x52 , 0x53 , 0x54 };
-  uint8_t oracle[LLSEC802154_MIC_LENGTH] = { 0x22 , 0x3B , 0xC1 , 0xEC ,
-                                             0x84 , 0x1A , 0xB5 , 0x53 };
+  uint8_t oracle[MIC_LEN] = { 0x22 , 0x3B , 0xC1 , 0xEC ,
+                              0x84 , 0x1A , 0xB5 , 0x53 };
   frame802154_frame_counter_t counter;
-  uint8_t mic[LLSEC802154_MIC_LENGTH];
+  uint8_t mic[MIC_LEN];
   uint8_t nonce[13];
   
   printf("Testing verification ... ");
@@ -112,7 +115,7 @@ test_sec_lvl_2()
   counter.u32 = 5;
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, counter.u16[1]);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
   packetbuf_hdrreduce(18);
   
   CCM_STAR.set_key(key);
@@ -120,10 +123,10 @@ test_sec_lvl_2()
   CCM_STAR.aead(nonce,
       NULL, 0,
       packetbuf_hdrptr(), packetbuf_totlen(),
-      ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), LLSEC802154_MIC_LENGTH,
+      ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), MIC_LEN,
       1);
   
-  if(memcmp(((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), oracle, LLSEC802154_MIC_LENGTH) == 0) {
+  if(memcmp(((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), oracle, MIC_LEN) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");

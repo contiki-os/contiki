@@ -122,7 +122,7 @@ phase_update(const linkaddr_t *neighbor, rtimer_clock_t time,
   } else {
     /* No matching phase was found, so we allocate a new one. */
     if(mac_status == MAC_TX_OK && e == NULL) {
-      e = nbr_table_add_lladdr(nbr_phase, neighbor);
+      e = nbr_table_add_lladdr(nbr_phase, neighbor, NBR_TABLE_REASON_MAC, NULL);
       if(e) {
         e->time = time;
 #if PHASE_DRIFT_CORRECT

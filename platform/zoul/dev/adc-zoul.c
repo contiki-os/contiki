@@ -93,6 +93,9 @@ get_channel_pin(int type)
   if((ZOUL_SENSORS_ADC5) && (type == ZOUL_SENSORS_ADC5)) {
     return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC5_PIN;
   }
+  if((ZOUL_SENSORS_ADC6) && (type == ZOUL_SENSORS_ADC6)) {
+    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC6_PIN;
+  }
   return ZOUL_SENSORS_ERROR;
 }
 /*---------------------------------------------------------------------------*/
@@ -154,9 +157,12 @@ configure(int type, int value)
     if(value & ZOUL_SENSORS_ADC5) {
       ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC5_PIN, IOC_OVERRIDE_ANA);
     }
+    if(value & ZOUL_SENSORS_ADC6) {
+      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC6_PIN, IOC_OVERRIDE_ANA);
+    }
     adc_init();
     set_decimation_rate(SOC_ADC_ADCCON_DIV_512);
-    enabled_channels = value;
+    enabled_channels += value;
     break;
 
   case ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE:

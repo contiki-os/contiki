@@ -256,7 +256,7 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
   while(1) {
     etimer_set(&ble_adv_et, beacond_config.interval);
 
-    PROCESS_WAIT_EVENT();
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&ble_adv_et) || ev == PROCESS_EVENT_EXIT);
 
     if(ev == PROCESS_EVENT_EXIT) {
       PROCESS_EXIT();
@@ -374,7 +374,7 @@ PROCESS_THREAD(rf_ble_beacon_process, ev, data)
 
       /* Wait unless this is the last burst */
       if(i < BLE_ADV_MESSAGES - 1) {
-        PROCESS_WAIT_EVENT();
+        PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&ble_adv_et));
       }
     }
 

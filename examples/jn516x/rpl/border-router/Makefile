@@ -14,7 +14,7 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 PROJECT_SOURCEFILES += slip-bridge.c slip.c
 
 ifeq ($(PREFIX),)
- PREFIX = aaaa::1/64
+ PREFIX = fd00::1/64
 endif
 
 include $(CONTIKI)/Makefile.include

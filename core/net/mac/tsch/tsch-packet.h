@@ -36,6 +36,7 @@
 /********** Includes **********/
 
 #include "contiki.h"
+#include "net/packetbuf.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
@@ -81,7 +82,7 @@ by default, useful in case of duplicate seqno */
 /********** Constants *********/
 
 /* Max TSCH packet lenght */
-#define TSCH_PACKET_MAX_LEN 127
+#define TSCH_PACKET_MAX_LEN MIN(127,PACKETBUF_SIZE)
 
 /********** Functions *********/
 
@@ -93,7 +94,7 @@ int tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len);
 /* Create an EB packet */
 int tsch_packet_create_eb(uint8_t *buf, int buf_size,
-    uint8_t seqno, uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
+    uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
 /* Update ASN in EB packet */
 int tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset);
 /* Parse EB and extract ASN and join priority */

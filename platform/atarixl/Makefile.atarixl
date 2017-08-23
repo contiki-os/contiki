@@ -35,7 +35,7 @@ CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
 SHADOW_RAM_SOURCEFILES  = ethernet.c ethernet-drv.c timer.c uip.c uiplib.c
-SHADOW_RAM2_SOURCEFILES = clock.c uip_arch.c uip_arp.c
+SHADOW_RAM2_SOURCEFILES = clock.c uip_arch.c uip_arp.c unload.c random.c
 
 # Set target-specific variable values
 ${addprefix $(OBJECTDIR)/,${call oname, $(SHADOW_RAM_SOURCEFILES)}}:  CFLAGS += --code-name SHADOW_RAM
@@ -55,7 +55,7 @@ disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg    atr/contiki.cfg
 	cp cs8900a.eth                              atr/cs8900a.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	cp $(CC65_HOME)/mou/atrxst.mou              atr/contiki.mou
+	cp $(CC65_TARGET_DIR)/drv/mou/atrxst.mou    atr/contiki.mou
 endif
 ifeq ($(HTTPD-CFS),1)
 	cp httpd-cfs/index.htm                      atr/index.htm

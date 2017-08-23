@@ -24,4 +24,4 @@ CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 connect-router:	border-router.native
-	sudo ./border-router.native aaaa::1/64
+	sudo ./border-router.native fd00::1/64

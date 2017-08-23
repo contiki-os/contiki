@@ -107,16 +107,6 @@
 #define PROP_MODE_USE_CRC16 0
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_SNIFFER PROP_MODE_CONF_SNIFFER
-#else
-#define PROP_MODE_SNIFFER 0
-#endif
-
-#if PROP_MODE_SNIFFER
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };
-#endif
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -634,7 +624,7 @@ prepare(const void *payload, unsigned short payload_len)
   int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
 
   memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
-  return RF_CORE_CMD_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -683,7 +673,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en(false);
+  rf_core_cmd_done_en(false, false);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -728,7 +718,7 @@ transmit(unsigned short transmit_len)
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
    * except when we are transmitting
    */
-  rf_core_cmd_done_dis();
+  rf_core_cmd_done_dis(false);
 
   /* Workaround. Set status to IDLE */
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
@@ -773,28 +763,7 @@ read_frame(void *buf, unsigned short buf_len)
       }
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
-
-#if PROP_MODE_SNIFFER
-      {
-        int i;
-
-        cc26xx_uart_write_byte(magic[0]);
-        cc26xx_uart_write_byte(magic[1]);
-        cc26xx_uart_write_byte(magic[2]);
-        cc26xx_uart_write_byte(magic[3]);
-
-        cc26xx_uart_write_byte(len + 2);
-
-        for(i = 0; i < len; ++i) {
-          cc26xx_uart_write_byte(((uint8_t *)(buf))[i]);
-        }
-
-        cc26xx_uart_write_byte((uint8_t)rx_stats.lastRssi);
-        cc26xx_uart_write_byte(0x80);
-
-        while(cc26xx_uart_busy() == UART_BUSY);
-      }
-#endif
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
     }
 
     /* Move read entry pointer to next entry */
@@ -894,18 +863,18 @@ static int
 on(void)
 {
   /*
-   * Request the HF XOSC as the source for the HF clock. Needed before we can
-   * use the FS. This will only request, it will _not_ perform the switch.
-   */
-  oscillators_request_hf_xosc();
-
-  /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
    * from within an interrupt context. Abort, but pretend everything is OK.
    */
   if(rf_ble_is_active() == RF_BLE_ACTIVE) {
     return RF_CORE_CMD_OK;
   }
+
+  /*
+   * Request the HF XOSC as the source for the HF clock. Needed before we can
+   * use the FS. This will only request, it will _not_ perform the switch.
+   */
+  oscillators_request_hf_xosc();
 
   if(rf_is_on()) {
     PRINTF("on: We were on. PD=%u, RX=0x%04x \n", rf_core_is_accessible(),
@@ -933,7 +902,7 @@ on(void)
     }
   }
 
-  rf_core_setup_interrupts();
+  rf_core_setup_interrupts(false);
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
@@ -1083,6 +1052,8 @@ set_value(radio_param_t param, radio_value_t value)
     }
 
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
     rssi_threshold = (int8_t)value;
     break;
@@ -1104,7 +1075,7 @@ set_value(radio_param_t param, radio_value_t value)
     rv = RADIO_RESULT_ERROR;
   }
 
-  if(rx_on_prop() != RF_CORE_CMD_OK) {
+  if(soft_on_prop() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on_prop() failed\n");
     rv = RADIO_RESULT_ERROR;
   }

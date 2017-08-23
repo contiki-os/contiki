@@ -3,8 +3,10 @@ CONTIKI_CPU_DIRS += . init/common
 CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c
 
 CC       = gcc
-LD       = gcc
-AS       = as
+LD       = $(CC)
+# Use gcc to invoke the assembler so that the preprocessor will be run on each
+# file first, enabling us to use macros within assembly language files:
+AS       = $(CC)
 OBJCOPY  = objcopy
 SIZE     = size
 STRIP    = strip

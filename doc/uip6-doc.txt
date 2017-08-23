@@ -161,7 +161,7 @@ Determine the link-layer address of a %neighbor given its IPv6 address.\n
 \li Neighbor unreachability detection\n
 Verify that a neighbor is still reachable via a cached link-layer
 address.\n
--> send a NS (done in #uip_ds6_neighbor_periodic).
+-> send a NS (done in uip_ds6_neighbor_periodic).
 \li Next-hop determination\n
 Map an IPv6 destination address into the IPv6 address of the %neighbor
 to which traffic for the destination should be sent.\n
@@ -339,7 +339,7 @@ We will soon support RFC4944 transmission of IPv6 packets over 802.15.4\n
 \li Path MTU Discovery RFC 1981 (SHOULD): no support
 \li Jumbograms RFC 2675 (MAY): no support
 \li ICMPv6 RFC 4443 (MUST): full support
-\li IPv6 addressing architecture RFC 3513 (MUST): full support
+\li IPv6 addressing architecture RFC 4291 (MUST): full support
 \li Privacy extensions for address autoconfiguration RFC 3041 (SHOULD): no support.
 \li Default Address Selection RFC 3484 (MUST): full support.
 \li MLDv1 (RFC 2710) and MLDv2 (RFC 3810) (conditional MUST applying here): no support. As we run IPv6 over Multicast or broadcast capable links (Ethernet or 802.15.4), the conditional MUST applies. We should be able to send an MLD report when joining a solicited node multicast group at address configuration time. This will be available in a later release.

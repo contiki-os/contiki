@@ -26,10 +26,10 @@ First program a device with the examples/ipso-objects/example-ipso-objects.c
 >...
 ```
 
-After that start up a native-border router or other border router on aaaa::1/64
+After that start up a native-border router or other border router on fd00::1/64
 or another prefix - NOTE: if you use another prefix you will need to change LWM2M_SERVER_ADDRESS for which the device will register - in project-conf.h:
 ```
-#define LWM2M_SERVER_ADDRESS "aaaa::1"
+#define LWM2M_SERVER_ADDRESS "fd00::1"
 ```
 
 Then when everything is setup you can download a Leshan and use that to

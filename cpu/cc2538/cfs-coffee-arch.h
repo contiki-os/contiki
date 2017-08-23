@@ -102,6 +102,8 @@
 /** Maximal amount of log table entries read in one batch */
 #ifdef COFFEE_CONF_LOG_TABLE_LIMIT
 #define COFFEE_LOG_TABLE_LIMIT COFFEE_CONF_LOG_TABLE_LIMIT
+#else
+#define COFFEE_LOG_TABLE_LIMIT 16
 #endif
 /** Default reserved file size */
 #ifdef COFFEE_CONF_DYN_SIZE
@@ -112,6 +114,8 @@
 /** Default micro-log size */
 #ifdef COFFEE_CONF_LOG_SIZE
 #define COFFEE_LOG_SIZE        COFFEE_CONF_LOG_SIZE
+#else
+#define COFFEE_LOG_SIZE        (4 * COFFEE_PAGE_SIZE)
 #endif
 /** Whether Coffee will use micro logs */
 #ifdef COFFEE_CONF_MICRO_LOGS

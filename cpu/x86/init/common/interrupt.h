@@ -32,10 +32,17 @@
 #define INTERRUPT_H
 
 #include <stdint.h>
+#include "gdt-layout.h"
 
 #include "idt.h"
 
 struct interrupt_context {
+  /* The general-purpose register values are saved by the pushal instruction in
+   * the interrupt dispatcher. Having access to these saved values may be
+   * useful in some future interrupt or exception handler, and saving and later
+   * restoring them also enables the ISR to freely overwrite the EAX, ECX, and
+   * EDX registers as is permitted by the cdecl calling convention.
+   */
   uint32_t edi;
   uint32_t esi;
   uint32_t ebp;
@@ -44,9 +51,34 @@ struct interrupt_context {
   uint32_t edx;
   uint32_t ecx;
   uint32_t eax;
+  /* These two values are pushed on the stack by the CPU when it delivers an
+   * exception with an associated error code.  Currently, only the double fault
+   * handler accepts this structure as a parameter, and that type of exception
+   * does have an associated error code.
+   */
   uint32_t error_code;
   uint32_t eip;
+  /* The CPU pushes additional values beyond these on the stack, specifically
+   * the code segment descriptor and flags.  If a privilege-level change occurs
+   * during delivery, the CPU additionally pushes the stack pointer and stack
+   * segment descriptor.
+   */
 };
+
+#define ISR_STUB(label_str, has_error_code, handler_str, exc)    \
+  "jmp 2f\n\t"                                                   \
+  ".align 4\n\t"                                                 \
+  label_str ":\n\t"                                              \
+  "         pushal\n\t"                                          \
+  PROT_DOMAINS_ENTER_ISR(exc)                                    \
+  "         call " handler_str "\n\t"                            \
+  PROT_DOMAINS_LEAVE_ISR(exc)                                    \
+  "         popal\n\t"                                           \
+  "         .if " #has_error_code "\n\t"                         \
+  "         add $4, %%esp\n\t"                                   \
+  "         .endif\n\t"                                          \
+  "         iret\n\t"                                            \
+  "2:\n\t"
 
 /* Helper macro to register interrupt handler function.
  *
@@ -59,6 +91,14 @@ struct interrupt_context {
  *                  void handler(void)
  *                  Otherwise, it should be:
  *                  void handler(struct interrupt_context context)
+ * exc:             0 if this is an interrupt, which should be handled
+ *                  at the interrupt privilege level.  1 if this is an
+ *                  exception, which should be handled at the
+ *                  exception privilege level.
+ * dpl:             Privilege level for IDT descriptor, which is the
+ *                  numerically-highest privilege level that can
+ *                  generate this interrupt with a software interrupt
+ *                  instruction.
  *
  * Since there is no easy way to write an Interrupt Service Routines
  * (ISR) in C (for further information on this, see [1]), we provide
@@ -68,28 +108,30 @@ struct interrupt_context {
  *
  * [1] http://wiki.osdev.org/Interrupt_Service_Routines
  */
-#define SET_INTERRUPT_HANDLER(num, has_error_code, handler)      \
-  do {                                                           \
-    __asm__ __volatile__ (                                       \
-      "push $1f\n\t"                                             \
-      "push %0\n\t"                                              \
-      "call %P1\n\t"                                             \
-      "add $8, %%esp\n\t"                                        \
-      "jmp 2f\n\t"                                               \
-      ".align 4\n\t"                                             \
-      "1:\n\t"                                                   \
-      "         pushal\n\t"                                      \
-      "         call %P2\n\t"                                    \
-      "         popal\n\t"                                       \
-      "         .if " #has_error_code "\n\t"                     \
-      "         add $4, %%esp\n\t"                               \
-      "         .endif\n\t"                                      \
-      "         iret\n\t"                                        \
-      "2:\n\t"                                                   \
-      :: "g" (num), "i" (idt_set_intr_gate_desc), "i" (handler)  \
-      : "eax", "ecx", "edx"                                      \
-    );                                                           \
+#define SET_INT_EXC_HANDLER(num, has_error_code, handler, exc, dpl) \
+  do {                                                              \
+    __asm__ __volatile__ (                                          \
+      "pushl %[_dpl_]\n\t"                                          \
+      "pushl %[_cs_]\n\t"                                           \
+      "pushl $1f\n\t"                                               \
+      "pushl %[_isr_num_]\n\t"                                      \
+      "call idt_set_intr_gate_desc\n\t"                             \
+      "add $16, %%esp\n\t"                                          \
+      ISR_STUB("1", has_error_code, "%P[_handler_]", exc)           \
+      :                                                             \
+      : [_isr_num_] "g" (num),                                      \
+        [_handler_] "i" (handler),                                  \
+        [_cs_] "i" (exc ? GDT_SEL_CODE_EXC : GDT_SEL_CODE_INT),     \
+        [_dpl_] "i" (dpl)                                           \
+      /* the invocation of idt_set_intr_gate_desc may clobber   */  \
+      /* the caller-saved registers:                            */  \
+      : "eax", "ecx", "edx"                                         \
+    );                                                              \
   } while (0)
+#define SET_INTERRUPT_HANDLER(num, has_error_code, handler)         \
+  SET_INT_EXC_HANDLER(num, has_error_code, handler, 0, PRIV_LVL_INT)
+#define SET_EXCEPTION_HANDLER(num, has_error_code, handler)         \
+  SET_INT_EXC_HANDLER(num, has_error_code, handler, 1, PRIV_LVL_EXC)
 
 /* Disable maskable hardware interrupts */
 #define DISABLE_IRQ()                                            \

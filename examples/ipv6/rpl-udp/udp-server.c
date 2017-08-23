@@ -107,27 +107,32 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
 
-  PRINTF("UDP server started\n");
+  PRINTF("UDP server started. nbr:%d routes:%d\n",
+         NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
 
 #if UIP_CONF_ROUTER
-/* The choice of server address determines its 6LoPAN header compression.
+/* The choice of server address determines its 6LoWPAN header compression.
  * Obviously the choice made here must also be selected in udp-client.c.
  *
- * For correct Wireshark decoding using a sniffer, add the /64 prefix to the 6LowPAN protocol preferences,
- * e.g. set Context 0 to aaaa::.  At present Wireshark copies Context/128 and then overwrites it.
- * (Setting Context 0 to aaaa::1111:2222:3333:4444 will report a 16 bit compressed address of aaaa::1111:22ff:fe33:xxxx)
- * Note Wireshark's IPCMV6 checksum verification depends on the correct uncompressed addresses.
+ * For correct Wireshark decoding using a sniffer, add the /64 prefix to the
+ * 6LowPAN protocol preferences,
+ * e.g. set Context 0 to fd00::. At present Wireshark copies Context/128 and
+ * then overwrites it.
+ * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit
+ * compressed address of fd00::1111:22ff:fe33:xxxx)
+ * Note Wireshark's IPCMV6 checksum verification depends on the correct
+ * uncompressed addresses.
  */
  
 #if 0
 /* Mode 1 - 64 bits inline */
-   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
+   uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 1);
 #elif 1
 /* Mode 2 - 16 bits inline */
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
 #else
 /* Mode 3 - derived from link local (MAC) address */
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
 #endif
 
@@ -136,7 +141,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   if(root_if != NULL) {
     rpl_dag_t *dag;
     dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)&ipaddr);
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);
     PRINTF("created a new RPL dag\n");
   } else {

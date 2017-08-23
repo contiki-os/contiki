@@ -60,7 +60,7 @@ typedef uint16_t uip_stats_t;
 typedef uint32_t clock_time_t;
 
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b) ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_DIFF(a,b) ((int32_t)((a)-(b)))
 
 #define RF_CHANNEL                              13
 
@@ -93,7 +93,7 @@ typedef uint32_t rtimer_clock_t;
 /* IPv6 configuration options */
 #define NETSTACK_CONF_WITH_IPV6                           1
 #define NBR_TABLE_CONF_MAX_NEIGHBORS                    20 /* number of neighbors */
-#define UIP_CONF_DS6_ROUTE_NBU                  20 /* number of routes */
+#define UIP_CONF_MAX_ROUTES                  20 /* number of routes */
 #define UIP_CONF_ND6_SEND_RA                    0
 #define UIP_CONF_ND6_REACHABLE_TIME             600000
 #define UIP_CONF_ND6_RETRANS_TIMER              10000

@@ -611,7 +611,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 				uip_ds6_route_t *route;
 		    for(route = uip_ds6_route_head();
 		        route != NULL;
-		        route = uip_ds6_route_next(r)) {
+		        route = uip_ds6_route_next(route)) {
 					ipaddr_add(&route->ipaddr);
 					PRINTF_P(PSTR("/%u (via "), route->length);
 					ipaddr_add(uip_ds6_route_nexthop(route));

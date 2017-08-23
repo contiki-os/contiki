@@ -80,7 +80,7 @@ SIZE:=$(CROSS_COMPILE)-size
 OBJCOPY:=$(CROSS_COMPILE)-objcopy
 OBJDUMP:=$(CROSS_COMPILE)-objdump
 
-ARCH = ccm-star.c exceptions.c rtimer-arch.c rtimer-arch-slow.c \
+ARCH = jn516x-ccm-star.c exceptions.c rtimer-arch.c rtimer-arch-slow.c \
        slip_uart0.c clock.c micromac-radio.c \
        mtarch.c node-id.c watchdog.c log.c slip.c sprintf.c
 # Default uart0 for printf and slip

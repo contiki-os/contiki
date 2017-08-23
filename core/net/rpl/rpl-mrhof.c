@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
+ *         The Minimum Rank with Hysteresis Objective Function (MRHOF), RFC6719
  *
  *         This implementation uses the estimated number of
  *         transmissions (ETX) as the additive routing metric,
@@ -46,150 +46,187 @@
  * @{
  */
 
+#include "net/rpl/rpl.h"
 #include "net/rpl/rpl-private.h"
 #include "net/nbr-table.h"
+#include "net/link-stats.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-static void reset(rpl_dag_t *);
-static void neighbor_link_callback(rpl_parent_t *, int, int);
-static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
-static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
-static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
-static void update_metric_container(rpl_instance_t *);
+/* RFC6551 and RFC6719 do not mandate the use of a specific formula to
+ * compute the ETX value. This MRHOF implementation relies on the value
+ * computed by the link-stats module. It has an optional feature,
+ * RPL_MRHOF_CONF_SQUARED_ETX, that consists in squaring this value.
+ * This basically penalizes bad links while preserving the semantics of ETX
+ * (1 = perfect link, more = worse link). As a result, MRHOF will favor
+ * good links over short paths. Recommended when reliability is a priority.
+ * Without this feature, a hop with 50% PRR (ETX=2) is equivalent to two
+ * perfect hops with 100% PRR (ETX=1+1=2). With this feature, the former
+ * path obtains ETX=2*2=4 and the former ETX=1*1+1*1=2. */
+#ifdef RPL_MRHOF_CONF_SQUARED_ETX
+#define RPL_MRHOF_SQUARED_ETX RPL_MRHOF_CONF_SQUARED_ETX
+#else /* RPL_MRHOF_CONF_SQUARED_ETX */
+#define RPL_MRHOF_SQUARED_ETX 0
+#endif /* RPL_MRHOF_CONF_SQUARED_ETX */
 
-rpl_of_t rpl_mrhof = {
-  reset,
-  neighbor_link_callback,
-  best_parent,
-  best_dag,
-  calculate_rank,
-  update_metric_container,
-  1
-};
-
-/* Constants for the ETX moving average */
-#define ETX_SCALE   100
-#define ETX_ALPHA   90
-
-/* Reject parents that have a higher link metric than the following. */
-#define MAX_LINK_METRIC			10
+#if !RPL_MRHOF_SQUARED_ETX
+/* Configuration parameters of RFC6719. Reject parents that have a higher
+ * link metric than the following. The default value is 512 but we use 1024. */
+#define MAX_LINK_METRIC     1024 /* Eq ETX of 8 */
+/* Hysteresis of MRHOF: the rank must differ more than PARENT_SWITCH_THRESHOLD_DIV
+ * in order to switch preferred parent. Default in RFC6719: 192, eq ETX of 1.5.
+ * We use a more aggressive setting: 96, eq ETX of 0.75.
+ */
+#define PARENT_SWITCH_THRESHOLD 96 /* Eq ETX of 0.75 */
+#else /* !RPL_MRHOF_SQUARED_ETX */
+#define MAX_LINK_METRIC     2048 /* Eq ETX of 4 */
+#define PARENT_SWITCH_THRESHOLD 160 /* Eq ETX of 1.25 (results in a churn comparable
+to the threshold of 96 in the non-squared case) */
+#endif /* !RPL_MRHOF_SQUARED_ETX */
 
 /* Reject parents that have a higher path cost than the following. */
-#define MAX_PATH_COST			100
+#define MAX_PATH_COST      32768   /* Eq path ETX of 256 */
 
-/*
- * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
- * to switch preferred parent.
- */
-#define PARENT_SWITCH_THRESHOLD_DIV	2
-
-typedef uint16_t rpl_path_metric_t;
-
-static rpl_path_metric_t
-calculate_path_metric(rpl_parent_t *p)
-{
-  uip_ds6_nbr_t *nbr;
-  if(p == NULL) {
-    return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
-  }
-  nbr = rpl_get_nbr(p);
-  if(nbr == NULL) {
-    return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
-  }
-#if RPL_DAG_MC == RPL_DAG_MC_NONE
-  {
-    return p->rank + (uint16_t)nbr->link_metric;
-  }
-#elif RPL_DAG_MC == RPL_DAG_MC_ETX
-  return p->mc.obj.etx + (uint16_t)nbr->link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
-  return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
-#else
-#error "Unsupported RPL_DAG_MC configured. See rpl.h."
-#endif /* RPL_DAG_MC */
-}
-
+/*---------------------------------------------------------------------------*/
 static void
 reset(rpl_dag_t *dag)
 {
   PRINTF("RPL: Reset MRHOF\n");
 }
-
+/*---------------------------------------------------------------------------*/
+#if RPL_WITH_DAO_ACK
 static void
-neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
+dao_ack_callback(rpl_parent_t *p, int status)
 {
-  uint16_t recorded_etx = 0;
-  uint16_t packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
-  uint16_t new_etx;
-  uip_ds6_nbr_t *nbr = NULL;
-
-  nbr = rpl_get_nbr(p);
-  if(nbr == NULL) {
-    /* No neighbor for this parent - something bad has occurred */
+  if(status == RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT) {
     return;
   }
-
-  recorded_etx = nbr->link_metric;
-
-  /* Do not penalize the ETX when collisions or transmission errors occur. */
-  if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
-    if(status == MAC_TX_NOACK) {
-      packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
-    }
-
-    if(p->flags & RPL_PARENT_FLAG_LINK_METRIC_VALID) {
-      /* We already have a valid link metric, use weighted moving average to update it */
-      new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
-                 (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
-    } else {
-      /* We don't have a valid link metric, set it to the current packet's ETX */
-      new_etx = packet_etx;
-      /* Set link metric as valid */
-      p->flags |= RPL_PARENT_FLAG_LINK_METRIC_VALID;
-    }
-
-    PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
-        (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
-        (unsigned)(new_etx  / RPL_DAG_MC_ETX_DIVISOR),
-        (unsigned)(packet_etx / RPL_DAG_MC_ETX_DIVISOR));
-    /* update the link metric for this nbr */
-    nbr->link_metric = new_etx;
+  /* here we need to handle failed DAO's and other stuff */
+  PRINTF("RPL: MRHOF - DAO ACK received with status: %d\n", status);
+  if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
+    /* punish the ETX as if this was 10 packets lost */
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
+  } else if(status == RPL_DAO_ACK_TIMEOUT) { /* timeout = no ack */
+    /* punish the total lack of ACK with a similar punishment */
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
   }
 }
-
-static rpl_rank_t
-calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
+#endif /* RPL_WITH_DAO_ACK */
+/*---------------------------------------------------------------------------*/
+static uint16_t
+parent_link_metric(rpl_parent_t *p)
 {
-  rpl_rank_t new_rank;
-  rpl_rank_t rank_increase;
-  uip_ds6_nbr_t *nbr;
-
-  if(p == NULL || (nbr = rpl_get_nbr(p)) == NULL) {
-    if(base_rank == 0) {
-      return INFINITE_RANK;
-    }
-    rank_increase = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
-  } else {
-    rank_increase = nbr->link_metric;
-    if(base_rank == 0) {
-      base_rank = p->rank;
-    }
+  const struct link_stats *stats = rpl_get_parent_link_stats(p);
+  if(stats != NULL) {
+#if RPL_MRHOF_SQUARED_ETX
+    uint32_t squared_etx = ((uint32_t)stats->etx * stats->etx) / LINK_STATS_ETX_DIVISOR;
+    return (uint16_t)MIN(squared_etx, 0xffff);
+#else /* RPL_MRHOF_SQUARED_ETX */
+  return stats->etx;
+#endif /* RPL_MRHOF_SQUARED_ETX */
   }
-
-  if(INFINITE_RANK - base_rank < rank_increase) {
-    /* Reached the maximum rank. */
-    new_rank = INFINITE_RANK;
-  } else {
-   /* Calculate the rank based on the new rank information from DIO or
-      stored otherwise. */
-    new_rank = base_rank + rank_increase;
-  }
-
-  return new_rank;
+  return 0xffff;
 }
+/*---------------------------------------------------------------------------*/
+static uint16_t
+parent_path_cost(rpl_parent_t *p)
+{
+  uint16_t base;
 
+  if(p == NULL || p->dag == NULL || p->dag->instance == NULL) {
+    return 0xffff;
+  }
+
+#if RPL_WITH_MC
+  /* Handle the different MC types */
+  switch(p->dag->instance->mc.type) {
+    case RPL_DAG_MC_ETX:
+      base = p->mc.obj.etx;
+      break;
+    case RPL_DAG_MC_ENERGY:
+      base = p->mc.obj.energy.energy_est << 8;
+      break;
+    default:
+      base = p->rank;
+      break;
+  }
+#else /* RPL_WITH_MC */
+  base = p->rank;
+#endif /* RPL_WITH_MC */
+
+  /* path cost upper bound: 0xffff */
+  return MIN((uint32_t)base + parent_link_metric(p), 0xffff);
+}
+/*---------------------------------------------------------------------------*/
+static rpl_rank_t
+rank_via_parent(rpl_parent_t *p)
+{
+  uint16_t min_hoprankinc;
+  uint16_t path_cost;
+
+  if(p == NULL || p->dag == NULL || p->dag->instance == NULL) {
+    return INFINITE_RANK;
+  }
+
+  min_hoprankinc = p->dag->instance->min_hoprankinc;
+  path_cost = parent_path_cost(p);
+
+  /* Rank lower-bound: parent rank + min_hoprankinc */
+  return MAX(MIN((uint32_t)p->rank + min_hoprankinc, 0xffff), path_cost);
+}
+/*---------------------------------------------------------------------------*/
+static int
+parent_is_acceptable(rpl_parent_t *p)
+{
+  uint16_t link_metric = parent_link_metric(p);
+  uint16_t path_cost = parent_path_cost(p);
+  /* Exclude links with too high link metrics or path cost (RFC6719, 3.2.2) */
+  return link_metric <= MAX_LINK_METRIC && path_cost <= MAX_PATH_COST;
+}
+/*---------------------------------------------------------------------------*/
+static int
+parent_has_usable_link(rpl_parent_t *p)
+{
+  uint16_t link_metric = parent_link_metric(p);
+  /* Exclude links with too high link metrics  */
+  return link_metric <= MAX_LINK_METRIC;
+}
+/*---------------------------------------------------------------------------*/
+static rpl_parent_t *
+best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
+{
+  rpl_dag_t *dag;
+  uint16_t p1_cost;
+  uint16_t p2_cost;
+  int p1_is_acceptable;
+  int p2_is_acceptable;
+
+  p1_is_acceptable = p1 != NULL && parent_is_acceptable(p1);
+  p2_is_acceptable = p2 != NULL && parent_is_acceptable(p2);
+
+  if(!p1_is_acceptable) {
+    return p2_is_acceptable ? p2 : NULL;
+  }
+  if(!p2_is_acceptable) {
+    return p1_is_acceptable ? p1 : NULL;
+  }
+
+  dag = p1->dag; /* Both parents are in the same DAG. */
+  p1_cost = parent_path_cost(p1);
+  p2_cost = parent_path_cost(p2);
+
+  /* Maintain stability of the preferred parent in case of similar ranks. */
+  if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
+    if(p1_cost < p2_cost + PARENT_SWITCH_THRESHOLD &&
+       p1_cost > p2_cost - PARENT_SWITCH_THRESHOLD) {
+      return dag->preferred_parent;
+    }
+  }
+
+  return p1_cost < p2_cost ? p1 : p2;
+}
+/*---------------------------------------------------------------------------*/
 static rpl_dag_t *
 best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
 {
@@ -203,93 +240,77 @@ best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
 
   return d1->rank < d2->rank ? d1 : d2;
 }
-
-static rpl_parent_t *
-best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
-{
-  rpl_dag_t *dag;
-  rpl_path_metric_t min_diff;
-  rpl_path_metric_t p1_metric;
-  rpl_path_metric_t p2_metric;
-
-  dag = p1->dag; /* Both parents are in the same DAG. */
-
-  min_diff = RPL_DAG_MC_ETX_DIVISOR /
-             PARENT_SWITCH_THRESHOLD_DIV;
-
-  p1_metric = calculate_path_metric(p1);
-  p2_metric = calculate_path_metric(p2);
-
-  /* Maintain stability of the preferred parent in case of similar ranks. */
-  if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
-    if(p1_metric < p2_metric + min_diff &&
-       p1_metric > p2_metric - min_diff) {
-      PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
-             p2_metric - min_diff,
-             p1_metric,
-             p2_metric + min_diff);
-      return dag->preferred_parent;
-    }
-  }
-
-  return p1_metric < p2_metric ? p1 : p2;
-}
-
-#if RPL_DAG_MC == RPL_DAG_MC_NONE
+/*---------------------------------------------------------------------------*/
+#if !RPL_WITH_MC
 static void
 update_metric_container(rpl_instance_t *instance)
 {
-  instance->mc.type = RPL_DAG_MC;
+  instance->mc.type = RPL_DAG_MC_NONE;
 }
-#else
+#else /* RPL_WITH_MC */
 static void
 update_metric_container(rpl_instance_t *instance)
 {
-  rpl_path_metric_t path_metric;
   rpl_dag_t *dag;
-#if RPL_DAG_MC == RPL_DAG_MC_ENERGY
+  uint16_t path_cost;
   uint8_t type;
-#endif
-
-  instance->mc.type = RPL_DAG_MC;
-  instance->mc.flags = RPL_DAG_MC_FLAG_P;
-  instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
-  instance->mc.prec = 0;
 
   dag = instance->current_dag;
-
-  if (!dag->joined) {
+  if(dag == NULL || !dag->joined) {
     PRINTF("RPL: Cannot update the metric container when not joined\n");
     return;
   }
 
   if(dag->rank == ROOT_RANK(instance)) {
-    path_metric = 0;
+    /* Configure MC at root only, other nodes are auto-configured when joining */
+    instance->mc.type = RPL_DAG_MC;
+    instance->mc.flags = 0;
+    instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
+    instance->mc.prec = 0;
+    path_cost = dag->rank;
   } else {
-    path_metric = calculate_path_metric(dag->preferred_parent);
+    path_cost = parent_path_cost(dag->preferred_parent);
   }
 
-#if RPL_DAG_MC == RPL_DAG_MC_ETX
-  instance->mc.length = sizeof(instance->mc.obj.etx);
-  instance->mc.obj.etx = path_metric;
-
-  PRINTF("RPL: My path ETX to the root is %u.%u\n",
-	instance->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
-	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) /
-	 RPL_DAG_MC_ETX_DIVISOR);
-#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
-  instance->mc.length = sizeof(instance->mc.obj.energy);
-
-  if(dag->rank == ROOT_RANK(instance)) {
-    type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
-  } else {
-    type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
+  /* Handle the different MC types */
+  switch(instance->mc.type) {
+    case RPL_DAG_MC_NONE:
+      break;
+    case RPL_DAG_MC_ETX:
+      instance->mc.length = sizeof(instance->mc.obj.etx);
+      instance->mc.obj.etx = path_cost;
+      break;
+    case RPL_DAG_MC_ENERGY:
+      instance->mc.length = sizeof(instance->mc.obj.energy);
+      if(dag->rank == ROOT_RANK(instance)) {
+        type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
+      } else {
+        type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
+      }
+      instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
+      /* Energy_est is only one byte, use the least significant byte of the path metric. */
+      instance->mc.obj.energy.energy_est = path_cost >> 8;
+      break;
+    default:
+      PRINTF("RPL: MRHOF, non-supported MC %u\n", instance->mc.type);
+      break;
   }
-
-  instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
-  instance->mc.obj.energy.energy_est = path_metric;
-#endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
-#endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */
+#endif /* RPL_WITH_MC */
+/*---------------------------------------------------------------------------*/
+rpl_of_t rpl_mrhof = {
+  reset,
+#if RPL_WITH_DAO_ACK
+  dao_ack_callback,
+#endif
+  parent_link_metric,
+  parent_has_usable_link,
+  parent_path_cost,
+  rank_via_parent,
+  best_parent,
+  best_dag,
+  update_metric_container,
+  RPL_OCP_MRHOF
+};
 
 /** @}*/

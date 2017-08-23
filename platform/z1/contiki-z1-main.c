@@ -43,7 +43,6 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "dev/button-sensor.h"
 #include "dev/adxl345.h"
 #include "sys/clock.h"
 
@@ -58,12 +57,6 @@
 #include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
 
-#include "dev/battery-sensor.h"
-#include "dev/button-sensor.h"
-#include "dev/sht11/sht11-sensor.h"
-
-SENSORS(&button_sensor);
-
 extern unsigned char node_mac[8];
 
 #if DCOSYNCH_CONF_ENABLED
@@ -77,7 +70,7 @@ static struct timer mgt_timer;
 #if NETSTACK_CONF_WITH_IPV4
 #include "net/ip/uip.h"
 #include "net/ipv4/uip-fw.h"
-#include "net/uip-fw-drv.h"
+#include "net/ipv4/uip-fw-drv.h"
 #include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
 { UIP_FW_NETIF(192, 168, 1, 2, 255, 255, 255, 255, slip_send) };
@@ -104,7 +97,12 @@ static uint8_t is_gateway;
 #endif
 
 void init_platform(void);
-
+/*---------------------------------------------------------------------------*/
+#ifdef UART0_CONF_BAUD_RATE
+#define UART0_BAUD_RATE UART0_CONF_BAUD_RATE
+#else
+#define UART0_BAUD_RATE 115200
+#endif
 /*---------------------------------------------------------------------------*/
 #if 0
 int
@@ -202,9 +200,9 @@ main(int argc, char **argv)
 
   clock_wait(100);
 
-  uart0_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart0_init(BAUD2UBR(UART0_BAUD_RATE)); /* Must come before first printf */
 #if NETSTACK_CONF_WITH_IPV4
-  slip_arch_init(BAUD2UBR(115200));
+  slip_arch_init(BAUD2UBR(UART0_BAUD_RATE));
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
   xmem_init();
@@ -279,7 +277,7 @@ main(int argc, char **argv)
   set_rime_addr();
 
   cc2420_init();
-  accm_init();
+  SENSORS_ACTIVATE(adxl345);
 
   {
     uint8_t longaddr[8];
@@ -345,7 +343,7 @@ main(int argc, char **argv)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf("Tentative global IPv6 address ");

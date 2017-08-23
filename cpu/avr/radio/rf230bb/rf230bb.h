@@ -57,6 +57,8 @@
 #include "hal.h"
 #if defined(__AVR_ATmega128RFA1__)
 #include "atmega128rfa1_registermap.h"
+#elif defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
+#include "atmega256rfr2_registermap.h"
 #else
 #include "at86rf230_registermap.h"
 #endif
@@ -68,7 +70,7 @@
 #define RF230_REVB                              ( 2 )
 #define SUPPORTED_MANUFACTURER_ID               ( 31 )
 
-#if defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 #define RF230_SUPPORTED_INTERRUPT_MASK          ( 0xFF )
 #else
 /* RF230 does not support RX_START interrupts in extended mode, but it seems harmless to always enable it. */
@@ -215,6 +217,8 @@ uint8_t rf230_get_channel(void);
 void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t ieee_addr[8]);
 void rf230_set_txpower(uint8_t power);
 uint8_t rf230_get_txpower(void);
+void rf230_set_rpc(uint8_t rpc);
+uint8_t rf230_get_rpc(void);
 
 void rf230_set_promiscuous_mode(bool isPromiscuous);
 bool rf230_is_ready_to_send();

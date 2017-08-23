@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,9 +30,11 @@
 
 #include "contiki.h"
 #include "i2c.h"
+
 #include "i2c-registers.h"
-#include "interrupt.h"
-#include "pic.h"
+#include "paging.h"
+#include "shared-isr.h"
+#include "syscalls.h"
 
 #define I2C_CLOCK_SPEED 25 /* kHz */
 #define I2C_FIFO_DEPTH  16
@@ -48,17 +50,31 @@
 #define I2C_POLLING_TIMEOUT (CLOCK_SECOND / 10)
 
 #define I2C_IRQ 9
-#define I2C_INT PIC_INT(I2C_IRQ)
+
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
+#define MMIO_SZ MIN_PAGE_SIZE
+#else
+#define MMIO_SZ (QUARKX1000_IC_HIGHEST + 4)
+#endif
 
 typedef enum {
   I2C_DIRECTION_READ,
   I2C_DIRECTION_WRITE
 } I2C_DIRECTION;
 
+PROT_DOMAINS_ALLOC(pci_driver_t, drv);
+
+struct quarkX1000_i2c_config {
+  QUARKX1000_I2C_SPEED speed;
+  QUARKX1000_I2C_ADDR_MODE addressing_mode;
+
+  quarkX1000_i2c_callback cb_rx;
+  quarkX1000_i2c_callback cb_tx;
+  quarkX1000_i2c_callback cb_err;
+};
+
 struct i2c_internal_data {
   struct quarkX1000_i2c_config config;
-
-  pci_driver_t pci;
 
   I2C_DIRECTION direction;
 
@@ -74,18 +90,50 @@ struct i2c_internal_data {
 
 static struct i2c_internal_data device;
 
-static uint32_t
+static int inited = 0;
+
+void quarkX1000_i2c_mmin(uint32_t offset, uint32_t *res);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmin, drv,
+                          uint32_t offset, uint32_t *res)
+{
+  uint32_t *loc_res;
+
+  PROT_DOMAINS_VALIDATE_PTR(loc_res, res, sizeof(*res));
+  if(QUARKX1000_IC_HIGHEST < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_READL(drv, *loc_res, offset);
+  prot_domains_disable_mmio();
+}
+
+static inline uint32_t
 read(uint32_t offset)
 {
   uint32_t res;
-  PCI_MMIO_READL(device.pci, res, offset);
+  quarkX1000_i2c_mmin(offset, &res);
+
   return res;
 }
 
-static void
+void quarkX1000_i2c_mmout(uint32_t offset, uint32_t val);
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmout, drv,
+                          uint32_t offset, uint32_t val)
+{
+  if(QUARKX1000_IC_HIGHEST < offset) {
+    halt();
+  }
+
+  prot_domains_enable_mmio();
+  PCI_MMIO_WRITEL(drv, offset, val);
+  prot_domains_disable_mmio();
+}
+
+static inline void
 write(uint32_t offset, uint32_t val)
 {
-  PCI_MMIO_WRITEL(device.pci, offset, val);
+  quarkX1000_i2c_mmout(offset, val);
 }
 
 static uint32_t
@@ -169,9 +217,11 @@ i2c_data_send(void)
   device.tx_buffer += i;
 }
 
-static void
+static bool
 i2c_isr(void)
 {
+  bool handled = false;
+
   if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK) {
     i2c_data_read();
 
@@ -185,6 +235,8 @@ i2c_isr(void)
       if (device.config.cb_rx)
         device.config.cb_rx();
     }
+
+    handled = true;
   }
 
   if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK) {
@@ -195,10 +247,15 @@ i2c_isr(void)
       set_value(QUARKX1000_IC_INTR_MASK,
         QUARKX1000_IC_INTR_STAT_STOP_DET_MASK, QUARKX1000_IC_INTR_STAT_STOP_DET_SHIFT, 1);
     }
+
+    handled = true;
   }
 
-  if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK)
+  if(read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK) {
     i2c_data_read();
+
+    handled = true;
+  }
 
   if (read(QUARKX1000_IC_INTR_STAT) & (QUARKX1000_IC_INTR_STAT_TX_ABRT_MASK
     | QUARKX1000_IC_INTR_STAT_TX_OVER_MASK | QUARKX1000_IC_INTR_STAT_RX_OVER_MASK
@@ -208,20 +265,22 @@ i2c_isr(void)
 
     if (device.config.cb_err)
       device.config.cb_err();
+
+    handled = true;
   }
+
+  return handled;
 }
 
-int
-quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
+void
+quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED speed,
+                         QUARKX1000_I2C_ADDR_MODE addressing_mode)
 {
   uint32_t hcnt, lcnt;
   uint8_t ic_fs_spklen;
 
-  device.config.speed = config->speed;
-  device.config.addressing_mode = config->addressing_mode;
-  device.config.cb_rx = config->cb_rx;
-  device.config.cb_tx = config->cb_tx;
-  device.config.cb_err = config->cb_err;
+  device.config.speed = speed;
+  device.config.addressing_mode = addressing_mode;
 
   if (device.config.speed == QUARKX1000_I2C_SPEED_STANDARD) {
     lcnt = I2C_STD_LCNT;
@@ -240,8 +299,16 @@ quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
 
   /* Clear interrupts. */
   read(QUARKX1000_IC_CLR_INTR);
+}
 
-  return 0;
+void
+quarkX1000_i2c_set_callbacks(quarkX1000_i2c_callback rx,
+                             quarkX1000_i2c_callback tx,
+                             quarkX1000_i2c_callback err)
+{
+  device.config.cb_rx = rx;
+  device.config.cb_tx = tx;
+  device.config.cb_err = err;
 }
 
 static int
@@ -477,16 +544,10 @@ quarkX1000_i2c_polling_read(uint8_t *buf, uint8_t len, uint16_t addr)
 int
 quarkX1000_i2c_is_available(void)
 {
-  return device.pci.mmio ? 1 : 0;
+  return inited;
 }
 
-static void
-i2c_handler()
-{
-  i2c_isr();
-
-  pic_eoi(I2C_IRQ);
-}
+DEFINE_SHARED_IRQ(I2C_IRQ, IRQAGENT3, INTC, PIRQC, i2c_isr);
 
 int
 quarkX1000_i2c_init(void)
@@ -501,16 +562,14 @@ quarkX1000_i2c_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
-  SET_INTERRUPT_HANDLER(I2C_INT, 0, i2c_handler);
+  PROT_DOMAINS_INIT_ID(drv);
+  pci_init(&drv, pci_addr, MMIO_SZ, 0, 0);
+  SYSCALLS_INIT(quarkX1000_i2c_mmin);
+  SYSCALLS_AUTHZ(quarkX1000_i2c_mmin, drv);
+  SYSCALLS_INIT(quarkX1000_i2c_mmout);
+  SYSCALLS_AUTHZ(quarkX1000_i2c_mmout, drv);
 
-  if (pci_irq_agent_set_pirq(IRQAGENT3, INTC, PIRQC) < 0)
-    return -1;
-
-  pci_pirq_set_irq(PIRQC, I2C_IRQ, 1);
-
-  pci_init(&device.pci, pci_addr, 0);
-
-  pic_unmask_irq(I2C_IRQ);
+  inited = 1;
 
   return 0;
 }

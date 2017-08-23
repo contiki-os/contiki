@@ -204,11 +204,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 /* These mostly have no effect when the Jackdaw is a repeater (CONTIKI_NO_NET=1 using fakeuip.c) */
 
-#if RF230BB
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
-#endif /*RF230BB */
-
 #if NETSTACK_CONF_WITH_IPV6
 #define LINKADDR_CONF_SIZE       8
 #define UIP_CONF_ICMP6           1
@@ -236,10 +231,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_BUFSIZE		 UIP_LINK_MTU + UIP_LLH_LEN + 4   /* +4 for vlan on macosx */
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fd00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #//define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=UIP_DS6_DEFAULT_PREFIX_0;addr_contexts[0].prefix[1]=UIP_DS6_DEFAULT_PREFIX_1;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 

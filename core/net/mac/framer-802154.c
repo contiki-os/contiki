@@ -86,19 +86,21 @@ create_frame(int type, int do_create)
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
   if(packetbuf_holds_broadcast()) {
     params.fcf.ack_required = 0;
+    /* Suppress seqno on broadcast if supported (frame v2 or more) */
+    params.fcf.sequence_number_suppression = FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012;
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
+    params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
   }
   /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
    * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
    * source nor destination address, we have dest PAN ID iff compression is *set*. */
   params.fcf.panid_compression = 0;
-  params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
   /* Insert IEEE 802.15.4 version bits. */
   params.fcf.frame_version = FRAME802154_VERSION;
   
-#if LLSEC802154_SECURITY_LEVEL
+#if LLSEC802154_USES_AUX_HEADER
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
     params.fcf.security_enabled = 1;
   }
@@ -116,7 +118,7 @@ create_frame(int type, int do_create)
   params.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
   params.aux_hdr.key_source.u16[0] = packetbuf_attr(PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1);
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-#endif /* LLSEC802154_SECURITY_LEVEL */
+#endif /* LLSEC802154_USES_AUX_HEADER */
 
   /* Increment and set the data sequence number. */
   if(!do_create) {
@@ -238,7 +240,7 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 #endif
 
-#if LLSEC802154_SECURITY_LEVEL
+#if LLSEC802154_USES_AUX_HEADER
     if(frame.fcf.security_enabled) {
       packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
 #if LLSEC802154_USES_FRAME_COUNTER
@@ -251,7 +253,7 @@ parse(void)
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1, frame.aux_hdr.key_source.u16[0]);
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
     }
-#endif /* LLSEC802154_SECURITY_LEVEL */
+#endif /* LLSEC802154_USES_AUX_HEADER */
 
     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));

@@ -68,15 +68,3 @@ uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 /*---------------------------------------------------------------------------*/
-void
-uip_debug_lladdr_print(const uip_lladdr_t *addr)
-{
-  unsigned int i;
-  for(i = 0; i < sizeof(uip_lladdr_t); i++) {
-    if(i > 0) {
-      putstring(":");
-    }
-    puthex(addr->addr[i]);
-  }
-}
-/*---------------------------------------------------------------------------*/

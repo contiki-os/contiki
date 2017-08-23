@@ -46,7 +46,6 @@ import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.SimEventCentral.MoteCountListener;
-import org.contikios.cooja.dialogs.MessageList.MessageContainer;
 import org.contikios.cooja.interfaces.IPAddress;
 import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.interfaces.RimeAddress;

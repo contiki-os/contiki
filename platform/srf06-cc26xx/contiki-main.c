@@ -32,12 +32,14 @@
  * \addtogroup cc26xx-platforms
  * @{
  *
- * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM and the CC2650 SensorTag
+ * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM, CC2650 SensorTag and LaunchPads
  *
  * This platform supports a number of different boards:
  * - A standard TI SmartRF06EB with a CC26xx EM mounted on it
  * - A standard TI SmartRF06EB with a CC1310 EM mounted on it
  * - The new TI SensorTag2.0
+ * - The TI CC2650 LaunchPad
+ * - The TI CC1310 LaunchPad
  * @{
  */
 #include "ti-lib.h"
@@ -49,6 +51,7 @@
 #include "dev/watchdog.h"
 #include "dev/oscillators.h"
 #include "ieee-addr.h"
+#include "ble-addr.h"
 #include "vims.h"
 #include "dev/cc26xx-uart.h"
 #include "dev/soc-rtc.h"
@@ -57,6 +60,8 @@
 #include "uart.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "sys/node-id.h"
+#include "lib/random.h"
 #include "lib/sensors.h"
 #include "button-sensor.h"
 #include "dev/serial-line.h"
@@ -65,6 +70,8 @@
 #include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
+/*---------------------------------------------------------------------------*/
+unsigned short node_id = 0;
 /*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
@@ -91,10 +98,17 @@ fade(unsigned char l)
 static void
 set_rf_params(void)
 {
-  uint16_t short_addr;
   uint8_t ext_addr[8];
-  radio_value_t val = 0;
 
+#if defined MODE && MODE == MODE_BLE
+  ble_eui64_addr_cpy_to(ext_addr);
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+#else
+  uint16_t short_addr;
+  radio_value_t val = 0;
   ieee_addr_cpy_to(ext_addr, 8);
 
   short_addr = ext_addr[7];
@@ -111,6 +125,10 @@ set_rf_params(void)
   NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &val);
   printf(" RF: Channel %d\n", val);
 
+  /* also set the global node id */
+  node_id = short_addr;
+#endif
+
 #if STARTUP_CONF_VERBOSE
   {
     int i;
@@ -120,6 +138,7 @@ set_rf_params(void)
     }
     printf("%02x\n", linkaddr_node_addr.u8[i]);
   }
+  printf(" Node ID: %d\n", node_id);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -180,6 +199,11 @@ main(void)
   printf("With DriverLib v%u.%u\n", DRIVERLIB_RELEASE_GROUP,
          DRIVERLIB_RELEASE_BUILD);
   printf(BOARD_STRING "\n");
+  printf("IEEE 802.15.4: %s, Sub-GHz: %s, BLE: %s, Prop: %s\n",
+         ti_lib_chipinfo_supports_ieee_802_15_4() == true ? "Yes" : "No",
+         ti_lib_chipinfo_chip_family_is_cc13xx() == true ? "Yes" : "No",
+         ti_lib_chipinfo_supports_ble() == true ? "Yes" : "No",
+         ti_lib_chipinfo_supports_proprietary() == true ? "Yes" : "No");
 
   process_start(&etimer_process, NULL);
   ctimer_init();

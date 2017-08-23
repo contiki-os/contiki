@@ -61,7 +61,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /* Check if TSCH_QUEUE_NUM_PER_NEIGHBOR is power of two */
 #if (TSCH_QUEUE_NUM_PER_NEIGHBOR & (TSCH_QUEUE_NUM_PER_NEIGHBOR - 1)) != 0
@@ -302,14 +302,17 @@ tsch_queue_free_packet(struct tsch_packet *p)
 /*---------------------------------------------------------------------------*/
 /* Flush all neighbor queues */
 void
-tsch_queue_flush_all(void)
+tsch_queue_reset(void)
 {
   /* Deallocate unneeded neighbors */
   if(!tsch_is_locked()) {
     struct tsch_neighbor *n = list_head(neighbor_list);
     while(n != NULL) {
       struct tsch_neighbor *next_n = list_item_next(n);
+      /* Flush queue */
       tsch_queue_flush_nbr_queue(n);
+      /* Reset backoff exponent */
+      tsch_queue_backoff_reset(n);
       n = next_n;
     }
   }
@@ -379,6 +382,7 @@ tsch_queue_get_packet_for_dest_addr(const linkaddr_t *addr, struct tsch_link *li
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Returns the head packet of any neighbor queue with zero backoff counter.
  * Writes pointer to the neighbor in *n */
 struct tsch_packet *

@@ -43,6 +43,7 @@
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
+/*---------------------------------------------------------------------------*/
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 

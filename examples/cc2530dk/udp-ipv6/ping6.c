@@ -105,7 +105,7 @@ PROCESS_THREAD(ping6_process, ev, data)
   PRINTF("ping6 running.\n");
   PRINTF("Button 1: 5 pings 16 byte payload.\n");
 
-  uip_ip6addr(&dest_addr, 0xaaaa, 0, 0, 0, 0x0215, 0x2000, 0x0002, 0x2145);
+  uip_ip6addr(&dest_addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0x0215, 0x2000, 0x0002, 0x2145);
   count = 0;
 
   icmp6_new(NULL);

@@ -77,6 +77,7 @@ import org.contikios.cooja.Watchpoint;
 import org.contikios.cooja.WatchpointMote;
 import org.contikios.cooja.WatchpointMote.WatchpointListener;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.mspmote.MspMote;
 import org.contikios.cooja.mspmote.MspMoteType;
 import se.sics.mspsim.core.EmulationException;
@@ -468,7 +469,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     }
   }
 
-  private MessageList rulesDebuggingOutput = new MessageList();
+  private MessageListUI rulesDebuggingOutput = new MessageListUI();
   private boolean rulesWithDebuggingOutput = false;
   private int[] rulesMatched = null;
   private int[] rulesOK = null;

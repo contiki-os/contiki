@@ -230,9 +230,7 @@ permit_pm1(void)
   const uart_regs_t *regs;
 
   for(regs = &uart_regs[0]; regs < &uart_regs[UART_INSTANCE_COUNT]; regs++) {
-    /* Note: UART_FR.TXFE reads 0 if the UART clock is gated. */
-    if((REG(SYS_CTRL_RCGCUART) & regs->sys_ctrl_rcgcuart_uart) != 0 &&
-       (REG(regs->base + UART_FR) & UART_FR_TXFE) == 0) {
+    if((REG(regs->base + UART_FR) & UART_FR_BUSY) != 0) {
       return false;
     }
   }

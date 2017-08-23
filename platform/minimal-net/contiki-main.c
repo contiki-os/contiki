@@ -289,7 +289,7 @@ main(int argc, char **argv)
 #ifdef HARD_CODED_ADDRESS
     uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
 #else
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
 #endif
     if((ipaddr.u16[0] != 0) ||
        (ipaddr.u16[1] != 0) ||

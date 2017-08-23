@@ -258,7 +258,7 @@ clock_arch_time_to_etimer(void)
   clock_time_t time_to_etimer;
   if(etimer_pending()) {
     time_to_etimer = etimer_next_expiration_time() - clock_time();
-    if(time_to_etimer < 0) {
+    if((int32_t)time_to_etimer < 0) {
       time_to_etimer = 0;
     }
   } else {

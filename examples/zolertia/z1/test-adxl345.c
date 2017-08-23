@@ -42,10 +42,7 @@
 
 #include <stdio.h>
 #include "contiki.h"
-#include "serial-shell.h"
-#include "shell-ps.h"
-#include "shell-file.h"
-#include "shell-text.h"
+#include "dev/leds.h"
 #include "dev/adxl345.h"
 /*---------------------------------------------------------------------------*/
 #define LED_INT_ONTIME        (CLOCK_SECOND / 2)
@@ -91,7 +88,7 @@ print_int(uint16_t reg)
 void
 accm_ff_cb(uint8_t reg)
 {
-  L_ON(LEDS_B);
+  leds_on(LEDS_BLUE);
   process_post(&led_process, led_off_event, NULL);
   printf("~~[%u] Freefall detected! (0x%02X) -- ",
          ((uint16_t)clock_time()) / 128, reg);
@@ -105,11 +102,11 @@ accm_tap_cb(uint8_t reg)
 {
   process_post(&led_process, led_off_event, NULL);
   if(reg & ADXL345_INT_DOUBLETAP) {
-    L_ON(LEDS_G);
+    leds_on(LEDS_GREEN);
     printf("~~[%u] DoubleTap detected! (0x%02X) -- ",
            ((uint16_t)clock_time()) / 128, reg);
   } else {
-    L_ON(LEDS_R);
+    leds_on(LEDS_RED);
     printf("~~[%u] Tap detected! (0x%02X) -- ",
            ((uint16_t)clock_time()) / 128, reg);
   }
@@ -122,46 +119,46 @@ PROCESS_THREAD(led_process, ev, data) {
     PROCESS_WAIT_EVENT_UNTIL(ev == led_off_event);
     etimer_set(&led_etimer, LED_INT_ONTIME);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&led_etimer));
-    L_OFF(LEDS_R + LEDS_G + LEDS_B);
+    leds_off(LEDS_RED + LEDS_GREEN + LEDS_BLUE);
   }
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 /* Main process, setups  */
-PROCESS_THREAD(accel_process, ev, data) {
+PROCESS_THREAD(accel_process, ev, data)
+{
   PROCESS_BEGIN();
-  {
-    int16_t x, y, z;
 
-    serial_shell_init();
-    shell_ps_init();
-    shell_file_init();  /* for printing out files */
-    shell_text_init();  /* for binprint */
+  int16_t x, y, z;
 
-    /* Register the event used for lighting up an LED when interrupt strikes. */
-    led_off_event = process_alloc_event();
+  /* Register the event used for lighting up an LED when interrupt strikes. */
+  led_off_event = process_alloc_event();
 
-    /* Start and setup the accelerometer with default values, eg no interrupts enabled. */
-    accm_init();
+  /* Start and setup the accelerometer with default values, eg no interrupts
+   * enabled.
+   */
+  SENSORS_ACTIVATE(adxl345);
 
-    /* Register the callback functions for each interrupt */
-    ACCM_REGISTER_INT1_CB(accm_ff_cb);
-    ACCM_REGISTER_INT2_CB(accm_tap_cb);
+  /* Register the callback functions for each interrupt */
+  ACCM_REGISTER_INT1_CB(accm_ff_cb);
+  ACCM_REGISTER_INT2_CB(accm_tap_cb);
 
-    /* Set what strikes the corresponding interrupts. Several interrupts per pin is
-       possible. For the eight possible interrupts, see adxl345.h and adxl345 datasheet. */
-    accm_set_irq(ADXL345_INT_FREEFALL, ADXL345_INT_TAP + ADXL345_INT_DOUBLETAP);
+  /* Set what strikes the corresponding interrupts. Several interrupts per
+   * pin is possible. For the eight possible interrupts, see adxl345.h and
+   * adxl345 datasheet.
+   */
+  accm_set_irq(ADXL345_INT_FREEFALL, ADXL345_INT_TAP + ADXL345_INT_DOUBLETAP);
 
-    while(1) {
-      x = accm_read_axis(X_AXIS);
-      y = accm_read_axis(Y_AXIS);
-      z = accm_read_axis(Z_AXIS);
-      printf("x: %d y: %d z: %d\n", x, y, z);
+  while(1) {
+    x = adxl345.value(X_AXIS);
+    y = adxl345.value(Y_AXIS);
+    z = adxl345.value(Z_AXIS);
+    printf("x: %d y: %d z: %d\n", x, y, z);
 
-      etimer_set(&et, ACCM_READ_INTERVAL);
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    }
+    etimer_set(&et, ACCM_READ_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

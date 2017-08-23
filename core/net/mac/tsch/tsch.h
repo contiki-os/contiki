@@ -84,8 +84,8 @@
 #ifdef TSCH_CONF_JOIN_SECURED_ONLY
 #define TSCH_JOIN_SECURED_ONLY TSCH_CONF_JOIN_SECURED_ONLY
 #else
-/* By default, set if TSCH_SECURITY_ENABLED is also non-zero */
-#define TSCH_JOIN_SECURED_ONLY TSCH_SECURITY_ENABLED
+/* By default, set if LLSEC802154_ENABLED is also non-zero */
+#define TSCH_JOIN_SECURED_ONLY LLSEC802154_ENABLED
 #endif
 
 /* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */

@@ -120,7 +120,7 @@ static void
 disable_interrupts(void)
 {
   /* Acknowledge UART interrupts */
-  ti_lib_int_disable(INT_UART0);
+  ti_lib_int_disable(INT_UART0_COMB);
 
   /* Disable all UART module interrupts */
   ti_lib_uart_int_disable(UART0_BASE, CC26XX_UART_INTERRUPT_ALL);
@@ -141,7 +141,7 @@ enable_interrupts(void)
     ti_lib_uart_int_enable(UART0_BASE, CC26XX_UART_RX_INTERRUPT_TRIGGERS);
 
     /* Acknowledge UART interrupts */
-    ti_lib_int_enable(INT_UART0);
+    ti_lib_int_enable(INT_UART0_COMB);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -154,7 +154,7 @@ configure(void)
    * to avoid falling edge glitches
    */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_UART_TX);
-  ti_lib_gpio_pin_write(BOARD_UART_TX, 1);
+  ti_lib_gpio_set_dio(BOARD_IOID_UART_TX);
 
   /*
    * Map UART signals to the correct GPIO pins and configure them as

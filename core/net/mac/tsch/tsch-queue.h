@@ -39,6 +39,7 @@
 #include "lib/ringbufindex.h"
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/mac.h"
 
 /******** Configuration *******/
 
@@ -166,8 +167,8 @@ int tsch_queue_packet_count(const linkaddr_t *addr);
 struct tsch_packet *tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n);
 /* Free a packet */
 void tsch_queue_free_packet(struct tsch_packet *p);
-/* Flush all neighbor queues */
-void tsch_queue_flush_all(void);
+/* Reset neighbor queues */
+void tsch_queue_reset(void);
 /* Deallocate neighbors with empty queue */
 void tsch_queue_free_unused_neighbors(void);
 /* Is the neighbor queue empty? */

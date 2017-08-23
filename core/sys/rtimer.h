@@ -55,13 +55,31 @@
 
 #include "contiki-conf.h"
 
-#ifndef RTIMER_CLOCK_LT
+#ifndef RTIMER_CLOCK_DIFF
 typedef unsigned short rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
-#endif /* RTIMER_CLOCK_LT */
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed short)((a) - (b)))
+#endif /* RTIMER_CLOCK_DIFF */
+
+#define RTIMER_CLOCK_LT(a, b)      (RTIMER_CLOCK_DIFF((a),(b)) < 0)
 
 #include "rtimer-arch.h"
+/*---------------------------------------------------------------------------*/
+#ifndef RTIMER_CONF_MULTIPLE_ACCESS
+#define RTIMER_MULTIPLE_ACCESS 0
+#else
+#define RTIMER_MULTIPLE_ACCESS RTIMER_CONF_MULTIPLE_ACCESS
+#endif
 
+#ifndef RTIMER_CONF_MINIMAL_SAFE_SCHEDULE
+#define RTIMER_MINIMAL_SAFE_SCHEDULE 2U
+#else
+#define RTIMER_MINIMAL_SAFE_SCHEDULE RTIMER_CONF_MINIMAL_SAFE_SCHEDULE
+#endif
+
+#if RTIMER_MINIMAL_SAFE_SCHEDULE < 2U
+#error "RTIMER_GAURD_TIME must be at least 2"
+#endif
+/*---------------------------------------------------------------------------*/
 /**
  * \brief      Initialize the real-time scheduler.
  *
@@ -72,7 +90,13 @@ typedef unsigned short rtimer_clock_t;
 void rtimer_init(void);
 
 struct rtimer;
-typedef void (* rtimer_callback_t)(struct rtimer *t, void *ptr);
+typedef void (*rtimer_callback_t)(struct rtimer *t, void *ptr);
+
+enum rtimer_state {
+  RTIMER_READY,
+  RTIMER_QUEUED,
+  RTIMER_RUNNING
+};
 
 /**
  * \brief      Representation of a real-time task
@@ -85,6 +109,11 @@ struct rtimer {
   rtimer_clock_t time;
   rtimer_callback_t func;
   void *ptr;
+
+#if RTIMER_MULTIPLE_ACCESS
+  struct rtimer *next;
+  int state;
+#endif
 };
 
 enum {
@@ -92,6 +121,8 @@ enum {
   RTIMER_ERR_FULL,
   RTIMER_ERR_TIME,
   RTIMER_ERR_ALREADY_SCHEDULED,
+  RTIMER_ERR_NOT_SCHEDULED,
+  RTIMER_ERR_TOO_LATE
 };
 
 /**
@@ -109,7 +140,7 @@ enum {
  *
  */
 int rtimer_set(struct rtimer *task, rtimer_clock_t time,
-	       rtimer_clock_t duration, rtimer_callback_t func, void *ptr);
+               rtimer_clock_t duration, rtimer_callback_t func, void *ptr);
 
 /**
  * \brief      Execute the next real-time task and schedule the next task, if any
@@ -119,6 +150,17 @@ int rtimer_set(struct rtimer *task, rtimer_clock_t time,
  *
  */
 void rtimer_run_next(void);
+
+/**
+ * \brief Cancels the given rtimer
+ *
+ * Nothing happens if the rtimer is not scheduled
+ *
+ * \return RTIMER_OK on success, RTIMER_ERR_NOT_SCHEDULED if the rtimer
+ * wasn't scheduled and RTIMER_ERR_TOO_LATE if it's too late to cancel the
+ * rtimer
+ */
+int rtimer_cancel(struct rtimer *rtimer);
 
 /**
  * \brief      Get the current clock time

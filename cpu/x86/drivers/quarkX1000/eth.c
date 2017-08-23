@@ -32,8 +32,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include "contiki-net.h"
+#include "dma.h"
 #include "eth.h"
 #include "helpers.h"
+#include "syscalls.h"
 #include "net/ip/uip.h"
 #include "pci.h"
 
@@ -157,12 +159,29 @@ typedef struct quarkX1000_eth_meta {
   /* Transmit descriptor */
   volatile quarkX1000_eth_tx_desc_t tx_desc;
   /* Transmit DMA packet buffer */
-  volatile uint8_t tx_buf[UIP_BUFSIZE];
+  volatile uint8_t tx_buf[ALIGN(UIP_BUFSIZE, 4)];
   /* Receive descriptor */
   volatile quarkX1000_eth_rx_desc_t rx_desc;
   /* Receive DMA packet buffer */
-  volatile uint8_t rx_buf[UIP_BUFSIZE];
-} quarkX1000_eth_meta_t;
+  volatile uint8_t rx_buf[ALIGN(UIP_BUFSIZE, 4)];
+
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
+  /* Domain-defined metadata must fill an even number of pages, since that is
+   * the minimum granularity of access control supported by paging.  However,
+   * using the "aligned(4096)" attribute causes the alignment of the kernel
+   * data section to increase, which causes problems when generating UEFI
+   * binaries, as is described in the linker script.  Thus, it is necessary
+   * to manually pad the structure to fill a page.  This only works if the
+   * sizes of the actual fields of the structure are collectively less than a
+   * page.
+   */
+  uint8_t pad[MIN_PAGE_SIZE -
+              (sizeof(quarkX1000_eth_tx_desc_t) +
+               ALIGN(UIP_BUFSIZE, 4) +
+               sizeof(quarkX1000_eth_rx_desc_t) +
+               ALIGN(UIP_BUFSIZE, 4))];
+#endif
+} __attribute__((packed)) quarkX1000_eth_meta_t;
 
 #define LOG_PFX "quarkX1000_eth: "
 
@@ -187,41 +206,28 @@ typedef struct quarkX1000_eth_meta {
 #define REG_ADDR_TX_DESC_LIST          0x1010
 #define REG_ADDR_DMA_OPERATION         0x1018
 
-static quarkX1000_eth_driver_t drv;
-static quarkX1000_eth_meta_t meta;
+PROT_DOMAINS_ALLOC(quarkX1000_eth_driver_t, drv);
+static quarkX1000_eth_meta_t ATTR_BSS_DMA meta;
+
+void quarkX1000_eth_setup(uintptr_t meta_phys_base);
 
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Initialize the first Quark X1000 Ethernet MAC.
- *
- *        This procedure assumes that an MMIO range for the device was
- *        previously assigned, e.g. by firmware.
- */
-void
-quarkX1000_eth_init(void)
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_eth_setup, drv, uintptr_t meta_phys_base)
 {
-  pci_config_addr_t pci_addr = { .raw = 0 };
   uip_eth_addr mac_addr;
   uint32_t mac_tmp1, mac_tmp2;
+  quarkX1000_eth_rx_desc_t rx_desc;
+  quarkX1000_eth_tx_desc_t tx_desc;
+  quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *loc_meta =
+    (quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *)PROT_DOMAINS_META(drv);
 
-  /* PCI address from section 15.4 of Intel Quark SoC X1000 Datasheet. */
-
-  pci_addr.dev = 20;
-  pci_addr.func = 6;
-
-  /* Activate MMIO and DMA access. */
-  pci_command_enable(pci_addr, PCI_CMD_2_BUS_MST_EN | PCI_CMD_1_MEM_SPACE_EN);
-
-  printf(LOG_PFX "Activated MMIO and DMA access.\n");
-
-  pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
-
-  /* Configure the device MMIO range and initialize the driver structure. */
-  pci_init(&drv, pci_addr, (uintptr_t)&meta);
+  prot_domains_enable_mmio();
 
   /* Read the MAC address from the device. */
   PCI_MMIO_READL(drv, mac_tmp1, REG_ADDR_MACADDR_HI);
   PCI_MMIO_READL(drv, mac_tmp2, REG_ADDR_MACADDR_LO);
+
+  prot_domains_disable_mmio();
 
   /* Convert the data read from the device into the format expected by
    * Contiki.
@@ -245,29 +251,47 @@ quarkX1000_eth_init(void)
   uip_setethaddr(mac_addr);
 
   /* Initialize transmit descriptor. */
-  meta.tx_desc.tdes0 = 0;
-  meta.tx_desc.tdes1 = 0;
+  tx_desc.tdes0 = 0;
+  tx_desc.tdes1 = 0;
 
-  meta.tx_desc.buf1_ptr = (uint8_t *)meta.tx_buf;
-  meta.tx_desc.tx_end_of_ring = 1;
-  meta.tx_desc.first_seg_in_frm = 1;
-  meta.tx_desc.last_seg_in_frm = 1;
-  meta.tx_desc.tx_end_of_ring = 1;
+  tx_desc.tx_end_of_ring = 1;
+  tx_desc.first_seg_in_frm = 1;
+  tx_desc.last_seg_in_frm = 1;
+  tx_desc.tx_end_of_ring = 1;
+
+  META_WRITEL(loc_meta->tx_desc.tdes0, tx_desc.tdes0);
+  META_WRITEL(loc_meta->tx_desc.tdes1, tx_desc.tdes1);
+  META_WRITEL(loc_meta->tx_desc.buf1_ptr,
+              (uint8_t *)PROT_DOMAINS_META_OFF_TO_PHYS(
+                (uintptr_t)&loc_meta->tx_buf, meta_phys_base));
+  META_WRITEL(loc_meta->tx_desc.buf2_ptr, 0);
 
   /* Initialize receive descriptor. */
-  meta.rx_desc.rdes0 = 0;
-  meta.rx_desc.rdes1 = 0;
+  rx_desc.rdes0 = 0;
+  rx_desc.rdes1 = 0;
 
-  meta.rx_desc.buf1_ptr = (uint8_t *)meta.rx_buf;
-  meta.rx_desc.own = 1;
-  meta.rx_desc.first_desc = 1;
-  meta.rx_desc.last_desc = 1;
-  meta.rx_desc.rx_buf1_sz = UIP_BUFSIZE;
-  meta.rx_desc.rx_end_of_ring = 1;
+  rx_desc.own = 1;
+  rx_desc.first_desc = 1;
+  rx_desc.last_desc = 1;
+  rx_desc.rx_buf1_sz = UIP_BUFSIZE;
+  rx_desc.rx_end_of_ring = 1;
+
+  META_WRITEL(loc_meta->rx_desc.rdes0, rx_desc.rdes0);
+  META_WRITEL(loc_meta->rx_desc.rdes1, rx_desc.rdes1);
+  META_WRITEL(loc_meta->rx_desc.buf1_ptr,
+              (uint8_t *)PROT_DOMAINS_META_OFF_TO_PHYS(
+                (uintptr_t)&loc_meta->rx_buf, meta_phys_base));
+  META_WRITEL(loc_meta->rx_desc.buf2_ptr, 0);
+
+  prot_domains_enable_mmio();
 
   /* Install transmit and receive descriptors. */
-  PCI_MMIO_WRITEL(drv, REG_ADDR_RX_DESC_LIST, (uint32_t)&meta.rx_desc);
-  PCI_MMIO_WRITEL(drv, REG_ADDR_TX_DESC_LIST, (uint32_t)&meta.tx_desc);
+  PCI_MMIO_WRITEL(drv, REG_ADDR_RX_DESC_LIST,
+                  PROT_DOMAINS_META_OFF_TO_PHYS(
+                    (uintptr_t)&loc_meta->rx_desc, meta_phys_base));
+  PCI_MMIO_WRITEL(drv, REG_ADDR_TX_DESC_LIST,
+                  PROT_DOMAINS_META_OFF_TO_PHYS(
+                    (uintptr_t)&loc_meta->tx_desc, meta_phys_base));
 
   PCI_MMIO_WRITEL(drv, REG_ADDR_MAC_CONF,
                   /* Set the RMII speed to 100Mbps */
@@ -290,8 +314,11 @@ quarkX1000_eth_init(void)
                   /* Place the receiver state machine in the Running state. */
                   OP_MODE_1_START_RX);
 
+  prot_domains_disable_mmio();
+
   printf(LOG_PFX "Enabled 100M full-duplex mode.\n");
 }
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief           Poll for a received Ethernet frame.
@@ -301,36 +328,50 @@ quarkX1000_eth_init(void)
  *                  If a frame is received, this procedure copies it into the
  *                  global uip_buf buffer.
  */
-void
-quarkX1000_eth_poll(uint16_t *frame_len)
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_eth_poll, drv, uint16_t * frame_len)
 {
+  uint16_t *loc_frame_len;
   uint16_t frm_len = 0;
+  quarkX1000_eth_rx_desc_t tmp_desc;
+  quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *loc_meta =
+    (quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *)PROT_DOMAINS_META(drv);
+
+  PROT_DOMAINS_VALIDATE_PTR(loc_frame_len, frame_len, sizeof(*frame_len));
+
+  META_READL(tmp_desc.rdes0, loc_meta->rx_desc.rdes0);
 
   /* Check whether the RX descriptor is still owned by the device.  If not,
    * process the received frame or an error that may have occurred.
    */
-  if(meta.rx_desc.own == 0) {
-    if(meta.rx_desc.err_summary) {
+  if(tmp_desc.own == 0) {
+    META_READL(tmp_desc.rdes1, loc_meta->rx_desc.rdes1);
+    if(tmp_desc.err_summary) {
       fprintf(stderr,
               LOG_PFX "Error receiving frame: RDES0 = %08x, RDES1 = %08x.\n",
-              meta.rx_desc.rdes0, meta.rx_desc.rdes1);
+              tmp_desc.rdes0, tmp_desc.rdes1);
       assert(0);
     }
 
-    frm_len = meta.rx_desc.frm_len;
+    frm_len = tmp_desc.frm_len;
     assert(frm_len <= UIP_BUFSIZE);
-    memcpy(uip_buf, (void *)meta.rx_buf, frm_len);
+    MEMCPY_FROM_META(uip_buf, loc_meta->rx_buf, frm_len);
 
     /* Return ownership of the RX descriptor to the device. */
-    meta.rx_desc.own = 1;
+    tmp_desc.own = 1;
+
+    META_WRITEL(loc_meta->rx_desc.rdes0, tmp_desc.rdes0);
+
+    prot_domains_enable_mmio();
 
     /* Request that the device check for an available RX descriptor, since
      * ownership of the descriptor was just transferred to the device.
      */
     PCI_MMIO_WRITEL(drv, REG_ADDR_RX_POLL_DEMAND, 1);
+
+    prot_domains_disable_mmio();
   }
 
-  *frame_len = frm_len;
+  *loc_frame_len = frm_len;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -342,31 +383,83 @@ quarkX1000_eth_poll(uint16_t *frame_len)
  *        buffer and signals to the device that a new frame is available to be
  *        transmitted.
  */
-void
-quarkX1000_eth_send(void)
+SYSCALLS_DEFINE_SINGLETON(quarkX1000_eth_send, drv)
 {
+  quarkX1000_eth_tx_desc_t tmp_desc;
+  quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *loc_meta =
+    (quarkX1000_eth_meta_t ATTR_META_ADDR_SPACE *)PROT_DOMAINS_META(drv);
+
   /* Wait until the TX descriptor is no longer owned by the device. */
-  while(meta.tx_desc.own == 1);
+  do {
+    META_READL(tmp_desc.tdes0, loc_meta->tx_desc.tdes0);
+  } while(tmp_desc.own == 1);
+
+  META_READL(tmp_desc.tdes1, loc_meta->tx_desc.tdes1);
 
   /* Check whether an error occurred transmitting the previous frame. */
-  if(meta.tx_desc.err_summary) {
+  if(tmp_desc.err_summary) {
     fprintf(stderr,
             LOG_PFX "Error transmitting frame: TDES0 = %08x, TDES1 = %08x.\n",
-            meta.tx_desc.tdes0, meta.tx_desc.tdes1);
+            tmp_desc.tdes0, tmp_desc.tdes1);
     assert(0);
   }
 
   /* Transmit the next frame. */
   assert(uip_len <= UIP_BUFSIZE);
-  memcpy((void *)meta.tx_buf, uip_buf, uip_len);
+  MEMCPY_TO_META(loc_meta->tx_buf, uip_buf, uip_len);
 
-  meta.tx_desc.tx_buf1_sz = uip_len;
+  tmp_desc.tx_buf1_sz = uip_len;
 
-  meta.tx_desc.own = 1;
+  META_WRITEL(loc_meta->tx_desc.tdes1, tmp_desc.tdes1);
+
+  tmp_desc.own = 1;
+
+  META_WRITEL(loc_meta->tx_desc.tdes0, tmp_desc.tdes0);
+
+  prot_domains_enable_mmio();
 
   /* Request that the device check for an available TX descriptor, since
    * ownership of the descriptor was just transferred to the device.
    */
   PCI_MMIO_WRITEL(drv, REG_ADDR_TX_POLL_DEMAND, 1);
+
+  prot_domains_disable_mmio();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize the first Quark X1000 Ethernet MAC.
+ *
+ *        This procedure assumes that an MMIO range for the device was
+ *        previously assigned, e.g. by firmware.
+ */
+void
+quarkX1000_eth_init(void)
+{
+  pci_config_addr_t pci_addr = { .raw = 0 };
+
+  /* PCI address from section 15.4 of Intel Quark SoC X1000 Datasheet. */
+
+  pci_addr.dev = 20;
+  pci_addr.func = 6;
+
+  /* Activate MMIO and DMA access. */
+  pci_command_enable(pci_addr, PCI_CMD_2_BUS_MST_EN | PCI_CMD_1_MEM_SPACE_EN);
+
+  printf(LOG_PFX "Activated MMIO and DMA access.\n");
+
+  pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
+
+  PROT_DOMAINS_INIT_ID(drv);
+  /* Configure the device MMIO range and initialize the driver structure. */
+  pci_init(&drv, pci_addr, MMIO_SZ,
+           (uintptr_t)&meta, sizeof(quarkX1000_eth_meta_t));
+  SYSCALLS_INIT(quarkX1000_eth_setup);
+  SYSCALLS_AUTHZ(quarkX1000_eth_setup, drv);
+  SYSCALLS_INIT(quarkX1000_eth_poll);
+  SYSCALLS_AUTHZ(quarkX1000_eth_poll, drv);
+  SYSCALLS_INIT(quarkX1000_eth_send);
+  SYSCALLS_AUTHZ(quarkX1000_eth_send, drv);
+
+  quarkX1000_eth_setup(prot_domains_lookup_meta_phys_base(&drv));
 }
 /*---------------------------------------------------------------------------*/

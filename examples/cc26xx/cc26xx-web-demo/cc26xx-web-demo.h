@@ -100,6 +100,8 @@
 #if BOARD_SENSORTAG
 /* Force an MQTT publish on sensor event */
 #define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &reed_relay_sensor
+#elif BOARD_LAUNCHPAD
+#define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_left_sensor
 #else
 #define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_down_sensor
 #endif

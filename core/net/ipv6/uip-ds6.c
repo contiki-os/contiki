@@ -48,6 +48,7 @@
 #include "lib/random.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ip/uip-packetqueue.h"
 
 #define DEBUG DEBUG_NONE
@@ -186,7 +187,9 @@ uip_ds6_periodic(void)
   }
 #endif /* !UIP_CONF_ROUTER */
 
+#if UIP_ND6_SEND_NA
   uip_ds6_neighbor_periodic();
+#endif /* UIP_ND6_SEND_RA */
 
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Periodic RA sending */

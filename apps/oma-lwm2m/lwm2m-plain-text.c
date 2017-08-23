@@ -100,6 +100,11 @@ lwm2m_plain_text_read_float32fix(const uint8_t *inbuf, size_t len,
       break;
     }
   }
+  if(dot == 0) {
+    integerpart = counter;
+    counter = 0;
+    frac = 1;
+  }
   *value = integerpart << bits;
   if(frac > 1) {
     *value += ((counter << bits) / frac);

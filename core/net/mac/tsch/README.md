@@ -11,6 +11,7 @@ which defines how to run a basic RPL+TSCH network.
 It was developped by:
 * Simon Duquennoy, SICS, simonduq@sics.se, github user: [simonduq](https://github.com/simonduq)
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
+* Atis Elsts, Univ. Bristol, atis.elsts@bristol.ac.uk, github user: [atiselsts](https://github.com/atiselsts)
 
 You can find an extensive evaluation of this implementation in our paper [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
 
@@ -31,11 +32,16 @@ This implementation includes:
   * A scheduling API to add/remove slotframes and links
   * A system for logging from TSCH timeslot operation interrupt, with postponed printout
   * Orchestra: an autonomous scheduler for TSCH+RPL networks
+  * A drift compensation mechanism
 
 It has been tested on the following platforms:
   * NXP JN516x (`jn516x`, tested on hardware)
   * Tmote Sky (`sky`, tested on hardware and in cooja)
   * Zolertia Z1 (`z1`, tested in cooja only)
+  * CC2538DK (`cc2538dk`, tested on hardware)
+  * Zolertia Zoul (`zoul`, tested on hardware)
+  * OpenMote-CC2538 (`openmote-cc2538`, tested on hardware)
+  * CC2650 (`srf06-cc26xx`, tested on hardware)
 
 This implementation was present at the ETSI Plugtest
 event in Prague in July 2015, and did successfully inter-operate with all
@@ -68,6 +74,7 @@ Implements the 6TiSCH minimal configuration K1-K2 keys pair.
 * `tsch-rpl.[ch]`: used for TSCH+RPL networks, to align TSCH and RPL states (preferred parent -> time source,
 rank -> join priority) as defined in the 6TiSCH minimal configuration.
 * `tsch-log.[ch]`: logging system for TSCH, including delayed messages for logging from slot operation interrupt.
+* `tsch-adaptive-timesync.c`: used to learn the relative drift to the node's time source and automatically compensate for it.
 
 Orchestra is implemented in:
 * `apps/orchestra`: see `apps/orchestra/README.md` for more information.
@@ -76,7 +83,7 @@ Orchestra is implemented in:
 
 A simple TSCH+RPL example is included under `examples/ipv6/rpl-tsch`.
 To use TSCH, first make sure your platform supports it.
-Currently, `jn516x`, `sky` and `z1` are the supported platforms.
+Currently, `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, and `srf06-cc26xx` are the supported platforms.
 To add your own, we refer the reader to the next section.
 
 To add TSCH to your application, first include the TSCH module from your makefile with:
@@ -128,8 +135,8 @@ To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and r
 To include TSCH standard-compliant security, set the following:
 ```
 /* Enable security */
-#undef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL 1
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED 1
 /* TSCH uses explicit keys to identify k1 and k2 */
 #undef LLSEC802154_CONF_USES_EXPLICIT_KEYS
 #define LLSEC802154_CONF_USES_EXPLICIT_KEYS 1
@@ -162,7 +169,7 @@ Finally, one can also implement his own scheduler, centralized or distributed, b
 ## Porting TSCH to a new platform
 
 Porting TSCH to a new platform requires a few new features in the radio driver, a number of timing-related configuration paramters.
-The easiest is probably to start from one of the existing port: `jn516x`, `sky`, `z1`.
+The easiest is probably to start from one of the existing port: `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `srf06-cc26xx`.
 
 ### Radio features required for TSCH
 
@@ -196,6 +203,8 @@ too slow for the default 10ms timeslots.
 
 1. [IEEE 802.15.4e-2012 ammendment][ieee802.15.4e-2012]
 2. [IETF 6TiSCH Working Group][ietf-6tisch-wg]
+3. [A test procedure for Contiki timers in TSCH][tsch-sync-test]
 
 [ieee802.15.4e-2012]: http://standards.ieee.org/getieee802/download/802.15.4e-2012.pdf
 [ietf-6tisch-wg]: https://datatracker.ietf.org/wg/6tisch
+[tsch-sync-test]: https://github.com/abbypjoby/Contiki-Synchronisation-Test

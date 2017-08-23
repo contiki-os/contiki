@@ -49,6 +49,7 @@
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
+#define LPM_MODE_AWAKE         0
 #define LPM_MODE_SLEEP         1
 #define LPM_MODE_DEEP_SLEEP    2
 #define LPM_MODE_SHUTDOWN      3

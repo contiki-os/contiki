@@ -85,7 +85,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CLIF
 
 #define LINKADDR_CONF_SIZE       8
-#define PACKETBUF_CONF_HDR_SIZE    48	/* Choose a buffersize != 0 for the messages which should be sended over the wireless interface */
 
 /* Uncomment this lines to activate the specific drivers */
 //#define NETSTACK_CONF_NETWORK     rime_driver		

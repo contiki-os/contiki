@@ -31,7 +31,8 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-CONTIKI_TARGET_SOURCEFILES += lseek.c pfs.S pfs_write.S
+CONTIKI_TARGET_SOURCEFILES += exec.c logscr.S lseek.c \
+                              pfs.S pfs-dir.c pfs-dir-asm.S pfs_remove.S pfs_seek.S pfs_write.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
@@ -46,16 +47,16 @@ endif
 
 disk: all
 	$(C1541) -format contiki,00 d71 contiki.d71
-	$(C1541) -attach contiki.d71 -write $(CONTIKI_PROJECT).$(TARGET)          contiki,p
-	$(C1541) -attach contiki.d71 -write $(CONTIKI)/tools/$(TARGET)/sample.cfg contiki.cfg,s
-	$(C1541) -attach contiki.d71 -write cs8900a.eth                           cs8900a.eth,s
-	$(C1541) -attach contiki.d71 -write lan91c96.eth                          lan91c96.eth,s
+	$(C1541) -attach contiki.d71 -write $(CONTIKI_PROJECT).$(TARGET)             contiki,p
+	$(C1541) -attach contiki.d71 -write $(CONTIKI)/tools/$(TARGET)/sample.cfg    contiki.cfg,s
+	$(C1541) -attach contiki.d71 -write cs8900a.eth                              cs8900a.eth,s
+	$(C1541) -attach contiki.d71 -write lan91c96.eth                             lan91c96.eth,s
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou        contiki.mou,s
+	$(C1541) -attach contiki.d71 -write $(CC65_TARGET_DIR)/drv/mou/c128-1351.mou contiki.mou,s
 endif
 ifeq ($(HTTPD-CFS),1)
-	$(C1541) -attach contiki.d71 -write httpd-cfs/index.htm                   index.htm,s
-	$(C1541) -attach contiki.d71 -write httpd-cfs/backgrnd.gif                backgrnd.gif,s
-	$(C1541) -attach contiki.d71 -write httpd-cfs/contiki.gif                 contiki.gif,s
-	$(C1541) -attach contiki.d71 -write httpd-cfs/notfound.htm                notfound.htm,s
+	$(C1541) -attach contiki.d71 -write httpd-cfs/index.htm                      index.htm,s
+	$(C1541) -attach contiki.d71 -write httpd-cfs/backgrnd.gif                   backgrnd.gif,s
+	$(C1541) -attach contiki.d71 -write httpd-cfs/contiki.gif                    contiki.gif,s
+	$(C1541) -attach contiki.d71 -write httpd-cfs/notfound.htm                   notfound.htm,s
 endif

@@ -46,6 +46,7 @@ public class SerialDumpConnection extends CommandConnection {
 
   public static final String SERIALDUMP_WINDOWS = "./tools/serialdump-windows.exe";
   public static final String SERIALDUMP_LINUX = "./tools/serialdump-linux";
+  public static final String SERIALDUMP_MACOS = "./tools/serialdump-macos";
 
   public SerialDumpConnection(SerialConnectionListener listener) {
     super(listener);
@@ -72,6 +73,8 @@ public class SerialDumpConnection extends CommandConnection {
     String fullCommand;
     if (osName.startsWith("win")) {
       fullCommand = SERIALDUMP_WINDOWS + " " + "-b115200" + " " + getMappedComPortForWindows(comPort);
+    } else if (osName.startsWith("mac")) {
+      fullCommand = SERIALDUMP_MACOS + " " + "-b115200" + " " + comPort;
     } else {
       fullCommand = SERIALDUMP_LINUX + " " + "-b115200" + " " + comPort;
     }

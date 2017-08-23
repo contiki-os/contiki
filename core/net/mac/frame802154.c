@@ -102,7 +102,7 @@ addr_len(uint8_t mode)
   }
 }
 /*----------------------------------------------------------------------------*/
-#if LLSEC802154_USES_EXPLICIT_KEYS
+#if LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_EXPLICIT_KEYS
 static uint8_t
 get_key_id_len(uint8_t key_id_mode)
 {
@@ -117,7 +117,7 @@ get_key_id_len(uint8_t key_id_mode)
     return 0;
   }
 }
-#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#endif /* LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_EXPLICIT_KEYS */
 /*---------------------------------------------------------------------------*/
 /* Get current PAN ID */
 uint16_t
@@ -146,30 +146,18 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
   }
 
   if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
+    /* IEEE 802.15.4e-2012, Table 2a, PAN ID Compression */
     if(!fcf->panid_compression) {
-      /* Compressed PAN ID == no PAN ID at all */
-      if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
-        /* No address or both addresses: include destination PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->dest_addr_mode) {
-        /* Only dest address, include dest PAN ID */
+      if(fcf->dest_addr_mode) {
+        /* Use destination PAN ID if destination address is present */
         dest_pan_id = 1;
       } else if(fcf->src_addr_mode) {
         /* Only src address, include src PAN ID */
         src_pan_id = 1;
       }
-    }
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 1) {
-      /* No address included, include dest PAN ID conditionally */
-      if(!fcf->panid_compression) {
-        dest_pan_id = 1;
-      }
-    }
-    /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
-      /* Not meaningful, we include a PAN ID iff the compress flag is set, but
-       * this is what the standard currently stipulates */
-      dest_pan_id = fcf->panid_compression;
+    } else if((fcf->dest_addr_mode == 0) && (fcf->src_addr_mode == 0)) {
+      /* No address included: PAN ID compression flag changes meaning */
+      dest_pan_id = 1;
     }
   } else {
     /* No PAN ID in ACK */
@@ -317,7 +305,7 @@ field_len(frame802154_t *p, field_length_t *flen)
   flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
   flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
 
-#if LLSEC802154_SECURITY_LEVEL
+#if LLSEC802154_USES_AUX_HEADER
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
     flen->aux_sec_len = 1; /* FCF + possibly frame counter and key ID */
@@ -333,7 +321,7 @@ field_len(frame802154_t *p, field_length_t *flen)
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
     ;
   }
-#endif /* LLSEC802154_SECURITY_LEVEL */
+#endif /* LLSEC802154_USES_AUX_HEADER */
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -418,7 +406,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
   for(c = flen.src_addr_len; c > 0; c--) {
     buf[pos++] = p->src_addr[c - 1];
   }
-#if LLSEC802154_SECURITY_LEVEL
+#if LLSEC802154_USES_AUX_HEADER
   /* Aux header */
   if(flen.aux_sec_len) {
     buf[pos++] = p->aux_hdr.security_control.security_level
@@ -447,7 +435,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
     }
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
-#endif /* LLSEC802154_SECURITY_LEVEL */
+#endif /* LLSEC802154_USES_AUX_HEADER */
 
   return (int)pos;
 }
@@ -570,7 +558,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     pf->src_pid = 0;
   }
 
-#if LLSEC802154_SECURITY_LEVEL
+#if LLSEC802154_USES_AUX_HEADER
   if(fcf.security_enabled) {
     pf->aux_hdr.security_control.security_level = p[0] & 7;
 #if LLSEC802154_USES_EXPLICIT_KEYS
@@ -599,7 +587,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     }
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
-#endif /* LLSEC802154_SECURITY_LEVEL */
+#endif /* LLSEC802154_USES_AUX_HEADER */
 
   /* header length */
   c = p - data;

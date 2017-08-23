@@ -37,4 +37,4 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#define LLSEC802154_CONF_SECURITY_LEVEL 6
+#define LLSEC802154_CONF_ENABLED 1

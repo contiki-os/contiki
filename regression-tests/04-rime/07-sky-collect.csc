@@ -9,25 +9,25 @@
   <simulation>
     <title>My simulation</title>
     <randomseed>generated</randomseed>
-    <motedelay_us>10000000</motedelay_us>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       org.contikios.cooja.radiomediums.UDGM
-      <transmitting_range>30.0</transmitting_range>
-      <interference_range>40.0</interference_range>
-      <success_ratio_tx>0.9</success_ratio_tx>
-      <success_ratio_rx>0.9</success_ratio_rx>
+      <transmitting_range>50.0</transmitting_range>
+      <interference_range>50.0</interference_range>
+      <success_ratio_tx>1.0</success_ratio_tx>
+      <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
     <events>
-      <logoutput>40000</logoutput>
+      <logoutput>400000</logoutput>
     </events>
     <motetype>
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky/sky-collect.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/rime/example-collect.c</source>
       <commands EXPORT="discard">make clean TARGET=sky
-make sky-collect.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky/sky-collect.sky</firmware>
+make example-collect.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rime/example-collect.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -38,13 +38,18 @@ make sky-collect.sky TARGET=sky</commands>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>9.333811152651393</x>
-        <y>89.28114548870677</y>
+        <x>87.29845932913939</x>
+        <y>60.286214311723164</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -57,8 +62,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>33.040227185226826</x>
-        <y>54.184283361563054</y>
+        <x>94.30809966340686</x>
+        <y>22.50388779326399</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -71,8 +76,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-2.2559922410521516</x>
-        <y>50.71648775308175</y>
+        <x>82.40423567500785</x>
+        <y>39.56979106929553</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -85,8 +90,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>12.959353575718179</x>
-        <y>43.874396471224806</y>
+        <x>26.185019854469438</x>
+        <y>4.800834369523899</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -99,8 +104,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>15.917348901177405</x>
-        <y>66.93526904376517</y>
+        <x>1.9530156130507015</x>
+        <y>78.3175061800706</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -113,8 +118,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>26.735174243053933</x>
-        <y>35.939375910459084</y>
+        <x>48.35216700543414</x>
+        <y>80.36988713780997</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -127,8 +132,8 @@ make sky-collect.sky TARGET=sky</commands>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>41.5254792748469</x>
-        <y>28.370611308140152</y>
+        <x>24.825985087266833</x>
+        <y>74.27809432062487</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -137,12 +142,194 @@ make sky-collect.sky TARGET=sky</commands>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>8.356165164293616</x>
+        <y>94.33967355724187</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>8</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>45.11740613004886</x>
+        <y>31.7059041432301</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>9</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>68.9908548386292</x>
+        <y>55.01991960639596</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>10</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>13.181122543889046</x>
+        <y>55.9636533130127</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>11</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>2.1749985906538427</x>
+        <y>78.39666095789707</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>12</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>37.79795217518357</x>
+        <y>7.164284163506062</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>13</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>64.4595177394984</x>
+        <y>72.115414337433</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>14</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>81.85663737096085</x>
+        <y>89.31412706434035</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>15</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>44.74952276297882</x>
+        <y>18.78566116347574</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>16</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>96.11333426285873</x>
+        <y>90.64560410751824</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>17</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>21.651464136783527</x>
+        <y>7.1381043251259495</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>18</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>83.6006916200628</x>
+        <y>26.97170140682981</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>19</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
+    <mote>
+      <breakpoints />
+      <interface_config>
+        org.contikios.cooja.interfaces.Position
+        <x>1.3446070721664705</x>
+        <y>7.340373220385176</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
+        <id>20</id>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
+    </mote>
   </simulation>
   <plugin>
     org.contikios.cooja.plugins.SimControl
-    <width>265</width>
-    <z>3</z>
-    <height>200</height>
+    <width>247</width>
+    <z>0</z>
+    <height>227</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
   </plugin>
@@ -151,95 +338,110 @@ make sky-collect.sky TARGET=sky</commands>
     <plugin_config>
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>1.9551775516837413 0.0 0.0 1.9551775516837413 87.61059024269439 -50.01503690267507</viewport>
+      <viewport>1.685403700540615 0.0 0.0 1.685403700540615 23.872012513439184 -0.545889466623605</viewport>
     </plugin_config>
-    <width>264</width>
+    <width>224</width>
+    <z>3</z>
+    <height>225</height>
+    <location_x>247</location_x>
+    <location_y>1</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.LogListener
+    <plugin_config>
+      <filter />
+      <formatted_time />
+      <coloring />
+    </plugin_config>
+    <width>469</width>
     <z>1</z>
-    <height>185</height>
+    <height>473</height>
     <location_x>0</location_x>
-    <location_y>200</location_y>
+    <location_y>226</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(300000, log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n"));
+      <script>TIMEOUT(600000);
 
-/* Conf. */
-booted = new Array();
-count = new Array();
-nrNodes = 7;
-nodes_starting = true;
-for (i = 1; i &lt;= nrNodes; i++) {
-  booted[i] = false;
-  count[i] = 0;
-}
+num_nodes = mote.getSimulation().getMotesCount();
 
-/* Wait until all nodes have started */
-while (nodes_starting) {
-  YIELD_THEN_WAIT_UNTIL(msg.startsWith('Starting'));
-  
-  log.log("Node " + id + " booted\n");
-  booted[id] = true;
-
-  for (i = 1; i &lt;= nrNodes; i++) {
-    if (!booted[i]) break;
-    if (i == nrNodes) nodes_starting = false;
+function print_stats() {
+  log.log("Received:\n");
+  for(i = 1; i &lt;= num_nodes; i++) {
+      log.log("Node " + i + " ");
+      if(i == sink) {
+          log.log("sink\n");
+      } else {
+          log.log("received: " + received[i] + " hops: " + hops[i] + "\n");
+      }
   }
 }
 
-/* Create sink */
-log.log("All nodes booted, creating sink at node " + id + "\n");
-mote.getInterfaces().getButton().clickButton()
+/* Init */
+sink = 0;
+hops = new Array();
+dups = new Array();
+received = new Array();
 
-while (true) {
-  YIELD();
+doubleFormat = new java.text.DecimalFormat("0.00");
+integerFormat = new java.text.DecimalFormat("00");
+for(i = 1; i &lt;= num_nodes; i++) {
+    received[i] = "__________";
+    hops[i] = received[i];
+}
 
-  /* Count sensor data packets */
-  source = msg.split(" ")[0];
-  count[source]++;
-  log.log("Got data from node " + source + ": tot=" + count[source] + "\n");
+log.log("Simulation has " + num_nodes + " nodes\n");
 
-  /* Fail if any node has transmitted more than 20 packets */
-  for (i = 1; i &lt;= nrNodes; i++) {
-    if (count[i] &gt; 20) {
-      log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n");
-      log.testFailed(); /* We are done! */
+while(true) {
+    YIELD();
+    log.log(time + " " + id + " "+ msg + "\n");
+    /* Count sensor data packets */
+    if(msg.startsWith("Sink got message")) {
+        node_text = msg.split(" ")[4];
+        seqno_text = msg.split(" ")[6];
+        hops_text = msg.split(" ")[8];
+        if(node_text) {
+            source = parseInt(node_text);
+            seqno = parseInt(seqno_text);
+            hop = parseInt(hops_text);
+            dups = received[source].substr(seqno, 1);
+            if(dups == "_") {
+                dups = 1;
+            } else if(dups &lt; 9) {
+                dups++;
+            }
+            received[source] = received[source].substr(0, seqno) + dups +
+                received[source].substr(seqno + 1, 10 - seqno);
+
+            if(hop &gt; 9) {
+                hop = "+";
+            }
+            hops[source] = hops[source].substr(0, seqno) + hop +
+                hops[source].substr(seqno + 1, 10 - seqno);
+            print_stats();
+        }
     }
-  }
+    /* Signal OK if all nodes have reported 10 messages. */
+    num_reported = 0;
+    for(i = 1; i &lt;= num_nodes; i++) {
+        if(!isNaN(received[i])) {
+            num_reported++;
+        }
+    }
 
-  /* Wait until we have received data from all nodes */
-  for (i = 1; i &lt;= nrNodes; i++) {
-    if (count[i] &lt; 5) break;
-    if (i == nrNodes) log.testOK();
-  }
-
-}</script>
+    if(num_reported == num_nodes) {
+        print_stats();
+        log.testOK();
+    }
+  }</script>
       <active>true</active>
     </plugin_config>
     <width>600</width>
     <z>2</z>
-    <height>385</height>
-    <location_x>266</location_x>
+    <height>700</height>
+    <location_x>469</location_x>
     <location_y>0</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.TimeLine
-    <plugin_config>
-      <mote>0</mote>
-      <mote>1</mote>
-      <mote>2</mote>
-      <mote>3</mote>
-      <mote>4</mote>
-      <mote>5</mote>
-      <mote>6</mote>
-      <showRadioRXTX />
-      <zoomfactor>500.0</zoomfactor>
-    </plugin_config>
-    <width>866</width>
-    <z>0</z>
-    <height>152</height>
-    <location_x>0</location_x>
-    <location_y>384</location_y>
   </plugin>
 </simconf>
 

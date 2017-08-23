@@ -54,8 +54,8 @@ import org.contikios.cooja.Plugin;
 import org.contikios.cooja.ProjectConfig;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.dialogs.CompileContiki;
-import org.contikios.cooja.dialogs.MessageList;
-import org.contikios.cooja.dialogs.MessageList.MessageContainer;
+import org.contikios.cooja.dialogs.MessageContainer;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.plugins.ScriptRunner;
 import org.contikios.cooja.PluginType;
 
@@ -222,13 +222,20 @@ public class ExecuteJAR {
 
     /* Check dependencies: mote type */
     for (MoteType t: simulation.getMoteTypes()) {
-      if (!t.getClass().getName().contains("SkyMoteType")) {
-        throw new RuntimeException(
-            "You simulation contains the mote type: " + Cooja.getDescriptionOf(t.getClass()) + "\n" + 
-            "Only the Sky Mote Type is currently supported.\n"
-        );
-      }
       logger.info("Checking mote types: '" + Cooja.getDescriptionOf(t.getClass()) + "'");
+      if (t.getClass().getName().endsWith("SkyMoteType")) {
+          continue;
+      }
+      if (t.getClass().getName().endsWith("WismoteMoteType")) {
+          continue;
+      }
+      if (t.getClass().getName().endsWith("Z1MoteType")) {
+          continue;
+      }
+      throw new RuntimeException(
+         "Your simulation contains the mote type: " + Cooja.getDescriptionOf(t.getClass()) + "\n" +
+         "Only the Sky, Wismote, and Z1 mote types are currently supported.\n"
+                                 );
     }
 
     /* Check dependencies: Contiki Control Plugin */
@@ -415,7 +422,7 @@ public class ExecuteJAR {
     }
 
     logger.info("Building executable JAR: " + outputFile);
-    MessageList errors = new MessageList();
+    MessageListUI errors = new MessageListUI();
     try {
       CompileContiki.compile(
           "jar cfm " + outputFile.getAbsolutePath() + " manifest.tmp .",

@@ -49,7 +49,26 @@
 /*---------------------------------------------------------------------------*/
 #define RTIMER_ARCH_SECOND 65536
 /*---------------------------------------------------------------------------*/
+/* Need 4 ticks to syncronize with AON, 2 ticks to account for 2 tick RTC read
+   precision and 2 more ticks to put the value in the future. */
+#define RTIMER_CONF_MINIMAL_SAFE_SCHEDULE 8u
+/*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void);
+
+/* HW oscillator frequency is 32 kHz, not 64 kHz and RTIMER_NOW() never returns
+ * an odd value; so US_TO_RTIMERTICKS always rounds to the nearest even number.
+ */
+#define US_TO_RTIMERTICKS(US)  (2 * ((US) >= 0 ?                        \
+                               (((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) + 500000) / 1000000L) :      \
+                                ((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) - 500000) / 1000000L))
+
+#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
+                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
+                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+
+/* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
+   Intended only for positive values of T. */
+#define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
 /*---------------------------------------------------------------------------*/
 #endif /* RTIMER_ARCH_H_ */
 /*---------------------------------------------------------------------------*/

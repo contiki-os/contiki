@@ -138,15 +138,12 @@ typedef unsigned short uip_stats_t;
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-#undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
 /* TX routine passes the cca/ack result in the return parameter */
 #define RDC_CONF_HARDWARE_ACK      1
 /* TX routine does automatic cca and optional backoff */
 #define RDC_CONF_HARDWARE_CSMA     1
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         0
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -167,10 +164,10 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_LLH_LEN         0
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fd00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=UIP_DS6_DEFAULT_PREFIX_0;addr_contexts[0].prefix[1]=UIP_DS6_DEFAULT_PREFIX_1;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 

@@ -174,8 +174,6 @@ board_i2c_write(uint8_t *data, uint8_t len)
 bool
 board_i2c_write_single(uint8_t data)
 {
-  bool success;
-
   /* Write slave address */
   ti_lib_i2c_master_slave_addr_set(I2C0_BASE, slave_addr, false);
 
@@ -188,9 +186,8 @@ board_i2c_write_single(uint8_t data)
   /* Assert RUN + START + STOP */
   ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
   while(ti_lib_i2c_master_busy(I2C0_BASE));
-  success = i2c_status();
 
-  return success;
+  return i2c_status();
 }
 /*---------------------------------------------------------------------------*/
 bool
@@ -221,11 +218,11 @@ board_i2c_read(uint8_t *data, uint8_t len)
   }
 
   if(success) {
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
     while(ti_lib_i2c_master_busy(I2C0_BASE));
     success = i2c_status();
     if(success) {
       data[len - 1] = ti_lib_i2c_master_data_get(I2C0_BASE);
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
       while(ti_lib_i2c_master_bus_busy(I2C0_BASE));
     }
   }
@@ -256,12 +253,11 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   for(i = 1; i < wlen && success; i++) {
     /* Write next byte */
     ti_lib_i2c_master_data_put(I2C0_BASE, wdata[i]);
-    if(i < wlen - 1) {
-      /* Clear START */
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-      while(ti_lib_i2c_master_busy(I2C0_BASE));
-      success = i2c_status();
-    }
+
+    /* Clear START */
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
+    while(ti_lib_i2c_master_busy(I2C0_BASE));
+    success = i2c_status();
   }
   if(!success) {
     return false;
@@ -285,11 +281,11 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
   }
 
   if(success) {
+    ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
     while(ti_lib_i2c_master_busy(I2C0_BASE));
     success = i2c_status();
     if(success) {
       rdata[rlen - 1] = ti_lib_i2c_master_data_get(I2C0_BASE);
-      ti_lib_i2c_master_control(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
       while(ti_lib_i2c_master_bus_busy(I2C0_BASE));
     }
   }

@@ -37,7 +37,7 @@
  * \addtogroup cc2538-crypto
  * @{
  *
- * \defgroup cc2538-sha526 cc2538 SHA-256
+ * \defgroup cc2538-sha256 cc2538 SHA-256
  *
  * Driver for the cc2538 SHA-256 mode of the security core
  * @{

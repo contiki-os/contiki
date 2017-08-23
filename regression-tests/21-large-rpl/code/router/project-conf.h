@@ -7,5 +7,5 @@
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS             8
 
-/*#define RPL_CONF_DEFAULT_LIFETIME_UNIT           10
-  #define RPL_CONF_DEFAULT_LIFETIME                10*/
+/* #define RPL_CONF_DEFAULT_LIFETIME_UNIT           60 */
+/* #define RPL_CONF_DEFAULT_LIFETIME                10 */

@@ -62,6 +62,7 @@
 
 #include "contiki.h"
 #include "dev/watchdog.h"
+#include "net/link-stats.h"
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
@@ -91,12 +92,6 @@ void uip_log(char *msg);
 #else
 #define UIP_LOG(m)
 #endif /* UIP_LOGGING == 1 */
-
-#ifdef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_MAX_MAC_TRANSMISSIONS SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#else
-#define SICSLOWPAN_MAX_MAC_TRANSMISSIONS 4
-#endif
 
 #ifndef SICSLOWPAN_COMPRESSION
 #ifdef SICSLOWPAN_CONF_COMPRESSION
@@ -167,6 +162,14 @@ void uip_log(char *msg);
 #define COMPRESSION_THRESHOLD SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
 #else
 #define COMPRESSION_THRESHOLD 0
+#endif
+
+/** \brief Fixed size of a frame header. This value is
+ * used in case framer returns an error or if SICSLOWPAN_USE_FIXED_HDRLEN
+ * is defined.
+ */
+#ifndef SICSLOWPAN_FIXED_HDRLEN
+#define SICSLOWPAN_FIXED_HDRLEN 21
 #endif
 
 /** \name General variables
@@ -1277,11 +1280,6 @@ output(const uip_lladdr_t *localdest)
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
 
-#if SICSLOWPAN_CONF_FRAG
-  /* Number of bytes processed. */
-  uint16_t processed_ip_out_len;
-#endif /* SICSLOWPAN_CONF_FRAG */
-
   /* init */
   uncomp_hdr_len = 0;
   packetbuf_hdr_len = 0;
@@ -1289,9 +1287,6 @@ output(const uip_lladdr_t *localdest)
   /* reset packetbuf buffer */
   packetbuf_clear();
   packetbuf_ptr = packetbuf_dataptr();
-
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
-                     SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 
   if(callback) {
     /* call the attribution when the callback comes, but set attributes
@@ -1345,21 +1340,23 @@ output(const uip_lladdr_t *localdest)
   /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_RDC.
    * We calculate it here only to make a better decision of whether the outgoing packet
    * needs to be fragmented or not. */
-#define USE_FRAMER_HDRLEN 1
-#if USE_FRAMER_HDRLEN
+#ifndef SICSLOWPAN_USE_FIXED_HDRLEN
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
   framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
-    framer_hdrlen = 21;
+    framer_hdrlen = SICSLOWPAN_FIXED_HDRLEN;
   }
 #else /* USE_FRAMER_HDRLEN */
-  framer_hdrlen = 21;
+  framer_hdrlen = SICSLOWPAN_FIXED_HDRLEN;
 #endif /* USE_FRAMER_HDRLEN */
 
   max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
   if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
+    /* Number of bytes processed. */
+    uint16_t processed_ip_out_len;
+
     struct queuebuf *q;
     uint16_t frag_tag;
 
@@ -1519,6 +1516,9 @@ input(void)
   uint16_t frag_tag = 0;
   uint8_t first_fragment = 0, last_fragment = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
+
+  /* Update link statistics */
+  link_stats_input_callback(packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1757,8 +1757,8 @@ sicslowpan_init(void)
 #ifdef SICSLOWPAN_CONF_ADDR_CONTEXT_0
   SICSLOWPAN_CONF_ADDR_CONTEXT_0;
 #else
-  addr_contexts[0].prefix[0] = 0xaa;
-  addr_contexts[0].prefix[1] = 0xaa;
+  addr_contexts[0].prefix[0] = UIP_DS6_DEFAULT_PREFIX_0;
+  addr_contexts[0].prefix[1] = UIP_DS6_DEFAULT_PREFIX_1;
 #endif
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
 

@@ -80,7 +80,7 @@ contiki-cc2530dk.lib
 *.dsc
 
 #cc65 build artifacts
-*.S
+*.s
 *.eth
 *.dsk
 *.po
@@ -126,6 +126,12 @@ platform/galileo/bsp/grub/bin/
 *.galileo.efi
 LOG_OPENOCD
 
+
+# nRF52 build artifacts
+*.jlink
+*.nrf52dk
+
+# Eclipse project artefacts
 *.cproject
 *.project
 *.settings

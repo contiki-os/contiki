@@ -1,5 +1,5 @@
 
-TIMEOUT(2400000); /* 40 minutes */
+TIMEOUT(3000000); /* 50 minutes */
 
 var NR_FEATHERS = mote.getSimulation().getMotesCount() - 1;
 
@@ -9,7 +9,7 @@ if (travis == null) {
     /* Instant Contiki */
     CMD_TUNNEL = "echo '-vj' > ~/.slirprc && make Connect.class && java Connect 'nc localhost 60001' 'script -t -f -c slirp'";
     CMD_PING = "ping -c 5 8.8.8.8";
-    CMD_DIR = "../../wpcapslip";
+    CMD_DIR = "../../tools/wpcapslip";
 } else {
     /* Travis */
     CMD_TUNNEL = "cd $TRAVIS_BUILD_DIR/tools/wpcapslip && sudo apt-get install slirp && echo '-vj' > ~/.slirprc && make Connect.class && java Connect 'nc localhost 60001' 'script -t -f -c slirp'";

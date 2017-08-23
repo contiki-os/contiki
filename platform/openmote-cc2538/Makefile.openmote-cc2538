@@ -1,0 +1,50 @@
+# openmote-cc2538 platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+### Configure the build for the board and pull in board-specific sources
+CONTIKI_TARGET_DIRS += . dev
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+
+### Include
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c board.c
+CONTIKI_TARGET_SOURCEFILES += leds-arch.c button-sensor.c openmote-sensors.c
+CONTIKI_TARGET_SOURCEFILES += antenna.c adxl346.c max44009.c sht21.c tps62730.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.openmote-cc2538
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec core/net/llsec/noncoresec
+
+PYTHON = python
+BSL_FLAGS += -e -w -v -b 450000
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin %.elf
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
+	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
+	                               sort -g | head -1))
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
+endif

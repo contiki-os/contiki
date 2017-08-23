@@ -79,7 +79,7 @@ LWM2M_RESOURCES(temperature_resources,
                 /* Temperature (Current) */
                 LWM2M_RESOURCE_CALLBACK(5700, { temp, NULL, NULL }),
                 /* Units */
-                LWM2M_RESOURCE_STRING(5701, "Celcius"),
+                LWM2M_RESOURCE_STRING(5701, "Cel"),
                 /* Min Range Value */
                 LWM2M_RESOURCE_FLOATFIX(5603, IPSO_TEMPERATURE_MIN),
                 /* Max Range Value */

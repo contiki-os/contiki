@@ -94,7 +94,7 @@ res_post_put_handler(void *request, void *response, uint8_t *buffer,
  * A simple actuator example, depending on the color query parameter and post
  * variable mode, corresponding led is activated or deactivated
  */
-#if BOARD_SENSORTAG
+#if BOARD_SENSORTAG || BOARD_LAUNCHPAD
 #define RESOURCE_PARAMS "r|g"
 #elif BOARD_SMARTRF06EB
 #define RESOURCE_PARAMS "r|g|y|o"

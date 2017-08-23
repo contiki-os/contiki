@@ -75,7 +75,7 @@ shutdown_handler(uint8_t mode)
     SENSORS_DEACTIVATE(tmp_007_sensor);
     SENSORS_DEACTIVATE(hdc_1000_sensor);
     SENSORS_DEACTIVATE(mpu_9250_sensor);
-    ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
+    ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   }
 
   /* In all cases, stop the I2C */
@@ -111,7 +111,7 @@ configure_unused_pins(void)
 
   /* Digital Microphone */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MIC_POWER);
-  ti_lib_gpio_pin_clear((1 << BOARD_IOID_MIC_POWER));
+  ti_lib_gpio_clear_dio(BOARD_IOID_MIC_POWER);
   ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MIC_POWER, IOC_CURRENT_2MA,
                                  IOC_STRENGTH_MIN);
 

@@ -8,7 +8,7 @@ CONTIKI_WITH_IPV6=0
 
 CONTIKI = ../..
 
-MODULES+=core/net/mac/sicslowmac core/net/mac core/net/llsec
+MODULES+=core/net/mac/sicslowmac core/net core/net/mac core/net/llsec
 
 PROJECT_SOURCEFILES += fakeuip.c
 

@@ -53,6 +53,8 @@
 #define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){ 20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25 }
 /* 4 channels, sequence length 4 */
 #define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){ 15, 25, 26, 20 }
+/* 2 channels, sequence length 2 */
+#define TSCH_HOPPING_SEQUENCE_2_2 (uint8_t[]){ 20, 25 }
 /* 1 channel, sequence length 1 */
 #define TSCH_HOPPING_SEQUENCE_1_1 (uint8_t[]){ 20 }
 
@@ -120,7 +122,7 @@
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    10000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 15000
-/* Default timeslot timing for platfroms requiring 15ms slots */
+/* Default timeslot timing for platforms requiring 15ms slots */
 
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
@@ -135,7 +137,7 @@
 #define TSCH_DEFAULT_TS_MAX_TX             4256
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
 
-#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 65000
+#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 65000U
 /* 65ms timeslot, i.e. nearly the max length allowed by standard (16-bit unsigned in micro-seconds).
  * Useful for running link-layer security on sky or z1 in Cooja, where only S/W security is supported.
  * Note: this slot timing would require a total of 120ms. If a slot overlaps with the next active slot,
@@ -173,6 +175,27 @@
 #define TSCH_ADAPTIVE_TIMESYNC TSCH_CONF_ADAPTIVE_TIMESYNC
 #else
 #define TSCH_ADAPTIVE_TIMESYNC 0
+#endif
+
+/* HW frame filtering enabled */
+#ifdef TSCH_CONF_HW_FRAME_FILTERING
+#define TSCH_HW_FRAME_FILTERING TSCH_CONF_HW_FRAME_FILTERING
+#else /* TSCH_CONF_HW_FRAME_FILTERING */
+#define TSCH_HW_FRAME_FILTERING 1
+#endif /* TSCH_CONF_HW_FRAME_FILTERING */
+
+/* Keep radio always on within TSCH timeslot (1) or turn it off between packet and ACK? (0) */
+#ifdef TSCH_CONF_RADIO_ON_DURING_TIMESLOT
+#define TSCH_RADIO_ON_DURING_TIMESLOT TSCH_CONF_RADIO_ON_DURING_TIMESLOT
+#else
+#define TSCH_RADIO_ON_DURING_TIMESLOT 0
+#endif
+
+/* How long to scan each channel in the scanning phase */
+#ifdef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CHANNEL_SCAN_DURATION TSCH_CONF_CHANNEL_SCAN_DURATION
+#else
+#define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
 #endif
 
 #endif /* __TSCH_CONF_H__ */

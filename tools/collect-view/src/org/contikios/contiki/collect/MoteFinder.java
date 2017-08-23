@@ -54,9 +54,11 @@ public class MoteFinder {
 
   public static final String MOTELIST_WINDOWS = "./tools/motelist-windows.exe";
   public static final String MOTELIST_LINUX = "./tools/motelist-linux";
+  public static final String MOTELIST_MACOS = "./tools/motelist-macos";
 
   private final Pattern motePattern;
   private final boolean isWindows;
+  private final boolean isMacos;
   private Process moteListProcess;
 //  private boolean hasVerifiedProcess;
   private ArrayList<String> comList = new ArrayList<String>();
@@ -65,7 +67,8 @@ public class MoteFinder {
   public MoteFinder() {
     String osName = System.getProperty("os.name", "").toLowerCase();
     isWindows = osName.startsWith("win");
-    motePattern = Pattern.compile("\\s(COM|/dev/[a-zA-Z]+)(\\d+)\\s");
+    isMacos = osName.startsWith("mac");
+    motePattern = Pattern.compile("\\s(COM|/dev/[a-zA-Z]+|/dev/tty.usbserial-)(\\d+|[A-Z0-9]+)\\s");
   }
 
   public String[] getMotes() throws IOException {
@@ -87,6 +90,8 @@ public class MoteFinder {
     String fullCommand;
     if (isWindows) {
       fullCommand = MOTELIST_WINDOWS;
+    } else if (isMacos) {
+      fullCommand = MOTELIST_MACOS;
     } else {
       fullCommand = MOTELIST_LINUX;
     }

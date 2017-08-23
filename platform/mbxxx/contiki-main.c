@@ -179,7 +179,7 @@ main(void)
                                   NETSTACK_RDC.channel_check_interval()));
   printf("802.15.4 PAN ID 0x%x, EUI-%d:",
       IEEE802154_CONF_PANID, UIP_CONF_LL_802154?64:16);
-  uip_debug_lladdr_print((const uip_lladdr_t *)&linkaddr_node_addr);
+  net_debug_lladdr_print((const uip_lladdr_t *)&linkaddr_node_addr);
   printf(", radio channel %u\n", RF_CHANNEL);
 
   procinit_init();
@@ -214,7 +214,7 @@ main(void)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf("Tentative global IPv6 address ");

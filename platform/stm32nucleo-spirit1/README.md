@@ -7,13 +7,13 @@ Maintainers and Contacts
 ========================
 
 Long-term maintainers:
-* Marco Grella, marco.grella@st.com, github user: [STclab](https://github.com/STclab)
-* Alok Mittal, alok.mittal@st.com, github user: [STclab](https://github.com/STclab)
-* Indar Prakash Singhal, indar.singhal@st.com, github user: [STclab](https://github.com/STclab)
+* Marco Grella, marco.grella@st.com, github user: [mgrella](https://github.com/mgrella)
+* Alok Mittal, alok.mittal@st.com, github user: [alokclab](https://github.com/alokclab)
+* Indar Prakash Singhal, indar.singhal@st.com, github user: [indars](https://github.com/indars)
 
 Contributors:
 * David Siorpaes, david.siorpaes@st.com, github user: [siorpaes](https://github.com/siorpaes)
-* Luca Celetto, luca.celetto@st.com
+* Luca Celetto, luca.celetto@st.com, github user: [luckyluke72](https://github.com/luckyluke72)
 
 Port Feature
 ============
@@ -25,11 +25,18 @@ The port supports the following boards from ST:
 -   X-NUCLEO-IKS01A1 featuring motion MEMS and environmental sensors (optional)
 
 The following drivers are included:
-- LEDs and buttons (user, reset)
+- LEDs and user button
 - USB
 - SPIRIT1 sub-1GHz transceiver  
 - HTS221, LIS3MDL, LPS25HB, LSM6DS0 sensors
 
+Documentation
+=============
+
+- User Manual: UM2000 "Getting started with the Contiki OS/6LoWPAN on STM32 Nucleo with SPIRIT1 and sensors expansion boards"
+- Quick Start Guide (presentation): "Contiki 6LoWPAN Quick Guide"
+
+To access this documentation and other collaterals, please go to http://www.st.com and search for "STSW-CONTIKI6LP" part number.
 
 Hardware Requirements
 =====================
@@ -38,8 +45,7 @@ Hardware Requirements
 
  >The NUCLEO-L152RE board belongs to the STM32 Nucleo family.
 It features an STM32L152RET6 ultra-low power microcontroller based on ARM Cortex M3 MCU.
-Detailed information on the NUCLEO-L152RE development board can be found at:
-http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1847/PF260002
+For detailed information on the NUCLEO-L152RE development board, please go to http://www.st.com and search for the "NUCLEO-L152RE" part number.
 
 
 * X-NUCLEO-IDS01Ax sub-1GHz expansion board
@@ -49,22 +55,15 @@ the module SPSGRF-868 or SPSGRF-915 based on SPIRIT1 low data rate, low power su
 
  >The user can select the X-NUCLEO-IDS01A4 board to operate the SPIRIT1 transceiver at 868MHz or the X-NUCLEO-IDS01A5 board to operate the SPIRIT1 transceiver at 915MHz.
 
- >Detailed information on the X-NUCLEO-IDS01A4 expansion board can be found at:
-http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261982
-
- >Detailed information on the X-NUCLEO-IDS01A5 expansion board can be found at:
-http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261983 
-
- >Detailed information on the SPIRIT1 sub-1GHz transceiver can be found at:
-http://www.st.com/web/catalog/sense_power/FM2185/SC1845/PF253167
+>For detailed information on the X-NUCLEO-IDS01A4 or X-NUCLEO-IDS01A5 expansion board, or the SPIRIT1 transceiver please go to http://www.st.com and search for the specific part number.
+ 
 
 * X-NUCLEO-IKS01A1, motion MEMS and environmental sensors expansion board (OPTIONAL)
 
  >The X-NUCLEO-IKS01A1 is a motion MEMS and environmental sensor evaluation board.
 The use of this board is optional in the stm32nucleo-spirit1 Contiki platform. 
 
- >Detailed information on the X-NUCLEO-IKS01A1 expansion board can be found at:
-http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261191
+ >For detailed information on the X-NUCLEO-IKS01A1 expansion board, please go to http://www.st.com and search for the "X-NUCLEO-IKS01A1" part number.
 
 
 * USB type A to Mini-B USB cable, to connect the STM32 Nucleo board to the PC
@@ -76,16 +75,15 @@ The following software are needed:
 
 * ST port of Contiki for STM32 Nucleo and expansion boards. 
  
- >The port is automatically installed when both the Contiki and the submodule repository are cloned: the former hosts the Contiki distribution and the ST platform interface, the latter hosts the actual library. The following commands are needed to download the full porting: 
+ >The port is automatically installed when both the Contiki and the submodule repository are cloned: the former hosts the Contiki distribution and the ST platform interface, the latter hosts the actual library. The following command downloads the full porting: 
 
-	git clone https://github.com/STclab/contiki.git
+	git clone --recursive https://github.com/contiki-os/contiki
+
+Alternatively, if you cloned the contiki repository without the "--recursive" option, you can simply download the submodule repository with the following commands:
+
 	cd contiki/
-	git checkout stm32nucleo-spirit1
 	git submodule init
 	git submodule update
-
-
-Note: the first and third steps are required only if using the STclab GitHub repository, they won't be needed any more once the Pull Request is accepted.
 
 The platform name is: stm32nucleo-spirit1
 
@@ -156,12 +154,5 @@ This can be done by copying the binary file on the USB mass storage that is
 automatically created when plugging the STM32 Nucleo board to the PC.
 
 6. Reset the MCU by using the reset button on the STM32 Nucleo board
-
-
-
-
-
-
-
 
 

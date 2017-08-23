@@ -56,6 +56,8 @@
  * - the number of elements requested by the user in contiki configuration (name suffixed by _NBU)
  * - the number of elements assigned by the system (name suffixed by _NBS)
  * - the total number of elements is the sum (name suffixed by _NB)
+ * The routing table definitions can be found in uip-ds6-route.h
+ * The Neighbor cache definitions can be found in nbr-table.h
 */
 
 /* Default router list */
@@ -66,6 +68,36 @@
 #define UIP_DS6_DEFRT_NBU UIP_CONF_DS6_DEFRT_NBU
 #endif
 #define UIP_DS6_DEFRT_NB UIP_DS6_DEFRT_NBS + UIP_DS6_DEFRT_NBU
+
+/* Default prefix */
+#ifdef UIP_CONF_DS6_DEFAULT_PREFIX
+#define UIP_DS6_DEFAULT_PREFIX UIP_CONF_DS6_DEFAULT_PREFIX
+#else
+/* From RFC4193, section 3.1:
+ *  | 7 bits |1|  40 bits   |  16 bits  |          64 bits           |
+ *  +--------+-+------------+-----------+----------------------------+
+ *  | Prefix |L| Global ID  | Subnet ID |        Interface ID        |
+ *  +--------+-+------------+-----------+----------------------------+
+ *     Prefix            FC00::/7 prefix to identify Local IPv6 unicast
+ *                       addresses.
+ *     L                 Set to 1 if the prefix is locally assigned.
+ *                       Set to 0 may be defined in the future.  See
+ *                       Section 3.2 for additional information.
+ *     Global ID         40-bit global identifier used to create a
+ *                       globally unique prefix.  See Section 3.2 for
+ *                       additional information.
+ *
+ * We set prefix to 0xfc00 and set the local bit, resulting in 0xfd00.
+ * For high probability of network uniqueness, Global ID must be generated
+ * pseudo-randomly. As this is a hard-coded default prefix, we simply use
+ * a Global ID of 0. For real deployments, make sure to install a pseudo-random
+ * Global ID, e.g. in a RPL network, by configuring it at the root.
+ */
+#define UIP_DS6_DEFAULT_PREFIX 0xfd00
+#endif /* UIP_CONF_DS6_DEFAULT_PREFIX */
+
+#define UIP_DS6_DEFAULT_PREFIX_0 ((UIP_DS6_DEFAULT_PREFIX >> 8) & 0xff)
+#define UIP_DS6_DEFAULT_PREFIX_1 (UIP_DS6_DEFAULT_PREFIX & 0xff)
 
 /* Prefix list */
 #define UIP_DS6_PREFIX_NBS  1

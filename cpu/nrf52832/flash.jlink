@@ -1,0 +1,4 @@
+loadfile #OUTPUT_FILENAME#
+r
+g
+q

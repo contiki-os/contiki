@@ -151,7 +151,7 @@ if (travis == null) {&#xD;
     /* Instant Contiki */&#xD;
     CMD_TUNNEL = "echo '-vj' &gt; ~/.slirprc &amp;&amp; make Connect.class &amp;&amp; java Connect 'nc localhost 60001' 'script -t -f -c slirp'";&#xD;
     CMD_PING = "ping -c 5 8.8.8.8";&#xD;
-    CMD_DIR = "../../wpcapslip";&#xD;
+    CMD_DIR = "../../tools/wpcapslip";&#xD;
 } else {&#xD;
     /* Travis */&#xD;
     CMD_TUNNEL = "cd $TRAVIS_BUILD_DIR/tools/wpcapslip &amp;&amp; sudo apt-get install slirp &amp;&amp; echo '-vj' &gt; ~/.slirprc &amp;&amp; make Connect.class &amp;&amp; java Connect 'nc localhost 60001' 'script -t -f -c slirp'";&#xD;

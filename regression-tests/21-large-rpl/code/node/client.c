@@ -10,6 +10,7 @@ static struct http_socket s;
 static int bytes_received = 0;
 static int restarts;
 static struct ctimer reconnect_timer;
+static int connect = 0;
 
 static void callback(struct http_socket *s, void *ptr,
                      http_socket_event_t e,
@@ -22,9 +23,9 @@ AUTOSTART_PROCESSES(&http_example_process);
 static void
 reconnect(void *dummy)
 {
+  printf("#A color=orange\n");
   rpl_set_mode(RPL_MODE_MESH);
-  http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
-                  callback, NULL);
+  connect = 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -33,6 +34,8 @@ restart(void)
   int scale;
   restarts++;
   printf("restart %d\n", restarts);
+  rpl_set_mode(RPL_MODE_FEATHER);
+  printf("#A color=red\n");
 
   scale = restarts;
   if(scale > 5) {
@@ -62,6 +65,7 @@ callback(struct http_socket *s, void *ptr,
     if(bytes_received > 0) {
       printf("HTTP socket closed, %d bytes received\n", bytes_received);
       leds_off(LEDS_RED);
+      printf("#A color=blue\n");
       rpl_set_mode(RPL_MODE_FEATHER);
     } else {
       restart();
@@ -72,6 +76,7 @@ callback(struct http_socket *s, void *ptr,
   }
 }
 /*---------------------------------------------------------------------------*/
+
 PROCESS_THREAD(http_example_process, ev, data)
 {
   static struct etimer et;
@@ -88,14 +93,26 @@ PROCESS_THREAD(http_example_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   http_socket_init(&s);
-  http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
-                  callback, NULL);
+  connect = 1;
   leds_on(LEDS_RED);
   restarts = 0;
-  etimer_set(&et, CLOCK_SECOND);
+  etimer_set(&et, CLOCK_SECOND * 5);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     etimer_reset(&et);
+    if(connect && rpl_has_downward_route()) {
+      printf("#A color=green\n");
+      http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
+		      callback, NULL);
+      connect = 0;
+    } else if(connect) {
+      connect++;
+      /* If connect have been "tried" 5 timer we quit trying now... */
+      if(connect > 5)  {
+	restart();
+	connect = 0;
+      }
+    }
   }
 
   PROCESS_END();

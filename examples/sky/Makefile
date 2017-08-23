@@ -3,7 +3,7 @@ ifndef TARGET
 TARGET=sky
 endif
 
-all: blink sky-collect #rt-leds test-button test-cfs tcprudolph0
+all: blink sky-collect #rt-leds test-button tcprudolph0
 
 %.tgz: %.ihex
 	mkdir $(basename $<) ; \

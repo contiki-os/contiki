@@ -525,7 +525,7 @@ wpcap_init(void)
 //	  }
 #else
       addr.s_addr = inet_addr("10.10.10.10");   //prefer ipv4 default for legacy compatibility
-//    uiplib_ipaddrconv("aaaa::1",(uip_ipaddr_t*) &addr6.s6_addr);
+//    uiplib_ipaddrconv("fd00::1",(uip_ipaddr_t*) &addr6.s6_addr);
 #endif
 
 #ifdef UIP_FALLBACK_INTERFACE

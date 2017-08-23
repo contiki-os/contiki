@@ -175,7 +175,7 @@ static void
 save_config()
 {
   /* Dump current running config to flash */
-#if BOARD_SENSORTAG
+#if BOARD_SENSORTAG || BOARD_LAUNCHPAD
   int rv;
   cc26xx_web_demo_sensor_reading_t *reading = NULL;
 
@@ -218,7 +218,7 @@ save_config()
 static void
 load_config()
 {
-#if BOARD_SENSORTAG
+#if BOARD_SENSORTAG || BOARD_LAUNCHPAD
   /* Read from flash into a temp buffer */
   cc26xx_web_demo_config_t tmp_cfg;
   cc26xx_web_demo_sensor_reading_t *reading = NULL;

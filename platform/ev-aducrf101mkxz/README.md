@@ -71,9 +71,9 @@ the SLIP tunnel on the host machine:
 
     sudo contiki/tools/tunslip6 \
         -s /dev/serial/by-id/usb-SEGGER_J-Link_000541011111-if00 \
-        -B 115200 -v3 aaaa::1/64
+        -B 115200 -v3 fd00::1/64
 
-Open the border router's home page at: http://[aaaa::3230:3030:3132:3334]/
+Open the border router's home page at: http://[fd00::3230:3030:3132:3334]/
 
 #### Web Server ####
 
@@ -90,7 +90,7 @@ router:
     adi-cm3sd/cm3sd.py -a contiki/examples/webserver-ipv6/webserver6.ev-aducrf101mkxz.hex \
         /dev/serial/by-id/usb-SEGGER_J-Link_000541022222-if00
 
-Open the web server's home page at: http://[aaaa::3230:3030:3536:3738]/
+Open the web server's home page at: http://[fd00::3230:3030:3536:3738]/
 
 On Windows:
 -----------

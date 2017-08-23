@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Zolertia(TM) is a trademark of Advancare,SL
+ * Copyright (c) 2010-2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,10 @@
 /*---------------------------------------------------------------------------*/
 /**
  * \file
- *         A quick program for testing the tmp102 driver in the Z1 platform
+ *         A quick program for testing the tmp102 sensor in the Z1 platform
  * \author
  *         Enric M. Calvo <ecalvo@zolertia.com>
+ *         Antonio Lignan <alinan@zolertia.com>
  */
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
@@ -44,7 +45,7 @@
 /*---------------------------------------------------------------------------*/
 #define TMP102_READ_INTERVAL (CLOCK_SECOND / 2)
 /*---------------------------------------------------------------------------*/
-PROCESS(temp_process, "Test Temperature process");
+PROCESS(temp_process, "TMP102 Temperature sensor process");
 AUTOSTART_PROCESSES(&temp_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
@@ -55,12 +56,12 @@ PROCESS_THREAD(temp_process, ev, data)
 
   int16_t temp;
 
-  tmp102_init();
+  SENSORS_ACTIVATE(tmp102);
 
   while(1) {
     etimer_set(&et, TMP102_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    temp = tmp102_read_temp_x100();
+    temp = tmp102.value(TMP102_READ);
     printf("Temp = %d\n", temp);
   }
   PROCESS_END();

@@ -47,10 +47,19 @@
 static void handle_periodic_timer(void *ptr);
 static struct ctimer periodic_timer;
 static uint8_t initialized = 0;
+static void print_table();
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
+
+/* This is the callback function that will be called when there is a
+ *  nbr-policy active
+ **/
+#ifdef NBR_TABLE_FIND_REMOVABLE
+const linkaddr_t *NBR_TABLE_FIND_REMOVABLE(nbr_table_reason_t reason, void *data);
+#endif /* NBR_TABLE_FIND_REMOVABLE */
+
 
 /* List of link-layer addresses of the neighbors, used as key in the tables */
 typedef struct nbr_table_key {
@@ -169,8 +178,27 @@ nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int val
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static void
+remove_key(nbr_table_key_t *least_used_key)
+{
+  int i;
+  for(i = 0; i < MAX_NUM_TABLES; i++) {
+    if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
+      /* Call table callback for each table that uses this item */
+      nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
+      if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
+        all_tables[i]->callback(removed_item);
+      }
+    }
+  }
+  /* Empty used map */
+  used_map[index_from_key(least_used_key)] = 0;
+  /* Remove neighbor from list */
+  list_remove(nbr_table_keys, least_used_key);
+}
+/*---------------------------------------------------------------------------*/
 static nbr_table_key_t *
-nbr_table_allocate(void)
+nbr_table_allocate(nbr_table_reason_t reason, void *data)
 {
   nbr_table_key_t *key;
   int least_used_count = 0;
@@ -179,59 +207,72 @@ nbr_table_allocate(void)
   key = memb_alloc(&neighbor_addr_mem);
   if(key != NULL) {
     return key;
-  } else { /* No more space, try to free a neighbor.
-            * The replacement policy is the following: remove neighbor that is:
-            * (1) not locked
-            * (2) used by fewest tables
-            * (3) oldest (the list is ordered by insertion time)
-            * */
-    /* Get item from first key */
-    key = list_head(nbr_table_keys);
-    while(key != NULL) {
-      int item_index = index_from_key(key);
-      int locked = locked_map[item_index];
-      /* Never delete a locked item */
-      if(!locked) {
-        int used = used_map[item_index];
-        int used_count = 0;
-        /* Count how many tables are using this item */
-        while(used != 0) {
-          if((used & 1) == 1) {
-            used_count++;
-          }
-          used >>= 1;
-        }
-        /* Find least used item */
-        if(least_used_key == NULL || used_count < least_used_count) {
-          least_used_key = key;
-          least_used_count = used_count;
-          if(used_count == 0) { /* We won't find any least used item */
-            break;
-          }
-        }
+  } else {
+#ifdef NBR_TABLE_FIND_REMOVABLE
+    const linkaddr_t *lladdr;
+    lladdr = NBR_TABLE_FIND_REMOVABLE(reason, data);
+    if(lladdr == NULL) {
+      /* Nothing found that can be deleted - return NULL to indicate failure */
+      PRINTF("*** Not removing entry to allocate new\n");
+      return NULL;
+    } else {
+      /* used least_used_key to indicate what is the least useful entry */
+      int index;
+      int locked = 0;
+      if((index = index_from_lladdr(lladdr)) != -1) {
+        least_used_key = key_from_index(index);
+        locked = locked_map[index];
       }
-      key = list_item_next(key);
+      /* Allow delete of locked item? */
+      if(least_used_key != NULL && locked) {
+        PRINTF("Deleting locked item!\n");
+        locked_map[index] = 0;
+      }
     }
+#endif /* NBR_TABLE_FIND_REMOVABLE */
+
+    if(least_used_key == NULL) {
+      /* No more space, try to free a neighbor.
+       * The replacement policy is the following: remove neighbor that is:
+       * (1) not locked
+       * (2) used by fewest tables
+       * (3) oldest (the list is ordered by insertion time)
+       * */
+      /* Get item from first key */
+      key = list_head(nbr_table_keys);
+      while(key != NULL) {
+        int item_index = index_from_key(key);
+        int locked = locked_map[item_index];
+        /* Never delete a locked item */
+        if(!locked) {
+          int used = used_map[item_index];
+          int used_count = 0;
+          /* Count how many tables are using this item */
+          while(used != 0) {
+            if((used & 1) == 1) {
+              used_count++;
+            }
+          used >>= 1;
+          }
+          /* Find least used item */
+          if(least_used_key == NULL || used_count < least_used_count) {
+            least_used_key = key;
+            least_used_count = used_count;
+            if(used_count == 0) { /* We won't find any least used item */
+              break;
+            }
+          }
+        }
+        key = list_item_next(key);
+      }
+    }
+
     if(least_used_key == NULL) {
       /* We haven't found any unlocked item, allocation fails */
       return NULL;
     } else {
       /* Reuse least used item */
-      int i;
-      for(i = 0; i<MAX_NUM_TABLES; i++) {
-        if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
-          /* Call table callback for each table that uses this item */
-          nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
-          if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
-            all_tables[i]->callback(removed_item);
-          }
-        }
-      }
-      /* Empty used map */
-      used_map[index_from_key(least_used_key)] = 0;
-      /* Remove neighbor from list */
-      list_remove(nbr_table_keys, least_used_key);
-      /* Return associated key */
+      remove_key(least_used_key);
       return least_used_key;
     }
   }
@@ -289,7 +330,7 @@ nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)
 /*---------------------------------------------------------------------------*/
 /* Add a neighbor indexed with its link-layer address */
 nbr_table_item_t *
-nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)
+nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr, nbr_table_reason_t reason, void *data)
 {
   int index;
   nbr_table_item_t *item;
@@ -303,7 +344,7 @@ nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)
 
   if((index = index_from_lladdr(lladdr)) == -1) {
      /* Neighbor not yet in table, let's try to allocate one */
-    key = nbr_table_allocate();
+    key = nbr_table_allocate(reason, data);
 
     /* No space available for new entry */
     if(key == NULL) {
@@ -327,6 +368,9 @@ nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)
   memset(item, 0, table->item_size);
   nbr_set_bit(used_map, table, item, 1);
 
+#if DEBUG
+  print_table();
+#endif
   return item;
 }
 /*---------------------------------------------------------------------------*/
@@ -377,9 +421,42 @@ nbr_table_get_lladdr(nbr_table_t *table, const void *item)
   return key != NULL ? &key->lladdr : NULL;
 }
 /*---------------------------------------------------------------------------*/
+/* Update link-layer address of an item */
+int
+nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr,
+                        int remove_if_duplicate)
+{
+  int index;
+  int new_index;
+  nbr_table_key_t *key;
+  index = index_from_lladdr(old_addr);
+  if(index == -1) {
+    /* Failure to change since there is nothing to change. */
+    return 0;
+  }
+  if((new_index = index_from_lladdr(new_addr)) != -1) {
+    /* check if it is a change or not - do not remove / fail if same */
+    if(new_index == index) {
+      return 1;
+    }
+    /* This new entry already exists - failure! - remove if requested. */
+    if(remove_if_duplicate) {
+      remove_key(key_from_index(index));
+    }
+    return 0;
+  }
+  key = key_from_index(index);
+  /**
+   * Copy the new lladdr into the key - since we know that there is no
+   * conflicting entry.
+   */
+  memcpy(&key->lladdr, new_addr, sizeof(linkaddr_t));
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 #if DEBUG
 static void
-handle_periodic_timer(void *ptr)
+print_table()
 {
   int i, j;
   /* Printout all neighbors and which tables they are used in */
@@ -394,6 +471,12 @@ handle_periodic_timer(void *ptr)
       PRINTF("\n");
     }
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+handle_periodic_timer(void *ptr)
+{
+  print_table();
   ctimer_reset(&periodic_timer);
 }
 #endif

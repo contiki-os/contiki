@@ -30,6 +30,11 @@ Device drivers:
   * Real-Time Clock (RTC)
   * UART
   * Ethernet
+  * I2C
+  * GPIO (default pinmux configuration is listed in
+    platform/galileo/drivers/galileo-pinmux.c)
+  * Intel Quark X1000 SoC message bus
+  * Isolated Memory Regions (IMRs)
 
 Contiki APIs:
   * Clock module
@@ -39,12 +44,61 @@ Standard APIs:
   * Stdio library (stdout and stderr only). Console output through UART 1
     device (connected to Galileo Gen2 FTDI header)
 
-Building
---------
+Optional support for protection domains is also implemented and is
+described in cpu/x86/mm/README.md.
+
+Preparation
+-----------
 
 Prerequisites on all Ubuntu Linux systems include texinfo and uuid-dev.
 Additional prerequisites on 64-bit Ubuntu Linux systems include
 gcc-multilib and g++-multilib.
+
+Docker can optionally be used to prepare an Ubuntu-based, containerized build
+environment. This has been tested with Docker installed on Microsoft Windows 10.
+
+If not using a containerized environment, proceed to the "Building" section
+below.
+
+Using a Docker-based environment on Windows requires that the repository has
+been checked out with Git configured to preserve UNIX-style line endings. This
+can be accomplished by changing the 'core.autocrlf' setting prior to cloning
+the repository [5]:
+```
+git config --global core.autocrlf input
+```
+Note that this is a global setting, so it may affect other Git operations.
+
+The drive containing the repository needs to be shared with Docker containers
+for the following steps to work [6].  Note that this is a global setting that
+affects other containers that may be present on the host.
+
+Open Microsoft PowerShell and navigate to the base directory of the repository.
+Run the following command to create the build environment:
+```
+docker build -t contiki-galileo-build platform/galileo/bsp/docker
+```
+This creates a container named 'contiki-galileo-build' based on Ubuntu and
+installs development tools in the container.
+
+The build commands shown below can be run within the newly-created container. To
+obtain a shell, run the following command in PowerShell from the base directory
+of the repository.
+```
+docker run -t -i -v ${Pwd}:/contiki contiki-galileo-build
+```
+This command mounts the current directory and its subdirectories at the path
+'/contiki' within the container. Changes to those files in the container are
+visible to the host and vice versa. However, changes to the container
+filesystem are not automatically persisted when the container is stopped.
+
+The containerized build environment does not currently support building the Grub
+bootloader nor debugging using the instructions in this document.
+
+See the Docker Overview for more information about working with containers [7].
+
+Building
+--------
 
 To build applications for this platform you should first build newlib (in
 case it wasn't already built). To build newlib you can run the following
@@ -81,12 +135,23 @@ you can run the following command prior to building applications:
 $ cpu/x86/uefi/build_uefi.sh
 ```
 
+To restrict DMA so that peripherals are blocked from accessing memory
+regions that do not contain any data that needs to be DMA-accessible,
+specify X86_CONF_RESTRICT_DMA=1 as a command-line argument to the make
+command that is used to build the image.  This will configure and lock
+the IMRs.
+
+Galileo Gen. 2 is targeted by default.  Specify GALILEO_GEN=1 on the build
+command line to target first generation boards.
+
 Running
 -------
 
-In order to boot the Contiki image, you will need a multiboot-compliant
-bootloader. In the bsp directory, we provide a helper script which builds the
-Grub bootloader with multiboot support. To build the bootloader, just run the
+You will need a multiboot-compliant bootloader to boot Contiki images in that
+format. However, this is not needed for booting UEFI images.
+
+In the bsp directory, we provide a helper script which builds the Grub
+bootloader with multiboot support. To build the bootloader, just run the
 following command:
 ```
 $ platform/galileo/bsp/grub/build_grub.sh
@@ -98,7 +163,17 @@ detailed instructions.
 
 ### Prepare SDcard
 
+The instructions in this section are for a native Linux development environment,
+so equivalent operations should be substituted when using some other environment
+(e.g. Windows Explorer can be used to perform equivalent operations when using
+Docker on Windows as a development environment).
+
 Mount the sdcard in directory /mnt/sdcard.
+
+Create UEFI boot directory:
+```
+$ mkdir -p /mnt/sdcard/efi/boot
+```
 
 #### Approach for Multiboot-compliant ELF Image
 
@@ -109,19 +184,20 @@ $ cp examples/hello-world/hello-world.galileo /mnt/sdcard
 
 Copy grub binary to sdcard
 ```
-$ cp platform/galileo/bsp/grub/bin/grub.efi /mnt/sdcard
+$ cp platform/galileo/bsp/grub/bin/grub.efi /mnt/sdcard/efi/boot/bootia32.efi
 ```
 
 #### Approach for UEFI Image
 
-Copy Contiki binary image to sdcard
+Copy Contiki binary image to sdcard:
 ```
-$ cp examples/hello-world/hello-world.galileo.efi /mnt/sdcard
+$ cp examples/hello-world/hello-world.galileo.efi /mnt/sdcard/efi/boot/bootia32.efi
 ```
 
 ### Connect to the console output
 
-Connect the serial cable to your computer as shown in [2].
+Connect the serial cable to your computer as shown in [8] for first generation
+boards and [2] for second generation boards.
 
 Choose a terminal emulator such as PuTTY. Make sure you use the SCO keyboard
 mode (on PuTTY that option is at Terminal -> Keyboard, on the left menu).
@@ -136,29 +212,18 @@ Press [Enter] to directly boot.
 Press [F7]    to show boot menu options.
 ```
 
-Press <F7> and select the option "UEFI Internal Shell" within the menu.
+Waiting for the system to select the default boot device may be sufficient.
+However, if this does not boot Contiki or Grub (depending on what is installed
+as the UEFI boot image) then perform the following procedure after rebooting
+and waiting for the boot message to appear: Press <F7> and select the option
+"UEFI Misc Device" within the menu.
 
-#### Boot Multiboot-compliant ELF Image
+No additional steps should be required to boot a Contiki UEFI image.
 
-Once you have a shell, run the following commands to run grub application:
-```
-$ fs0:
-$ grub.efi
-```
-
-You'll reach the grub shell. Now run the following commands to boot Contiki
-image:
+Run the following additional commands to boot a multiboot-compliant image:
 ```
 $ multiboot /hello-world.galileo
 $ boot
-```
-
-#### Boot UEFI Image
-
-Once you have a shell, run the following commands to boot Contiki image:
-```
-$ fs0:
-$ hello-world.galileo.efi
 ```
 
 ### Verify that Contiki is Running
@@ -167,7 +232,7 @@ This should boot the Contiki image, resulting in the following messages being
 sent to the serial console:
 ```
 Starting Contiki
-Hello World
+Hello, world
 ```
 
 Debugging
@@ -210,3 +275,11 @@ References
 [3] https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
 
 [4] http://www.uefi.org/
+
+[5] https://www.git-scm.com/book/en/v2/Customizing-Git-Git-Configuration
+
+[6] https://docs.docker.com/docker-for-windows/#/shared-drives
+
+[7] https://docs.docker.com/engine/understanding-docker/
+
+[8] https://software.intel.com/en-us/articles/intel-galileo-gen-1-board-assembly-using-eclipse-and-intel-xdk-iot-edition

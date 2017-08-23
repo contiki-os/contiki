@@ -847,6 +847,9 @@ public class Simulation extends Observable implements Runnable {
       }
     };
 
+    //Add to list of uninitialized motes
+    motesUninit.add(mote);
+
     if (!isRunning()) {
       /* Simulation is stopped, add mote immediately */
       addMote.run();
@@ -854,8 +857,6 @@ public class Simulation extends Observable implements Runnable {
       /* Add mote from simulation thread */
       invokeSimulationThread(addMote);
     }
-    //Add to list of uninitialized motes
-    motesUninit.add(mote);
     
   }
 

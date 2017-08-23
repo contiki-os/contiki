@@ -45,6 +45,9 @@
 
 #include "net/llsec/anti-replay.h"
 #include "net/packetbuf.h"
+#include "net/llsec/llsec802154.h"
+
+#if LLSEC802154_USES_FRAME_COUNTER
 
 /* This node's current frame counter value */
 static uint32_t counter;
@@ -107,5 +110,6 @@ anti_replay_was_replayed(struct anti_replay_info *info)
   }
 }
 /*---------------------------------------------------------------------------*/
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 
 /** @} */

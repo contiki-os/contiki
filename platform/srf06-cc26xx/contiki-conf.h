@@ -65,12 +65,24 @@
 #define NETSTACK_CONF_RDC     contikimac_driver
 #endif
 
+/*
+ * If set, the systems keeps the HF crystal oscillator on even when the radio is off.
+ * You need to set this to 1 to use TSCH with its default 2.2ms or larger guard time.
+ */
+#ifndef CC2650_FAST_RADIO_STARTUP
+#define CC2650_FAST_RADIO_STARTUP               0
+#endif
+
 /* Configure NullRDC for when it's selected */
 #define NULLRDC_CONF_802154_AUTOACK             1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
+
+#ifndef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+#endif
+
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
@@ -81,7 +93,18 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
+/*
+ * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
+ * project has specified otherwise. Depending on the final mode, determine a
+ * default channel (again, if unspecified) and configure RDC params
+ */
 #if CPU_FAMILY_CC13XX
+#ifndef CC13XX_CONF_PROP_MODE
+#define CC13XX_CONF_PROP_MODE 1
+#endif /* CC13XX_CONF_PROP_MODE */
+#endif /* CPU_FAMILY_CC13XX */
+
+#if CC13XX_CONF_PROP_MODE
 #define NETSTACK_CONF_RADIO        prop_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL
@@ -98,9 +121,11 @@
 #define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
 #define CONTIKIMAC_CONF_SEND_SW_ACK               1
 #define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
-#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 250)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 240)
 #else
+#ifndef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
+#endif
 
 #ifndef RF_CORE_CONF_CHANNEL
 #define RF_CORE_CONF_CHANNEL                     25
@@ -113,9 +138,18 @@
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN        125
 
 /* 6LoWPAN */
+#ifndef SICSLOWPAN_CONF_COMPRESSION
 #define SICSLOWPAN_CONF_COMPRESSION          SICSLOWPAN_COMPRESSION_HC06
+#endif
+
+#ifndef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD  63
+#endif
+
+#ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
+#endif
+
 #define SICSLOWPAN_CONF_MAXAGE                  8
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -164,10 +198,6 @@
 #ifndef RF_BLE_CONF_ENABLED
 #define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
-
-#ifndef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** @} */
@@ -198,7 +228,10 @@
 #define UIP_CONF_ROUTER                      1
 #endif
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA                 0
+#endif
+
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
 
@@ -281,6 +314,19 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ROM Bootloader configuration
+ *
+ * Enable/Disable the ROM bootloader in your image, if the board supports it.
+ * Look in board.h to choose the DIO and corresponding level that will cause
+ * the chip to enter bootloader mode.
+ * @{
+ */
+#ifndef ROM_BOOTLOADER_ENABLE
+#define ROM_BOOTLOADER_ENABLE              0
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Button configurations
  *
  * Configure a button as power on/off: We use the right button for both boards.
@@ -325,10 +371,62 @@ typedef uint32_t uip_stats_t;
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
+
+/* --------------------------------------------------------------------- */
+/* TSCH related defines */
+
+/* Delay between GO signal and SFD */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(81))
+/* Delay between GO signal and start listening.
+ * This value is so small because the radio is constantly on within each timeslot. */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(15))
+/* Delay between the SFD finishes arriving and it is detected in software. */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(352))
+
+/* Timer conversion; radio is running at 4 MHz */
+#define RADIO_TIMER_SECOND   4000000u
+#if (RTIMER_SECOND % 256) || (RADIO_TIMER_SECOND % 256)
+#error RADIO_TO_RTIMER macro must be fixed!
+#endif
+#define RADIO_TO_RTIMER(X)   ((uint32_t)(((uint64_t)(X) * (RTIMER_SECOND / 256)) / (RADIO_TIMER_SECOND / 256)))
+#define USEC_TO_RADIO(X)     ((X) * 4)
+
+/* The PHY header (preamble + SFD, 4+1 bytes) duration is equivalent to 10 symbols */
+#define RADIO_IEEE_802154_PHY_HEADER_DURATION_USEC 160
+
+/* Do not turn off TSCH within a timeslot: not enough time */
+#define TSCH_CONF_RADIO_ON_DURING_TIMESLOT 1
+
+/* Disable TSCH frame filtering */
+#define TSCH_CONF_HW_FRAME_FILTERING	0
+
+/* Use hardware timestamps */
+#ifndef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
+#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
+#define TSCH_CONF_TIMESYNC_REMOVE_JITTER 0
+#endif
+
+#ifndef TSCH_CONF_BASE_DRIFT_PPM
+/* The drift compared to "true" 10ms slots.
+ * Enable adaptive sync to enable compensation for this. */
+#define TSCH_CONF_BASE_DRIFT_PPM -977
+#endif
+
+/* 10 times per second */
+#ifndef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CONF_CHANNEL_SCAN_DURATION (CLOCK_SECOND / 10)
+#endif
+
+/* Slightly reduce the TSCH guard time (from 2200 usec to 1800 usec) to make sure
+ * the CC26xx radio has sufficient time to start up. */
+#ifndef TSCH_CONF_RX_WAIT
+#define TSCH_CONF_RX_WAIT 1800
+#endif
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */

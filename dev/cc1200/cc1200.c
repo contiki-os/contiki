@@ -40,6 +40,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
+#include "dev/watchdog.h"
 
 #include "dev/leds.h"
 
@@ -289,7 +290,9 @@ extern const cc1200_rf_cfg_t CC1200_RF_CFG;
   do { \
     rtimer_clock_t t0; \
     t0 = RTIMER_NOW(); \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {} \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) { \
+      watchdog_periodic(); \
+    } \
   } while(0)
 /*---------------------------------------------------------------------------*/
 #if CC1200_USE_GPIO2
@@ -542,11 +545,6 @@ calculate_freq(uint8_t channel);
 /* Update rf channel if possible, else postpone it (-> pollhandler). */
 static int
 set_channel(uint8_t channel);
-#if !CC1200_SNIFFER
-/* Check broadcast address. */
-static int
-is_broadcast_addr(uint8_t mode, uint8_t *addr);
-#endif /* CC1200_SNIFFER */
 /* Validate address and send ACK if requested. */
 static int
 addr_check_auto_ack(uint8_t *frame, uint16_t frame_len);
@@ -563,8 +561,7 @@ PROCESS_THREAD(cc1200_process, ev, data)
 
   PROCESS_BEGIN();
 
-#if CC1200_USE_RX_WATCHDOG && !CC1200_SNIFFER
-  /* RX watchdog interferes with sniffer. Reason unknown... */
+#if CC1200_USE_RX_WATCHDOG
   while(1) {
 
     if((rf_flags & (RF_ON | RF_TX_ACTIVE)) == RF_ON) {
@@ -705,11 +702,6 @@ init(void)
      * configuration of the GPIO0 pin
      */
     off();
-
-/* #if CC1200_SNIFFER */
-/*     on(); */
-/* #endif */
-
   }
 
   return 1;
@@ -810,7 +802,7 @@ transmit(unsigned short transmit_len)
      */
 
     BUSYWAIT_UNTIL_STATE(STATE_RX,
-                         RTIMER_SECOND / 100);
+        CC1200_RF_CFG.tx_rx_turnaround);
 
     ENABLE_GPIO_INTERRUPTS();
 
@@ -897,7 +889,6 @@ read(void *buf, unsigned short buf_len)
                          crc_lqi & ~(1 << 7));
 
       RIMESTATS_ADD(llrx);
-
     }
 
   }
@@ -1471,7 +1462,7 @@ configure(void)
 #endif
 
   /* RSSI offset */
-  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RSSI_OFFSET);
+  single_write(CC1200_AGC_GAIN_ADJUST, (int8_t)CC1200_RF_CFG.rssi_offset);
 
   /***************************************************************************
    * RF test modes needed during hardware development
@@ -2025,7 +2016,7 @@ calculate_freq(uint8_t channel)
 
   uint32_t freq;
 
-  freq = CC1200_RF_CFG.chan_center_freq0 + channel * CC1200_RF_CFG.chan_spacing;
+  freq = CC1200_RF_CFG.chan_center_freq0 + (channel * CC1200_RF_CFG.chan_spacing) / 1000 /* /1000 because chan_spacing is in Hz */;
   freq *= FREQ_MULTIPLIER;
   freq /= FREQ_DIVIDER;
 
@@ -2108,7 +2099,6 @@ set_channel(uint8_t channel)
 }
 /*---------------------------------------------------------------------------*/
 /* Check broadcast address. */
-#if !CC1200_SNIFFER
 static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr)
 {
@@ -2124,30 +2114,7 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
   return 1;
 
 }
-#endif /* CC12100_SNIFFER */
 /*---------------------------------------------------------------------------*/
-/* Validate address and send ACK if requested. */
-#if CC1200_SNIFFER
-static int
-addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
-{
-
-  frame802154_t info154;
-
-  if(frame802154_parse(frame, frame_len, &info154) != 0) {
-
-    /* We accept all 802.15.4 frames ... */
-    return ADDR_CHECK_OK;
-
-  } else {
-
-    /* .. and discard others. */
-    return INVALID_FRAME;
-
-  }
-
-}
-#else /* CC1200_SNIFFER */
 static int
 addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
 {
@@ -2216,7 +2183,6 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
   return INVALID_FRAME;
 
 }
-#endif /* CC1200_SNIFFER */
 /*---------------------------------------------------------------------------*/
 /*
  * The CC1200 interrupt handler: called by the hardware interrupt

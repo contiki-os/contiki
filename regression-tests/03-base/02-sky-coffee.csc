@@ -24,10 +24,10 @@
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky/test-coffee.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/cfs-coffee/test-coffee.c</source>
       <commands EXPORT="discard">make clean TARGET=sky
 make test-coffee.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky/test-coffee.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/cfs-coffee/test-coffee.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -89,7 +89,7 @@ make test-coffee.sky TARGET=sky</commands>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(80000);
+      <script>TIMEOUT(180000);
 
 fileOK = null;
 gcOK = null;

@@ -50,7 +50,7 @@ NBR_TABLE_DECLARE(nbr_routes);
 void uip_ds6_route_init(void);
 
 #ifndef UIP_CONF_UIP_DS6_NOTIFICATIONS
-#define UIP_DS6_NOTIFICATIONS 1
+#define UIP_DS6_NOTIFICATIONS (UIP_CONF_MAX_ROUTES != 0)
 #else
 #define UIP_DS6_NOTIFICATIONS UIP_CONF_UIP_DS6_NOTIFICATIONS
 #endif
@@ -82,14 +82,10 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #endif
 
 /* Routing table */
-#ifndef UIP_CONF_MAX_ROUTES
-#ifdef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_DS6_ROUTE_NB UIP_CONF_DS6_ROUTE_NBU
-#else /* UIP_CONF_DS6_ROUTE_NBU */
-#define UIP_DS6_ROUTE_NB 4
-#endif /* UIP_CONF_DS6_ROUTE_NBU */
-#else /* UIP_CONF_MAX_ROUTES */
+#ifdef UIP_CONF_MAX_ROUTES
 #define UIP_DS6_ROUTE_NB UIP_CONF_MAX_ROUTES
+#else /* UIP_CONF_MAX_ROUTES */
+#define UIP_DS6_ROUTE_NB 4
 #endif /* UIP_CONF_MAX_ROUTES */
 
 /** \brief define some additional RPL related route state and
@@ -97,11 +93,48 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #ifndef UIP_DS6_ROUTE_STATE_TYPE
 #define UIP_DS6_ROUTE_STATE_TYPE rpl_route_entry_t
 /* Needed for the extended route entry state when using ContikiRPL */
+#define RPL_ROUTE_ENTRY_NOPATH_RECEIVED   0x01
+#define RPL_ROUTE_ENTRY_DAO_PENDING       0x02
+#define RPL_ROUTE_ENTRY_DAO_NACK          0x04
+
+#define RPL_ROUTE_IS_NOPATH_RECEIVED(route)                             \
+  (((route)->state.state_flags & RPL_ROUTE_ENTRY_NOPATH_RECEIVED) != 0)
+#define RPL_ROUTE_SET_NOPATH_RECEIVED(route) do {                       \
+    (route)->state.state_flags |= RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
+  } while(0)
+#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                       \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
+  } while(0)
+
+#define RPL_ROUTE_IS_DAO_PENDING(route)                                 \
+  ((route->state.state_flags & RPL_ROUTE_ENTRY_DAO_PENDING) != 0)
+#define RPL_ROUTE_SET_DAO_PENDING(route) do {                           \
+    (route)->state.state_flags |= RPL_ROUTE_ENTRY_DAO_PENDING;          \
+  } while(0)
+#define RPL_ROUTE_CLEAR_DAO_PENDING(route) do {                         \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_DAO_PENDING;         \
+  } while(0)
+
+#define RPL_ROUTE_IS_DAO_NACKED(route)                                  \
+  ((route->state.state_flags & RPL_ROUTE_ENTRY_DAO_NACK) != 0)
+#define RPL_ROUTE_SET_DAO_NACKED(route) do {                            \
+    (route)->state.state_flags |= RPL_ROUTE_ENTRY_DAO_NACK;             \
+  } while(0)
+#define RPL_ROUTE_CLEAR_DAO_NACKED(route) do {                          \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_DAO_NACK;            \
+  } while(0)
+
+#define RPL_ROUTE_CLEAR_DAO(route) do {                                 \
+    (route)->state.state_flags &= ~(RPL_ROUTE_ENTRY_DAO_NACK|RPL_ROUTE_ENTRY_DAO_PENDING); \
+  } while(0)
+
+struct rpl_dag;
 typedef struct rpl_route_entry {
   uint32_t lifetime;
-  void *dag;
-  uint8_t learned_from;
-  uint8_t nopath_received;
+  struct rpl_dag *dag;
+  uint8_t dao_seqno_out;
+  uint8_t dao_seqno_in;
+  uint8_t state_flags;
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
@@ -166,7 +199,7 @@ uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
 int uip_ds6_route_num_routes(void);
 uip_ds6_route_t *uip_ds6_route_head(void);
 uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
-
+int uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr);
 /** @} */
 
 #endif /* UIP_DS6_ROUTE_H */

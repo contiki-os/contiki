@@ -122,18 +122,6 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /*
- * The RSSI offset in dBm (int8_t)
- *
- * Might be hardware dependent, so we make it a configuration parameter.
- * This parameter is written to AGC_GAIN_ADJUST.GAIN_ADJUSTMENT
- */
-#ifdef CC1200_CONF_RSSI_OFFSET
-#define CC1200_RSSI_OFFSET              CC1200_CONF_RSSI_OFFSET
-#else
-#define CC1200_RSSI_OFFSET              (-81)
-#endif
-/*---------------------------------------------------------------------------*/
-/*
  * The frequency offset
  *
  * Might be hardware dependent (e.g. depending on crystal load capacitances),
@@ -220,16 +208,6 @@
  */
 #ifdef CC1200_CONF_RX_LED
 #define CC1200_RX_LEDS                  CC1200_CONF_RX_LEDS
-#endif
-/*---------------------------------------------------------------------------*/
-/*
- * If set, enable sniff mode: turn radio on (and keep it on), disable
- * address filter and auto ack
- */
-#ifdef CC1200_CONF_SNIFFER
-#define CC1200_SNIFFER                  CC1200_CONF_SNIFFER
-#else
-#define CC1200_SNIFFER                  0
 #endif
 /*---------------------------------------------------------------------------*/
 

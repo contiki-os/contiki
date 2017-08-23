@@ -52,7 +52,7 @@
 #endif
 
 #ifndef LWM2M_SERVER_ADDRESS
-#define LWM2M_SERVER_ADDRESS "aaaa::1"
+#define LWM2M_SERVER_ADDRESS "fd00::1"
 #endif
 
 PROCESS(example_ipso_objects, "IPSO object example");

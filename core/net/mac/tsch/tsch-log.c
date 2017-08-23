@@ -56,7 +56,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 #if TSCH_LOG_LEVEL >= 2 /* Skip this file for log levels 0 or 1 */
 
@@ -84,11 +84,15 @@ tsch_log_process_pending(void)
   }
   while((log_index = ringbufindex_peek_get(&log_ringbuf)) != -1) {
     struct tsch_log_t *log = &log_array[log_index];
-    struct tsch_slotframe *sf = tsch_schedule_get_slotframe_by_handle(log->link->slotframe_handle);
-    printf("TSCH: {asn-%x.%lx link-%u-%u-%u-%u ch-%u} ",
-        log->asn.ms1b, log->asn.ls4b,
-        log->link->slotframe_handle, sf ? sf->size.val : 0, log->link->timeslot, log->link->channel_offset,
-        tsch_calculate_channel(&log->asn, log->link->channel_offset));
+    if(log->link == NULL) {
+      printf("TSCH: {asn-%x.%lx link-NULL} ", log->asn.ms1b, log->asn.ls4b);
+    } else {
+      struct tsch_slotframe *sf = tsch_schedule_get_slotframe_by_handle(log->link->slotframe_handle);
+      printf("TSCH: {asn-%x.%lx link-%u-%u-%u-%u ch-%u} ",
+             log->asn.ms1b, log->asn.ls4b,
+             log->link->slotframe_handle, sf ? sf->size.val : 0, log->link->timeslot, log->link->channel_offset,
+             tsch_calculate_channel(&log->asn, log->link->channel_offset));
+    }
     switch(log->type) {
       case tsch_log_tx:
         printf("%s-%u-%u %u tx %d, st %d-%d",
@@ -103,7 +107,7 @@ tsch_log_process_pending(void)
         break;
       case tsch_log_rx:
         printf("%s-%u-%u %u rx %d",
-            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->tx.sec_level,
+            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->rx.sec_level,
                 log->rx.datalen,
                 log->rx.src);
         if(log->rx.drift_used) {
