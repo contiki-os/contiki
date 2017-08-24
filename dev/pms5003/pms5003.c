@@ -75,6 +75,7 @@ static unsigned long when_mode;
 /* Last readings of sensor data */
 static uint16_t PM1, PM2_5, PM10;
 static uint16_t PM1_ATM, PM2_5_ATM, PM10_ATM;
+static uint16_t DB0_3, DB0_5, DB1, DB2_5, DB5, DB10;
 /* Time when last sensor data was read, in clock_seconds()*/
 static unsigned long timestamp = 0;
 
@@ -161,6 +162,36 @@ pms5003_pm10_atm()
 {
   return PM10_ATM;
 }
+uint16_t
+pms5003_db0_3()
+{
+  return DB0_3;
+}
+uint16_t
+pms5003_db0_5()
+{
+  return DB0_5;
+}
+uint16_t
+pms5003_db1()
+{
+  return DB1;
+}
+uint16_t
+pms5003_db2_5()
+{
+  return DB2_5;
+}
+uint16_t
+pms5003_db5()
+{
+  return DB5;
+}
+uint16_t
+pms5003_db10()
+{
+  return DB10;
+}
 uint32_t
 pms5003_timestamp()
 {
@@ -187,7 +218,7 @@ check_pmsframe(uint8_t *buf)
   int sum, pmssum;
   int i;
   int len;
-
+    
   if(buf[0] != PRE1 || buf[1] != PRE2) {
     return 0;
   }
@@ -215,6 +246,8 @@ printpm()
   printf("PM1 = %04d, PM2.5 = %04d, PM10 = %04d\n", PM1, PM2_5, PM10);
   printf("PM1_ATM = %04d, PM2.5_ATM = %04d, PM10_ATM = %04d\n",
          PM1_ATM, PM2_5_ATM, PM10_ATM);
+  printf(" DB0_3 = %04d, DB0_5 = %04d, DB1 = %04d, DB2_5 = %04d, DB5 = %04d, DB10 = %04d\n",
+         DB0_3, DB0_5, DB1, DB2_5, DB5, DB10);
 }
 #endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
@@ -226,6 +259,8 @@ static int
 pmsframe(uint8_t *buf)
 {
 
+  int len;
+  
   if(check_pmsframe(buf)) {
     timestamp = clock_seconds();
     valid_frames++;
@@ -236,6 +271,21 @@ pmsframe(uint8_t *buf)
     PM1_ATM = (buf[10] << 8) | buf[11];
     PM2_5_ATM = (buf[12] << 8) | buf[13];
     PM10_ATM = (buf[14] << 8) | buf[15];
+    /* Not all Plantower sensors report dust size bins. 
+     * PMS3003 (frame length 20) doesn't. 
+     * PMS5003 (frame length 28) does.
+     * Use length field to detect if the frame has size bins. 
+     */
+    len = (buf[2] << 8) + buf[3];
+    if(len == 28) {
+      DB0_3 = (buf[16] << 8) | buf[17];
+      DB0_5 = (buf[18] << 8) | buf[19];
+      DB1 = (buf[20] << 8) | buf[21];
+      DB2_5 = (buf[22] << 8) | buf[23];
+      DB5 = (buf[24] << 8) | buf[25];
+      DB10 = (buf[26] << 8) | buf[27];
+    }
+    
 #ifdef DEBUG
     printpm();
 #endif /* DEBUG */
