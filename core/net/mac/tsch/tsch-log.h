@@ -71,6 +71,10 @@
 #define tsch_log_process_pending()
 #define TSCH_LOG_ADD(log_type, init_code)
 
+#define TSCH_PUTS(txt)
+#define TSCH_PRINTF(... )  PRINTF(__VA_ARGS__)
+#define TSCH_ANNOTATE(... )  ANNOTATE(__VA_ARGS__)
+
 #else /* TSCH_LOG_LEVEL */
 
 /************ Types ***********/
@@ -156,6 +160,23 @@ void tsch_log_process_pending(void);
       tsch_log_commit(); \
     } \
 } while(0);
+
+
+
+void tsch_log_puts(const char* txt);
+void tsch_log_printf3(const char* fmt, int arg1, int arg2, int arg3);
+
+#define TSCH_LOGF3( fmt, arg1,  arg2, arg3, ...) \
+        tsch_log_printf3(fmt, arg1, arg2, arg3)
+
+#define TSCH_PUTS(txt)  tsch_log_puts(txt)
+#define TSCH_PRINTF( ... ) TSCH_LOGF3(__VA_ARGS__, 0,0,0)
+
+#define TSCH_ANNOTATE( ... ) do { \
+    if ((DEBUG) & DEBUG_ANNOTATE)\
+        TSCH_LOGF3(__VA_ARGS__, 0,0,0); \
+    } while(false)
+
 
 #endif /* TSCH_LOG_LEVEL */
 

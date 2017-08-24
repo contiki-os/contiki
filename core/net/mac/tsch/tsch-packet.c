@@ -358,7 +358,7 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
   if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) == 0) {
-    PRINTF("TSCH:! parse_eb: failed to parse frame\n");
+    TSCH_PUTS("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
 
@@ -397,7 +397,7 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
-      PRINTF("TSCH:! parse_eb: failed to parse IEs\n");
+      TSCH_PUTS("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
     curr_len += ret;

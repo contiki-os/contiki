@@ -187,4 +187,18 @@ tsch_log_init(void)
   ringbufindex_init(&log_ringbuf, TSCH_LOG_QUEUE_LEN);
 }
 
+void tsch_log_puts(const char* txt){
+    TSCH_LOG_ADD(tsch_log_text, log->text = txt; );
+}
+
+void tsch_log_printf3(const char* fmt, int arg1, int arg2, int arg3){
+    TSCH_LOG_ADD(tsch_log_fmt,
+                 log->fmt.text = fmt;
+                 log->fmt.arg1 = arg1;
+                 log->fmt.arg2 = arg2;
+                 log->fmt.arg3 = arg3;
+                 );
+}
+
+
 #endif /* TSCH_LOG_LEVEL */
