@@ -47,6 +47,12 @@ extern const struct sensors_sensor pms5003_sensor;
 #define PMS5003_SENSOR_PM1_ATM       3
 #define PMS5003_SENSOR_PM2_5_ATM     4
 #define PMS5003_SENSOR_PM10_ATM      5
-#define PMS5003_SENSOR_TIMESTAMP     6
+#define PMS5003_SENSOR_DB0_3         6
+#define PMS5003_SENSOR_DB0_5         7
+#define PMS5003_SENSOR_DB1            8
+#define PMS5003_SENSOR_DB2_5         9
+#define PMS5003_SENSOR_DB5          10
+#define PMS5003_SENSOR_DB10          11
+#define PMS5003_SENSOR_TIMESTAMP    12
 
 #endif /* PMS5003_SENSOR_H_ */

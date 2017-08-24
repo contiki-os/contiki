@@ -65,6 +65,18 @@ value(int type)
     return pms5003_pm2_5_atm();
   case PMS5003_SENSOR_PM10_ATM:
     return pms5003_pm10_atm();
+  case PMS5003_SENSOR_DB0_3:
+    return pms5003_db0_3();
+  case PMS5003_SENSOR_DB0_5:
+    return pms5003_db0_5();
+  case PMS5003_SENSOR_DB1:
+    return pms5003_db1();
+  case PMS5003_SENSOR_DB2_5:
+    return pms5003_db2_5();
+  case PMS5003_SENSOR_DB5:
+    return pms5003_db5();
+  case PMS5003_SENSOR_DB10:
+    return pms5003_db10();
   case PMS5003_SENSOR_TIMESTAMP:
     return pms5003_timestamp();
   }
