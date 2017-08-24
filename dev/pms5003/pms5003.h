@@ -101,6 +101,12 @@ uint16_t pms5003_pm10();
 uint16_t pms5003_pm1_atm();
 uint16_t pms5003_pm2_5_atm();
 uint16_t pms5003_pm10_atm();
+uint16_t pms5003_db0_3();
+uint16_t pms5003_db0_5();
+uint16_t pms5003_db1();
+uint16_t pms5003_db2_5();
+uint16_t pms5003_db5();
+uint16_t pms5003_db10();
 uint32_t pms5003_timestamp();
 
 #endif /* PMS5003_H */
