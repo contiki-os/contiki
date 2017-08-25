@@ -977,7 +977,7 @@ pending_packet(void)
   do {
     if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
       rv += 1;
-      if(poll_mode){
+      if(!poll_mode){
       process_poll(&rf_core_process);
     }
     }
@@ -1395,7 +1395,7 @@ rtimer_clock_t rat_sync_check(rtimer_clock_t stamp){
     }
     int32_t rat_miss = rat_sync_miss();
     if (rat_miss == 0){
-        PRINTF("rat_sync_check: failed sync\n");
+        PRINTF("rat_sync_check: sync ok, unckown stamp fail\n");
         rf_rat_debug_dump();
         return stamp;
     }
