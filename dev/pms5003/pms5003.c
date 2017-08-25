@@ -69,8 +69,6 @@ static uint32_t invalid_frames, valid_frames;
 
 /* Sensor configured on? */
 static uint8_t configured_on = 0;
-/* When sensor entered current power save mode, in clock_seconds()*/
-static unsigned long when_mode;
 
 /* Last readings of sensor data */
 static uint16_t PM1, PM2_5, PM10;
@@ -91,6 +89,11 @@ static uint8_t rxbuf_data[PMS_BUFSIZE];
 static int uart_input_byte(unsigned char);
 #endif /* PMS_SERIAL_UART */
 
+static struct pms_config {
+  unsigned sample_period;    /* Time between samples (sec) */
+  unsigned warmup_interval; /* Warmup time (sec) */
+} pms_config;
+
 /*---------------------------------------------------------------------------*/
 #if PMS_SERIAL_UART
 PROCESS(pms5003_uart_process, "PMS5003/UART dust sensor process");
@@ -105,6 +108,9 @@ PROCESS(pms5003_timer_process, "PMS5003 periodic dust sensor process");
 void
 pms5003_init()
 {
+  pms5003_config_sample_period(PMS_SAMPLE_PERIOD);
+  pms5003_config_warmup_interval(PMS_WARMUP_INTERVAL);
+  
   pms5003_event = process_alloc_event();
   process_start(&pms5003_timer_process, NULL);
 
@@ -117,8 +123,9 @@ pms5003_init()
   configured_on = 1;
 
 #ifdef DEBUG
-  printf("PMS5003: UART %d, I2C %d, sample period %d, startup interval %d\n",
-         PMS_SERIAL_UART, PMS_SERIAL_I2C, PMS_SAMPLE_PERIOD, PMS_STARTUP_INTERVAL);
+  printf("PMS5003: UART %d, I2C %d, sample period %d, warmup interval %d\n",
+         PMS_SERIAL_UART, PMS_SERIAL_I2C,
+         pms_config.sample_period, pms_config.warmup_interval);
 #endif /* DEBUG */
 }
 /*---------------------------------------------------------------------------*/
@@ -207,6 +214,46 @@ pms5003_invalid_frames()
 {
   return invalid_frames;
 }
+
+void
+pms5003_config_sample_period(unsigned int sample_period) {
+  pms_config.sample_period = sample_period;
+}
+
+void
+pms5003_config_warmup_interval(unsigned int warmup_interval) {
+  pms_config.warmup_interval = warmup_interval;
+}
+
+unsigned
+pms5003_get_sample_period(void) {
+  return pms_config.sample_period;
+}
+
+unsigned
+pms5003_get_warmup_interval(void) {
+  return pms_config.warmup_interval;
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * Check if it is time to put sensor in standby mode.
+ * The condition is that the time from when last sample was taken until the
+ * next is due, is greater than the time it takes to wake up the sensor. 
+ */
+static int
+timetosleep(void) {
+  return (timestamp + pms_config.sample_period >
+          clock_seconds() + pms_config.warmup_interval);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Check if it is time to get the next sample. 
+ */
+static int
+timetoread(void) {
+  return (clock_seconds() - timestamp >= pms_config.sample_period);
+}
 /*---------------------------------------------------------------------------*/
 /**
  * Validate frame by checking preamble, length field and checksum.
@@ -218,7 +265,7 @@ check_pmsframe(uint8_t *buf)
   int sum, pmssum;
   int i;
   int len;
-    
+
   if(buf[0] != PRE1 || buf[1] != PRE2) {
     return 0;
   }
@@ -308,7 +355,6 @@ static
 PT_THREAD(pms5003_uart_fsm_pt(struct pt *pt, uint8_t data)) {
   static uint8_t buf[PMSBUFFER], *bufp;
   static int remain;
-  static unsigned long mode_secs;
 
   PT_BEGIN(pt);
   bufp = buf;
@@ -337,17 +383,16 @@ PT_THREAD(pms5003_uart_fsm_pt(struct pt *pt, uint8_t data)) {
       *bufp++ = data;
     }
     /* We have a frame! */
-    mode_secs = clock_seconds() - when_mode;
-    /* Frames received while sensor is starting up are ignored */
-    if((pms5003_get_standby_mode() == STANDBY_MODE_OFF) &&
-       (mode_secs >= PMS_STARTUP_INTERVAL)) {
+    /* Is it time for next reading? Otherwise ignore. */
+    if(timetoread()) {
       /* Check frame and update sensor readings */
       if(pmsframe(buf)) {
         /* Tell other processes there is new data */
         (void)process_post(PROCESS_BROADCAST, pms5003_event, NULL);
-        /* Enter standby mode */
-        pms5003_set_standby_mode(STANDBY_MODE_ON);
-        when_mode = clock_seconds();
+        /* Put sensor in standby mode? */
+        if(timetosleep()) {
+          pms5003_set_standby_mode(STANDBY_MODE_ON);
+        }
       }
     }
   }
@@ -399,13 +444,22 @@ PROCESS_THREAD(pms5003_uart_process, ev, data)
 PROCESS_THREAD(pms5003_timer_process, ev, data)
 {
   static struct etimer pmstimer;
-  static unsigned long mode_secs;
   static uint8_t standbymode;
 
   PROCESS_BEGIN();
   etimer_set(&pmstimer, CLOCK_SECOND * PMS_PROCESS_PERIOD);
-  pms5003_set_standby_mode(STANDBY_MODE_ON);
-  when_mode = clock_seconds();
+
+/* Pretend there is a fresh reading, to postpone the first
+ * reading for one cycle
+ */
+  timestamp = clock_seconds(); 
+
+  /* Put sensor in standby, if there is enough time */
+  if(timetosleep()) 
+    pms5003_set_standby_mode(STANDBY_MODE_ON);
+  else
+    pms5003_set_standby_mode(STANDBY_MODE_OFF);
+
   pms5003_event = process_alloc_event();
 
   /* Main loop */
@@ -416,13 +470,12 @@ PROCESS_THREAD(pms5003_timer_process, ev, data)
     }
 
     if((ev == PROCESS_EVENT_TIMER) && (data == &pmstimer)) {
-      mode_secs = clock_seconds() - when_mode;
       standbymode = pms5003_get_standby_mode();
       if(standbymode == STANDBY_MODE_OFF) {
 #if PMS_SERIAL_I2C
         static uint8_t buf[PMSBUFFER];
         /* Read data over I2C if it is time */
-        if(mode_secs >= PMS_STARTUP_INTERVAL) {
+        if(timetoread()) {
           if(pms5003_i2c_probe()) {
             leds_on(LEDS_RED);
             i2c_read_mem(I2C_PMS5003_ADDR, 0, buf, PMSBUFFER);
@@ -432,19 +485,18 @@ PROCESS_THREAD(pms5003_timer_process, ev, data)
               if(process_post(PROCESS_BROADCAST, pms5003_event, NULL) == PROCESS_ERR_OK) {
                 PROCESS_WAIT_EVENT_UNTIL(ev == pms5003_event);
               }
-              pms5003_set_standby_mode(STANDBY_MODE_ON);
-              when_mode = clock_seconds();
+              /* Put sensor in standby, if there is enough time */
+              if(timetosleep()) {
+                pms5003_set_standby_mode(STANDBY_MODE_ON);
+              }
             }
           }
         }
-#else
-        /* Do nothing -- UART process puts sensor in standby */
-        ;
 #endif /* PMS_SERIAL_I2C */
       } else if(standbymode == STANDBY_MODE_ON) {
-        if(mode_secs >= (PMS_SAMPLE_PERIOD - PMS_STARTUP_INTERVAL)) {
+        /* Time to warm up sensor for next reading? */
+        if(!timetosleep()) {
           pms5003_set_standby_mode(STANDBY_MODE_OFF);
-          when_mode = clock_seconds();
         }
       }
       etimer_reset(&pmstimer);

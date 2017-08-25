@@ -36,7 +36,7 @@
 #ifndef PMS5003_H
 #define PMS5003_H
 
-/* How often sensor process runs (secs) -- defines resolution
+/* How often sensor process runs (sec) -- defines resolution
  * of warmup time and sample period
  */
 #ifdef PMS5003_CONF_PROCESS_PERIOD
@@ -45,19 +45,19 @@
 #define PMS_PROCESS_PERIOD  5
 #endif /* PMS5003_CONF_PROCESS_PERIOD */
 
-/* How often sensor data is collected (secs) */
+/* Default sample period - how often sensor data is collected (sec) */
 #ifdef PMS5003_CONF_SAMPLE_PERIOD
 #define PMS_SAMPLE_PERIOD       PMS5003_CONF_SAMPLE_PERIOD
 #else
-#define PMS_SAMPLE_PERIOD       30
+#define PMS_SAMPLE_PERIOD       60
 #endif /* PMS5003_CONF_SAMPLE_PERIOD */
 
-/* Warmup time before sensor data can be read (secs) */
-#ifdef PMS5003_CONF_STARTUP_INTERVAL
-#define PMS_STARTUP_INTERVAL    PMS5003_CONF_STARTUP_INTERVAL
+/* Default warmup time before sensor data can be read (sec) */
+#ifdef PMS5003_CONF_WARMUP_INTERVAL
+#define PMS_WARMUP_INTERVAL    PMS5003_CONF_WARMUP_INTERVAL
 #else
-#define PMS_STARTUP_INTERVAL    10
-#endif /* PMS5003_STARTUP_INTERVAL */
+#define PMS_WARMUP_INTERVAL    30
+#endif /* PMS5003_WARMUP_INTERVAL */
 
 /* Use I2C interface? */
 #ifdef PMS5003_CONF_SERIAL_I2C
@@ -108,5 +108,9 @@ uint16_t pms5003_db2_5();
 uint16_t pms5003_db5();
 uint16_t pms5003_db10();
 uint32_t pms5003_timestamp();
+void pms5003_config_sample_period(unsigned int);
+void pms5003_config_warmup_interval(unsigned int);
+unsigned pms5003_get_sample_period(void);
+unsigned pms5003_get_warmup_interval(void);
 
 #endif /* PMS5003_H */
