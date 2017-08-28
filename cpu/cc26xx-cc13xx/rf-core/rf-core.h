@@ -52,7 +52,7 @@
 #define RF_CORE_H_
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
-#include "rf-core/api/common_cmd.h"
+#include "driverlib/rf_common_cmd.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -63,6 +63,45 @@
 #else
 #define RF_CORE_CHANNEL 25
 #endif /* RF_CORE_CONF_IEEE_MODE_CHANNEL */
+/*---------------------------------------------------------------------------*/
+#define RF_CORE_FRONT_END_MODE_DIFFERENTIAL   0
+#define RF_CORE_FRONT_END_MODE_SINGLE_RFP     1
+#define RF_CORE_FRONT_END_MODE_SINGLE_RFN     2
+
+#define RF_CORE_BIAS_MODE_INTERNAL            0
+#define RF_CORE_BIAS_MODE_EXTERNAL            1
+/*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End Mode and Bias for CMD_RADIO_SETUP (IEEE and BLE)
+ * Default: Differential mode, internal bias
+ */
+#ifdef RF_CORE_CONF_RADIO_SETUP_FRONT_END_MODE
+#define RF_CORE_RADIO_SETUP_FRONT_END_MODE RF_CORE_CONF_RADIO_SETUP_FRONT_END_MODE
+#else
+#define RF_CORE_RADIO_SETUP_FRONT_END_MODE RF_CORE_FRONT_END_MODE_DIFFERENTIAL
+#endif
+
+#ifdef RF_CORE_CONF_RADIO_SETUP_BIAS_MODE
+#define RF_CORE_RADIO_SETUP_BIAS_MODE RF_CORE_CONF_RADIO_SETUP_BIAS_MODE
+#else
+#define RF_CORE_RADIO_SETUP_BIAS_MODE RF_CORE_BIAS_MODE_INTERNAL
+#endif
+/*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End Mode and Bias for CMD_PROP_DIV_RADIO_SETUP (PROP mode)
+ * Default: Differential mode, external bias
+ */
+#ifdef RF_CORE_CONF_PROP_FRONT_END_MODE
+#define RF_CORE_PROP_FRONT_END_MODE RF_CORE_CONF_PROP_FRONT_END_MODE
+#else
+#define RF_CORE_PROP_FRONT_END_MODE RF_CORE_FRONT_END_MODE_DIFFERENTIAL
+#endif
+
+#ifdef RF_CORE_CONF_PROP_BIAS_MODE
+#define RF_CORE_PROP_BIAS_MODE RF_CORE_CONF_PROP_BIAS_MODE
+#else
+#define RF_CORE_PROP_BIAS_MODE RF_CORE_BIAS_MODE_EXTERNAL
+#endif
 /*---------------------------------------------------------------------------*/
 #define RF_CORE_CMD_ERROR                     0
 #define RF_CORE_CMD_OK                        1

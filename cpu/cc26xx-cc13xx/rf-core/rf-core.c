@@ -45,6 +45,7 @@
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
@@ -52,15 +53,9 @@
 #include "hw_rfc_pwr.h"
 /*---------------------------------------------------------------------------*/
 /* RF Core Mailbox API */
-#include "rf-core/api/mailbox.h"
-#include "rf-core/api/common_cmd.h"
-#include "rf-core/api/ble_cmd.h"
-#include "rf-core/api/ieee_cmd.h"
-#include "rf-core/api/data_entry.h"
-#include "rf-core/api/ble_mailbox.h"
-#include "rf-core/api/ieee_mailbox.h"
-#include "rf-core/api/prop_mailbox.h"
-#include "rf-core/api/prop_cmd.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
+#include "driverlib/rf_data_entry.h"
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>
 #include <stdbool.h>
@@ -112,7 +107,12 @@ static bool rat_offset_known = false;
 PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 /*---------------------------------------------------------------------------*/
 #define RF_CORE_CLOCKS_MASK (RFC_PWR_PWMCLKEN_RFC_M | RFC_PWR_PWMCLKEN_CPE_M \
-                             | RFC_PWR_PWMCLKEN_CPERAM_M)
+                             | RFC_PWR_PWMCLKEN_CPERAM_M | RFC_PWR_PWMCLKEN_FSCA_M \
+                             | RFC_PWR_PWMCLKEN_PHA_M | RFC_PWR_PWMCLKEN_RAT_M \
+                             | RFC_PWR_PWMCLKEN_RFERAM_M | RFC_PWR_PWMCLKEN_RFE_M \
+                             | RFC_PWR_PWMCLKEN_MDMRAM_M | RFC_PWR_PWMCLKEN_MDM_M)
+/*---------------------------------------------------------------------------*/
+#define RF_CMD0	0x0607
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf_core_is_accessible()
@@ -261,8 +261,16 @@ rf_core_power_up()
     ti_lib_int_master_enable();
   }
 
+  rf_switch_power_up();
+
   /* Let CPE boot */
   HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = RF_CORE_CLOCKS_MASK;
+
+  /* Turn on additional clocks on boot */
+  HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
+  HWREG(RFC_DBELL_BASE+RFC_DBELL_O_CMDR) =
+    CMDR_DIR_CMD_2BYTE(RF_CMD0,
+                       RFC_PWR_PWMCLKEN_MDMRAM | RFC_PWR_PWMCLKEN_RFERAM);
 
   /* Send ping (to verify RFCore is ready and alive) */
   if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_PING), &cmd_status) != RF_CORE_CMD_OK) {
@@ -360,6 +368,8 @@ rf_core_power_down()
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
         != PRCM_DOMAIN_POWER_OFF);
 
+  rf_switch_power_down();
+
   ti_lib_int_pend_clear(INT_RFC_CPE_0);
   ti_lib_int_pend_clear(INT_RFC_CPE_1);
   ti_lib_int_enable(INT_RFC_CPE_0);
@@ -419,8 +429,7 @@ rf_core_restart_rat(void)
 {
   if(rf_core_stop_rat() != RF_CORE_CMD_OK) {
     PRINTF("rf_core_restart_rat: rf_core_stop_rat() failed\n");
-
-    return RF_CORE_CMD_ERROR;
+    /* Don't bail out here, still try to start it */
   }
 
   if(rf_core_start_rat() != RF_CORE_CMD_OK) {

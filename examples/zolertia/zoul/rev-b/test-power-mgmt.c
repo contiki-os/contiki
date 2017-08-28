@@ -59,10 +59,6 @@ static struct etimer et;
 /* RE-Mote revision B, low-power PIC version */
 #define PM_EXPECTED_VERSION               0x20
 /*---------------------------------------------------------------------------*/
-#ifndef DATE
-#define DATE "Unknown"
-#endif
-/*---------------------------------------------------------------------------*/
 #define TEST_LEDS_FAIL                    leds_off(LEDS_ALL); \
                                           leds_on(LEDS_RED);  \
                                           PROCESS_EXIT();
@@ -80,7 +76,6 @@ PROCESS_THREAD(test_remote_pm, ev, data)
   static uint8_t aux;
   static uint16_t voltage;
   static uint32_t cycles;
-  static char *next;
 
   PROCESS_BEGIN();
 
@@ -162,36 +157,11 @@ PROCESS_THREAD(test_remote_pm, ev, data)
   /* Configure the RTCC to schedule a "hard" restart of the shutdown mode,
    * waking up from a RTCC interrupt to the low-power PIC
    */
-  printf("PM: System date: %s\n", DATE);
-  if(strcmp("Unknown", DATE) == 0) {
-    printf("PM: could not retrieve date from system\n");
+  printf("PM\n");
+
+  if(rtcc_get_time_date(simple_td) == AB08_ERROR) {
+    printf("PM: Couldn't read time and date\n");
     TEST_LEDS_FAIL;
-  }
-
-  /* Configure RTC and return structure with all parameters */
-  rtcc_init();
-
-  /* Configure the RTC with the current values */
-  simple_td->weekdays = (uint8_t)strtol(DATE, &next, 10);
-  simple_td->day = (uint8_t)strtol(next, &next, 10);
-  simple_td->months = (uint8_t)strtol(next, &next, 10);
-  simple_td->years = (uint8_t)strtol(next, &next, 10);
-  simple_td->hours = (uint8_t)strtol(next, &next, 10);
-  simple_td->minutes = (uint8_t)strtol(next, &next, 10);
-  simple_td->seconds = (uint8_t)strtol(next, NULL, 10);
-
-  simple_td->miliseconds = 0;
-  simple_td->mode = RTCC_24H_MODE;
-  simple_td->century = RTCC_CENTURY_20XX;
-
-  if(rtcc_set_time_date(simple_td) == AB08_ERROR) {
-    printf("PM: Time and date configuration failed\n");
-    TEST_LEDS_FAIL;
-  } else {
-    if(rtcc_get_time_date(simple_td) == AB08_ERROR) {
-      printf("PM: Couldn't read time and date\n");
-      TEST_LEDS_FAIL;
-    }
   }
 
   printf("PM: Configured time: ");

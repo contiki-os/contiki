@@ -64,6 +64,9 @@
  */
 static const char *broker_ip = "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd";
 /*---------------------------------------------------------------------------*/
+#define ADDRESS_CONVERSION_OK       1
+#define ADDRESS_CONVERSION_ERROR    0
+/*---------------------------------------------------------------------------*/
 /*
  * A timeout used when waiting for something to happen (e.g. to connect or to
  * disconnect)
@@ -350,13 +353,20 @@ ip_addr_post_handler(char *key, int key_len, char *val, int val_len)
 {
   int rv = HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
 
+  /*
+   * uiplib_ip6addrconv will immediately start writing into the supplied buffer
+   * even if it subsequently fails. Thus, pass an intermediate buffer
+   */
+  uip_ip6addr_t tmp_addr;
+
   if(key_len != strlen("broker_ip") ||
      strncasecmp(key, "broker_ip", strlen("broker_ip")) != 0) {
     /* Not ours */
     return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
   }
 
-  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN) {
+  if(val_len > MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN
+          || uiplib_ip6addrconv(val, &tmp_addr) != ADDRESS_CONVERSION_OK) {
     /* Ours but bad value */
     rv = HTTPD_SIMPLE_POST_HANDLER_ERROR;
   } else {
@@ -698,10 +708,15 @@ static void
 connect_to_broker(void)
 {
   /* Connect to MQTT server */
-  mqtt_connect(&conn, conf->broker_ip, conf->broker_port,
-               conf->pub_interval * 3);
+  mqtt_status_t conn_attempt_result = mqtt_connect(&conn, conf->broker_ip,
+                                                   conf->broker_port,
+                                                   conf->pub_interval * 3);
 
-  state = MQTT_CLIENT_STATE_CONNECTING;
+  if(conn_attempt_result == MQTT_STATUS_OK) {
+    state = MQTT_CLIENT_STATE_CONNECTING;
+  } else {
+    state = MQTT_CLIENT_STATE_CONFIG_ERROR;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -827,8 +842,8 @@ state_machine(void)
     }
     break;
   case MQTT_CLIENT_STATE_NEWCONFIG:
-    /* Only update config after we have disconnected */
-    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED) {
+    /* Only update config after we have disconnected or in the case of an error */
+    if(conn.state == MQTT_CONN_STATE_NOT_CONNECTED || conn.state == MQTT_CONN_STATE_ERROR) {
       update_config();
       DBG("New config\n");
 

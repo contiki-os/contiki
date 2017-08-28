@@ -73,7 +73,7 @@
 #ifdef DIMMER_CONF_INT_VECTOR
 #define DIMMER_INT_VECTOR      DIMMER_CONF_INT_VECTOR
 #else
-#define DIMMER_INT_VECTOR      NVIC_INT_GPIO_PORT_A
+#define DIMMER_INT_VECTOR      GPIO_A_IRQn
 #endif
 /** @} */
 /* -------------------------------------------------------------------------- */

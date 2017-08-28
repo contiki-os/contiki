@@ -322,8 +322,8 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#define NULLRDC_CONF_802154_AUTOACK             1
+#define NULLRDC_CONF_802154_AUTOACK_HW			    1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
@@ -340,6 +340,26 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_FRAMER  contikimac_framer
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_FRAMER */
+
+#if CC1200_CONF_SUBGHZ_50KBPS_MODE
+#define NETSTACK_CONF_RADIO                                 cc1200_driver
+#define CC1200_CONF_RF_CFG                                  cc1200_802154g_863_870_fsk_50kbps
+#define ANTENNA_SW_SELECT_DEF_CONF                          ANTENNA_SW_SELECT_SUBGHZ
+#define CC1200_CONF_USE_GPIO2                               0
+#define CC1200_CONF_USE_RX_WATCHDOG                         0
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                          (RTIMER_SECOND / 200)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME           (RTIMER_SECOND / 1500)
+#define NULLRDC_CONF_802154_AUTOACK                         1
+#define NULLRDC_CONF_802154_AUTOACK_HW                      1
+#define NULLRDC_CONF_SEND_802154_ACK                        0
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME                      (RTIMER_ARCH_SECOND / 800)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME                      (RTIMER_ARCH_SECOND / 120)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED   (RTIMER_ARCH_SECOND / 8)
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME        (RTIMER_SECOND / 300)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL               (RTIMER_SECOND / 200)
+#endif
 
 /* This can be overriden to use the cc1200_driver instead */
 #ifndef NETSTACK_CONF_RADIO
@@ -433,6 +453,10 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL      RF_CHANNEL
+#endif
+
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              26
 #endif /* CC2538_RF_CONF_CHANNEL */
@@ -488,10 +512,6 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
@@ -570,6 +590,27 @@ typedef uint32_t rtimer_clock_t;
 
 #ifndef CCM_STAR_CONF
 #define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name RTC
+ *
+ * @{
+ */
+#ifdef PLATFORM_HAS_RTC
+
+#ifndef RTC_CONF_INIT
+#define RTC_CONF_INIT   0 /**< Whether to initialize the RTC */
+#endif
+
+#ifndef RTC_CONF_SET_FROM_SYS
+#define RTC_CONF_SET_FROM_SYS    0 /**< Whether to set the RTC from the build system */
+#endif
+
+#else
+#undef RTC_CONF_INIT
+#define RTC_CONF_INIT   0
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/

@@ -62,7 +62,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26XX Invensense MPU9250 motion processing unit
+ * Header file for the Sensortag Invensense MPU9250 motion processing unit
  */
 /*---------------------------------------------------------------------------*/
 #ifndef MPU_9250_SENSOR_H_

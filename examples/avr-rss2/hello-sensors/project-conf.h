@@ -42,6 +42,8 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+/* #define BME280_32BIT */
+
 #define NETSTACK_CONF_RDC nullrdc_driver
 #define NETSTACK_CONF_MAC nullmac_driver
 

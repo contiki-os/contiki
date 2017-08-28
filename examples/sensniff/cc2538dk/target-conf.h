@@ -46,6 +46,8 @@
 /*---------------------------------------------------------------------------*/
 #if CC2538_IO_CONF_USB
 #define USB_SERIAL_CONF_ENABLE     1
+#else
+#define UART0_CONF_BAUD_RATE  460800
 #endif
 /*---------------------------------------------------------------------------*/
 #define SENSNIFF_IO_DRIVER_H "pool/cc2538-io.h"

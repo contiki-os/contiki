@@ -36,7 +36,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx I2C Driver
+ * Header file for the Sensortag I2C Driver
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BOARD_I2C_H_

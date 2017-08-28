@@ -118,7 +118,7 @@ extern void (*rain_gauge_int_callback)(uint16_t value);
 #ifdef WEATHER_METER_CONF_ANEMOMETER_VECTOR
 #define ANEMOMETER_SENSOR_VECTOR  WEATHER_METER_CONF_ANEMOMETER_VECTOR
 #else
-#define ANEMOMETER_SENSOR_VECTOR  NVIC_INT_GPIO_PORT_D
+#define ANEMOMETER_SENSOR_VECTOR  GPIO_D_IRQn
 #endif
 /** @} */
 /* -------------------------------------------------------------------------- */
@@ -139,7 +139,7 @@ extern void (*rain_gauge_int_callback)(uint16_t value);
 #ifdef WEATHER_METER_CONF_RAIN_GAUGE_VECTOR
 #define RAIN_GAUGE_SENSOR_VECTOR  WEATHER_METER_CONF_RAIN_GAUGE_VECTOR
 #else
-#define RAIN_GAUGE_SENSOR_VECTOR  NVIC_INT_GPIO_PORT_D
+#define RAIN_GAUGE_SENSOR_VECTOR  GPIO_D_IRQn
 #endif
 /** @} */
 /* -------------------------------------------------------------------------- */

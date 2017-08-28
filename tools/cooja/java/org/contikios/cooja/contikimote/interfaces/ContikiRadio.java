@@ -62,6 +62,7 @@ import org.contikios.cooja.util.CCITT_CRC;
  * <p>
  * <li>int simInSize (size of received data packet)
  * <li>byte[] simInDataBuffer (data of received data packet)
+ * <li>int64_t simLastPacketTimestamp (timestamp of the last received data packet)
  * <p>
  * <li>int simOutSize (size of transmitted data packet)
  * <li>byte[] simOutDataBuffer (data of transmitted data packet)
@@ -189,6 +190,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
+
+    myMoteMemory.setInt64ValueOf("simLastPacketTimestamp", lastEventTime);
 
     this.setChanged();
     this.notifyObservers();

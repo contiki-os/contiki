@@ -434,7 +434,9 @@ typedef unsigned short uip_stats_t;
 #undef UIP_CONF_TCP            
 #define UIP_CONF_TCP                1
 #define UIP_CONF_TCP_MSS           48
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW    48
+#endif
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS        5
 #undef UIP_CONF_MAX_ROUTES

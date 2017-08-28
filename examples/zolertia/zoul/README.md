@@ -46,7 +46,7 @@ As above to specify a given port use the `PORT=/dev/ttyUSB0` argument.
 
 Alternatively you can save the above `PORT`, `TARGET` or `BOARD` as follows:
 
-`export BOARD=/dev/ttyUSB0`
+`export TARGET=zoul BOARD=remote-revb PORT=/dev/ttyUSB0`
 
 This will save you to type these when running a command on the terminal
 

@@ -99,13 +99,12 @@ create_dag_callback(void *ptr)
     rpl_dag_t *dag;
 
     dag = rpl_get_any_dag();
-#if DEBUG
-    printf("Found a network we did not create\n");
-    printf("version %d grounded %d preference %d used %d joined %d rank %d\n",
+
+    PRINTF("RPL: Found a network we did not create\n");
+    PRINTF("RPL: version %d grounded %d preference %d used %d joined %d rank %d\n",
            dag->version, dag->grounded,
            dag->preference, dag->used,
            dag->joined, dag->rank);
-#endif /* DEBUG */
 
     /* We found a RPL network that we did not create so we just join
        it without becoming root. But if the network has an infinite
@@ -223,14 +222,14 @@ rpl_dag_root_init_dag_immediately(void)
 
       uip_ip6addr(&prefix, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
       rpl_set_prefix(dag, &prefix, 64);
-      PRINTF("rpl_dag_root_init_dag: created a new RPL dag\n");
+      PRINTF("RPL: rpl_dag_root_init_dag: created a new RPL dag\n");
       return 0;
     } else {
-      PRINTF("rpl_dag_root_init_dag: failed to create a new RPL DAG\n");
+      PRINTF("RPL: rpl_dag_root_init_dag: failed to create a new RPL DAG\n");
       return -1;
     }
   } else {
-    PRINTF("rpl_dag_root_init_dag: failed to create a new RPL DAG, no preferred IP address found\n");
+    PRINTF("RPL: rpl_dag_root_init_dag: failed to create a new RPL DAG, no preferred IP address found\n");
     return -2;
   }
 }

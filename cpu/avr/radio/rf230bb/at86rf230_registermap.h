@@ -236,6 +236,7 @@
 #define RG_RX_SYN                        0x15
 /** Offset for register XAH_CTRL_1 */
 #define RG_XAH_CTRL_1                      0x17
+#define SR_AACK_PROM_MODE            0x17, 0x02, 1
 /** Access parameters for sub-register XTAL_MODE in register @ref RG_XOSC_CTRL */
 #define SR_XTAL_MODE                 0x12, 0xf0, 4
 /** Access parameters for sub-register XTAL_TRIM in register @ref RG_XOSC_CTRL */
@@ -340,6 +341,7 @@
 #define SR_CSMA_SEED_0               0x2d, 0xff, 0
 /** Offset for register CSMA_SEED_1 */
 #define RG_CSMA_SEED_1                   (0x2e)
+#define SR_AACK_DIS_ACK              0x2e, 0x10, 4
 /** Offset for register CSMA_BE */
 #define RG_CSMA_BE                      0x2f
 /** Access parameters for sub-register MIN_BE in register @ref RG_CSMA_SEED_1 */

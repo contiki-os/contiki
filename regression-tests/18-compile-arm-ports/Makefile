@@ -9,9 +9,11 @@ ipv6/multicast/ev-aducrf101mkxz \
 cc26xx/cc26xx-web-demo/srf06-cc26xx \
 cc26xx/very-sleepy-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=sensortag/cc2650 \
+cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=sensortag/cc1350 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=srf06/cc13xx \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc2650 \
 cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc1310 \
+cc26xx/cc26xx-web-demo/srf06-cc26xx:BOARD=launchpad/cc1350 \
 cc26xx/very-sleepy-demo/srf06-cc26xx \
 hello-world/cc2538dk \
 ipv6/rpl-border-router/cc2538dk \
@@ -32,6 +34,7 @@ cc2538-common/crypto/zoul \
 cc2538-common/pka/zoul \
 zolertia/zoul/zoul \
 zolertia/zoul/cc1200-demo/zoul \
+zolertia/zoul/orion/ip64-router/zoul:BOARD=orion \
 openmote-cc2538/openmote-cc2538 \
 er-rest-example/zoul \
 ipso-objects/zoul \
@@ -54,6 +57,7 @@ sensniff/ev-aducrf101mkxz \
 cfs-coffee/cc2538dk \
 cfs-coffee/openmote-cc2538 \
 cfs-coffee/zoul \
+fat/zoul:BOARD=remote-revb \
 ipv6/rpl-tsch/zoul \
 ipv6/rpl-tsch/zoul:MAKE_WITH_ORCHESTRA=1 \
 ipv6/rpl-tsch/zoul:MAKE_WITH_SECURITY=1

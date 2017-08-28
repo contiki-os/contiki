@@ -416,6 +416,10 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL      RF_CHANNEL
+#endif
+
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              26
 #endif /* CC2538_RF_CONF_CHANNEL */
@@ -471,10 +475,6 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000

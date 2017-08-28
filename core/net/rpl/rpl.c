@@ -91,13 +91,13 @@ rpl_set_mode(enum rpl_mode m)
 
     PRINTF("RPL: switching to feather mode\n");
     if(default_instance != NULL) {
-      PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
+      PRINTF("RPL: rpl_set_mode: RPL sending DAO with zero lifetime\n");
       if(default_instance->current_dag != NULL) {
         dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
       }
       rpl_cancel_dao(default_instance);
     } else {
-      PRINTF("rpl_set_mode: no default instance\n");
+      PRINTF("RPL: rpl_set_mode: no default instance\n");
     }
 
     mode = m;
@@ -122,7 +122,7 @@ rpl_purge_routes(void)
   r = uip_ds6_route_head();
 
   while(r != NULL) {
-    if(r->state.lifetime >= 1) {
+    if(r->state.lifetime >= 1 && r->state.lifetime != RPL_ROUTE_INFINITE_LIFETIME) {
       /*
        * If a route is at lifetime == 1, set it to 0, scheduling it for
        * immediate removal below. This achieves the same as the original code,
@@ -143,7 +143,7 @@ rpl_purge_routes(void)
       uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
       r = uip_ds6_route_head();
-      PRINTF("No more routes to ");
+      PRINTF("RPL: No more routes to ");
       PRINT6ADDR(&prefix);
       dag = default_instance->current_dag;
       /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
@@ -281,11 +281,11 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 
   PRINTF("RPL: Neighbor state changed for ");
   PRINT6ADDR(&nbr->ipaddr);
-#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA
+#if UIP_ND6_SEND_NS || UIP_ND6_SEND_RA
   PRINTF(", nscount=%u, state=%u\n", nbr->nscount, nbr->state);
-#else /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
+#else /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA */
   PRINTF(", state=%u\n", nbr->state);
-#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA */
+#endif /* UIP_ND6_SEND_NS || UIP_ND6_SEND_RA */
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
@@ -313,7 +313,7 @@ rpl_purge_dags(void)
         if(instance->dag_table[i].used) {
           if(instance->dag_table[i].lifetime == 0) {
             if(!instance->dag_table[i].joined) {
-              PRINTF("Removing dag ");
+              PRINTF("RPL: Removing dag ");
               PRINT6ADDR(&instance->dag_table[i].dag_id);
               PRINTF("\n");
               rpl_free_dag(&instance->dag_table[i]);
@@ -331,7 +331,7 @@ void
 rpl_init(void)
 {
   uip_ipaddr_t rplmaddr;
-  PRINTF("RPL started\n");
+  PRINTF("RPL: RPL started\n");
   default_instance = NULL;
 
   rpl_dag_init();

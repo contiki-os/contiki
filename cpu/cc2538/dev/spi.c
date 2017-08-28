@@ -40,6 +40,7 @@
 #include "contiki.h"
 #include "reg.h"
 #include "spi-arch.h"
+#include "sys/cc.h"
 #include "dev/ioc.h"
 #include "dev/sys-ctrl.h"
 #include "dev/spi.h"
@@ -155,7 +156,12 @@
 #if (SPI1_CPRS_CPSDVSR & 1) == 1 || SPI1_CPRS_CPSDVSR < 2 || SPI1_CPRS_CPSDVSR > 254
 #error SPI1_CPRS_CPSDVSR must be an even number between 2 and 254
 #endif
-
+/*---------------------------------------------------------------------------*/
+/*
+ * Clock source from which the baud clock is determined for the SSI, according
+ * to SSI_CC.CS.
+ */
+#define SSI_SYS_CLOCK   SYS_CTRL_SYS_CLOCK
 /*---------------------------------------------------------------------------*/
 typedef struct {
   int8_t port;
@@ -308,6 +314,37 @@ spix_set_mode(uint8_t spi,
     clock_polarity |
     frame_format |
     (data_size - 1);
+
+  /* Re-enable the SSI */
+  REG(regs->base + SSI_CR1) |= SSI_CR1_SSE;
+}
+/*---------------------------------------------------------------------------*/
+void
+spix_set_clock_freq(uint8_t spi, uint32_t freq)
+{
+  const spi_regs_t *regs;
+  uint64_t div;
+  uint32_t scr;
+
+  if(spi >= SSI_INSTANCE_COUNT) {
+    return;
+  }
+
+  regs = &spi_regs[spi];
+
+  /* Disable the SSI peripheral to configure it */
+  REG(regs->base + SSI_CR1) = 0;
+
+  /* Configure the SSI serial clock rate */
+  if(!freq) {
+    scr = 255;
+  } else {
+    div = (uint64_t)regs->ssi_cprs_cpsdvsr * freq;
+    scr = (SSI_SYS_CLOCK + div - 1) / div;
+    scr = MIN(MAX(scr, 1), 256) - 1;
+  }
+  REG(regs->base + SSI_CR0) = (REG(regs->base + SSI_CR0) & ~SSI_CR0_SCR_M) |
+                              scr << SSI_CR0_SCR_S;
 
   /* Re-enable the SSI */
   REG(regs->base + SSI_CR1) |= SSI_CR1_SSE;
