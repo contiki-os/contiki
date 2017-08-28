@@ -260,10 +260,8 @@ tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
             /* Add to ringbuf (actual add committed through atomic operation) */
             n->tx_array[put_index] = p;
             ringbufindex_put(&n->tx_ringbuf);
-            TSCH_LOG_ADD(tsch_log_packet,
-                log->packet.fmt = "TSCH-queue: packet is added packet=%p[%u]\n";
-                log->packet.p     = p;
-                log->packet.index = put_index;
+            TSCH_LOGF("TSCH-queue:for %lu is added packet=%p[%u]\n"
+                        , TSCH_LOG_ID_FROM_LINKADDR(addr), (long)p, put_index
             );
             return p;
           } else {
@@ -307,10 +305,7 @@ tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
       /* Get and remove packet from ringbuf (remove committed through an atomic operation */
       int16_t get_index = ringbufindex_get(&n->tx_ringbuf);
       if(get_index != -1) {
-          TSCH_LOG_ADD(tsch_log_fmt,
-              log->fmt.text = "TSCH-queue: packet is removed, get_index=%u\n";
-              log->fmt.arg1 = get_index;
-          );
+          TSCH_PRINTF("TSCH-queue: packet is removed, get_index=%u\n", get_index);
         return n->tx_array[get_index];
       } else {
         return NULL;

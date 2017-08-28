@@ -435,10 +435,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   struct ieee802154_ies ies;
   uint8_t hdrlen;
   int i;
+  (void)i;
 
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
-    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
+    TSCH_PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
     return 0;
   }
 
@@ -447,7 +448,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 
 #if TSCH_JOIN_SECURED_ONLY
   if(frame.fcf.security_enabled == 0) {
-    PRINTF("TSCH:! parse_eb: EB is not secured\n");
+    TSCH_PUTS("TSCH:! parse_eb: EB is not secured\n");
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
@@ -456,14 +457,14 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
       &frame, (linkaddr_t*)&frame.src_addr, &tsch_current_asn)) {
-    PRINTF("TSCH:! parse_eb: failed to authenticate\n");
+      TSCH_PUTS("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
 #endif /* LLSEC802154_ENABLED */
 
 #if !LLSEC802154_ENABLED
   if(frame.fcf.security_enabled == 1) {
-    PRINTF("TSCH:! parse_eb: we do not support security, but EB is secured\n");
+    TSCH_PUTS("TSCH:! parse_eb: we do not support security, but EB is secured\n");
     return 0;
   }
 #endif /* !LLSEC802154_ENABLED */
@@ -471,14 +472,14 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 #if TSCH_JOIN_MY_PANID_ONLY
   /* Check if the EB comes from the PAN ID we expect */
   if(frame.src_pid != IEEE802154_PANID) {
-    PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
+    TSCH_PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
     return 0;
   }
 #endif /* TSCH_JOIN_MY_PANID_ONLY */
 
   /* There was no join priority (or 0xff) in the EB, do not join */
   if(ies.ie_join_priority == 0xff) {
-    PRINTF("TSCH:! parse_eb: no join priority\n");
+    TSCH_PUTS("TSCH:! parse_eb: no join priority\n");
     return 0;
   }
 
@@ -500,7 +501,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
       TSCH_ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
     } else {
-      PRINTF("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
+      TSCH_PRINTF("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
       return 0;
     }
   }
@@ -511,7 +512,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION * 60ul * TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
   int32_t asn_diff = (int32_t)tsch_current_asn.ls4b - expected_asn;
   if(asn_diff > asn_threshold) {
-    PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
+    TSCH_PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
            tsch_current_asn.ls4b, expected_asn, asn_diff);
     return 0;
   }
@@ -521,10 +522,10 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   /* Create schedule */
   if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
 #if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
-    PRINTF("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
+    TSCH_PUTS("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
     tsch_schedule_create_minimal();
 #else
-    PRINTF("TSCH: parse_eb: no schedule\n");
+    TSCH_PUTS("TSCH: parse_eb: no schedule\n");
 #endif
   } else {
     /* First, empty current schedule */
@@ -543,7 +544,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
             ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
       }
     } else {
-      PRINTF("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
+      TSCH_PRINTF("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
       return 0;
     }
   }
@@ -589,7 +590,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       return 1;
     }
   }
-  PRINTF("TSCH:! did not associate.\n");
+  TSCH_PUTS("TSCH:! did not associate.\n");
   return 0;
 }
 
@@ -654,8 +655,8 @@ PT_THREAD(tsch_scan(struct pt *pt))
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
       /* Parse EB and attempt to associate */
-      TSCH_PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n"
-              , input_eb.len, current_channel);
+      TSCH_PRINTF("TSCH: association: received packet (%u bytes) on channel %u at %lu\n"
+              , input_eb.len, current_channel, t0);
 
       tsch_associate(&input_eb, t0);
     }

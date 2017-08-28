@@ -124,7 +124,14 @@ tsch_log_process_pending(void)
           LOG_PRINTF(log->text);
         break;
       case tsch_log_fmt:
-          LOG_PRINTF(log->fmt.text, log->fmt.arg1, log->fmt.arg2, log->fmt.arg3);
+          LOG_PRINTF(log->fmt.text, log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3]);
+        break;
+
+      case tsch_log_fmt8:
+          LOG_PRINTF(log->fmt.text
+                     , log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3], log->fmt.arg[4]
+                     , log->fmt.arg[5], log->fmt.arg[6], log->fmt.arg[7], log->fmt.arg[8]
+                     );
         break;
 
       case tsch_log_change_timesrc:
@@ -132,6 +139,18 @@ tsch_log_process_pending(void)
                   , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.was)
                   , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.now)
                   );
+          break;
+
+      case tsch_log_frame:
+          LOG_PRINTF("%s\n    Frame version %u, type %u, FCF %02x %02x\n"
+                  , log->frame.msg
+                  , log->frame.frame_version, log->frame.frame_type
+                  , log->frame.raw[0], log->frame.raw[1]);
+          net_debug_lladdr_snprint(log->frame.tmp, sizeof(log->frame.tmp), &log->frame.src_addr);
+          LOG_PRINTF("TSCH:! parse_eb: frame was from 0x%x/%s"
+                  , log->frame.src_pid, log->frame.tmp);
+          net_debug_lladdr_snprint(log->frame.tmp, sizeof(log->frame.tmp), &log->frame.dst_addr);
+          LOG_PRINTF(" to 0x%x/%s\n", log->frame.dst_pid, log->frame.tmp);
           break;
 
       case tsch_log_packet:
@@ -194,11 +213,39 @@ void tsch_log_puts(const char* txt){
 void tsch_log_printf3(const char* fmt, int arg1, int arg2, int arg3){
     TSCH_LOG_ADD(tsch_log_fmt,
                  log->fmt.text = fmt;
-                 log->fmt.arg1 = arg1;
-                 log->fmt.arg2 = arg2;
-                 log->fmt.arg3 = arg3;
+                 log->fmt.arg[1] = arg1;
+                 log->fmt.arg[2] = arg2;
+                 log->fmt.arg[3] = arg3;
                  );
 }
 
+void tsch_log_printf8(const char* fmt
+                      , int arg1, int arg2, int arg3, int arg4
+                      , int arg5, int arg6, int arg7, int arg8){
+    TSCH_LOG_ADD(tsch_log_fmt8,
+                 log->fmt.text = fmt;
+                 log->fmt.arg[1] = arg1;
+                 log->fmt.arg[2] = arg2;
+                 log->fmt.arg[3] = arg3;
+                 log->fmt.arg[4] = arg4;
+                 log->fmt.arg[5] = arg5;
+                 log->fmt.arg[6] = arg6;
+                 log->fmt.arg[7] = arg7;
+                 log->fmt.arg[8] = arg8;
+                 );
+}
+
+void tsch_log_print_frame(const char* msg, frame802154_t *frame, const void* raw){
+    TSCH_LOG_ADD(tsch_log_frame,
+                 log->frame.msg             = msg;
+                 log->frame.frame_version   = frame->fcf.frame_version;
+                 log->frame.frame_type      = frame->fcf.frame_type;
+                 log->frame.src_pid         = frame->src_pid;
+                 log->frame.dst_pid         = frame->dest_pid;
+                 memcpy(&log->frame.src_addr, frame->src_addr, sizeof(log->frame.src_addr));
+                 memcpy(&log->frame.dst_addr, frame->dest_addr, sizeof(log->frame.dst_addr));
+                 memcpy(log->frame.raw, raw, sizeof(log->frame.raw));
+                 );
+}
 
 #endif /* TSCH_LOG_LEVEL */

@@ -62,4 +62,32 @@ net_debug_lladdr_print(const uip_lladdr_t *addr)
 #endif /* NETSTACK_CONF_WITH_RIME */
   }
 }
+
+void net_debug_lladdr_snprint(char* buf, unsigned buflen
+                              , const uip_lladdr_t *addr)
+{
+    if(addr == NULL) {
+      strcpy(buf,"(NULL LL addr)");
+      return;
+    } else {
+  #if NETSTACK_CONF_WITH_RIME
+      /* Rime uses traditionally a %u.%u format */
+      snprintf(buf, buflen, "%u.%u", addr->addr[0], addr->addr[1]);
+  #else /* NETSTACK_CONF_WITH_RIME */
+      unsigned int i;
+      unsigned int len;
+      for(i = 0; i < LINKADDR_SIZE; i++) {
+        if(i > 0) {
+            strcpy(buf,":");
+            buf++;
+            buflen--;
+        }
+        len = snprintf(buf, buflen, "%02x", addr->addr[i]);
+        buf     += len;
+        buflen  -= len;
+      }
+  #endif /* NETSTACK_CONF_WITH_RIME */
+    }
+}
+
 /*---------------------------------------------------------------------------*/

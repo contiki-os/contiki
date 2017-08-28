@@ -364,13 +364,8 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 
   if(frame->fcf.frame_version < FRAME802154_IEEE802154E_2012
      || frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
-    PRINTF("TSCH:! parse_eb: frame is not a valid TSCH beacon. Frame version %u, type %u, FCF %02x %02x\n",
-           frame->fcf.frame_version, frame->fcf.frame_type, buf[0], buf[1]);
-    PRINTF("TSCH:! parse_eb: frame was from 0x%x/", frame->src_pid);
-    PRINTLLADDR((const uip_lladdr_t *)&frame->src_addr);
-    PRINTF(" to 0x%x/", frame->dest_pid);
-    PRINTLLADDR((const uip_lladdr_t *)&frame->dest_addr);
-    PRINTF("\n");
+      TSCH_LOG_FRAME("TSCH:! parse_eb: frame is not a valid TSCH beacon."
+              , frame, buf);
     return 0;
   }
 

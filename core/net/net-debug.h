@@ -47,6 +47,7 @@
 #include <stdio.h>
 
 void net_debug_lladdr_print(const uip_lladdr_t *addr);
+void net_debug_lladdr_snprint(char* buf, unsigned buflen, const uip_lladdr_t *addr);
 
 #define DEBUG_NONE      0
 #define DEBUG_PRINT     1

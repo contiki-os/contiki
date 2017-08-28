@@ -1088,5 +1088,8 @@ tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
   tsch_current_asn = *next_slot_asn;
   last_sync_asn = tsch_current_asn;
   current_link = NULL;
+  TSCH_PRINTF("TSCH: sync at %x.%lx[asn] - %lu[rtc]\n"
+          , tsch_current_asn.ms1b , tsch_current_asn.ls4b
+          , current_slot_start);
 }
 /*---------------------------------------------------------------------------*/
