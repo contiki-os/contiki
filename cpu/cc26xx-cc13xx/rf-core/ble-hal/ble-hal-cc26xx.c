@@ -50,9 +50,9 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 
-#include "rf-core/api/data_entry.h"
+#include "rf_data_entry.h"
 #include "rf-core/rf-core.h"
-#include "rf-core/api/ble_cmd.h"
+#include "rf_ble_cmd.h"
 #include "lib/random.h"
 
 #include "ioc.h"

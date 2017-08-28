@@ -41,7 +41,7 @@
 #define RF_BLE_CMD_H_
 
 #include "ble-hal.h"
-#include "rf-core/api/common_cmd.h"
+#include "rf_common_cmd.h"
 #include "ble-addr.h"
 
 #define RF_BLE_CMD_OK    1

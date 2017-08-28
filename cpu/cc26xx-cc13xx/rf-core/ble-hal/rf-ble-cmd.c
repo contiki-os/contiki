@@ -38,7 +38,7 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 
-#include "rf-core/api/ble_cmd.h"
+#include "rf_ble_cmd.h"
 #include "rf-core/rf-core.h"
 #include "rf-core/ble-hal/rf-ble-cmd.h"
 
@@ -51,18 +51,10 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-typedef struct tx_power_config {
-  uint8_t register_ib;
-  uint8_t register_gc;
-  uint8_t temp_coeff;
-} tx_power_config_t;
-
 /* values for a selection of available TX powers (values from SmartRF Studio) */
-/*static tx_power_config_t tx_power  = {0x30, 0x00, 0x93};    // +5 dBm */
-static tx_power_config_t tx_power = { 0x21, 0x01, 0x31 };    /*  0 dBm */
-/*static tx_power_config_t tx_power  = {0x0E, 0x01, 0x19};    // -9 dBm */
-/*static tx_power_config_t tx_power  = {0x07, 0x03, 0x0C};    //-21 dBm */
-
+//static uint16_t tx_power = 0x9330;						/* +5 dBm */
+static uint16_t tx_power = 0x3161;    						/*  0 dBm */
+//static uint16_t tx_power = 0x0CCB;    						/*  -15 dBm */
 /*---------------------------------------------------------------------------*/
 /* BLE overrides */
 static uint32_t ble_overrides[] = {
@@ -206,9 +198,7 @@ rf_ble_cmd_setup_ble_mode(void)
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  cmd.txPower.IB = tx_power.register_ib;
-  cmd.txPower.GC = tx_power.register_gc;
-  cmd.txPower.tempCoeff = tx_power.temp_coeff;
+  cmd.txPower = tx_power;
   cmd.pRegOverride = ble_overrides;
   cmd.mode = 0;
 
