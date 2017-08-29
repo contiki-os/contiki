@@ -107,8 +107,7 @@ int ringbuf16index_peek_get(const struct ringbuf16index *r);
  * \param r Pinter to ringbuf16index
  * \return The size of the ring buffer
  */
-static inline
-int ringbuf16index_size(const struct ringbuf16index *r)
+static inline int ringbuf16index_size(const struct ringbuf16index *r)
 {
   return r->mask + 1;
 }
