@@ -88,7 +88,7 @@ unsigned ringbuf16index_put_free(const struct ringbuf16index *r){
 /**
  * \brief Put one element to the ring buffer
  * \param r Pointer to ringbuf16index
- * \param n amount of placed items
+ * \param size amount of placed items
  * \retval amount of free solid space at put, \sa ringbuf16index_put_len
  */
 int ringbuf16index_putn(struct ringbuf16index *r, uint16_t size){
