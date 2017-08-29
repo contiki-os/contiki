@@ -160,9 +160,13 @@ ringbuf16index_full(const struct ringbuf16index *r)
   return ((r->put_ptr - r->get_ptr) & r->mask) == r->mask;
 }
 
-/**
- * \brief Check solid space size to put an element.
- * \param r Pinter to ringbuf16index
- * \retval size of solid space at put position, avail for fill
- */
-unsigned ringbuf16index_put_len(const struct ringbuf16index *r);
+#if !LIB_INLINES
+int ringbuf16index_size(const struct ringbuf16index *r)
+{
+  return r->mask + 1;
+}
+
+int ringbuf16index_empty(const struct ringbuf16index *r){
+    return r->get_ptr == r->put_ptr;
+}
+#endif

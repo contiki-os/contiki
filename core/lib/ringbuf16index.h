@@ -42,6 +42,12 @@
 
 #include "contiki-conf.h"
 
+#if (PACKETBUF_CONF_ATTRS_INLINE) || defined(__GNUC__)
+#define LIB_INLINES     1
+#else
+#define LIB_INLINES     0
+#endif
+
 struct ringbuf16index {
   uint16_t mask;
   /* These must be 8-bit quantities to avoid race conditions. */
@@ -77,10 +83,11 @@ int ringbuf16index_peek_put(const struct ringbuf16index *r);
  * \retval size of solid space at put position, avail for fill
  */
 unsigned ringbuf16index_put_free(const struct ringbuf16index *r);
+
 /**
  * \brief Put size elements to the ring buffer
  * \param r Pointer to ringbuf16index
- * \param size amount of placed items
+ * \param size Amount of placed items
  * \retval amount of free solid space at new put, \sa ringbuf16index_put_free
  */
 int ringbuf16index_putn(struct ringbuf16index *r, uint16_t size);
@@ -107,11 +114,15 @@ int ringbuf16index_peek_get(const struct ringbuf16index *r);
  * \param r Pinter to ringbuf16index
  * \return The size of the ring buffer
  */
-static inline int ringbuf16index_size(const struct ringbuf16index *r)
+#if LIB_INLINES
+static inline
+int ringbuf16index_size(const struct ringbuf16index *r)
 {
   return r->mask + 1;
-}
-
+};
+#else
+int ringbuf16index_size(const struct ringbuf16index *r);
+#endif
 
 /**
  * \brief Return the number of elements currently in the ring buffer.
@@ -132,10 +143,13 @@ int ringbuf16index_full(const struct ringbuf16index *r);
  * \retval 0 Not empty
  * \retval 1 Empty
  */
+#if LIB_INLINES
 static inline
 int ringbuf16index_empty(const struct ringbuf16index *r){
     return r->get_ptr == r->put_ptr;
-}
-
+};
+#else
+int ringbuf16index_empty(const struct ringbuf16index *r);
+#endif
 
 #endif /* __RINGBUFINDEX_H__ */
