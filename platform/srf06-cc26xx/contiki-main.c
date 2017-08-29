@@ -102,7 +102,7 @@ set_rf_params(void)
 {
   uint8_t ext_addr[8];
 
-#if defined MODE && MODE == MODE_BLE
+#if CC26XX_RADIO_MODE == CC26XX_RADIO_MODE_BLE
   ble_eui64_addr_cpy_to(ext_addr);
 
   /* Populate linkaddr_node_addr. Maintain endianness */

@@ -41,7 +41,6 @@
 #define IEEE802154_CONF_PANID            0xABCD
 #define RF_CORE_CONF_CHANNEL                 25
 #define RF_BLE_CONF_ENABLED                   1
-#define BOARD_CONF_DEBUGGER_DEVPACK			  1
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

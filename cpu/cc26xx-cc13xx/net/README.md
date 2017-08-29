@@ -67,6 +67,7 @@ To enable IPv6 over BLE, the project conf needs to contain:
 #define QUEUEBUF_CONF_NUM                       1
 #define UIP_CONF_BUFFER_SIZE                 	1280
 
+#define CC26XX_CONF_RADIO_MODE					CC26XX_RADIO_MODE_BLE
 #define NETSTACK_CONF_RADIO             		ble_cc2650_driver
 #define NETSTACK_CONF_RDC               		ble_null_par_driver
 #define NETSTACK_CONF_MAC               		ble_l2cap_driver
@@ -101,6 +102,7 @@ To enable IPv6 over BLE, the project conf needs to contain:
 #define QUEUEBUF_CONF_NUM                       1
 #define UIP_CONF_BUFFER_SIZE                 	1280
 
+#define CC26XX_CONF_RADIO_MODE					CC26XX_RADIO_MODE_BLE
 #define NETSTACK_CONF_RADIO             		ble_cc2650_driver
 #define NETSTACK_CONF_RDC               		ble_null_par_driver
 #define NETSTACK_CONF_MAC               		ble_l2cap_driver

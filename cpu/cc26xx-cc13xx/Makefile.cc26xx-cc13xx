@@ -7,7 +7,6 @@ OBJDUMP = arm-none-eabi-objdump
 NM      = arm-none-eabi-nm
 SIZE    = arm-none-eabi-size
 SREC_CAT = srec_cat
-SRFPROG = srfprog
 
 CPU_ABS_PATH       = cpu/cc26xx-cc13xx
 TI_XXWARE = $(CONTIKI_CPU)/$(TI_XXWARE_PATH)
@@ -129,13 +128,6 @@ CUSTOM_RULE_LINK=1
 
 %.lst: %.elf
 	$(OBJDUMP) $(OBJDUMP_FLAGS) $< > $@
-
-upload:
-ifdef HEXFILE
-	$(SRFPROG) -t 'soc(XDS-00000000)' -e all -p 'epfw(0)' -v rb -f $(HEXFILE) -a 0x0
-else
-	$(SRFPROG) -t 'soc(XDS-00000000)' -e all -p 'epfw(0)' -v rb -f $(CONTIKI_PROJECT).hex -a 0x0
-endif
 
 ### We don't really need the .hex and .bin for the .$(TARGET) but let's make
 ### sure they get built

@@ -102,6 +102,15 @@
 #define PROP_MODE_CONF_RX_BUF_CNT        4
 #endif
 
+#define CC26XX_RADIO_MODE_15_4			 1
+#define CC26XX_RADIO_MODE_BLE			 2
+
+#ifdef CC26XX_CONF_RADIO_MODE
+#define CC26XX_RADIO_MODE				CC26XX_CONF_RADIO_MODE
+#else
+#define CC26XX_RADIO_MODE				CC26XX_RADIO_MODE_15_4
+#endif
+
 /*
  * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
  * project has specified otherwise. Depending on the final mode, determine a

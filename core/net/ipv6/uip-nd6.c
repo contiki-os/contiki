@@ -567,7 +567,6 @@ na_input(void)
       if(nd6_opt_llao == NULL || !extract_lladdr_from_llao_aligned(&lladdr_aligned)) {
         goto discard;
       }
-
       if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
         /* failed to update the lladdr */
         goto discard;

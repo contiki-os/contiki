@@ -269,7 +269,9 @@ static ble_conn_param_t conn_param[BLE_MODE_MAX_CONNECTIONS];
 static uint16_t conn_counter = 0;
 
 static void connection_event_slave(struct rtimer *t, void *ptr);
+#if UIP_CONF_ROUTER
 static void connection_event_master(struct rtimer *t, void *ptr);
+#endif
 /*---------------------------------------------------------------------------*/
 /* INITIATOR data structures 												 */
 #define INIT_RX_BUFFERS_OVERHEAD		8
@@ -297,7 +299,9 @@ typedef struct {
 } ble_init_param_t;
 
 static ble_init_param_t init_param;
+#if UIP_CONF_ROUTER
 static void initiator_event(struct rtimer *t, void *ptr);
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS(ble_hal_conn_rx_process, "BLE/CC26xx connection RX process");
 process_event_t rx_data_event;
@@ -542,6 +546,7 @@ set_adv_enable(unsigned short enable)
 	}
 	return BLE_RESULT_OK;
 }
+#if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 static void init_connection_parameters(ble_conn_param_t *conn, rtimer_clock_t interval,
 									   rtimer_clock_t win_size, rtimer_clock_t win_offset,
@@ -615,6 +620,7 @@ static void init_connection_parameters(ble_conn_param_t *conn, rtimer_clock_t in
 	memcpy(&conn->hop, &hop, 1);
 	memcpy(&conn->sca, &sca, 1);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static ble_result_t create_connection(unsigned int scan_interval,
                                    unsigned int scan_window,
@@ -888,6 +894,7 @@ static void advertising_event(struct rtimer *t, void *ptr)
 	rtimer_set(&param->timer, wakeup, 0, advertising_event, (void *) param);
 
 }
+#if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 static void initiator_rx(ble_init_param_t *init) {
 	uint8_t i;
@@ -927,7 +934,6 @@ static void initiator_rx(ble_init_param_t *init) {
 		init->rx_queue_current = RX_ENTRY_NEXT_ENTRY(init->rx_queue_current);
 	}
 }
-#if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 static void initiator_event(struct rtimer *t, void *ptr) {
 	ble_init_param_t *init = (ble_init_param_t *) ptr;
@@ -1257,6 +1263,7 @@ static void connection_event_slave(struct rtimer *t, void *ptr) {
 	rtimer_set(&conn->timer, wakeup, 0, connection_event_slave, ptr);
 	process_post(&ble_hal_conn_rx_process, rx_data_event, ptr);
 }
+#if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 static void connection_event_master(struct rtimer *t, void *ptr) {
 
@@ -1346,6 +1353,7 @@ static void connection_event_master(struct rtimer *t, void *ptr) {
 	rtimer_set(&conn->timer, wakeup, 0, connection_event_master, ptr);
 	process_post(&ble_hal_conn_rx_process, rx_data_event, ptr);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ble_hal_conn_rx_process, ev, data) {
 	ble_conn_param_t *conn = (ble_conn_param_t *) data;

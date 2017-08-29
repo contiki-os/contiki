@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Michael Spoerk
+ * Copyright (c) 2017, Graz University of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,14 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * 		hardware abstraction for the TI CC2650 controller
  *
- * Author: Michael Spoerk <mi.spoerk@gmail.com>
- *
+ * \author
+ * 		Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 
