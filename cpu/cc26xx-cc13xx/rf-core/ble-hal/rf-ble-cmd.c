@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		BLE commands for the TI CC26xx BLE radio
+ *    BLE commands for the TI CC26xx BLE radio
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -52,9 +52,9 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /* values for a selection of available TX powers (values from SmartRF Studio) */
-//static uint16_t tx_power = 0x9330;						/* +5 dBm */
-static uint16_t tx_power = 0x3161;    						/*  0 dBm */
-//static uint16_t tx_power = 0x0CCB;    						/*  -15 dBm */
+/*static uint16_t tx_power = 0x9330;						/ * +5 dBm * / */
+static uint16_t tx_power = 0x3161;                /*  0 dBm */
+/*static uint16_t tx_power = 0x0CCB;                / *  -15 dBm * / */
 /*---------------------------------------------------------------------------*/
 /* BLE overrides */
 static uint32_t ble_overrides[] = {
@@ -264,123 +264,123 @@ void
 rf_ble_cmd_create_scan_cmd(uint8_t *command, uint8_t channel,
                            uint8_t *param, uint8_t *output)
 {
-	rfc_CMD_BLE_SCANNER_t *c = (rfc_CMD_BLE_SCANNER_t *) command;
+  rfc_CMD_BLE_SCANNER_t *c = (rfc_CMD_BLE_SCANNER_t *)command;
 
-	memset(c, 0x00, sizeof(rfc_CMD_BLE_SCANNER_t));
-	c->commandNo = CMD_BLE_SCANNER;
-	c->condition.rule = COND_NEVER;
-	c->whitening.bOverride = 0;
-	c->channel = channel;
-	c->pParams = (rfc_bleScannerPar_t *) param;
-	c->startTrigger.triggerType = TRIG_NOW;
-	c->pOutput = (rfc_bleScannerOutput_t *) output;
+  memset(c, 0x00, sizeof(rfc_CMD_BLE_SCANNER_t));
+  c->commandNo = CMD_BLE_SCANNER;
+  c->condition.rule = COND_NEVER;
+  c->whitening.bOverride = 0;
+  c->channel = channel;
+  c->pParams = (rfc_bleScannerPar_t *)param;
+  c->startTrigger.triggerType = TRIG_NOW;
+  c->pOutput = (rfc_bleScannerOutput_t *)output;
 }
 /*---------------------------------------------------------------------------*/
 void
 rf_ble_cmd_create_scan_params(uint8_t *param, dataQueue_t *rx_queue,
-							 ble_scan_type_t scan_type, uint32_t scan_window,
-                             ble_addr_type_t own_addr_type, uint8_t *own_addr,
-							 ble_scan_filter_policy_t filter_policy,
-							 uint8_t first_packet)
+                              ble_scan_type_t scan_type, uint32_t scan_window,
+                              ble_addr_type_t own_addr_type, uint8_t *own_addr,
+                              ble_scan_filter_policy_t filter_policy,
+                              uint8_t first_packet)
 {
-	rfc_bleScannerPar_t *p = (rfc_bleScannerPar_t *) param;
+  rfc_bleScannerPar_t *p = (rfc_bleScannerPar_t *)param;
 
-	if(first_packet) {
-		/*
-		 * only reset the memory for the first packet when in scanning mode.
-		 * values for backoff procedure are incremented by the RFcore.
-		 */
-		memset(p, 0x00, sizeof(rfc_bleScannerPar_t));
-		p->randomState = 0;
-		p->backoffCount = 1;
-		p->backoffPar.logUpperLimit = 0;
-		p->backoffPar.bLastSucceeded = 0;
-		p->backoffPar.bLastFailed = 0;
-	}
-	p->pRxQ = rx_queue;
-	p->rxConfig.bAutoFlushIgnored = 1;
-	p->rxConfig.bAutoFlushCrcErr = 0;
-	p->rxConfig.bAutoFlushEmpty = 1;
-	p->rxConfig.bIncludeLenByte = 1;
-	p->rxConfig.bIncludeCrc = 0;
-	p->rxConfig.bAppendRssi = 1;
-	p->rxConfig.bAppendStatus = 1;
-	p->rxConfig.bAppendTimestamp = 1;
-	p->scanConfig.scanFilterPolicy = 0;
-	p->scanConfig.bActiveScan = scan_type;
-	p->scanConfig.deviceAddrType = own_addr_type;
-	p->scanConfig.bStrictLenFilter = 1;
+  if(first_packet) {
+    /*
+     * only reset the memory for the first packet when in scanning mode.
+     * values for backoff procedure are incremented by the RFcore.
+     */
+    memset(p, 0x00, sizeof(rfc_bleScannerPar_t));
+    p->randomState = 0;
+    p->backoffCount = 1;
+    p->backoffPar.logUpperLimit = 0;
+    p->backoffPar.bLastSucceeded = 0;
+    p->backoffPar.bLastFailed = 0;
+  }
+  p->pRxQ = rx_queue;
+  p->rxConfig.bAutoFlushIgnored = 1;
+  p->rxConfig.bAutoFlushCrcErr = 0;
+  p->rxConfig.bAutoFlushEmpty = 1;
+  p->rxConfig.bIncludeLenByte = 1;
+  p->rxConfig.bIncludeCrc = 0;
+  p->rxConfig.bAppendRssi = 1;
+  p->rxConfig.bAppendStatus = 1;
+  p->rxConfig.bAppendTimestamp = 1;
+  p->scanConfig.scanFilterPolicy = 0;
+  p->scanConfig.bActiveScan = scan_type;
+  p->scanConfig.deviceAddrType = own_addr_type;
+  p->scanConfig.bStrictLenFilter = 1;
 
-	if(filter_policy == BLE_SCAN_FILTER_POLICY_ACCEPT) {
-		p->scanConfig.bAutoWlIgnore = 1;
-	} else {
-		p->scanConfig.bAutoWlIgnore = 0;
-	}
-	p->scanConfig.bEndOnRpt = 0;
-	p->scanReqLen = 0;
-	p->pScanReqData = NULL;
-	p->pDeviceAddress = (uint16_t *) own_addr;
-	p->pWhiteList = NULL;
-	p->timeoutTrigger.triggerType = TRIG_REL_START;
-	p->timeoutTime = scan_window;
-	p->endTrigger.triggerType = TRIG_NEVER;
+  if(filter_policy == BLE_SCAN_FILTER_POLICY_ACCEPT) {
+    p->scanConfig.bAutoWlIgnore = 1;
+  } else {
+    p->scanConfig.bAutoWlIgnore = 0;
+  }
+  p->scanConfig.bEndOnRpt = 0;
+  p->scanReqLen = 0;
+  p->pScanReqData = NULL;
+  p->pDeviceAddress = (uint16_t *)own_addr;
+  p->pWhiteList = NULL;
+  p->timeoutTrigger.triggerType = TRIG_REL_START;
+  p->timeoutTime = scan_window;
+  p->endTrigger.triggerType = TRIG_NEVER;
 }
 /*---------------------------------------------------------------------------*/
 /* INITIATOR functions                                                       */
 /*---------------------------------------------------------------------------*/
 void
 rf_ble_cmd_create_initiator_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
-								uint8_t *output, uint32_t start_time)
+                                uint8_t *output, uint32_t start_time)
 {
-	rfc_CMD_BLE_INITIATOR_t *c = (rfc_CMD_BLE_INITIATOR_t *) cmd;
+  rfc_CMD_BLE_INITIATOR_t *c = (rfc_CMD_BLE_INITIATOR_t *)cmd;
 
-	memset(c, 0x00, sizeof(rfc_CMD_BLE_INITIATOR_t));
+  memset(c, 0x00, sizeof(rfc_CMD_BLE_INITIATOR_t));
 
-	c->commandNo = CMD_BLE_INITIATOR;
-	c->condition.rule = COND_NEVER;
-	c->whitening.bOverride = 0;
-	c->channel = channel;
-	c->pParams = (rfc_bleInitiatorPar_t *)params;
-	c->startTrigger.triggerType = TRIG_ABSTIME;
-	c->startTrigger.pastTrig = 1;
-	c->startTime = start_time;
-	c->pOutput = (rfc_bleInitiatorOutput_t *)output;
+  c->commandNo = CMD_BLE_INITIATOR;
+  c->condition.rule = COND_NEVER;
+  c->whitening.bOverride = 0;
+  c->channel = channel;
+  c->pParams = (rfc_bleInitiatorPar_t *)params;
+  c->startTrigger.triggerType = TRIG_ABSTIME;
+  c->startTrigger.pastTrig = 1;
+  c->startTime = start_time;
+  c->pOutput = (rfc_bleInitiatorOutput_t *)output;
 }
 /*---------------------------------------------------------------------------*/
 void
 rf_ble_cmd_create_initiator_params(uint8_t *param, dataQueue_t *rx_queue,
-							 uint32_t initiator_time,
-                             ble_addr_type_t own_addr_type, uint8_t *own_addr,
-							 ble_addr_type_t peer_addr_type, uint8_t *peer_addr,
-							 uint32_t connect_time, uint8_t *conn_req_data)
+                                   uint32_t initiator_time,
+                                   ble_addr_type_t own_addr_type, uint8_t *own_addr,
+                                   ble_addr_type_t peer_addr_type, uint8_t *peer_addr,
+                                   uint32_t connect_time, uint8_t *conn_req_data)
 {
-	rfc_bleInitiatorPar_t *p = (rfc_bleInitiatorPar_t *) param;
+  rfc_bleInitiatorPar_t *p = (rfc_bleInitiatorPar_t *)param;
 
-	p->pRxQ = rx_queue;
-	p->rxConfig.bAutoFlushIgnored = 1;
-	p->rxConfig.bAutoFlushCrcErr = 0;
-	p->rxConfig.bAutoFlushEmpty = 1;
-	p->rxConfig.bIncludeLenByte = 1;
-	p->rxConfig.bIncludeCrc = 0;
-	p->rxConfig.bAppendRssi = 1;
-	p->rxConfig.bAppendStatus = 1;
-	p->rxConfig.bAppendTimestamp = 1;
+  p->pRxQ = rx_queue;
+  p->rxConfig.bAutoFlushIgnored = 1;
+  p->rxConfig.bAutoFlushCrcErr = 0;
+  p->rxConfig.bAutoFlushEmpty = 1;
+  p->rxConfig.bIncludeLenByte = 1;
+  p->rxConfig.bIncludeCrc = 0;
+  p->rxConfig.bAppendRssi = 1;
+  p->rxConfig.bAppendStatus = 1;
+  p->rxConfig.bAppendTimestamp = 1;
 
-//	p->initConfig.bUseWhiteList = 0;
-	p->initConfig.bUseWhiteList = 1;
-	p->initConfig.bDynamicWinOffset = 0;
-	p->initConfig.deviceAddrType = own_addr_type;
-	p->initConfig.peerAddrType = peer_addr_type;
-	p->initConfig.bStrictLenFilter = 1;
+/*	p->initConfig.bUseWhiteList = 0; */
+  p->initConfig.bUseWhiteList = 1;
+  p->initConfig.bDynamicWinOffset = 0;
+  p->initConfig.deviceAddrType = own_addr_type;
+  p->initConfig.peerAddrType = peer_addr_type;
+  p->initConfig.bStrictLenFilter = 1;
 
-	p->connectReqLen = 22;
-	p->pConnectReqData = conn_req_data;
-	p->pDeviceAddress = (uint16_t *) own_addr;
-	p->pWhiteList = (rfc_bleWhiteListEntry_t *) peer_addr;
-	p->connectTime = connect_time;
-	p->timeoutTrigger.triggerType = TRIG_REL_START;
-	p->timeoutTime = initiator_time;
-	p->endTrigger.triggerType = TRIG_NEVER;
+  p->connectReqLen = 22;
+  p->pConnectReqData = conn_req_data;
+  p->pDeviceAddress = (uint16_t *)own_addr;
+  p->pWhiteList = (rfc_bleWhiteListEntry_t *)peer_addr;
+  p->connectTime = connect_time;
+  p->timeoutTrigger.triggerType = TRIG_REL_START;
+  p->timeoutTime = initiator_time;
+  p->endTrigger.triggerType = TRIG_NEVER;
 }
 /*---------------------------------------------------------------------------*/
 /* CONNECTION slave functions                                                */
@@ -444,10 +444,9 @@ rf_ble_cmd_create_slave_params(uint8_t *params, dataQueue_t *rx_queue,
   p->crcInit2 = crc_init_2;
   p->timeoutTrigger.triggerType = TRIG_REL_START;
   if(first_packet) {
-	  p->timeoutTime = (uint32_t)(10 * win_size);
-  }
-  else {
-	  p->timeoutTime = (uint32_t)(win_size + 2 * window_widening);
+    p->timeoutTime = (uint32_t)(10 * win_size);
+  } else {
+    p->timeoutTime = (uint32_t)(win_size + 2 * window_widening);
   }
   p->endTrigger.triggerType = TRIG_NEVER;
 }
@@ -456,7 +455,7 @@ rf_ble_cmd_create_slave_params(uint8_t *params, dataQueue_t *rx_queue,
 /*---------------------------------------------------------------------------*/
 void
 rf_ble_cmd_create_master_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
-                            uint8_t *output, uint32_t start_time)
+                             uint8_t *output, uint32_t start_time)
 {
   rfc_CMD_BLE_MASTER_t *c = (rfc_CMD_BLE_MASTER_t *)cmd;
 
@@ -475,22 +474,22 @@ rf_ble_cmd_create_master_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
 /*---------------------------------------------------------------------------*/
 void
 rf_ble_cmd_create_master_params(uint8_t *params, dataQueue_t *rx_queue,
-                               dataQueue_t *tx_queue, uint32_t access_address,
-                               uint8_t crc_init_0, uint8_t crc_init_1,
-                               uint8_t crc_init_2, uint8_t first_packet)
+                                dataQueue_t *tx_queue, uint32_t access_address,
+                                uint8_t crc_init_0, uint8_t crc_init_1,
+                                uint8_t crc_init_2, uint8_t first_packet)
 {
-	rfc_bleMasterPar_t *p = (rfc_bleMasterPar_t *) params;
+  rfc_bleMasterPar_t *p = (rfc_bleMasterPar_t *)params;
 
-	p->pRxQ = rx_queue;
-	p->pTxQ = tx_queue;
-	p->rxConfig.bAutoFlushIgnored = 1;
-	p->rxConfig.bAutoFlushCrcErr = 1;
-	p->rxConfig.bAutoFlushEmpty = 1;
-	p->rxConfig.bIncludeLenByte = 1;
-	p->rxConfig.bIncludeCrc = 0;
-	p->rxConfig.bAppendRssi = 1;
-	p->rxConfig.bAppendStatus = 1;
-	p->rxConfig.bAppendTimestamp = 1;
+  p->pRxQ = rx_queue;
+  p->pTxQ = tx_queue;
+  p->rxConfig.bAutoFlushIgnored = 1;
+  p->rxConfig.bAutoFlushCrcErr = 1;
+  p->rxConfig.bAutoFlushEmpty = 1;
+  p->rxConfig.bIncludeLenByte = 1;
+  p->rxConfig.bIncludeCrc = 0;
+  p->rxConfig.bAppendRssi = 1;
+  p->rxConfig.bAppendStatus = 1;
+  p->rxConfig.bAppendTimestamp = 1;
 
   if(first_packet) {
     /* set parameters for first packet according to TI Technical Reference Manual */
@@ -510,7 +509,7 @@ rf_ble_cmd_create_master_params(uint8_t *params, dataQueue_t *rx_queue,
   p->crcInit1 = crc_init_1;
   p->crcInit2 = crc_init_2;
   p->endTrigger.triggerType = TRIG_REL_START;
-  p->endTime = (uint32_t) 15 * 4000;	// a connection event must end after 10 ms
+  p->endTime = (uint32_t)15 * 4000;   /* a connection event must end after 10 ms */
 }
 /*---------------------------------------------------------------------------*/
 /* DATA queue functions                                                      */

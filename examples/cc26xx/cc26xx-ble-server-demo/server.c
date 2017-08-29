@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		A simple IPv6-over-BLE UDP-client.
+ *    A simple IPv6-over-BLE UDP-client.
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -45,12 +45,12 @@
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
-#define CLIENT_PORT 					61617
-#define SERVER_PORT 					61616
+#define CLIENT_PORT           61617
+#define SERVER_PORT           61616
 
-#define UDP_LEN_MAX						255
+#define UDP_LEN_MAX           255
 /*---------------------------------------------------------------------------*/
-#define UIP_IP_BUF   	((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_IP_BUF    ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 static struct uip_udp_conn *server_conn;
 
 static char buf[UDP_LEN_MAX];
@@ -63,19 +63,19 @@ static void
 tcpip_handler(void)
 {
   if(uip_newdata()) {
-	  /* process received message */
-      strncpy(buf, uip_appdata, uip_datalen());
-      buf[uip_datalen()] = '\0';
-	  PRINTF("rec. message: <%s>\n", buf);
+    /* process received message */
+    strncpy(buf, uip_appdata, uip_datalen());
+    buf[uip_datalen()] = '\0';
+    PRINTF("rec. message: <%s>\n", buf);
 
-	  /* send response message */
-	  uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
-	  sprintf(buf, "Hello client %04u!", packet_counter);
-	  PRINTF("send message: <%s>\n", buf);
-	  uip_udp_packet_send(server_conn, buf, strlen(buf));
-	  packet_counter++;
+    /* send response message */
+    uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+    sprintf(buf, "Hello client %04u!", packet_counter);
+    PRINTF("send message: <%s>\n", buf);
+    uip_udp_packet_send(server_conn, buf, strlen(buf));
+    packet_counter++;
 
-	  memset(&server_conn->ripaddr, 0, sizeof(server_conn->ripaddr));
+    memset(&server_conn->ripaddr, 0, sizeof(server_conn->ripaddr));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -90,10 +90,9 @@ PROCESS_THREAD(ipv6_ble_server_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT();
     if(ev == tcpip_event) {
-    	tcpip_handler();
+      tcpip_handler();
     }
   }
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-

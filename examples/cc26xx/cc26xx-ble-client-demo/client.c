@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		A simple IPv6-over-BLE UDP-client.
+ *    A simple IPv6-over-BLE UDP-client.
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -47,14 +47,14 @@
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
-#define SERVER_IP     					"::"
-#define CLIENT_PORT 					61617
-#define SERVER_PORT 					61616
+#define SERVER_IP               "::"
+#define CLIENT_PORT           61617
+#define SERVER_PORT           61616
 
-#define PING_TIMEOUT        			(CLOCK_SECOND / 4)
-#define CLIENT_SEND_INTERVAL			(CLOCK_SECOND * 1)
+#define PING_TIMEOUT              (CLOCK_SECOND / 4)
+#define CLIENT_SEND_INTERVAL      (CLOCK_SECOND * 1)
 
-#define UDP_LEN_MAX						255
+#define UDP_LEN_MAX           255
 /*---------------------------------------------------------------------------*/
 static uip_ipaddr_t server_addr;
 static struct uip_icmp6_echo_reply_notification icmp_notification;
@@ -70,7 +70,7 @@ AUTOSTART_PROCESSES(&ipv6_ble_client_process);
 /*---------------------------------------------------------------------------*/
 void
 icmp_reply_handler(uip_ipaddr_t *source, uint8_t ttl,
-				   uint8_t *data, uint16_t datalen)
+                   uint8_t *data, uint16_t datalen)
 {
   PRINTF("echo response received\n");
   echo_received = 1;
@@ -81,19 +81,19 @@ tcpip_handler(void)
 {
   char data[UDP_LEN_MAX];
   if(uip_newdata()) {
-      strncpy(data, uip_appdata, uip_datalen());
-      data[uip_datalen()] = '\0';
-	  PRINTF("rec. message: <%s>\n", data);
+    strncpy(data, uip_appdata, uip_datalen());
+    data[uip_datalen()] = '\0';
+    PRINTF("rec. message: <%s>\n", data);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
 timeout_handler(void)
 {
-	sprintf(buf, "Hello server %04u!", packet_counter);
-	PRINTF("send message: <%s>\n", buf);
-	uip_udp_packet_send(conn, buf, strlen(buf));
-	packet_counter++;
+  sprintf(buf, "Hello server %04u!", packet_counter);
+  PRINTF("send message: <%s>\n", buf);
+  uip_udp_packet_send(conn, buf, strlen(buf));
+  packet_counter++;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ipv6_ble_client_process, ev, data)
@@ -108,10 +108,9 @@ PROCESS_THREAD(ipv6_ble_client_process, ev, data)
   PRINT6ADDR(&server_addr);
   PRINTF("\n");
   do {
-	  etimer_set(&timer, PING_TIMEOUT);
-	  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-	  uip_icmp6_send(&server_addr, ICMP6_ECHO_REQUEST, 0, 20);
-
+    etimer_set(&timer, PING_TIMEOUT);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+    uip_icmp6_send(&server_addr, ICMP6_ECHO_REQUEST, 0, 20);
   } while(!echo_received);
 
   conn = udp_new(&server_addr, UIP_HTONS(SERVER_PORT), NULL);
@@ -120,13 +119,13 @@ PROCESS_THREAD(ipv6_ble_client_process, ev, data)
   etimer_set(&timer, CLIENT_SEND_INTERVAL);
 
   while(1) {
-	  PROCESS_YIELD();
-	  if((ev == PROCESS_EVENT_TIMER) && (data == &timer)) {
-		  timeout_handler();
-		  etimer_set(&timer, CLIENT_SEND_INTERVAL);
-	  } else if(ev == tcpip_event) {
-		  tcpip_handler();
-	  }
+    PROCESS_YIELD();
+    if((ev == PROCESS_EVENT_TIMER) && (data == &timer)) {
+      timeout_handler();
+      etimer_set(&timer, CLIENT_SEND_INTERVAL);
+    } else if(ev == tcpip_event) {
+      tcpip_handler();
+    }
   }
 
   PROCESS_END();

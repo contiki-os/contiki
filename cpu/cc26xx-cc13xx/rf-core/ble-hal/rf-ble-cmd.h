@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		BLE commands for the TI CC26xx BLE radio
+ *    BLE commands for the TI CC26xx BLE radio
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 
@@ -62,24 +62,23 @@ void rf_ble_cmd_create_adv_params(uint8_t *param, dataQueue_t *rx_queue,
                                   ble_addr_type_t own_addr_type, uint8_t *own_addr);
 
 void rf_ble_cmd_create_scan_cmd(uint8_t *command, uint8_t channel,
-                           uint8_t *param, uint8_t *output);
+                                uint8_t *param, uint8_t *output);
 
 void rf_ble_cmd_create_scan_params(uint8_t *param, dataQueue_t *rx_queue,
-							 ble_scan_type_t scan_type, uint32_t scan_window,
-                             ble_addr_type_t own_addr_type, uint8_t *own_addr,
-							 ble_scan_filter_policy_t filter_policy,
-							 uint8_t first_packet);
+                                   ble_scan_type_t scan_type, uint32_t scan_window,
+                                   ble_addr_type_t own_addr_type, uint8_t *own_addr,
+                                   ble_scan_filter_policy_t filter_policy,
+                                   uint8_t first_packet);
 
 void rf_ble_cmd_create_initiator_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
-								uint8_t *output, uint32_t start_time);
+                                     uint8_t *output, uint32_t start_time);
 
 void rf_ble_cmd_create_initiator_params(uint8_t *param, dataQueue_t *rx_queue,
-							 uint32_t initiator_window,
-                             ble_addr_type_t own_addr_type, uint8_t *own_addr,
-							 ble_addr_type_t peer_addr_type, uint8_t *peer_addr,
-							 uint32_t connect_time,
-							 uint8_t *conn_req_data);
-
+                                        uint32_t initiator_window,
+                                        ble_addr_type_t own_addr_type, uint8_t *own_addr,
+                                        ble_addr_type_t peer_addr_type, uint8_t *peer_addr,
+                                        uint32_t connect_time,
+                                        uint8_t *conn_req_data);
 
 void rf_ble_cmd_create_slave_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
                                  uint8_t *output, uint32_t start_time);
@@ -91,12 +90,12 @@ void rf_ble_cmd_create_slave_params(uint8_t *params, dataQueue_t *rx_queue,
                                     uint32_t window_widening, uint8_t first_packet);
 
 void rf_ble_cmd_create_master_cmd(uint8_t *cmd, uint8_t channel, uint8_t *params,
-                            uint8_t *output, uint32_t start_time);
+                                  uint8_t *output, uint32_t start_time);
 
 void rf_ble_cmd_create_master_params(uint8_t *params, dataQueue_t *rx_queue,
-                               dataQueue_t *tx_queue, uint32_t access_address,
-                               uint8_t crc_init_0, uint8_t crc_init_1,
-                               uint8_t crc_init_2, uint8_t first_packet);
+                                     dataQueue_t *tx_queue, uint32_t access_address,
+                                     uint8_t crc_init_0, uint8_t crc_init_1,
+                                     uint8_t crc_init_2, uint8_t first_packet);
 
 unsigned short rf_ble_cmd_add_data_queue_entry(dataQueue_t *q, uint8_t *e);
 

@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		hardware abstraction for the TI CC2650 controller
+ *    hardware abstraction for the TI CC2650 controller
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 

@@ -30,13 +30,12 @@
 
 /**
  * \file
- * 		RDC layer for simple IPv6-over-BLE support (RFC 7668)
+ *    RDC layer for simple IPv6-over-BLE support (RFC 7668)
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
-
 
 #include <net/ble-null-par.h>
 #include "ble-hal.h"
@@ -50,7 +49,7 @@ send_packet(mac_callback_t sent, void *ptr)
   if(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
     ret = MAC_TX_OK;
   } else {
-    ret =  MAC_TX_ERR;
+    ret = MAC_TX_ERR;
   }
   mac_call_sent_callback(sent, ptr, ret, 1);
 }
@@ -58,7 +57,7 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
-	NETSTACK_MAC.input();
+  NETSTACK_MAC.input();
 }
 /*---------------------------------------------------------------------------*/
 static int

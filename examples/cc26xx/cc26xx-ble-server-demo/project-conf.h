@@ -30,14 +30,14 @@
 
 /**
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
-#define MODE_IEEE802_15_4	1		// enable RPL and disable TSCH in Makefile
-#define MODE_BLE			2
+#define MODE_IEEE802_15_4 1   /* enable RPL and disable TSCH in Makefile */
+#define MODE_BLE      2
 
 #define MODE MODE_BLE
 /*---------------------------------------------------------------------------*/
@@ -47,23 +47,23 @@
 /* Change to match your configuration */
 #define BOARD_CONF_DEBUGGER_DEVPACK           1
 /*---------------------------------------------------------------------------*/
-#define PACKETBUF_CONF_SIZE                  	1280
+#define PACKETBUF_CONF_SIZE                   1280
 #define QUEUEBUF_CONF_NUM                       1
-#define UIP_CONF_BUFFER_SIZE                 	1280
+#define UIP_CONF_BUFFER_SIZE                  1280
 
-#define CC26XX_CONF_RADIO_MODE					CC26XX_RADIO_MODE_BLE
-#define NETSTACK_CONF_RADIO             		ble_cc2650_driver
-#define NETSTACK_CONF_RDC               		ble_null_par_driver
-#define NETSTACK_CONF_MAC               		ble_l2cap_driver
+#define CC26XX_CONF_RADIO_MODE          CC26XX_RADIO_MODE_BLE
+#define NETSTACK_CONF_RADIO                 ble_cc2650_driver
+#define NETSTACK_CONF_RDC                   ble_null_par_driver
+#define NETSTACK_CONF_MAC                   ble_l2cap_driver
 
-#define RTIMER_CONF_MULTIPLE_ACCESS 			1
+#define RTIMER_CONF_MULTIPLE_ACCESS       1
 
 /* BLE radio settings */
-#define BLE_MODE_CONF_INIT_PEER_ADDR			0x000000000000
+#define BLE_MODE_CONF_INIT_PEER_ADDR      0x000000000000
 
 /* 6LoWPAN settings */
-#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD      	1280
-#define SICSLOWPAN_CONF_COMPRESSION          	SICSLOWPAN_COMPRESSION_HC06
+#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD       1280
+#define SICSLOWPAN_CONF_COMPRESSION           SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD   0  /* always use compression */
 #define SICSLOWPAN_CONF_FRAG                    0
 #define SICSLOWPAN_FRAMER_HDRLEN                0
@@ -71,7 +71,7 @@
 /* network layer settings */
 #define UIP_CONF_ROUTER                         1
 #define UIP_CONF_ND6_SEND_NA                    1
-#define UIP_CONF_ND6_SEND_RA					1
+#define UIP_CONF_ND6_SEND_RA          1
 #define UIP_CONF_IP_FORWARD                     0
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */

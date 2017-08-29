@@ -30,10 +30,10 @@
 
 /**
  * \file
- * 		RDC layer for simple IPv6-over-BLE support (RFC 7668)
+ *    RDC layer for simple IPv6-over-BLE support (RFC 7668)
  *
  * \author
- * 		Michael Spoerk <michael.spoerk@tugraz.at>
+ *    Michael Spoerk <michael.spoerk@tugraz.at>
  */
 /*---------------------------------------------------------------------------*/
 
