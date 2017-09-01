@@ -187,6 +187,7 @@ int cc26xx_uart_write_buf(/*struct uart_tx_t* buf*/ char x){
 
 #define cc26xx_uart_buf_init(x)
 #define cc26xx_uart_bufsend(x) 0
+#define cc26xx_uart_send_empty(x) 1
 
 inline
 int cc26xx_uart_write_buf(char x){
@@ -335,6 +336,26 @@ configure(void)
   HWREG(UART0_BASE + UART_O_CTL) = ctl_val;
 }
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+static uint8_t
+lpm_request(void)
+{
+    if(usable_tx() == false) {
+        return LPM_MODE_MAX_SUPPORTED;
+    }
+
+    if(accessible() == false) {
+        return LPM_MODE_MAX_SUPPORTED;
+    }
+
+    if(cc26xx_uart_send_empty()) {
+        return LPM_MODE_MAX_SUPPORTED;
+    }
+
+    //* have some data buffered, wait until tx buffer empty
+    return LPM_MODE_SLEEP;
+}
+
 static void
 lpm_drop_handler(uint8_t mode)
 {
@@ -394,7 +415,7 @@ lpm_drop_handler(uint8_t mode)
 }
 /*---------------------------------------------------------------------------*/
 /* Declare a data structure to register with LPM. */
-LPM_MODULE(uart_module, NULL, lpm_drop_handler, NULL, LPM_DOMAIN_NONE);
+LPM_MODULE(uart_module, lpm_request, lpm_drop_handler, NULL, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 static void
 enable(void)
