@@ -63,6 +63,145 @@
 #define cc26xx_uart_isr UART0IntHandler
 /*---------------------------------------------------------------------------*/
 static int (*input_handler)(unsigned char c);
+
+//*****************************************************************************
+#if UART_TXBUFSIZE
+
+#include <lib/ringbuf16index.h>
+
+typedef struct uart_tx_s{
+    //uintptr_t   io_base;
+    struct {
+        struct ringbuf16index   idx;
+        char                    data[UART_TXBUFSIZE];
+    }           buf;
+} uart_tx_t;
+uart_tx_t   uart_txbuf;
+#define UIO_BASE(buf)   UART0_BASE
+
+#if (~(UART_TXBUFSIZE-1) & UART_TXBUFSIZE) != UART_TXBUFSIZE
+#error UART_TXBUFSIZE MUST be power 2
+#endif
+void cc26xx_uart_buf_init(void){
+    uart_tx_t* tx = &uart_txbuf;
+    ringbuf16index_init(&tx->buf.idx, UART_TXBUFSIZE);
+}
+
+//* \return = 0 - buffer is empty
+int cc26xx_uart_bufsend(void /*struct uart_tx_t* buf*/)
+{
+    uart_tx_t* tx = &uart_txbuf;
+    while (!ringbuf16index_empty(&tx->buf.idx)){
+        char tmp = tx->buf.data[tx->buf.idx.get_ptr];
+        if (ti_lib_uart_char_put_non_blocking(UIO_BASE(tx), tmp)){
+            if ( ringbuf16index_get(&tx->buf.idx) >= 0)
+                {;}
+            else
+                //* buffer empty
+                break;
+        }
+        else
+            return 1;
+    }
+    return 0;
+}
+
+int cc26xx_uart_send_empty(void){
+    uart_tx_t* tx = &uart_txbuf;
+    return ringbuf16index_empty(&tx->buf.idx);
+}
+
+int cc26xx_uart_buf_free(void){
+    uart_tx_t* tx = &uart_txbuf;
+    return UART_TXBUFSIZE - ringbuf16index_elements(&tx->buf.idx);
+}
+
+int cc26xx_uart_write_bufs(/*struct uart_tx_t* buf*/ const void* data, unsigned len)
+{
+    uart_tx_t* tx = &uart_txbuf;
+    if (cc26xx_uart_send_empty()){
+        if (len == 1) {
+            if ( ti_lib_uart_char_put_non_blocking(UIO_BASE(tx), *(const char*)data) ){
+            return 1;
+    }
+        }
+    }
+    else if (ringbuf16index_full(&tx->buf.idx)){
+        return 0;
+    }
+
+    //* buf index operations should be atomic
+    bool interrupts_disabled = ti_lib_int_master_disable();
+
+    if(ringbuf16index_empty(&tx->buf.idx)) {
+        //* reset buffer, if empty, to have maximum linear free block
+        tx->buf.idx.put_ptr = 0;
+        tx->buf.idx.get_ptr = 0;
+    }
+    unsigned res = 0;
+    if (len == 1) {
+        tx->buf.data[tx->buf.idx.put_ptr] = *(const char*)data;
+    ringbuf16index_put(&tx->buf.idx);
+        res = 1;
+    }
+    else {
+        unsigned avail = ringbuf16index_put_free(&tx->buf.idx);
+        if (avail >= len)
+            avail = len;
+        memcpy(tx->buf.data+tx->buf.idx.put_ptr, data, avail);
+        res  = avail;
+        len -= avail;
+        avail = ringbuf16index_putn(&tx->buf.idx, avail);
+        if (len > 0){
+            const char* b = (const char*)data;
+            if (avail >= len)
+                avail = len;
+            memcpy(tx->buf.data+tx->buf.idx.put_ptr, b+res, avail);
+            res += avail;
+            avail = ringbuf16index_putn(&tx->buf.idx, avail);
+        }
+    }
+    ti_lib_uart_int_enable(UIO_BASE(tx), UART_INT_TX);
+
+    cc26xx_uart_bufsend();
+    if(!interrupts_disabled) {
+      ti_lib_int_master_enable();
+    }
+
+    return res;
+}
+
+
+int cc26xx_uart_write_buf(/*struct uart_tx_t* buf*/ char x){
+    uart_tx_t* tx = &uart_txbuf;
+    while (ringbuf16index_full(&tx->buf.idx)){
+            //volatile uart_tx_t* vtx = (volatile uart_tx_t*)tx;
+            while (ringbuf16index_full(&tx->buf.idx)) ;
+    }
+
+    unsigned tmp = x;
+    return cc26xx_uart_write_bufs(&tmp, 1);
+}
+
+#else
+
+#define cc26xx_uart_buf_init(x)
+#define cc26xx_uart_bufsend(x) 0
+
+inline
+int cc26xx_uart_write_buf(char x){
+    ti_lib_uart_char_put(UART0_BASE, x);
+    return 1;
+}
+
+#define cc26xx_uart_buf_free(x) 0
+
+inline
+int cc26xx_uart_write_bufs(const void* data, unsigned len){
+    return ti_lib_uart_char_put_non_blocking(UART0_BASE, *(const char*)data);
+}
+
+#endif //UART_TXBUFSIZE
 /*---------------------------------------------------------------------------*/
 static bool
 usable_rx(void)
@@ -285,6 +424,8 @@ cc26xx_uart_init()
     return;
   }
 
+  cc26xx_uart_buf_init();
+
   /* Disable Interrupts */
   interrupts_disabled = ti_lib_int_master_disable();
 
@@ -303,6 +444,7 @@ cc26xx_uart_init()
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
+  lpm_drop_handler(LPM_MODE_SHUTDOWN);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -317,8 +459,27 @@ cc26xx_uart_write_byte(uint8_t c)
     enable();
   }
 
-  ti_lib_uart_char_put(UART0_BASE, c);
+  cc26xx_uart_write_buf(c);
 }
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief nonblocking put bytes to UART
+ * \param data The characters to transmit
+ * \param len  amount of characters to transmit
+ * \return number of writen characters
+ */
+int cc26xx_uart_write_bytes(const void* data, unsigned len){
+    /* Return early if disabled by user conf or if ports are misconfigured */
+    if(usable_tx() == false) {
+      return -1;
+    }
+
+    if(accessible() == false) {
+      enable();
+    }
+    return cc26xx_uart_write_bufs(data, len);
+}
+
 /*---------------------------------------------------------------------------*/
 void
 cc26xx_uart_set_input(int (*input)(unsigned char c))
@@ -370,6 +531,38 @@ cc26xx_uart_busy(void)
   return ti_lib_uart_busy(UART0_BASE);
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Returns the UART full status
+ * \return 0  - UART if full, and blocks for write
+ * \return >0 - UART can write bytes without block
+ *
+ * ti_lib_uart_busy() will access UART registers. It is our responsibility
+ * to first make sure the UART is accessible before calling it. Hence this
+ * wrapper.
+ *
+ * Return values are defined in CC26xxware's uart.h:UARTSpaceAvail
+ */
+int cc26xx_uart_space_avail(void){
+    /* Return early if disabled by user conf or if ports are misconfigured */
+    if(usable_tx() == false) {
+      return -1;
+    }
+
+    /* If the UART is not accessible, it is not busy */
+    if(accessible() == false) {
+      return -1;
+    }
+
+    unsigned res = cc26xx_uart_buf_free();
+    if (res > 0)
+        return res;
+    if(ti_lib_uart_space_avail(UART0_BASE))
+        return 1;
+    if (!ti_lib_uart_busy(UART0_BASE))
+        return 1;
+    return 0;
+}
+/*---------------------------------------------------------------------------*/
 void
 cc26xx_uart_isr(void)
 {
@@ -378,6 +571,7 @@ cc26xx_uart_isr(void)
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
+  if(accessible() == false)
   power_and_clock();
 
   /* Read out the masked interrupt status */
@@ -398,6 +592,11 @@ cc26xx_uart_isr(void)
         input_handler((unsigned char)the_char);
       }
     }
+  }
+
+  if ((flags & UART_INT_TX) != 0) {
+      if (cc26xx_uart_bufsend() == 0)
+          ti_lib_uart_int_disable(UART0_BASE, UART_INT_TX);
   }
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);

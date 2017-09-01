@@ -28,6 +28,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
 #include "cc26xx-uart.h"
 #include "ti-lib.h"
 
@@ -47,16 +48,35 @@ puts(const char *str)
   if(str == NULL) {
     return 0;
   }
-  for(i = 0; i < strlen(str); i++) {
+  size_t    len = strlen(str);
+#if UART_TXBUFSIZE <= 0
+  for(i = 0; i < len; i++) {
     cc26xx_uart_write_byte(str[i]);
   }
+#else
+  for(i = 0; i < len;) {
+      unsigned sent = cc26xx_uart_write_bytes(str+i, len - i);
+      /*
+      if (sent == 0){
+          while (!cc26xx_uart_space_avail());
+      }
+      else
+      */
+      if (sent < 0)
+          return i;
+      i+= sent;
+  }
+#endif
+
   cc26xx_uart_write_byte('\n');
 
+#if UART_TXBUFSIZE <= 0
   /*
    * Wait for the line to go out. This is to prevent garbage when used between
    * UART on/off cycles
    */
   while(cc26xx_uart_busy() == UART_BUSY);
+#endif
 
   return i;
 }
@@ -66,6 +86,7 @@ dbg_send_bytes(const unsigned char *s, unsigned int len)
 {
   unsigned int i = 0;
 
+#if UART_TXBUFSIZE <= 0
   while(s && *s != 0) {
     if(i >= len) {
       break;
@@ -79,6 +100,20 @@ dbg_send_bytes(const unsigned char *s, unsigned int len)
    * between UART on/off cycles
    */
   while(cc26xx_uart_busy() == UART_BUSY);
+#else
+  for(i = 0; i < len;) {
+      unsigned sent = cc26xx_uart_write_bytes(s+i, len - i);
+      /*
+      if (sent == 0){
+          while (!cc26xx_uart_space_avail());
+      }
+      else
+      */
+      if (sent < 0)
+          return i;
+      i+= sent;
+  }
+#endif
 
   return i;
 }

@@ -61,6 +61,14 @@ void cc26xx_uart_init();
 void cc26xx_uart_write_byte(uint8_t b);
 
 /**
+ * \brief nonblocking put bytes to UART
+ * \param data The characters to transmit
+ * \param len  amount of characters to transmit
+ * \return number of writen characters
+ */
+int cc26xx_uart_write_bytes(const void* data, unsigned len);
+
+/**
  * \brief Assigns a callback to be called when the UART receives a byte
  * \param input A pointer to the function
  *
@@ -89,6 +97,23 @@ void cc26xx_uart_set_input(int (*input)(unsigned char c));
  * Return values are defined in CC26xxware's uart.h
  */
 uint8_t cc26xx_uart_busy(void);
+
+/**
+ * \brief Returns the UART full status
+ * \return <0 - UART not available, turned off
+ * \return 0  - UART if full, and blocks for write
+ * \return >0 - UART can write bytes without block
+ *
+ * ti_lib_uart_busy() will access UART registers. It is our responsibility
+ * to first make sure the UART is accessible before calling it. Hence this
+ * wrapper.
+ *
+ * Return values are defined in CC26xxware's uart.h:UARTSpaceAvail
+ */
+int cc26xx_uart_space_avail(void);
+
+
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* CC26XX_UART_H_ */
