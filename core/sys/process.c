@@ -203,6 +203,11 @@ process_exit(struct process *p)
 {
   exit_process(p, PROCESS_CURRENT());
 }
+
+void process_abort(void){
+    PROCESS_CURRENT()->state = PROCESS_STATE_NONE;
+}
+
 /*---------------------------------------------------------------------------*/
 void
 process_init(void)
