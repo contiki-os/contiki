@@ -53,6 +53,7 @@ struct list {
   struct list *next;
 };
 
+#if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Initialize a list.
@@ -102,6 +103,7 @@ list_copy(list_t dest, list_t src)
 {
   *dest = *src;
 }
+#endif // #if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Get the tail of a list.
