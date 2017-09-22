@@ -338,12 +338,12 @@ eb_input(struct input_packet *current_input)
 
 /*---------------------------------------------------------------------------*/
 /* Process pending input packet(s) */
-static void
-tsch_rx_process_pending()
+static
+int tsch_rx_process_pending()
 {
   int16_t input_index;
   /* Loop on accessing (without removing) a pending input packet */
-  while((input_index = ringbufindex_peek_get(&input_ringbuf)) != -1) {
+  if((input_index = ringbufindex_peek_get(&input_ringbuf)) != -1) {
     struct input_packet *current_input = &input_array[input_index];
     frame802154_t frame;
     uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
@@ -369,17 +369,19 @@ tsch_rx_process_pending()
     } else if(is_eb) {
       eb_input(current_input);
     }
+    return 1;
   }
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
 /* Pass sent packets to upper layer */
-static void
-tsch_tx_process_pending()
+static
+int tsch_tx_process_pending()
 {
   int16_t dequeued_index;
   /* Loop on accessing (without removing) a pending input packet */
-  while((dequeued_index = ringbufindex_peek_get(&dequeued_ringbuf)) != -1) {
+  if((dequeued_index = ringbufindex_peek_get(&dequeued_ringbuf)) != -1) {
     struct tsch_packet *p = dequeued_array[dequeued_index];
     /* Put packet into packetbuf for packet_sent callback */
     queuebuf_to_packetbuf(p->qb);
@@ -391,7 +393,9 @@ tsch_tx_process_pending()
     tsch_queue_free_unused_neighbors();
     /* Remove dequeued packet from ringbuf */
     ringbufindex_get(&dequeued_ringbuf);
+    return 1;
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Setup TSCH as a coordinator */
@@ -782,12 +786,33 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
  * callbacks, outputs pending logs. */
 PROCESS_THREAD(tsch_pending_events_process, ev, data)
 {
+  static int activity;
+  if (ev == PROCESS_EVENT_POLL)
+      activity = 1;
+
   PROCESS_BEGIN();
+  activity = 0;
   while(1) {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    tsch_rx_process_pending();
-    tsch_tx_process_pending();
-    tsch_log_process_pending();
+    if (activity <= 0)
+    PROCESS_YIELD_UNTIL(activity);
+
+    do {
+        activity = tsch_rx_process_pending();
+        activity += tsch_tx_process_pending();
+        if (activity <= 0)
+            break;
+        PROCESS_PAUSE();
+    } while (1);
+
+    activity = 0;
+    do {
+        if (tsch_log_process_pending() <= 0)
+            break;
+        PROCESS_PAUSE();
+        if(activity)
+            //* go faster to rx/tx pendnings
+            break;
+    } while (1);
   }
   PROCESS_END();
 }
