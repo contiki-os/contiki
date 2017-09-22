@@ -142,6 +142,7 @@
 #endif
 
 static int8_t rssi_threshold = PROP_MODE_RSSI_THRESHOLD;
+static int8_t rssi_last      = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
@@ -330,6 +331,9 @@ int_fast8_t read_rssi(void){
         rssi = (int8_t)((cmd_status >> 16) & 0xFF);
       }
     }
+    //if (poll_mode)
+    // TODO is LAST_RSSI should takes this value, even when read_frame assigs it?
+        rssi_last = rssi;
     return rssi;
 }
 
@@ -338,7 +342,7 @@ static radio_value_t
 get_rssi(void)
 {
   int_fast8_t rssi;
-  uint8_t was_off = 0;
+  int_fast8_t was_off = 0;
 
   /* If we are off, turn on first */
   if(!rf_is_on()) {
@@ -889,11 +893,13 @@ read_frame(void *buf, unsigned short buf_len)
         memcpy(buf, data_ptr, len);
       }
 
+      int8_t rssi = data_ptr[len];
+      rssi_last = rssi;
       if(!poll_mode) {
         /* Not in poll mode: packetbuf should not be accessed in interrupt context.
          * In poll mode, the last packet RSSI and link quality can be obtained through
          * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
-      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
+      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int)rssi ) ;
       packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
       }//if(!poll_mode)
     }
@@ -1138,6 +1144,14 @@ get_value(radio_param_t param, radio_value_t *value)
     } else {
       return RADIO_RESULT_OK;
     }
+  case RADIO_PARAM_LAST_RSSI:
+      *value = rssi_last;
+      if(rssi_last == RF_CMD_CCA_REQ_RSSI_UNKNOWN) {
+        return RADIO_RESULT_ERROR;
+      } else {
+        return RADIO_RESULT_OK;
+      }
+
   case RADIO_CONST_CHANNEL_MIN:
     *value = 0;
     return RADIO_RESULT_OK;
