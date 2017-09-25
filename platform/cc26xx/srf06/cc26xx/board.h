@@ -31,7 +31,7 @@
 /** \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup srf06-cc26xx-peripherals Peripherals for the SmartRF06EB + CC26xxEM
+ * \defgroup cc26xx-peripherals Peripherals for the SmartRF06EB + CC26xxEM
  *
  * Defines related to the SmartRF06 Evaluation Board with a CC26xxEM
  *

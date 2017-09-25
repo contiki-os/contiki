@@ -42,7 +42,7 @@
  *   Example project demonstrating the CC13xx/CC26xx platforms
  *
  *   This example will work for the following boards:
- *   - srf06-cc26xx: SmartRF06EB + CC13xx/CC26xx EM
+ *   - cc26xx: SmartRF06EB + CC13xx/CC26xx EM
  *   - CC2650 and CC1350 SensorTag
  *   - CC1310, CC1350, CC2650 LaunchPads
  *

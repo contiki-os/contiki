@@ -95,7 +95,7 @@ Build your First Example
 ------------------------
 It is recommended to start with the `cc26xx-demo` example under `examples/cc26xx/`. This is a very simple example which will help you get familiar with the hardware and the environment. This example can be used for the Sensortag and SmartRF06 EB.
 
-Strictly speaking, to build it you need to run `make TARGET=srf06-cc26xx BOARD=srf06/cc26xx`. However, the example directories contain a `Makefile.target` which is automatically included and specifies the correct `TARGET=` argument. The `BOARD=` environment variable defaults to `srf06/cc26xx` (which is the SmartRF06 EB + CC26XXEM). Thus, for examples under the `cc26xx` directory, and when using the SmartRF06 EB, you can simply run `make`.
+Strictly speaking, to build it you need to run `make TARGET=cc26xx BOARD=srf06/cc26xx`. However, the example directories contain a `Makefile.target` which is automatically included and specifies the correct `TARGET=` argument. The `BOARD=` environment variable defaults to `srf06/cc26xx` (which is the SmartRF06 EB + CC26XXEM). Thus, for examples under the `cc26xx` directory, and when using the SmartRF06 EB, you can simply run `make`.
 
 Other options for the `BOARD` make variable are:
 

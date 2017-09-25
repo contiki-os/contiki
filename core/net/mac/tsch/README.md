@@ -43,7 +43,7 @@ It has been tested on the following platforms:
   * CC2538DK (`cc2538dk`, tested on hardware)
   * Zolertia Zoul (`zoul`, tested on hardware)
   * OpenMote-CC2538 (`openmote-cc2538`, tested on hardware)
-  * CC2650 (`srf06-cc26xx`, tested on hardware)
+  * CC2650 (`cc26xx`, tested on hardware)
   * Cooja mote (`cooja`, tested with cooja)
 
 This implementation was present at the ETSI Plugtest
@@ -86,7 +86,7 @@ Orchestra is implemented in:
 
 A simple TSCH+RPL example is included under `examples/ipv6/rpl-tsch`.
 To use TSCH, first make sure your platform supports it.
-Currently, `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `srf06-cc26xx`, and `cooja` are the supported platforms.
+Currently, `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `cc26xx`, and `cooja` are the supported platforms.
 To add your own, we refer the reader to the next section.
 
 To add TSCH to your application, first include the TSCH module from your makefile with:
@@ -172,7 +172,7 @@ Finally, one can also implement his own scheduler, centralized or distributed, b
 ## Porting TSCH to a new platform
 
 Porting TSCH to a new platform requires a few new features in the radio driver, a number of timing-related configuration paramters.
-The easiest is probably to start from one of the existing port: `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `srf06-cc26xx`.
+The easiest is probably to start from one of the existing port: `jn516x`, `sky`, `z1`, `cc2538dk`, `zoul`, `openmote-cc2538`, `cc26xx`.
 
 ### Radio features required for TSCH
 

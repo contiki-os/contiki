@@ -1,4 +1,4 @@
-# srf06-cc26xx platform makefile
+# cc26xx platform makefile
 
 ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
@@ -21,7 +21,7 @@ CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
-CLEAN += *.srf06-cc26xx
+CLEAN += *.cc26xx
 
 ### Unless the example dictates otherwise, build with code size optimisations
 ifndef SMALL
