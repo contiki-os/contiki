@@ -128,7 +128,7 @@
 
 
 
-#if (PACKETBUF_CONF_ATTRS_INLINE) || defined(__GNUC__)
+#if (PACKETBUF_CONF_ATTRS_INLINE) //|| defined(__GNUC__)
 #define LIB_INLINES     1
 #else
 #define LIB_INLINES     0
@@ -140,8 +140,8 @@
  */
 typedef void ** list_t;
 
-#if !LIB_INLINES
 void   list_init(list_t list);
+#if !LIB_INLINES
 void * list_head(list_t list);
 void   list_copy(list_t dest, list_t src);
 #endif
@@ -164,20 +164,6 @@ void * list_item_next(void *item);
 #ifndef NULL
 #define NULL 0
 #endif
-/*---------------------------------------------------------------------------*/
-/**
- * Initialize a list.
- *
- * This function initalizes a list. The list will be empty after this
- * function has been called.
- *
- * \param list The list to be initialized.
- */
-static inline
-void list_init(list_t list)
-{
-  *list = NULL;
-}
 /*---------------------------------------------------------------------------*/
 /**
  * Get a pointer to the first element of a list.

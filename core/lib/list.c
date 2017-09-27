@@ -53,7 +53,6 @@ struct list {
   struct list *next;
 };
 
-#if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Initialize a list.
@@ -68,6 +67,8 @@ list_init(list_t list)
 {
   *list = NULL;
 }
+
+#if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Get a pointer to the first element of a list.
