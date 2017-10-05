@@ -82,7 +82,7 @@ unsigned ringbuf16index_put_free(const struct ringbuf16index *r){
     if (r->put_ptr >= r->get_ptr){
         return (r->mask+1 - r->put_ptr);
     }
-    return (r->get_ptr - r->put_ptr);
+    return (r->get_ptr-1 - r->put_ptr);
 }
 
 /**
@@ -91,9 +91,8 @@ unsigned ringbuf16index_put_free(const struct ringbuf16index *r){
  * \param size amount of placed items
  * \retval amount of free solid space at put, \sa ringbuf16index_put_len
  */
-int ringbuf16index_putn(struct ringbuf16index *r, uint16_t size){
+void ringbuf16index_putn(struct ringbuf16index *r, uint16_t size){
     r->put_ptr = (r->put_ptr + size) & r->mask;
-    return (r->get_ptr - r->put_ptr);
 }
 
 /* Check if there is space to put an element.

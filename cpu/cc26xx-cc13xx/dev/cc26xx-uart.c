@@ -93,7 +93,7 @@ int cc26xx_uart_bufsend(void /*struct uart_tx_t* buf*/)
     uart_tx_t* tx = &uart_txbuf;
     while (!ringbuf16index_empty(&tx->buf.idx)){
         char tmp = tx->buf.data[tx->buf.idx.get_ptr];
-        if (ti_lib_uart_char_put_non_blocking(UIO_BASE(tx), tmp)){
+        if (ti_lib_uart_char_put_non_blocking(UIO_BASE(tx), tmp) == (true) ){
             if ( ringbuf16index_get(&tx->buf.idx) >= 0)
                 {;}
             else
@@ -127,6 +127,11 @@ int cc26xx_uart_write_bufs(/*struct uart_tx_t* buf*/ const void* data, unsigned 
         }
     }
     else if (ringbuf16index_full(&tx->buf.idx)){
+        // mark buffer overrun
+#ifdef UART_TXBUF_OVERMARK
+        unsigned lastp = (tx->buf.idx.put_ptr-1) & tx->buf.idx.mask;
+        tx->buf.data[lastp] = UART_TXBUF_OVERMARK;
+#endif
         return 0;
     }
 
@@ -151,14 +156,25 @@ int cc26xx_uart_write_bufs(/*struct uart_tx_t* buf*/ const void* data, unsigned 
         memcpy(tx->buf.data+tx->buf.idx.put_ptr, data, avail);
         res  = avail;
         len -= avail;
-        avail = ringbuf16index_putn(&tx->buf.idx, avail);
+        ringbuf16index_putn(&tx->buf.idx, avail);
         if (len > 0){
+            avail = ringbuf16index_put_free(&tx->buf.idx);
+            if (avail > 0){
             const char* b = (const char*)data;
             if (avail >= len)
                 avail = len;
             memcpy(tx->buf.data+tx->buf.idx.put_ptr, b+res, avail);
             res += avail;
-            avail = ringbuf16index_putn(&tx->buf.idx, avail);
+                ringbuf16index_putn(&tx->buf.idx, avail);
+            }
+            else{
+#ifdef UART_TXBUF_OVERMARK
+                unsigned lastp = (tx->buf.idx.put_ptr-1) & tx->buf.idx.mask;
+                // mark buffer overrun
+                tx->buf.data[lastp] = '@';
+#endif
+                ;
+            }
         }
     }
     ti_lib_uart_int_enable(UIO_BASE(tx), UART_INT_TX);
