@@ -36,6 +36,7 @@ summary
 *.runlog
 *.faillog
 *.orig
+*.co
 *~
 .DS_Store
 obj_*
