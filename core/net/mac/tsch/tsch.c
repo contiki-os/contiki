@@ -239,12 +239,14 @@ keepalive_send()
 {
   if(tsch_is_associated) {
     struct tsch_neighbor *n = tsch_queue_get_time_source();
-    /* Simply send an empty packet */
-    packetbuf_clear();
-    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
-    NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
-    PRINTF("TSCH: sending KA to %u\n",
-           TSCH_LOG_ID_FROM_LINKADDR(&n->addr));
+    if(n != NULL) {
+      /* Simply send an empty packet */
+      packetbuf_clear();
+      packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
+      NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
+      PRINTF("TSCH: sending KA to %u\n",
+             TSCH_LOG_ID_FROM_LINKADDR(&n->addr));
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
