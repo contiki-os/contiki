@@ -94,6 +94,10 @@ rtimer_clock_t soc_rtc_get_next_trigger(void);
 void soc_rtc_schedule_one_shot(uint32_t channel, uint32_t t);
 
 rtimer_clock_t soc_rtc_last_isr_time(void);
+
+//* this is RTC ISR AON_RTC_CH2 event handle,
+//*     user should provide this routine, and it will call from RTC ISR.
+void soc_rtc_on_isr_ch2(rtimer_clock_t isr_time);
 /*---------------------------------------------------------------------------*/
 #endif /* SOC_RTC_H_ */
 /*---------------------------------------------------------------------------*/
