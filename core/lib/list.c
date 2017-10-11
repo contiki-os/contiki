@@ -67,6 +67,8 @@ list_init(list_t list)
 {
   *list = NULL;
 }
+
+#if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Get a pointer to the first element of a list.
@@ -102,6 +104,7 @@ list_copy(list_t dest, list_t src)
 {
   *dest = *src;
 }
+#endif // #if !LIB_INLINES
 /*---------------------------------------------------------------------------*/
 /**
  * Get the tail of a list.
