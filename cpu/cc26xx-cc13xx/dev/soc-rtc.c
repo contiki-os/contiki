@@ -140,6 +140,9 @@ soc_rtc_last_isr_time(void)
   return last_isr_time;
 }
 /*---------------------------------------------------------------------------*/
+__attribute((weak))
+void soc_rtc_on_isr_ch2(rtimer_clock_t isr_time){}
+
 /* The AON RTC interrupt handler */
 void
 soc_rtc_isr(void)
@@ -176,6 +179,7 @@ soc_rtc_isr(void)
     /* after sleep; since a rtimer is already scheduled, do nothing */
     ti_lib_aon_rtc_channel_disable(AON_RTC_CH2);
     HWREG(AON_RTC_BASE + AON_RTC_O_EVFLAGS) = AON_RTC_EVFLAGS_CH2;
+    soc_rtc_on_isr_ch2(last_isr_time);
   }
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
