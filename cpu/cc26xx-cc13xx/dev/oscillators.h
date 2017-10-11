@@ -85,7 +85,7 @@ void oscillators_select_lf_rcosc(void);
 void oscillators_request_hf_xosc(void);
 
 /**
- * \brief waits until <timeout> for HF clock be ready, after requested the
+ * \brief waits until timeout for HF clock be ready, after requested the
  *   HF XOSC as the source for the HF clock.
  * \sa oscillators_request_hf_xosc
  *
