@@ -1,0 +1,21 @@
+Contiki implementation for Plantower PMS 5003 series
+dust sensors.
+
+The PMS sensors support serial communication through UART and
+I2C. This implementation supports both modes, and they can be
+individually turned on/off through config options. Both can be
+enabled at the same time.
+
+In UART mode, the operation is asynchronous; the sensor periodically
+outputs a frame of data, which is assembled by the sensor driver
+through a UART callback function.
+
+In I2C mode, the I2C bus is probed and if the sensor is found,
+the frame is read. This is synchronous, triggered by a configurable
+timer.
+
+The sensor is duty-cycled through the SET input signal. The duty-cycling
+intervals are configurable.
+
+This implementation has been tested against the PMS 5003i (I2C) and
+PMS 3003 (UART) sensors.
