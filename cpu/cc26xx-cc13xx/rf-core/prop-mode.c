@@ -904,6 +904,9 @@ on(void)
    * use the FS. This will only request, it will _not_ perform the switch.
    */
   oscillators_request_hf_xosc();
+#if (RF_CORE_HFOSC_STARTUP_TOUS > 0)
+  rtimer_clock_t hf_start_time = RTIMER_NOW();
+#endif
 
   if(rf_is_on()) {
     PRINTF("on: We were on. PD=%u, RX=0x%04x \n", rf_core_is_accessible(),
@@ -952,6 +955,17 @@ on(void)
       return RF_CORE_CMD_ERROR;
     }
   }
+
+#if (RF_CORE_HFOSC_STARTUP_TOUS > 0)
+  const unsigned hf_start_timeout = US_TO_RTIMERTICKS(RF_CORE_HFOSC_STARTUP_TOUS);
+  rtimer_clock_t hf_start_limit = hf_start_time + hf_start_timeout;
+  if( !oscillators_wait_ready_hf_xosc(hf_start_limit) ){
+      PRINTF("on: rf_core_start_rat() failed start HF\n");
+      rf_core_power_down();
+      trace_rf_on_off();
+      return RF_CORE_CMD_ERROR;
+  }
+#endif
 
   rf_core_setup_interrupts(false);
 
