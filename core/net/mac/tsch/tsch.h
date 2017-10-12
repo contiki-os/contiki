@@ -51,6 +51,7 @@
 
 /* With TSCH_ADAPTIVE_TIMESYNC enabled: keep-alive timeout used after reaching
  * accurate drift compensation. */
+// value: 0 - remove keepalive function from TSCH stack
 #ifdef TSCH_CONF_MAX_KEEPALIVE_TIMEOUT
 #define TSCH_MAX_KEEPALIVE_TIMEOUT TSCH_CONF_MAX_KEEPALIVE_TIMEOUT
 #else
@@ -189,5 +190,15 @@ void tsch_set_ka_timeout(uint32_t timeout);
 void tsch_set_coordinator(int enable);
 /* Set the pan as secured or not */
 void tsch_set_pan_secured(int enable);
+
+
+/* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
+#if !TSCH_IS_COORDINATOR && (TSCH_MAX_KEEPALIVE_TIMEOUT > 0)
+void tsch_schedule_keepalive(void);
+#else
+#define tsch_schedule_keepalive()
+#endif
+/* Leave the TSCH network */
+void tsch_disassociate(void);
 
 #endif /* __TSCH_H__ */

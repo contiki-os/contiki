@@ -265,6 +265,7 @@ keepalive_send()
   }
 }
 /*---------------------------------------------------------------------------*/
+#if !TSCH_IS_COORDINATOR && (TSCH_MAX_KEEPALIVE_TIMEOUT > 0)
 /* Set ctimer to send a keepalive message after expiration of TSCH_KEEPALIVE_TIMEOUT */
 void
 tsch_schedule_keepalive()
@@ -276,6 +277,7 @@ tsch_schedule_keepalive()
     ctimer_set(&keepalive_timer, delay, keepalive_send, NULL);
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 eb_input(struct input_packet *current_input)
