@@ -121,6 +121,7 @@ bool oscillators_wait_ready_hf_xosc(rtimer_clock_t timeout)
   };
   aux_ctrl_register_consumer(&osc);
   bool res = true;
+  if (ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != (OSC_XOSC_HF))
   while (!ti_lib_osc_hf_source_ready()){
       if (RTIMER_CLOCK_LT( timeout, RTIMER_NOW() )){
           res = false;
