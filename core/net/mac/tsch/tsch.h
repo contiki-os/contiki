@@ -167,10 +167,8 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #ifndef TSCH_IS_COORDINATOR
 /* Are we coordinator of the TSCH network? */
 extern int tsch_is_coordinator;
-#elif TSCH_IS_COORDINATOR == 0
-static const int tsch_is_coordinator = 0;
 #else
-static const int tsch_is_coordinator = 1;
+#define tsch_is_coordinator TSCH_IS_COORDINATOR
 #endif
 /* Are we associated to a TSCH network? */
 extern int tsch_is_associated;
