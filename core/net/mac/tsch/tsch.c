@@ -150,9 +150,6 @@ static clock_time_t tsch_current_eb_period;
 /* Current period for keepalive output */
 static clock_time_t tsch_current_ka_timeout;
 
-/* timer for sending keepalive messages */
-static struct ctimer keepalive_timer;
-
 /* TSCH processes and protothreads */
 PT_THREAD(tsch_scan(struct pt *pt));
 PROCESS(tsch_process, "TSCH: main process");
@@ -236,6 +233,10 @@ tsch_reset(void)
 }
 
 /* TSCH keep-alive functions */
+#if !TSCH_IS_COORDINATOR && (TSCH_MAX_KEEPALIVE_TIMEOUT > 0)
+
+/* timer for sending keepalive messages */
+static struct ctimer keepalive_timer;
 
 /*---------------------------------------------------------------------------*/
 /* Tx callback for keepalive messages */
@@ -265,7 +266,6 @@ keepalive_send()
   }
 }
 /*---------------------------------------------------------------------------*/
-#if !TSCH_IS_COORDINATOR && (TSCH_MAX_KEEPALIVE_TIMEOUT > 0)
 /* Set ctimer to send a keepalive message after expiration of TSCH_KEEPALIVE_TIMEOUT */
 void
 tsch_schedule_keepalive()
