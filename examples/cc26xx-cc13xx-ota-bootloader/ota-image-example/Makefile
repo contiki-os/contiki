@@ -1,7 +1,9 @@
 TARGET=srf06-cc26xx
+ifndef BOARD
 BOARD=sensortag/cc2650
 #BOARD=srf06/cc26xx
-#BOARD=launchpad/cc2650
+#BOARD=launchpad/cc1310
+endif
 
 CONTIKI = ../../..
 CONTIKI_PROJECT = ota-image-example
