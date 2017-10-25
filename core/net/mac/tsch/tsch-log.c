@@ -124,7 +124,8 @@ tsch_log_process_pending(void)
           LOG_PRINTF(log->text);
         break;
       case tsch_log_fmt:
-          LOG_PRINTF(log->fmt.text, log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3]);
+          LOG_PRINTF(log->fmt.text
+                     , log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3], log->fmt.arg[4]);
         break;
 
       case tsch_log_fmt8:
@@ -216,6 +217,16 @@ void tsch_log_printf3(const char* fmt, int arg1, int arg2, int arg3){
                  log->fmt.arg[1] = arg1;
                  log->fmt.arg[2] = arg2;
                  log->fmt.arg[3] = arg3;
+                 );
+}
+
+void tsch_log_printf4(const char* fmt, int arg1, int arg2, int arg3, int arg4){
+    TSCH_LOG_ADD(tsch_log_fmt,
+                 log->fmt.text = fmt;
+                 log->fmt.arg[1] = arg1;
+                 log->fmt.arg[2] = arg2;
+                 log->fmt.arg[3] = arg3;
+                 log->fmt.arg[4] = arg4;
                  );
 }
 
