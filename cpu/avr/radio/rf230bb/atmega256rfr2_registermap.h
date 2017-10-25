@@ -229,6 +229,21 @@ Counter Compare Source
 #define SR_CSMA_SEED_1         0x16e, 0x03, 0
 #define SR_AACK_DIS_ACK        0x16e, 0x10, 4
 
+#define RG_AES_KEY             (0x13F)
+#define SR_AES_KEY             0x13F, 0xff, 0
+#define RG_AES_STATE           (0x13E)
+#define SR_AES_STATE           0x13E, 0xff, 0
+#define RG_AES_STATUS          (0x13D)
+#define SR_AES_STATUS          0x13D, 0xff, 0
+#define SR_AES_STATUS_DONE     0x13D, 0x01, 0
+#define SR_AES_STATUS_ERR      0x13D, 0x80, 7
+#define RG_AES_CNTRL           (0x13C)
+#define SR_AES_CNTRL           0x13C, 0xff, 0
+#define SR_AES_CNTRL_IM        0x13C, 0x04, 2
+#define SR_AES_CNTRL_DIR       0x13C, 0x08, 3
+#define SR_AES_CNTRL_MODE      0x13C, 0x20, 5
+#define SR_AES_CNTRL_REQUEST   0x13C, 0x80, 7
+
 /* RF230 register assignments, for reference */
 #if 1
 //#define HAVE_REGISTER_MAP (1)
