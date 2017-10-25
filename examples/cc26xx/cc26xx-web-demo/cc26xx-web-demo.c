@@ -55,6 +55,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(cetic_6lbr_client_process);
 PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
@@ -85,6 +87,13 @@ static struct etimer echo_request_timer;
 int def_rt_rssi = 0;
 #endif
 /*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
+PROCESS(adc_process, "ADC process");
+
+static uint16_t single_adc_sample;
+static struct etimer et_adc;
+#endif
+/*---------------------------------------------------------------------------*/
 process_event_t cc26xx_web_demo_publish_event;
 process_event_t cc26xx_web_demo_config_loaded_event;
 process_event_t cc26xx_web_demo_load_config_defaults;
@@ -110,6 +119,12 @@ DEMO_SENSOR(batmon_temp, CC26XX_WEB_DEMO_SENSOR_BATMON_TEMP,
 DEMO_SENSOR(batmon_volt, CC26XX_WEB_DEMO_SENSOR_BATMON_VOLT,
             "Battery Volt", "battery-volt", "batmon_volt",
             CC26XX_WEB_DEMO_UNIT_VOLT);
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
+DEMO_SENSOR(adc_dio23, CC26XX_WEB_DEMO_SENSOR_ADC_DIO23,
+            "ADC DIO23", "adc-dio23", "adc_dio23",
+            CC26XX_WEB_DEMO_UNIT_VOLT);
+#endif
 
 /* Sensortag sensors */
 #if BOARD_SENSORTAG
@@ -466,6 +481,22 @@ get_batmon_reading(void *data)
 
   ctimer_set(&batmon_timer, next, get_batmon_reading, NULL);
 }
+/*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
+static void
+get_adc_reading(void *data)
+{
+  int value;
+  char *buf;
+
+  if(adc_dio23_reading.publish) {
+    value = single_adc_sample;
+    buf = adc_dio23_reading.converted;
+    memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+    snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d", (value * 4300) >> 12);
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 #if BOARD_SENSORTAG
 /*---------------------------------------------------------------------------*/
@@ -825,6 +856,11 @@ init_sensors(void)
 
   list_add(sensor_list, &batmon_temp_reading);
   list_add(sensor_list, &batmon_volt_reading);
+
+#if CC26XX_WEB_DEMO_ADC_DEMO
+  list_add(sensor_list, &adc_dio23_reading);
+#endif
+
   SENSORS_ACTIVATE(batmon_sensor);
 
 #if BOARD_SENSORTAG
@@ -864,6 +900,7 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 
   /* Start all other (enabled) processes first */
   process_start(&httpd_simple_process, NULL);
+
 #if CC26XX_WEB_DEMO_COAP_SERVER
   process_start(&coap_server_process, NULL);
 #endif
@@ -880,13 +917,17 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   process_start(&net_uart_process, NULL);
 #endif
 
+#if CC26XX_WEB_DEMO_ADC_DEMO
+  process_start(&adc_process, NULL);
+#endif
+
   /*
    * Now that processes have set their own config default values, set our
    * own defaults and restore saved config from flash...
    */
   cc26xx_web_demo_config.sensors_bitmap = 0xFFFFFFFF; /* all on by default */
   cc26xx_web_demo_config.def_rt_ping_interval =
-      CC26XX_WEB_DEMO_DEFAULT_RSSI_MEAS_INTERVAL;
+    CC26XX_WEB_DEMO_DEFAULT_RSSI_MEAS_INTERVAL;
   load_config();
 
   /*
@@ -966,6 +1007,56 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_ADC_DEMO
+PROCESS_THREAD(adc_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  etimer_set(&et_adc, CLOCK_SECOND * 5);
+
+  while(1) {
+
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et_adc));
+
+    /* intialisation of ADC */
+    ti_lib_aon_wuc_aux_wakeup_event(AONWUC_AUX_WAKEUP);
+    while(!(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON));
+
+    /*
+     * Enable clock for ADC digital and analog interface (not currently enabled
+     * in driver)
+     */
+    ti_lib_aux_wuc_clock_enable(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK |
+                                AUX_WUC_SMPH_CLOCK);
+    while(ti_lib_aux_wuc_clock_status(AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK |
+                                      AUX_WUC_SMPH_CLOCK)
+          != AUX_WUC_CLOCK_READY);
+
+    /* Connect AUX IO7 (DIO23, but also DP2 on XDS110) as analog input. */
+    ti_lib_aux_adc_select_input(ADC_COMPB_IN_AUXIO7);
+
+    /* Set up ADC range, AUXADC_REF_FIXED = nominally 4.3 V */
+    ti_lib_aux_adc_enable_sync(AUXADC_REF_FIXED, AUXADC_SAMPLE_TIME_2P7_US,
+                               AUXADC_TRIGGER_MANUAL);
+
+    /* Trigger ADC converting */
+    ti_lib_aux_adc_gen_manual_trigger();
+
+    /* Read value */
+    single_adc_sample = ti_lib_aux_adc_read_fifo();
+
+    /* Shut the adc down */
+    ti_lib_aux_adc_disable();
+
+    get_adc_reading(NULL);
+
+    etimer_reset(&et_adc);
+  }
+
+  PROCESS_END();
+}
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * @}

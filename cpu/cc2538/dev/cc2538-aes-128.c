@@ -40,6 +40,7 @@
 #include "contiki.h"
 #include "dev/ecb.h"
 #include "dev/cc2538-aes-128.h"
+#include "dev/sys-ctrl.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -82,6 +83,7 @@ set_key(const uint8_t *key)
                       CC2538_AES_128_KEY_AREA);
   if(ret != CRYPTO_SUCCESS) {
     PRINTF("%s: aes_load_keys() error %u\n", MODULE_NAME, ret);
+    sys_ctrl_reset();
   }
 
   restore_crypto(crypto_enabled);
@@ -99,13 +101,13 @@ encrypt(uint8_t *plaintext_and_result)
                         plaintext_and_result, AES_128_BLOCK_SIZE, NULL);
   if(ret != CRYPTO_SUCCESS) {
     PRINTF("%s: ecb_crypt_start() error %u\n", MODULE_NAME, ret);
-    restore_crypto(crypto_enabled);
-    return;
+    sys_ctrl_reset();
   }
 
   while((res = ecb_crypt_check_status()) == CRYPTO_PENDING);
   if(res != CRYPTO_SUCCESS) {
     PRINTF("%s: ecb_crypt_check_status() error %d\n", MODULE_NAME, res);
+    sys_ctrl_reset();
   }
 
   restore_crypto(crypto_enabled);

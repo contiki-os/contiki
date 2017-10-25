@@ -32,7 +32,6 @@
  *
  */
 
-#include <unistd.h>
 #include <string.h>
 
 #include "net/ip/uip.h"
@@ -43,8 +42,8 @@
 void
 uip_log(char *message)
 {
-  write(STDERR_FILENO, message, strlen(message));
-  write(STDERR_FILENO, "\n", 1);
+  logscr(message, strlen(message));
+  logscr("\n", 1);
 }
 #endif /* UIP_LOGGING */
 /*-----------------------------------------------------------------------------------*/
@@ -52,9 +51,9 @@ uip_log(char *message)
 void
 log_message(const char *part1, const char *part2)
 {
-  write(STDERR_FILENO, part1, strlen(part1));
-  write(STDERR_FILENO, part2, strlen(part2));
-  write(STDERR_FILENO, "\n", 1);
+  logscr(part1, strlen(part1));
+  logscr(part2, strlen(part2));
+  logscr("\n", 1);
 }
 #endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/

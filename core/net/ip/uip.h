@@ -490,26 +490,8 @@ void uip_reass_over(void);
  *
  * The uip_aligned_buf array is used to hold incoming and outgoing
  * packets. The device driver should place incoming data into this
- * buffer. When sending data, the device driver should read the link
- * level headers and the TCP/IP headers from this buffer. The size of
- * the link level headers is configured by the UIP_LLH_LEN define.
- *
- * \note The application data need not be placed in this buffer, so
- * the device driver must read it from the place pointed to by the
- * uip_appdata pointer as illustrated by the following example:
- \code
- void
- devicedriver_send(void)
- {
- hwsend(&uip_buf[0], UIP_LLH_LEN);
- if(uip_len <= UIP_LLH_LEN + UIP_TCPIP_HLEN) {
- hwsend(&uip_buf[UIP_LLH_LEN], uip_len - UIP_LLH_LEN);
- } else {
- hwsend(&uip_buf[UIP_LLH_LEN], UIP_TCPIP_HLEN);
- hwsend(uip_appdata, uip_len - UIP_TCPIP_HLEN - UIP_LLH_LEN);
- }
- }
- \endcode
+ * buffer. When sending data, the device driver should read the
+ * outgoing data from this buffer.
 */
 
 typedef union {
@@ -1801,6 +1783,13 @@ typedef struct uip_routing_hdr {
   uint8_t seg_left;
 } uip_routing_hdr;
 
+/* RPL Source Routing Header */
+typedef struct uip_rpl_srh_hdr {
+  uint8_t cmpr; /* CmprI and CmprE */
+  uint8_t pad;
+  uint8_t reserved[2];
+} uip_rpl_srh_hdr;
+
 /* fragmentation header */
 typedef struct uip_frag_hdr {
   uint8_t next;
@@ -2005,7 +1994,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[15]) == 0x02))
 
 /**
- * \brief is addr (a) a link local unicast address, see RFC3513
+ * \brief is addr (a) a link local unicast address, see RFC 4291
  *  i.e. is (a) on prefix FE80::/10
  *  a is of type uip_ipaddr_t*
  */
@@ -2029,7 +2018,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
   } while(0)
 
 /**
- * \brief  is addr (a) a solicited node multicast address, see RFC3513
+ * \brief  is addr (a) a solicited node multicast address, see RFC 4291
  *  a is of type uip_ipaddr_t*
  */
 #define uip_is_addr_solicited_node(a)          \
@@ -2090,7 +2079,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
 #endif /*UIP_CONF_LL_802154*/
 
 /**
- * \brief is address a multicast address, see RFC 3513
+ * \brief is address a multicast address, see RFC 4291
  * a is of type uip_ipaddr_t*
  * */
 #define uip_is_addr_mcast(a)                    \

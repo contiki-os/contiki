@@ -43,6 +43,7 @@
 
 #include "contiki-conf.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/link-stats.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/random.h"
@@ -80,14 +81,23 @@ static uint8_t dio_send_ok;
 static void
 handle_periodic_timer(void *ptr)
 {
+  rpl_dag_t *dag = rpl_get_any_dag();
+
   rpl_purge_dags();
-  rpl_purge_routes();
+  if(dag != NULL) {
+    if(RPL_IS_STORING(dag->instance)) {
+      rpl_purge_routes();
+    }
+    if(RPL_IS_NON_STORING(dag->instance)) {
+      rpl_ns_periodic();
+    }
+  }
   rpl_recalculate_ranks();
 
   /* handle DIS */
 #if RPL_DIS_SEND
   next_dis++;
-  if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+  if(dag == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
     dis_output(NULL);
   }
@@ -164,7 +174,7 @@ handle_dio_timer(void *ptr)
 
   if(instance->dio_send) {
     /* send DIO if counter is less than desired redundancy */
-    if(instance->dio_redundancy != 0 && instance->dio_counter < instance->dio_redundancy) {
+    if(instance->dio_redundancy == 0 || instance->dio_counter < instance->dio_redundancy) {
 #if RPL_CONF_STATS
       instance->dio_totsend++;
 #endif /* RPL_CONF_STATS */
@@ -228,7 +238,7 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
 
   /* Set up another DAO within half the expiration time, if such a
      time has been configured */
-  if(instance->lifetime_unit != 0xffff && instance->default_lifetime != 0xff) {
+  if(instance->default_lifetime != RPL_INFINITE_LIFETIME) {
     clock_time_t expiration_time;
     expiration_time = (clock_time_t)instance->default_lifetime *
       (clock_time_t)instance->lifetime_unit *
@@ -246,7 +256,7 @@ static void
 handle_dao_timer(void *ptr)
 {
   rpl_instance_t *instance;
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
   uip_mcast6_route_t *mcast_route;
   uint8_t i;
 #endif
@@ -265,7 +275,7 @@ handle_dao_timer(void *ptr)
     /* Set the route lifetime to the default value. */
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
 
-#if RPL_CONF_MULTICAST
+#if RPL_WITH_MULTICAST
     /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
     if(instance->mop == RPL_MOP_STORING_MULTICAST) {
       /* Send a DAO for own multicast addresses */
@@ -459,7 +469,7 @@ handle_probing_timer(void *ptr)
     const struct link_stats *stats = rpl_get_parent_link_stats(probing_target);
     (void)stats;
     PRINTF("RPL: probing %u %s last tx %u min ago\n",
-        rpl_get_parent_llpaddr(probing_target)->u8[7],
+        rpl_get_parent_lladdr(probing_target)->u8[7],
         instance->urgent_probing_target != NULL ? "(urgent)" : "",
         probing_target != NULL ?
         (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0

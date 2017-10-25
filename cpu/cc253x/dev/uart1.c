@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "cc253x.h"
+#include "sfr-bits.h"
 #include "dev/uart1.h"
 
 #if UART1_ENABLE

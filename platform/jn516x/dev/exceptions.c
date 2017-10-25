@@ -354,6 +354,10 @@ exception_handler(uint32 *pu32Stack, eExceptionType eType)
   }
 #endif
 
+  if(eType == E_EXC_SYSCALL) {
+    return;
+  }
+
 #if EXCEPTION_STALLS_SYSTEM
   while(1) {
   }

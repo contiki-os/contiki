@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <string.h>
 
+#define CFS_IMPL 1
 #include "cfs/cfs.h"
 
 struct cfs_posix_dir {

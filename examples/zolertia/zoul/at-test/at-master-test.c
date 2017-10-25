@@ -483,5 +483,4 @@ PROCESS_THREAD(at_test_process, ev, data)
 /**
  * @}
  * @}
- * @}
  */

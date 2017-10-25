@@ -152,8 +152,8 @@ ecc_mul_start(uint32_t *scalar, ec_point_t *ec_point,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -181,7 +181,7 @@ ecc_mul_get_result(ec_point_t *ec_point,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   if(REG(PKA_SHIFT) == 0x00000000) {
@@ -319,8 +319,8 @@ ecc_mul_gen_pt_start(uint32_t *scalar, ecc_curve_info_t *curve,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -349,7 +349,7 @@ ecc_mul_gen_pt_get_result(ec_point_t *ec_point,
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   if(REG(PKA_SHIFT) == 0x00000000) {
@@ -492,8 +492,8 @@ ecc_add_start(ec_point_t *ec_point1, ec_point_t *ec_point2,
   /* Enable Interrupt */
   if(process != NULL) {
     pka_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_PKA);
-    nvic_interrupt_enable(NVIC_INT_PKA);
+    NVIC_ClearPendingIRQ(PKA_IRQn);
+    NVIC_EnableIRQ(PKA_IRQn);
   }
 
   return PKA_STATUS_SUCCESS;
@@ -519,7 +519,7 @@ ecc_add_get_result(ec_point_t *ec_point, uint32_t result_vector)
   }
 
   /* Disable Interrupt */
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_DisableIRQ(PKA_IRQn);
   pka_register_process_notification(NULL);
 
   if(REG(PKA_SHIFT) == 0x00000000) {

@@ -112,9 +112,6 @@ slip_send(void)
 
   ptr = &uip_buf[UIP_LLH_LEN];
   for(i = 0; i < uip_len; ++i) {
-    if(i == UIP_TCPIP_HLEN) {
-      ptr = (uint8_t *)uip_appdata;
-    }
     c = *ptr++;
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);

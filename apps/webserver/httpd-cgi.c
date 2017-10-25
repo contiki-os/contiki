@@ -155,10 +155,13 @@ make_tcp_stats(void *arg)
 {
   struct uip_conn *conn;
   struct httpd_state *s = (struct httpd_state *)arg;
+#if NETSTACK_CONF_WITH_IPV6
+  char buf[48];
+#endif
+
   conn = &uip_conns[s->u.count];
 
 #if NETSTACK_CONF_WITH_IPV6
-  char buf[48];
   httpd_sprint_ip6(conn->ripaddr, buf);
   return snprintf((char *)uip_appdata, uip_mss(),
          "<tr align=\"center\"><td>%d</td><td>%s:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
@@ -249,8 +252,9 @@ extern uip_ds6_netif_t uip_ds6_if;
 static unsigned short
 make_addresses(void *p)
 {
-uint8_t i,j=0;
-uint16_t numprinted;
+  uint8_t i, j = 0;
+  uint16_t numprinted;
+
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
@@ -277,7 +281,7 @@ PT_THREAD(addresses(struct httpd_state *s, char *ptr))
 static unsigned short
 make_neighbors(void *p)
 {
-uint8_t i,j=0;
+uint8_t j=0;
 uint16_t numprinted;
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
   uip_ds6_nbr_t *nbr;
@@ -309,7 +313,7 @@ make_routes(void *p)
   static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
   static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
   static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
-  uint8_t i,j=0;
+  uint8_t j=0;
   uint16_t numprinted;
   uip_ds6_route_t *r;
 
@@ -320,7 +324,7 @@ make_routes(void *p)
     j++;
     numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
     numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
-    numprinted += httpd_cgi_sprint_ip6(uip_ds6_route_nexthop(r), uip_appdata + numprinted);
+    numprinted += httpd_cgi_sprint_ip6(*(uip_ds6_route_nexthop(r)), uip_appdata + numprinted);
     if(r->state.lifetime < 3600) {
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, r->state.lifetime);
     } else {

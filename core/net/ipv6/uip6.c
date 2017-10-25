@@ -73,11 +73,21 @@
 
 #include "sys/cc.h"
 #include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+
+#if UIP_CONF_IPV6_RPL
+#include "rpl/rpl.h"
+#include "rpl/rpl-private.h"
+#endif
+
+#if UIP_ND6_SEND_NS
+#include "net/ipv6/uip-ds6-nbr.h"
+#endif /* UIP_ND6_SEND_NS */
 
 #include <string.h>
 
@@ -87,10 +97,6 @@
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
-
-#if UIP_CONF_IPV6_RPL
-#include "rpl/rpl.h"
-#endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_LOGGING == 1
 #include <stdio.h>
@@ -207,11 +213,6 @@ uint8_t uip_flags;
 /* uip_conn always points to the current connection (set to NULL for UDP). */
 struct uip_conn *uip_conn;
 
-/* Temporary variables. */
-#if (UIP_TCP || UIP_UDP)
-static uint8_t c;
-#endif
-
 #if UIP_ACTIVE_OPEN || UIP_UDP
 /* Keeps track of the last port used for a new connection. */
 static uint16_t lastport;
@@ -256,8 +257,6 @@ static uint8_t iss[4];
 
 /* Temporary variables. */
 uint8_t uip_acc32[4];
-static uint8_t opt;
-static uint16_t tmp16;
 #endif /* UIP_TCP */
 /** @} */
 
@@ -432,6 +431,7 @@ uip_udpchksum(void)
 void
 uip_init(void)
 {
+  int c;
 
   uip_ds6_init();
   uip_icmp6_init();
@@ -456,7 +456,7 @@ uip_init(void)
   }
 #endif /* UIP_UDP */
 
-#if UIP_CONF_IPV6_MULTICAST
+#if UIP_IPV6_MULTICAST
   UIP_MCAST6.init();
 #endif
 }
@@ -466,6 +466,7 @@ struct uip_conn *
 uip_connect(const uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
+  int c;
 
   /* Find an unused local port. */
   again:
@@ -560,6 +561,7 @@ remove_ext_hdr(void)
 struct uip_udp_conn *
 uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport)
 {
+  int c;
   register struct uip_udp_conn *conn;
 
   /* Find an unused local port. */
@@ -605,6 +607,7 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport)
 void
 uip_unlisten(uint16_t port)
 {
+  int c;
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     if(uip_listenports[c] == port) {
       uip_listenports[c] = 0;
@@ -616,6 +619,7 @@ uip_unlisten(uint16_t port)
 void
 uip_listen(uint16_t port)
 {
+  int c;
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     if(uip_listenports[c] == 0) {
       uip_listenports[c] = port;
@@ -891,7 +895,7 @@ ext_hdr_options_process(void)
        */
 #if UIP_CONF_IPV6_RPL
       PRINTF("Processing RPL option\n");
-      if(rpl_verify_header(uip_ext_opt_offset)) {
+      if(!rpl_verify_hbh_header(uip_ext_opt_offset)) {
         PRINTF("RPL Option Error: Dropping Packet\n");
         return 1;
       }
@@ -941,6 +945,9 @@ void
 uip_process(uint8_t flag)
 {
 #if UIP_TCP
+  int c;
+  uint16_t tmp16;
+  uint8_t opt;
   register struct uip_conn *uip_connr = uip_conn;
 #endif /* UIP_TCP */
 #if UIP_UDP
@@ -1148,6 +1155,13 @@ uip_process(uint8_t flag)
     goto drop;
   }
 
+  /* Refresh neighbor state after receiving a unicast message */
+#if UIP_ND6_SEND_NS
+  if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+    uip_ds6_nbr_refresh_reachable_state(&UIP_IP_BUF->srcipaddr);
+  }
+#endif /* UIP_ND6_SEND_NS */
+
 #if UIP_CONF_ROUTER
   /*
    * Next header field processing. In IPv6, we can have extension headers,
@@ -1190,7 +1204,7 @@ uip_process(uint8_t flag)
    * All multicast engines must hook in here. After this function returns, we
    * expect UIP_BUF to be unmodified
    */
-#if UIP_CONF_IPV6_MULTICAST
+#if UIP_IPV6_MULTICAST
   if(uip_is_addr_mcast_routable(&UIP_IP_BUF->destipaddr)) {
     if(UIP_MCAST6.in() == UIP_MCAST6_ACCEPT) {
       /* Deliver up the stack */
@@ -1200,7 +1214,7 @@ uip_process(uint8_t flag)
       goto drop;
     }
   }
-#endif /* UIP_IPV6_CONF_MULTICAST */
+#endif /* UIP_IPV6_MULTICAST */
 
   /* TBD Some Parameter problem messages */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
@@ -1225,14 +1239,6 @@ uip_process(uint8_t flag)
         UIP_STAT(++uip_stat.ip.drop);
         goto send;
       }
-
-#if UIP_CONF_IPV6_RPL
-      if(rpl_update_header_empty()) {
-        /* Packet can not be forwarded */
-        PRINTF("RPL Forward Option Error\n");
-        goto drop;
-      }
-#endif /* UIP_CONF_IPV6_RPL */
 
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       PRINTF("Forwarding packet to ");
@@ -1274,7 +1280,7 @@ uip_process(uint8_t flag)
   uip_ext_bitmap = 0;
 #endif /* UIP_CONF_ROUTER */
 
-#if UIP_CONF_IPV6_MULTICAST
+#if UIP_IPV6_MULTICAST
   process:
 #endif
 
@@ -1367,6 +1373,11 @@ uip_process(uint8_t flag)
 
           PRINTF("Processing Routing header\n");
           if(UIP_ROUTING_BUF->seg_left > 0) {
+#if UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING
+            if(rpl_process_srh_header()) {
+              goto send; /* Proceed to forwarding */
+            }
+#endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
             uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_HEADER, UIP_IPH_LEN + uip_ext_len + 2);
             UIP_STAT(++uip_stat.ip.drop);
             UIP_LOG("ip6: unrecognized routing type");
@@ -1574,10 +1585,6 @@ uip_process(uint8_t flag)
     UIP_UDP_BUF->udpchksum = 0xffff;
   }
 #endif /* UIP_UDP_CHECKSUMS */
-
-#if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
-#endif /* UIP_CONF_IPV6_RPL */
 
   UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
@@ -1847,8 +1854,10 @@ uip_process(uint8_t flag)
       if((UIP_TCP_BUF->flags & TCP_SYN)) {
         if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) {
           goto tcp_send_synack;
+#if UIP_ACTIVE_OPEN
         } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
           goto tcp_send_syn;
+#endif
         }
       }
       goto tcp_send_ack;

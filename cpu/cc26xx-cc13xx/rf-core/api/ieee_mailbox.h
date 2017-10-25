@@ -40,7 +40,7 @@
 #ifndef IEEE_MAILBOX_H_
 #define IEEE_MAILBOX_H_
 
-#include "mailbox.h"
+#include "driverlib/rf_mailbox.h"
 
 
 /// \name Radio operation status

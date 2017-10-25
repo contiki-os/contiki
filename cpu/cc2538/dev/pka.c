@@ -64,8 +64,8 @@ pka_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  nvic_interrupt_unpend(NVIC_INT_PKA);
-  nvic_interrupt_disable(NVIC_INT_PKA);
+  NVIC_ClearPendingIRQ(PKA_IRQn);
+  NVIC_DisableIRQ(PKA_IRQn);
 
   if(notification_process != NULL) {
     process_poll((struct process *)notification_process);

@@ -81,11 +81,13 @@ soc_rtc_init(void)
 
   ti_lib_aon_rtc_event_clear(AON_RTC_CH0);
   ti_lib_aon_rtc_event_clear(AON_RTC_CH1);
+  ti_lib_aon_rtc_event_clear(AON_RTC_CH2);
 
   /* Setup the wakeup event */
   ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU0, AON_EVENT_RTC_CH0);
   ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU1, AON_EVENT_RTC_CH1);
-  ti_lib_aon_rtc_combined_event_config(AON_RTC_CH0 | AON_RTC_CH1);
+  ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU2, AON_EVENT_RTC_CH2);
+  ti_lib_aon_rtc_combined_event_config(AON_RTC_CH0 | AON_RTC_CH1 | AON_RTC_CH2);
 
   HWREG(AON_RTC_BASE + AON_RTC_O_SEC) = SOC_RTC_START_TICK_COUNT;
 
@@ -98,7 +100,7 @@ soc_rtc_init(void)
   ti_lib_aon_rtc_channel_enable(AON_RTC_CH1);
   ti_lib_aon_rtc_enable();
 
-  ti_lib_int_enable(INT_AON_RTC);
+  ti_lib_rom_int_enable(INT_AON_RTC_COMB);
 
   /* Re-enable interrupts */
   if(!interrupts_disabled) {
@@ -123,7 +125,7 @@ soc_rtc_get_next_trigger()
 void
 soc_rtc_schedule_one_shot(uint32_t channel, uint32_t ticks)
 {
-  if((channel != AON_RTC_CH0) && (channel != AON_RTC_CH1)) {
+  if((channel != AON_RTC_CH0) && (channel != AON_RTC_CH1) && (channel != AON_RTC_CH2)) {
     return;
   }
 
@@ -168,6 +170,12 @@ soc_rtc_isr(void)
     ti_lib_aon_rtc_channel_disable(AON_RTC_CH0);
     HWREG(AON_RTC_BASE + AON_RTC_O_EVFLAGS) = AON_RTC_EVFLAGS_CH0;
     rtimer_run_next();
+  }
+
+  if(ti_lib_aon_rtc_event_get(AON_RTC_CH2)) {
+    /* after sleep; since a rtimer is already scheduled, do nothing */
+    ti_lib_aon_rtc_channel_disable(AON_RTC_CH2);
+    HWREG(AON_RTC_BASE + AON_RTC_O_EVFLAGS) = AON_RTC_EVFLAGS_CH2;
   }
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);

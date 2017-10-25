@@ -38,7 +38,7 @@
 #include "cfs/cfs.h"
 #include "sys/log.h"
 #include "lib/error.h"
-#include "net/ethernet-drv.h"
+#include "lib/config.h"
 
 #include "net/ethernet.h"
 
@@ -59,25 +59,42 @@ struct {
 
 /*---------------------------------------------------------------------------*/
 void
-ethernet_init(struct ethernet_config *config)
+ethernet_init(void)
 {
   static const char signature[4] = {0x65, 0x74, 0x68, 0x01};
 
-#ifndef ETHERNET
+#ifdef STATIC_DRIVER
+
+  extern void STATIC_DRIVER;
+
+  module = &STATIC_DRIVER;
+
+  module->buffer = uip_buf;
+  module->buffer_size = UIP_BUFSIZE;
+  if(module->init(config.ethernet.addr)) {
+    #define _stringize(arg) #arg
+    #define  stringize(arg) _stringize(arg)
+    log_message(stringize(STATIC_DRIVER), ": No hardware");
+    #undef  _stringize
+    #undef   stringize
+    error_exit();
+  }
+
+#else /* STATIC_DRIVER */
 
   struct mod_ctrl module_control = {cfs_read};
   uint8_t byte;
 
-  module_control.callerdata = cfs_open(config->name, CFS_READ);
+  module_control.callerdata = cfs_open(config.ethernet.name, CFS_READ);
   if(module_control.callerdata < 0) {
-    log_message(config->name, ": File not found");
+    log_message(config.ethernet.name, ": File not found");
     error_exit();
   }
 
   byte = mod_load(&module_control);
   if(byte != MLOAD_OK) {
-    log_message(config->name, byte == MLOAD_ERR_MEM? ": Out of memory":
-                                                     ": No module");
+    log_message(config.ethernet.name, byte == MLOAD_ERR_MEM? ": Out of memory":
+                                                             ": No module");
     error_exit();
   }
 
@@ -86,25 +103,19 @@ ethernet_init(struct ethernet_config *config)
 
   for(byte = 0; byte < 4; ++byte) {
     if(module->signature[byte] != signature[byte]) {
-      log_message(config->name, ": No ETH driver");
+      log_message(config.ethernet.name, ": No ETH driver");
       error_exit();
     }
   }
 
-#else /* !ETHERNET */
-
-  extern void ETHERNET;
-
-  module = &ETHERNET;
-
-#endif /* !ETHERNET */
-
   module->buffer = uip_buf;
   module->buffer_size = UIP_BUFSIZE;
-  if(module->init(config->addr)) {
-    log_message(config->name, ": No hardware");
+  if(module->init(config.ethernet.addr)) {
+    log_message(config.ethernet.name, ": No hardware");
     error_exit();
   }
+
+#endif /* STATIC_DRIVER */
 
   uip_setethaddr(module->ethernet_address);
 }
@@ -126,8 +137,8 @@ ethernet_exit(void)
 {
   module->exit();
 
-#ifndef ETHERNET
+#ifndef STATIC_DRIVER
   mod_free(module);
-#endif /* !ETHERNET */
+#endif /* !STATIC_DRIVER */
 }
 /*---------------------------------------------------------------------------*/

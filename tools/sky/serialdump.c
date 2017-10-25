@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 
 #define BAUDRATE B115200
 #define BAUDRATE_S "115200"
@@ -82,9 +83,17 @@ print_hex_line(char *prefix, unsigned char *outbuf, int index)
   }
 }
 
+static void
+intHandler(int sig)
+{
+  exit(0);
+}
+
 int
 main(int argc, char **argv)
 {
+  signal(SIGINT, intHandler);
+
   struct termios options;
   fd_set mask, smask;
   int fd;
@@ -208,6 +217,8 @@ main(int argc, char **argv)
   options.c_cflag |= CS8;
 
   /* Raw input */
+  options.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+                       | INLCR | IGNCR | ICRNL | IXON);
   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
   /* Raw output */
   options.c_oflag &= ~OPOST;
@@ -277,6 +288,11 @@ main(int argc, char **argv)
       int i, n = read(fd, buf, sizeof(buf));
       if(n < 0) {
         perror("could not read");
+        exit(-1);
+      }
+      if(n == 0) {
+        errno = EBADF;
+        perror("serial device disconnected");
         exit(-1);
       }
 

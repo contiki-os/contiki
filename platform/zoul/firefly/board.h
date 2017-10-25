@@ -264,7 +264,7 @@
 /** BUTTON_USER -> PA3 */
 #define BUTTON_USER_PORT       GPIO_A_NUM
 #define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
+#define BUTTON_USER_VECTOR     GPIO_A_IRQn
 
 /* Notify various examples that we have an user button.
  * If ADC6 channel is used, then disable the user button
@@ -329,7 +329,7 @@
 #define I2C_SDA_PIN              2
 #define I2C_INT_PORT             GPIO_D_NUM
 #define I2C_INT_PIN              1
-#define I2C_INT_VECTOR           NVIC_INT_GPIO_PORT_D
+#define I2C_INT_VECTOR           GPIO_D_IRQn
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -367,7 +367,7 @@
 #define CC1200_GDO2_PIN             0
 #define CC1200_RESET_PORT           GPIO_C_NUM
 #define CC1200_RESET_PIN            7
-#define CC1200_GPIOx_VECTOR         NVIC_INT_GPIO_PORT_B
+#define CC1200_GPIOx_VECTOR         GPIO_B_IRQn
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

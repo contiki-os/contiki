@@ -36,7 +36,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx Buzzer
+ * Header file for the Sensortag Buzzer
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BUZZER_H_

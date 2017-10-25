@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26XX BMP280 Altimeter / Pressure Sensor
+ *  Driver for the Sensortag BMP280 Altimeter / Pressure Sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"

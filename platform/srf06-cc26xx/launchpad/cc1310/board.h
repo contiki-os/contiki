@@ -151,11 +151,34 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief ROM bootloader configuration
+ *
+ * Change SET_CCFG_BL_CONFIG_BL_PIN_NUMBER to BOARD_IOID_KEY_xyz to select
+ * which button triggers the bootloader on reset.
+ *
+ * The remaining values are not meant to be modified by the user
+ * @{
+ */
+#if ROM_BOOTLOADER_ENABLE
+#define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0xC5
+#define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x00
+#define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                BOARD_IOID_KEY_LEFT
+#define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xC5
+#else
+#define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0x00
+#define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x01
+#define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                0xFF
+#define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xFF
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \brief Remaining pins
  *
  * Those values are not meant to be modified by the user
  * @{
  */
+#define BOARD_IOID_DIO1           IOID_1
 #define BOARD_IOID_CS             IOID_11
 #define BOARD_IOID_TDO            IOID_16
 #define BOARD_IOID_TDI            IOID_17
@@ -171,6 +194,14 @@
 #define BOARD_IOID_DIO28          IOID_28
 #define BOARD_IOID_DIO29          IOID_29
 #define BOARD_IOID_DIO30          IOID_30
+
+#define BOARD_UNUSED_PINS { \
+    BOARD_IOID_DIO1, BOARD_IOID_CS, BOARD_IOID_TDO, BOARD_IOID_TDI, \
+    BOARD_IOID_DIO12, BOARD_IOID_DIO15, BOARD_IOID_DIO21, BOARD_IOID_DIO22, \
+    BOARD_IOID_DIO23, BOARD_IOID_DIO24, BOARD_IOID_DIO25, BOARD_IOID_DIO26, \
+    BOARD_IOID_DIO27, BOARD_IOID_DIO28, BOARD_IOID_DIO29, BOARD_IOID_DIO30, \
+    IOID_UNUSED \
+  }
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

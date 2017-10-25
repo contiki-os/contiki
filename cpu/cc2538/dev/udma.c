@@ -62,8 +62,8 @@ udma_init()
 
   REG(UDMA_CTLBASE) = (uint32_t)(&channel_config);
 
-  nvic_interrupt_enable(NVIC_INT_UDMA);
-  nvic_interrupt_enable(NVIC_INT_UDMA_ERR);
+  NVIC_EnableIRQ(UDMA_SW_IRQn);
+  NVIC_EnableIRQ(UDMA_ERR_IRQn);
 }
 /*---------------------------------------------------------------------------*/
 void

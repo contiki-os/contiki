@@ -154,6 +154,12 @@
 #define UIP_CONF_MAX_ROUTES 20
 #endif /* UIP_CONF_MAX_ROUTES */
 
+/* RPL_NS_CONF_LINK_NUM specifies the maximum number of links a RPL root
+ * will maintain in non-storing mode. */
+#ifndef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_CONF_LINK_NUM 20
+#endif /* RPL_NS_CONF_LINK_NUM */
+
 /* UIP_CONF_UDP specifies if UDP support should be included or
    not. Disabling UDP saves memory but breaks a lot of stuff. */
 #ifndef UIP_CONF_UDP
@@ -198,7 +204,7 @@
 #define UIP_CONF_ND6_SEND_RA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
 #endif /* UIP_CONF_ND6_SEND_RA */
 
-/* UIP_CONF_ND6_SEND_NA enables standard IPv6 Neighbor Discovery Protocol.
+/* UIP_CONF_ND6_SEND_NS enables standard IPv6 Neighbor Discovery Protocol.
    We enable it by default when IPv6 is used without RPL.
    With RPL, the neighbor cache (link-local IPv6 <-> MAC address mapping)
    is fed whenever receiving DIO and DAO messages. This is always sufficient
@@ -208,9 +214,15 @@
    neighbor to us is weak, if DIO transmissions are suppressed (Trickle
    timer) or if the neighbor chooses not to transmit DIOs because it is
    a leaf node or for any reason. */
+#ifndef UIP_CONF_ND6_SEND_NS
+#define UIP_CONF_ND6_SEND_NS (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
+#endif /* UIP_CONF_ND6_SEND_NS */
+/* UIP_CONF_ND6_SEND_NA allows to still comply with NDP even if the host does
+   not perform NUD or DAD processes. By default it is activated so the host
+   can still communicate with a full NDP peer. */
 #ifndef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
-#endif /* UIP_CONF_ND6_SEND_NA */
+#define UIP_CONF_ND6_SEND_NA (NETSTACK_CONF_WITH_IPV6)
+#endif /* UIP_CONF_ND6_SEND_NS */
 
 /*---------------------------------------------------------------------------*/
 /* 6lowpan configuration options.

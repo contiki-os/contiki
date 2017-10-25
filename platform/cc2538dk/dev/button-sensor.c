@@ -135,7 +135,7 @@ config_select(int type, int value)
 
   ioc_set_over(BUTTON_SELECT_PORT, BUTTON_SELECT_PIN, IOC_OVERRIDE_PUE);
 
-  nvic_interrupt_enable(BUTTON_SELECT_VECTOR);
+  NVIC_EnableIRQ(BUTTON_SELECT_VECTOR);
 
   gpio_register_callback(btn_callback, BUTTON_SELECT_PORT, BUTTON_SELECT_PIN);
   return 1;
@@ -159,7 +159,7 @@ config_left(int type, int value)
 
   ioc_set_over(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, IOC_OVERRIDE_PUE);
 
-  nvic_interrupt_enable(BUTTON_LEFT_VECTOR);
+  NVIC_EnableIRQ(BUTTON_LEFT_VECTOR);
 
   gpio_register_callback(btn_callback, BUTTON_LEFT_PORT, BUTTON_LEFT_PIN);
   return 1;
@@ -183,7 +183,7 @@ config_right(int type, int value)
 
   ioc_set_over(BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN, IOC_OVERRIDE_PUE);
 
-  nvic_interrupt_enable(BUTTON_RIGHT_VECTOR);
+  NVIC_EnableIRQ(BUTTON_RIGHT_VECTOR);
 
   gpio_register_callback(btn_callback, BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN);
   return 1;
@@ -207,7 +207,7 @@ config_up(int type, int value)
 
   ioc_set_over(BUTTON_UP_PORT, BUTTON_UP_PIN, IOC_OVERRIDE_PUE);
 
-  nvic_interrupt_enable(BUTTON_UP_VECTOR);
+  NVIC_EnableIRQ(BUTTON_UP_VECTOR);
 
   gpio_register_callback(btn_callback, BUTTON_UP_PORT, BUTTON_UP_PIN);
   return 1;
@@ -231,7 +231,7 @@ config_down(int type, int value)
 
   ioc_set_over(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, IOC_OVERRIDE_PUE);
 
-  nvic_interrupt_enable(BUTTON_DOWN_VECTOR);
+  NVIC_EnableIRQ(BUTTON_DOWN_VECTOR);
 
   gpio_register_callback(btn_callback, BUTTON_DOWN_PORT, BUTTON_DOWN_PIN);
   return 1;

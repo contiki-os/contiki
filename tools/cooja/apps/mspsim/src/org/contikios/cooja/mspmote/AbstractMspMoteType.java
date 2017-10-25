@@ -81,7 +81,7 @@ public abstract class AbstractMspMoteType extends MspMoteType {
         }
 
         /* If visualized, show compile dialog and let user configure */
-        if (visAvailable) {
+        if (visAvailable && !simulation.isQuickSetup()) {
 
             /* Create unique identifier */
             if (getIdentifier() == null) {
@@ -118,7 +118,7 @@ public abstract class AbstractMspMoteType extends MspMoteType {
             throw new MoteTypeCreationException("No identifier");
         }
 
-        final MessageList compilationOutput = visAvailable ? new MessageListUI() : new MessageListText();
+        final MessageList compilationOutput = MessageContainer.createMessageList(visAvailable);
 
         if (getCompileCommands() != null) {
             /* Handle multiple compilation commands one by one */

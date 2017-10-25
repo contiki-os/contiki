@@ -48,6 +48,7 @@
 #define FLASH_H_
 
 #include "dev/cc2538-dev.h"
+#include "cfs-coffee-arch.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -88,6 +89,23 @@
 #define FLASH_CCA_LOCKED                        0  /**< Page or debug locked if bit == 0 */
 #define FLASH_CCA_LOCK_DEBUG_BYTE               31 /**< Lock byte containing the debug lock bit */
 #define FLASH_CCA_LOCK_DEBUG_BIT                7  /**< Debug lock bit position in the corresponding lock byte */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name Firmware location in flash memory
+ * @{
+ */
+#ifdef FLASH_CONF_FW_ADDR
+#define FLASH_FW_ADDR   FLASH_CONF_FW_ADDR
+#elif !defined(COFFEE_CONF_CUSTOM_PORT)
+#define FLASH_FW_ADDR   (COFFEE_START + COFFEE_SIZE)
+#else
+#define FLASH_FW_ADDR   CC2538_DEV_FLASH_ADDR
+#endif
+#ifdef FLASH_CONF_FW_SIZE
+#define FLASH_FW_SIZE   FLASH_CONF_FW_SIZE
+#else
+#define FLASH_FW_SIZE   (FLASH_CCA_ADDR - FLASH_FW_ADDR)
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Flash lock bit page and CCA layout

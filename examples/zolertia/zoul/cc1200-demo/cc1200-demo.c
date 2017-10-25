@@ -35,11 +35,12 @@
  * @{
  *
  * \file
- *  Test file for the CC1200 demo
+ *         Test file for the CC1200 demo
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cpu.h"
 #include "sys/etimer.h"

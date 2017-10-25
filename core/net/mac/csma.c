@@ -231,10 +231,12 @@ tx_done(int status, struct rdc_buf_list *q, struct neighbor_queue *n)
   mac_callback_t sent;
   struct qbuf_metadata *metadata;
   void *cptr;
+  uint8_t ntx;
 
   metadata = (struct qbuf_metadata *)q->ptr;
   sent = metadata->sent;
   cptr = metadata->cptr;
+  ntx = n->transmissions;
 
   switch(status) {
   case MAC_TX_OK:
@@ -251,7 +253,7 @@ tx_done(int status, struct rdc_buf_list *q, struct neighbor_queue *n)
   }
 
   free_packet(n, q, status);
-  mac_call_sent_callback(sent, cptr, status, n->transmissions);
+  mac_call_sent_callback(sent, cptr, status, ntx);
 }
 /*---------------------------------------------------------------------------*/
 static void
