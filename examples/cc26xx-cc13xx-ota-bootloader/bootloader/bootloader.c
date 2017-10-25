@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "ti-lib.h"
+#include "ext-flash.h"
 
 #include "ota.h"
 

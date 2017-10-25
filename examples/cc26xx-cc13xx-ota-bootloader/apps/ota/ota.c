@@ -8,6 +8,18 @@
 
 #include "ota.h"
 
+#include "ti-lib.h"
+#include "ext-flash.h"
+#include "driverlib/flash.h"
+
+#if OTA_DEBUG
+  #include <stdio.h>
+  #define PRINTF(...) printf(__VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
+
+
 uint8_t ota_images[3] = OTA_ADDRESSES;
 
 /**
@@ -84,9 +96,9 @@ crc16(uint16_t crc, uint8_t val)
 void
 print_metadata( OTAMetadata_t *metadata )
 {
-  PRINTF("Firmware Size: %#x\n", metadata->size);
+  PRINTF("Firmware Size: %#lx\n", metadata->size);
   PRINTF("Firmware Version: %#x\n", metadata->version);
-  PRINTF("Firmware UUID: %#x\n", metadata->uuid);
+  PRINTF("Firmware UUID: %#lx\n", metadata->uuid);
   PRINTF("Firmware CRC: %#x\n", metadata->crc);
   PRINTF("Firmware CRC: %#x\n", metadata->crc_shadow);
 }
@@ -260,7 +272,7 @@ verify_current_firmware( OTAMetadata_t *current_firmware_metadata )
   PRINTF("Recomputing CRC16 on internal flash image within range [0x2000, 0x1B000).\n");
 
   //  (1) Determine the external flash address corresponding to the OTA slot
-  uint32_t firmware_address = 0x2000 + OTA_METADATA_SPACE;
+  uint32_t firmware_address = (CURRENT_FIRMWARE<<12) + OTA_METADATA_SPACE;
   uint32_t firmware_end_address = firmware_address + (current_firmware_metadata->size);
 
   //  (3) Compute the CRC16 over the entire image
@@ -761,7 +773,7 @@ store_firmware_data( uint32_t ext_address, uint8_t *data, size_t data_length )
 
   ext_flash_close();
 
-  PRINTF("[external-flash]:\tFirmware data successfully written to %#x.\n", ext_address);
+  PRINTF("[external-flash]:\tFirmware data successfully written to %#lx.\n", ext_address);
   return 0;
 }
 

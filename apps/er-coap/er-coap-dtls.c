@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
-#include "debug.h"
+#include "dtls_debug.h"
 
 /*---------------------------------------------------------------------------*/
 

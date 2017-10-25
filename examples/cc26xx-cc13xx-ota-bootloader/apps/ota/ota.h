@@ -6,16 +6,9 @@
 #ifndef OTA_H
 #define OTA_H
 
-#if DEBUG
-  #include <stdio.h>
-  #define PRINTF(...) printf(__VA_ARGS__)
-#else
-  #define PRINTF(...)
-#endif
-
-#include "ti-lib.h"
-#include "ext-flash.h"
-#include "driverlib/flash.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 /**
  *    OTA Image Memory Map
@@ -51,58 +44,42 @@ typedef struct OTAMetadata {
 #define OTA_METADATA_SPACE 0x100
 #define OTA_METADATA_LENGTH sizeof(OTAMetadata_t)
 
-extern void
-FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
+void FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
 
-extern uint16_t
-crc16(uint16_t crc, uint8_t val);
+uint16_t crc16(uint16_t crc, uint8_t val);
 
-extern void
-print_metadata( OTAMetadata_t *metadata );
+void print_metadata( OTAMetadata_t *metadata );
 
-extern int
-get_current_metadata( OTAMetadata_t *ota_slot_metadata  );
+int get_current_metadata( OTAMetadata_t *ota_slot_metadata  );
 
-extern int
-get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
+int get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
-extern int
-overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
+int overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
-extern int
-backup_golden_image();
+int backup_golden_image();
 
-extern int
-verify_current_firmware( OTAMetadata_t *current_firmware_metadata );
+int verify_current_firmware( OTAMetadata_t *current_firmware_metadata );
 
-extern int
-verify_ota_slot( uint8_t ota_slot );
+int verify_ota_slot( uint8_t ota_slot );
 
-extern bool
-validate_ota_metadata( OTAMetadata_t *metadata );
+bool validate_ota_metadata( OTAMetadata_t *metadata );
 
-extern int
-find_matching_ota_slot( uint16_t version );
+int find_matching_ota_slot( uint16_t version );
 
-extern int
-find_empty_ota_slot();
+int find_empty_ota_slot();
 
-extern int
-find_oldest_ota_image();
+int find_oldest_ota_image();
 
-extern int
-find_newest_ota_image();
+int find_newest_ota_image();
 
-extern int
-update_firmware( uint8_t ota_slot );
+int erase_extflash_page( uint32_t ext_address );
 
-extern int
-erase_ota_image( uint8_t ota_slot );
+int update_firmware( uint8_t ota_slot );
 
-extern int
-store_firmware_data( uint32_t ext_address, uint8_t *data, size_t data_length );
+int erase_ota_image( uint8_t ota_slot );
 
-extern void
-jump_to_image(uint32_t destination_address);
+int store_firmware_data( uint32_t ext_address, uint8_t *data, size_t data_length );
+
+void jump_to_image(uint32_t destination_address);
 
 #endif
