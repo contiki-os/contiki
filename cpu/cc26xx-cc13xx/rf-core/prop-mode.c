@@ -86,6 +86,13 @@
 #else
 #define PRINTF(...)
 #endif
+
+#if 0
+#define PRINTF_FAIL(...)  printf(__VA_ARGS__)
+#else
+#define PRINTF_FAIL(...)  PRINTF(__VA_ARGS__)
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Data entry status field constants */
 #define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
@@ -1424,7 +1431,7 @@ rtimer_clock_t rat_sync_check(rtimer_clock_t stamp){
         rx_on_prop();
     int32_t rat_remiss = rat_sync_miss();
     if (rat_remiss != 0)
-        PRINTF("rat_sync_check: failed resync from %ld -> %ld\n", rat_miss , rat_remiss);
+        PRINTF_FAIL("rat_sync_check: failed resync from %ld -> %ld\n", rat_miss , rat_remiss);
     return stamp - rat_miss;
 }
 
