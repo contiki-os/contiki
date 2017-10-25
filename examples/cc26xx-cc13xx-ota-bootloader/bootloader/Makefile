@@ -1,3 +1,10 @@
+TARGET=srf06-cc26xx
+ifndef BOARD
+BOARD=sensortag/cc2650
+#BOARD=srf06/cc26xx
+#BOARD=launchpad/cc1310
+endif
+
 CC      = arm-none-eabi-gcc
 CPP     = arm-none-eabi-cpp
 LD      = arm-none-eabi-gcc
@@ -21,7 +28,12 @@ CPU_ABS_PATH = $(CONTIKI)/cpu/cc26xx-cc13xx
 TARGET=srf06-cc26xx
 OBJECTDIR=obj_$(TARGET)
 
-LDSCRIPT = cc26xx.bootloader.ld
+# Optimize for code size
+CFLAGS += -Os
+
+CPU_FAMILY=$(notdir $(BOARD))
+
+LDSCRIPT = cc26xx-cc13xx.bootloader.ld
 LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
 LDFLAGS += -g
@@ -30,8 +42,16 @@ LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
 OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 
-#	TI 26XX ware sources
-TI_XXWARE_PATH = lib/cc26xxware
+#	TI libs
+ifeq ($(CPU_FAMILY), cc1310)
+	TI_XXWARE_PATH = lib/cc13xxware
+else ifeq ($(CPU_FAMILY), cc1350)
+	TI_XXWARE_PATH = lib/cc13xxware
+else ifeq ($(CPU_FAMILY), cc2650)
+	TI_XXWARE_PATH = lib/cc26xxware
+else
+  ${error Cannot determine CPU family of BOARD "$(BOARD)" (maybe it was misspelled?)}
+endif
 TI_XXWARE = $(CPU_ABS_PATH)/$(TI_XXWARE_PATH)
 CFLAGS += -I$(CPU_ABS_PATH) -I$(OTA_SOURCE) -I./ext-flash -I$(TI_XXWARE) -I$(TI_XXWARE)/driverlib -I$(TI_XXWARE)/inc
 SOURCEDIRS = . ./ext-flash $(TI_XXWARE)/startup_files $(TI_XXWARE)/driverlib

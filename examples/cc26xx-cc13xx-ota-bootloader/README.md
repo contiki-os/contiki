@@ -1,9 +1,9 @@
-# CC26XX OTA
-This is an example Contiki application that demonstrates how to send complete firmware updates over-the-air (OTA) to a Texas Instruments CC2650.  (In this example, assumed platform is a Sensortag.)
+# CC26XX/CC13xx OTA
+This is an example Contiki application that demonstrates how to send complete firmware updates over-the-air (OTA) to a Texas Instruments CC26xx/CC13xx.  (Default board is a sensortag/cc2650, can be set using BOARD)
 
-The OTA system depends on compiling two separate binaries, which are both placed into the CC2650's internal flash.
+The OTA system depends on compiling two separate binaries, which are both placed into the CC26xx/CC13xx's internal flash.
 
-*  A **bootloader**, which remains permanently fixed in the CC2650's flash.  It manages, verifies, and repairs the CC2650 firmware but is never overwritten.
+*  A **bootloader**, which remains permanently fixed in the CC26xx/CC13xx's flash.  It manages, verifies, and repairs the CC26xx/CC13xx firmware but is never overwritten.
 *  The actual **OTA image**, which is your Contiki application.  This will change in the future as you compile and release new versions.  The very first OTA image is actually flashed manually from a .bin file.
 
 You can also read my [article on OTA](http://marksolters.com/programming/2016/06/07/contiki-ota.html) for more detail about this example.
@@ -53,7 +53,7 @@ Bootloader | 0x00000000 | 0x00002000
 OTA image | 0x00002000 | 0x0001B000
 bootloader ccfg | 0x0001FFA8 | 0x58
 
-The overall concept of the OTA update mechanism is that the CC2650 will *always* power-up to the **bootloader**.
+The overall concept of the OTA update mechanism is that the CC26xx/CC13xx will *always* power-up to the **bootloader**.
 
 1.  The bootloader will first check the internal flash to see if the current **OTA image** is valid.
 1.  The bootloader will next check the external flash chip (required, included by default in the Sensortag boards) to see if there are any newer **OTA images** that have been downloaded from the server.
