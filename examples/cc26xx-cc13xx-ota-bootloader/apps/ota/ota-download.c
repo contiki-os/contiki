@@ -4,9 +4,20 @@
  */
 
 #include "ota-download.h"
+#include "ti-lib.h"
+#include "er-coap-engine.h"
+
+#include "ota.h"
+
+#if OTA_DEBUG
+  #include <stdio.h>
+  #define PRINTF(...) printf(__VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
 
 PROCESS(ota_download_th, "OTA Download Agent");
-ota_download_th_p = &ota_download_th;
+struct process* ota_download_th_p = &ota_download_th;
 
 #define LOCAL_PORT      UIP_HTONS(COAP_DEFAULT_PORT + 1)
 #define REMOTE_PORT     UIP_HTONS(COAP_DEFAULT_PORT)
@@ -37,7 +48,7 @@ firmware_chunk_handler(void *response)
 
   //  (2) Copy the CoAP payload into the ota_buffer
   ota_bytes_received += len;
-  printf("Downloaded %u bytes\t(%#x)", len, ota_bytes_received);
+  PRINTF("Downloaded %u bytes\t(%#lx)", len, ota_bytes_received);
   while (len--) {
     ota_buffer[ img_req_position++ ] = *chunk++;
   }
@@ -113,7 +124,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
     img_req_position = 0;
     ota_req_start = ota_bytes_saved;
 
-    PRINTF("Requesting OTA image starting at address %#x\n", ota_req_start);
+    PRINTF("Requesting OTA image starting at address %#lx\n", ota_req_start);
 
     //  (2) Construct a blockwise CoAP GET request
     coap_init_message(request, COAP_TYPE_CON, COAP_GET, 0);
@@ -147,12 +158,12 @@ PROCESS_THREAD(ota_download_th, ev, data)
         //  Oh no!  Our download got interrupted somehow!
         //  Rewind the download to the end of the last valid page.
         ota_bytes_saved = (ota_bytes_saved/FLASH_PAGE_SIZE) << 12;
-        PRINTF("Erasing %#x\n", (ota_bytes_saved + (ota_images[active_ota_download_slot-1] << 12)));
+        PRINTF("Erasing %#lx\n", (ota_bytes_saved + (ota_images[active_ota_download_slot-1] << 12)));
         while( erase_extflash_page( (ota_bytes_saved + (ota_images[active_ota_download_slot-1] << 12)) ) );
       }
     } else {
       ota_bytes_saved = 0;
-      PRINTF("Erasing %#x\n", ota_bytes_saved);
+      PRINTF("Erasing %#lx\n", ota_bytes_saved);
       //  We need to redownload starting with the last page, so let's clear it first.
       while( erase_extflash_page( ota_images[active_ota_download_slot-1] << 12 ) );
     }
@@ -176,6 +187,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   while( verify_ota_slot( active_ota_download_slot ) );
 
   //  (7) Reboot!
+  PRINTF("-----OTA download done, rebooting!-----\n");
   ti_lib_sys_ctrl_system_reset();
 
   PROCESS_END();
