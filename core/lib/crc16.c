@@ -106,28 +106,11 @@ const unsigned short Crc16Table[256] = {
 };
 
 /*!
-    \brief Функция вычисления контрольной суммы CRC16
-
-    \details Функция вычисляет контрольную сумму CRC16
-    Name  : CRC-16 CCITT
+ * \brief CITT CRC16 checksum calculate
+ * \author
+ *         alexrayne <alexrayepe196@gmail.com>
 
     Poly  : 0x1021    x^16 + x^12 + x^5 + 1
-
-    Init  : 0xFFFF
-
-    Revert: false
-
-    XorOut: 0x0000
-
-    Check : 0x29B1 ("123456789")
-
-    MaxLen: 4095
-
-    \param [in] buffer Указатель на буфер с данными, для которых нужно вычислить контрольную сумму
-    \param [in] buffer_size Размер данных по указателю buffer
-
-    \return Возвращает вычисленное значение контрольной суммы
-
 */
 unsigned short
 crc16_add(unsigned char b, unsigned short crc)
