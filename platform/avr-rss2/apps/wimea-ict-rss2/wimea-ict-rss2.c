@@ -63,6 +63,9 @@
 #define MAX_BCAST_SIZE 99
 #define DEF_TTL 0xF
 
+#define END_OF_FILE 26
+uint8_t eof = END_OF_FILE;
+
 //Configuration Parameters
 uint16_t EEMEM eemem_transmission_interval;
 uint8_t EEMEM eemem_node_name[NAME_LENGTH];
@@ -311,6 +314,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
     printf("&: %s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
+    printf("%c", eof);
 }
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
 /*---------------------------------------------------------------------------*/
@@ -343,7 +347,8 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		len+=25;
 		i += snprintf(msg.buf+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		msg.buf[i++]='\0';//null terminate report.
-		printf("%s\n", msg.buf);
+		printf("&: %s\n", msg.buf);
+		printf("%c", eof);
 		msg.head = 1<<4;
 		msg.head |= ttl;
 		msg.seqno = seqno;
