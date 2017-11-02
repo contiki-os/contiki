@@ -142,9 +142,9 @@ struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 static struct tsch_asn_t last_sync_asn;
 
 /* A global lock for manipulating data structures safely from outside of interrupt */
-static volatile int tsch_locked = 0;
+volatile bool tsch_locked = 0;
 /* As long as this is set, skip all slot operation */
-static volatile int tsch_lock_requested = 0;
+static volatile bool tsch_lock_requested = 0;
 
 /* Last estimated drift in RTIMER ticks
  * (Sky: 1 tick = 30.517578125 usec exactly) */
@@ -187,15 +187,23 @@ static PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t));
 /*---------------------------------------------------------------------------*/
 /* TSCH locking system. TSCH is locked during slot operations */
 
+#if !LIB_INLINES
 /* Is TSCH locked? */
-int
-tsch_is_locked(void)
+bool tsch_is_locked(void)
 {
   return tsch_locked;
 }
 
+/* Release TSCH lock */
+void
+tsch_release_lock(void)
+{
+  tsch_locked = 0;
+}
+#endif
+
 /* Lock TSCH (no slot operation) */
-int
+bool
 tsch_get_lock(void)
 {
   if(!tsch_locked) {
@@ -234,13 +242,6 @@ tsch_get_lock(void)
                       "!failed to lock");
           );
   return 0;
-}
-
-/* Release TSCH lock */
-void
-tsch_release_lock(void)
-{
-  tsch_locked = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -479,7 +480,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
   /* is the packet in its neighbor's queue? */
   uint8_t in_queue;
   static int dequeued_index;
-  static int packet_ready = 1;
+  static bool packet_ready = 1;
 
   PT_BEGIN(pt);
 
