@@ -797,9 +797,11 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         current_input->rssi = (signed)radio_last_rssi;
         current_input->channel = current_channel;
         header_len = frame802154_parse((uint8_t *)current_input->payload, current_input->len, &frame);
-        frame_valid = header_len > 0 &&
-          frame802154_check_dest_panid(&frame) &&
-          frame802154_extract_linkaddr(&frame, &source_address, &destination_address);
+        frame_valid = header_len > 0;
+        if( !frame802154_check_dest_panid(&frame))
+            frame_valid = false;
+        if( !frame802154_extract_linkaddr(&frame, &source_address, &destination_address) )
+            frame_valid = false;
 
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
         /* At the end of the reception, get an more accurate estimate of SFD arrival time */
