@@ -488,10 +488,9 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
   /* First check if we have space to store a newly dequeued packet (in case of
    * successful Tx or Drop) */
   dequeued_index = ringbufindex_peek_put(&dequeued_ringbuf);
+  mac_tx_status = MAC_TX_ERR_FATAL;
   if(dequeued_index != -1) {
-    if(current_packet == NULL || current_packet->qb == NULL) {
-      mac_tx_status = MAC_TX_ERR_FATAL;
-    } else {
+    if(current_packet != NULL && current_packet->qb != NULL) {
       /* packet payload */
       static void *packet;
 #if LLSEC802154_ENABLED
@@ -711,6 +710,9 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     /* Poll process for later processing of packet sent events and logs */
     process_poll(&tsch_pending_events_process);
   }
+#ifdef TSCH_ON_SLOT_TX
+  TSCH_ON_SLOT_TX(mac_tx_status);
+#endif
 
   TSCH_DEBUG_TX_EVENT();
 
@@ -734,11 +736,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
   static linkaddr_t destination_address;
   static int16_t input_index;
   static int input_queue_drop = 0;
+  static bool frame_valid = 0;
 
   PT_BEGIN(pt);
 
   TSCH_DEBUG_RX_EVENT();
 
+  frame_valid = 0;
   input_index = ringbufindex_peek_put(&input_ringbuf);
   if(input_index == -1) {
     input_queue_drop++;
@@ -785,7 +789,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
       if(NETSTACK_RADIO.pending_packet()) {
-        static int frame_valid;
         static int header_len;
         static frame802154_t frame;
         radio_value_t radio_last_rssi;
@@ -908,7 +911,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               log->rx.sec_level = frame.aux_hdr.security_control.security_level;
               log->rx.estimated_drift = estimated_drift;
             );
-          }
+          }//if(linkaddr_cmp(&destination_address...
 
           /* Poll process for processing of pending input and logs */
           process_poll(&tsch_pending_events_process);
@@ -926,6 +929,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       input_queue_drop = 0;
     }
   }
+#ifdef TSCH_ON_SLOT_RX
+  TSCH_ON_SLOT_RX(frame_valid);
+#endif
 
   TSCH_DEBUG_RX_EVENT();
 
