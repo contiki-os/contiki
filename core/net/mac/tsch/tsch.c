@@ -644,7 +644,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       /* If we are currently receiving a packet, wait until end of reception */
         //PROCESS_PAUSE();
         if (poll_period > 0) {
-            etimer_reset(&scan_timer);
+            etimer_restart(&scan_timer);
             PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
         }
         else {
