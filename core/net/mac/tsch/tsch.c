@@ -680,6 +680,13 @@ PROCESS_THREAD(tsch_process, ev, data)
 
   PROCESS_BEGIN();
 
+#if TSCH_CONF_SEQ_FROMRT
+  tsch_packet_seqno = RTIMER_NOW();
+  if(tsch_packet_seqno == 0) {
+    tsch_packet_seqno++;
+  }
+#endif
+
   while(1) {
 
     while(!tsch_is_associated) {
