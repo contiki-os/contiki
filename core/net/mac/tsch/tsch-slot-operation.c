@@ -699,9 +699,10 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     log->tx.datalen = queuebuf_datalen(current_packet->qb);
     log->tx.drift = drift_correction;
     log->tx.drift_used = is_drift_correction_used;
-    log->tx.is_data = ((((uint8_t *)(queuebuf_dataptr(current_packet->qb)))[0]) & 7) == FRAME802154_DATAFRAME;
+    log->tx.is_data = ((((uint8_t *)(queuebuf_dataptr(current_packet->qb)))[0]) & 7);// == FRAME802154_DATAFRAME;
 #if LLSEC802154_ENABLED
     log->tx.sec_level = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL);
+    log->tx.sec_key   = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_KEY_INDEX);
 #else /* LLSEC802154_ENABLED */
     log->tx.sec_level = 0;
 #endif /* LLSEC802154_ENABLED */
@@ -904,9 +905,16 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               log->rx.datalen = current_input->len;
               log->rx.drift = drift_correction;
               log->rx.drift_used = is_drift_correction_used;
-              log->rx.is_data = frame.fcf.frame_type == FRAME802154_DATAFRAME;
-              log->rx.sec_level = frame.aux_hdr.security_control.security_level;
+              log->rx.is_data = frame.fcf.frame_type;// == FRAME802154_DATAFRAME;
               log->rx.estimated_drift = estimated_drift;
+              if (frame.fcf.security_enabled){
+              log->rx.sec_level = frame.aux_hdr.security_control.security_level;
+              log->tx.sec_key   = frame.aux_hdr.key_index;
+              }
+              else {
+                  log->rx.sec_level = 0;
+                  log->rx.sec_key   = 0;
+              }
             );
           }
 
