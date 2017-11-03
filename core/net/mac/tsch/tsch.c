@@ -888,6 +888,10 @@ send_packet(mac_callback_t sent, void *ptr)
     if(++tsch_packet_seqno == 0) {
       tsch_packet_seqno++;
     }
+    else if (tsch_packet_seqno == 0xffff){
+        // value 0xffff special supressed case
+        tsch_packet_seqno++;
+    }
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
   } else {
