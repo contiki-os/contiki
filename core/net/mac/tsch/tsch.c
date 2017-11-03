@@ -628,6 +628,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
  */
 PT_THREAD(tsch_scan(struct pt *pt))
 {
+    if (tsch_status < tschACTIVE){
+        ANNOTATE("TSCH:scan abort\n");
+        PT_EXIT(pt);
+    }
+
   PT_BEGIN(pt);
 
   static struct input_packet input_eb;
