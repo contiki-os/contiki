@@ -193,7 +193,6 @@ rfc_CMD_FS_t smartrf_settings_cmd_fs =
   .__dummy3 = 0x0000,
 };
 /*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
 /* CMD_PROP_TX_ADV */
 rfc_CMD_PROP_TX_ADV_t smartrf_settings_cmd_prop_tx_adv =
 {
@@ -273,3 +272,4 @@ rfc_CMD_PROP_RX_ADV_t smartrf_settings_cmd_prop_rx_adv =
   .pQueue = 0,
   .pOutput = 0,
 };
+/*---------------------------------------------------------------------------*/
