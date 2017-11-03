@@ -627,7 +627,10 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 #if LLSEC802154_ENABLED
                 if(ack_len != 0) {
                   if(!tsch_security_parse_frame(ackbuf, ack_hdrlen, ack_len - ack_hdrlen - tsch_security_mic_len(&frame),
-                      &frame, &current_neighbor->addr, &tsch_current_asn)) {
+                      &frame
+                      , queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER)
+                      , &tsch_current_asn))
+                  {
                     TSCH_LOG_ADD(tsch_log_message,
                         snprintf(log->message, sizeof(log->message),
                         "!failed to authenticate ACK"));
