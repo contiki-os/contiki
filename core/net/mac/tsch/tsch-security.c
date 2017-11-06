@@ -78,7 +78,7 @@ tsch_security_init_nonce(uint8_t *nonce,
 #if LINKADDR_SIZE < 8
   memset(nonce, 0, 8);
 #endif
-  memcpy(nonce, sender, 8);
+  memcpy(nonce, sender, LINKADDR_SIZE);
   nonce[8] = asn->ms1b;
   nonce[9] = (asn->ls4b >> 24) & 0xff;
   nonce[10] = (asn->ls4b >> 16) & 0xff;
