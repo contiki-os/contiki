@@ -54,6 +54,8 @@
 #error LLSEC802154_ENABLED set but LLSEC802154_USES_EXPLICIT_KEYS unset
 #endif /* LLSEC802154_ENABLED */
 #if LLSEC802154_ENABLED && LLSEC802154_USES_FRAME_COUNTER
+// TSCH does no need anti-reply supression, since it the ASN rather than frame
+//      counter to construct the Nonce
 #error LLSEC802154_ENABLED set but LLSEC802154_USES_FRAME_COUNTER set
 #endif /* LLSEC802154_ENABLED */
 
@@ -123,6 +125,7 @@ typedef uint8_t aes_key[16];
  * \return The length of MIC (>= 0)
  */
 unsigned int tsch_security_mic_len(const frame802154_t *frame);
+unsigned int tsch_seclevel_mic_len(unsigned level);
 
 /**
  * \brief Protect a frame with encryption and/or MIC
@@ -131,6 +134,11 @@ unsigned int tsch_security_mic_len(const frame802154_t *frame);
 unsigned int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                                         int hdrlen, int datalen,
                                         struct tsch_asn_t *asn);
+
+unsigned int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf,
+                                        int hdrlen, int datalen
+                                        , uint8_t keyid, int8_t sec_level
+                                        , struct tsch_asn_t *asn);
 
 /**
  * \brief Parse and check a frame protected with encryption and/or MIC

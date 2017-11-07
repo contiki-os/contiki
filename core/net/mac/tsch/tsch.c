@@ -934,7 +934,8 @@ send_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 #endif
 
-  if((hdr_len = NETSTACK_FRAMER.create()) < 0) {
+  hdr_len = NETSTACK_FRAMER.create();
+  if(hdr_len < 0) {
     PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   } else {

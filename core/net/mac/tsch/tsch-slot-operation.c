@@ -530,9 +530,12 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         if (seclvl > 0){
         /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
          * the original untouched. This is to allow for future retransmissions. */
-        int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
-        packet_len += tsch_security_secure_frame(packet, with_encryption ? encrypted_packet : packet, current_packet->header_len,
-            packet_len - current_packet->header_len, &tsch_current_asn);
+        char with_encryption = seclvl & 0x4;
+        packet_len += tsch_security_secure_packet(packet, with_encryption ? encrypted_packet : packet
+                      , current_packet->header_len
+                      , packet_len - current_packet->header_len
+                      , queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_KEY_INDEX), seclvl
+                      , &tsch_current_asn);
         if(with_encryption) {
           packet = encrypted_packet;
         }
@@ -814,10 +817,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #if LLSEC802154_ENABLED
         /* Decrypt and verify incoming frame */
         if(frame_valid) {
+          int data_len = current_input->len - tsch_security_mic_len(&frame);
           if(tsch_security_parse_frame(
-               current_input->payload, header_len, current_input->len - header_len - tsch_security_mic_len(&frame),
-               &frame, &source_address, &tsch_current_asn)) {
-            current_input->len -= tsch_security_mic_len(&frame);
+               current_input->payload, header_len
+               , data_len - header_len,
+               &frame, &source_address, &tsch_current_asn))
+          {
+            current_input->len = data_len;
           } else {
             TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
@@ -862,13 +868,16 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
               /* Build ACK frame */
               ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
-                  &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
+                  &source_address, &frame, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
 
               if(ack_len > 0) {
 #if LLSEC802154_ENABLED
                 if(frame.fcf.security_enabled) {
                   /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
-                  ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
+                  //ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
+                  ack_len += tsch_security_secure_packet(ack_buf, ack_buf, ack_len, 0
+                                              ,frame.aux_hdr.key_index, frame.aux_hdr.security_control.security_level
+                                              ,&tsch_current_asn);
                 }
 #endif /* LLSEC802154_ENABLED */
 

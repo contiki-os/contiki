@@ -129,11 +129,16 @@ unsigned int
 tsch_security_mic_len(const frame802154_t *frame)
 {
   if(frame != NULL && frame->fcf.security_enabled) {
-    return 2 << (frame->aux_hdr.security_control.security_level & 0x03);
+    return tsch_seclevel_mic_len(frame->aux_hdr.security_control.security_level);
   } else {
     return 0;
   }
 }
+
+unsigned int tsch_seclevel_mic_len(unsigned level){
+    return 2 << (level & 0x03);
+}
+
 /*---------------------------------------------------------------------------*/
 unsigned int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
@@ -142,12 +147,6 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   frame802154_t frame;
   uint8_t key_index = 0;
   uint8_t security_level = 0;
-  uint8_t with_encryption;
-  uint8_t mic_len;
-  uint8_t nonce[16];
-
-  uint8_t a_len;
-  uint8_t m_len;
 
   if(hdr == NULL || outbuf == NULL || hdrlen < 0 || datalen < 0) {
     return 0;
@@ -166,8 +165,24 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   /* Read security key index */
   key_index = frame.aux_hdr.key_index;
   security_level = frame.aux_hdr.security_control.security_level;
+  return tsch_security_secure_packet(hdr, outbuf, hdrlen, datalen
+                    , key_index, security_level, asn);
+}
+
+unsigned int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
+                        ,int hdrlen, int datalen
+                        , uint8_t key_index, int8_t security_level
+                        , struct tsch_asn_t *asn)
+{
+    uint8_t with_encryption;
+    uint8_t mic_len;
+    uint8_t nonce[16];
+
+    uint8_t a_len;
+    uint8_t m_len;
+
   with_encryption = (security_level & 0x4) ? 1 : 0;
-  mic_len = tsch_security_mic_len(&frame);
+  mic_len = tsch_seclevel_mic_len(security_level);
 
   if(key_index == 0 || key_index > N_KEYS) {
     return 0;
