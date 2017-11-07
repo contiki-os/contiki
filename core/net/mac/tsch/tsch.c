@@ -358,6 +358,19 @@ tsch_rx_process_pending()
       packetbuf_copyfrom(current_input->payload, current_input->len);
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, current_input->rssi);
       packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, current_input->channel);
+#if LLSEC802154_USES_AUX_HEADER
+      // this for app can check wich security of received frame was used
+      if (frame.fcf.security_enabled){
+          packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL
+                             , frame.aux_hdr.security_control.security_level );
+#if LLSEC802154_USES_EXPLICIT_KEYS
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE
+                             , frame.aux_hdr.security_control.key_id_mode );
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX
+                             , frame.aux_hdr.key_index );
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+      }//if (frame.fcf.security_enabled)
+#endif
     }
 
     /* Remove input from ringbuf */
