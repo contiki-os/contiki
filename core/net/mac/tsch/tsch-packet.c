@@ -102,7 +102,13 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     p.aux_hdr.security_control.key_id_mode = FRAME802154_1_BYTE_KEY_ID_MODE;
     p.aux_hdr.security_control.frame_counter_suppression = 1;
     p.aux_hdr.security_control.frame_counter_size = 1;
+#if (TSCH_SECURITY_STRICT & TSCH_SECURITY_RELAX_KEYID)
+    // when declared that net keyid free for user specify, use same keyid for ack
+    // as source packet
+    p.aux_hdr.key_index = frame->aux_hdr.key_index;
+#else
     p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+#endif
   }
 #endif /* LLSEC802154_ENABLED */
 

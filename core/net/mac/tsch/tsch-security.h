@@ -115,6 +115,25 @@
 #define TSCH_SECURITY_KEY_SEC_LEVEL_OTHER 5 /* Encryption + MIC-32, as per 6TiSCH minimal */
 #endif
 
+//   Strictness of net security:
+//<  need that secured PAN use only secured packets
+#define TSCH_SECURITY_STRICT_PAN_SECURED    0
+//<  allow unsecured packets in secured PAN/secured packets in unsecured PAN
+#define TSCH_SECURITY_RELAX_PAN_SECURED     1
+//<  by default keyid used according to frame type:
+//          EB - TSCH_SECURITY_KEY_INDEX_EB
+//          ACK - TSCH_SECURITY_KEY_INDEX_ACK
+//          .. and so on
+#define TSCH_SECURITY_STRICT_KEYID_BYTYPE   0
+//<  allow use any key_id for secured frames, regards frame-type
+#define TSCH_SECURITY_RELAX_KEYID           2
+/* Security level for Other (Data, Cmd) */
+#ifdef TSCH_SECURITY_CONF_STRICT
+#define TSCH_SECURITY_STRICT TSCH_SECURITY_CONF_STRICT
+#else
+#define TSCH_SECURITY_STRICT TSCH_SECURITY_STRICT_PAN_SECURED
+#endif
+
 /************ Types ***********/
 
 typedef uint8_t aes_key[16];

@@ -100,10 +100,12 @@ tsch_security_check_level(const frame802154_t *frame)
     return !(tsch_is_associated == 1 && tsch_is_pan_secured == 1);
   }
 
+#if !(TSCH_SECURITY_STRICT & TSCH_SECURITY_RELAX_PAN_SECURED)
   /* The frame is secured, that we are not in an unsecured PAN */
   if(tsch_is_associated == 1 && tsch_is_pan_secured == 0) {
     return 0;
   }
+#endif
 
   /* The frame is secured, check its security level */
   switch(frame->fcf.frame_type) {
