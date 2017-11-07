@@ -65,14 +65,20 @@ struct event_data {
   struct process *p;
 };
 
-static process_num_events_t nevents, fevent;
-static struct event_data events[PROCESS_CONF_NUMEVENTS];
-
-#if PROCESS_CONF_STATS
+#if !PROCESS_CONF_STATS
+#define STATIC_OPEN static
+#else
+#define STATIC_OPEN
 process_num_events_t process_maxevents;
 #endif
 
-static volatile unsigned char poll_requested;
+STATIC_OPEN
+process_num_events_t nevents, fevent;
+STATIC_OPEN
+struct event_data events[PROCESS_CONF_NUMEVENTS];
+
+STATIC_OPEN
+volatile unsigned char poll_requested;
 
 #define PROCESS_STATE_NONE        0
 #define PROCESS_STATE_RUNNING     1
