@@ -60,6 +60,7 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/net-debug.h"
 
+#ifndef TSCH_SEC_KEY
 /* The two keys K1 and K2 from 6TiSCH minimal configuration
  * K1: well-known, used for EBs
  * K2: secret, used for data and ACK
@@ -69,7 +70,17 @@ static aes_key keys[] = {
   TSCH_SECURITY_K2
 };
 #define N_KEYS (sizeof(keys) / sizeof(aes_key))
-
+uint8_t* tsch_sec_key(uint8_t key_index){
+    if(key_index == 0 || key_index > N_KEYS) {
+      return NULL;
+    }
+    return keys[key_index - 1];
+}
+#define TSCH_SEC_KEY(key_idx, addr) tsch_sec_key(key_idx)
+#define TSCH_SEC_USER_KEYS 0
+#else
+#define TSCH_SEC_USER_KEYS (TSCH_SECURITY_RELAX_KEYID & TSCH_SECURITY_STRICT)
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 tsch_security_init_nonce(uint8_t *nonce,
@@ -122,9 +133,11 @@ tsch_security_check_level(const frame802154_t *frame)
       required_key_index = TSCH_SECURITY_KEY_INDEX_OTHER;
       break;
   }
-  return ((frame->aux_hdr.security_control.security_level ==
-           required_security_level) &&
-          frame->aux_hdr.key_index == required_key_index);
+  return ((frame->aux_hdr.security_control.security_level == required_security_level)
+#if !TSCH_SEC_USER_KEYS
+          && frame->aux_hdr.key_index == required_key_index
+#endif
+          );
 }
 /*---------------------------------------------------------------------------*/
 unsigned int
@@ -144,7 +157,8 @@ unsigned int tsch_seclevel_mic_len(unsigned level){
 /*---------------------------------------------------------------------------*/
 int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
-                           int hdrlen, int datalen, struct tsch_asn_t *asn)
+                           int hdrlen, int datalen,
+                           const linkaddr_t *receiver, struct tsch_asn_t *asn)
 {
   frame802154_t frame;
   uint8_t key_index = 0;
@@ -168,13 +182,13 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   key_index = frame.aux_hdr.key_index;
   security_level = frame.aux_hdr.security_control.security_level;
   return tsch_security_secure_packet(hdr, outbuf, hdrlen, datalen
-                    , key_index, security_level, asn);
+                    , key_index, security_level, receiver, asn);
 }
 
 int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
                         ,int hdrlen, int datalen
                         , uint8_t key_index, int8_t security_level
-                        , struct tsch_asn_t *asn)
+                        , const linkaddr_t *receiver, struct tsch_asn_t *asn)
 {
     uint8_t with_encryption;
     uint8_t mic_len;
@@ -186,7 +200,8 @@ int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
   with_encryption = (security_level & 0x4) ? 1 : 0;
   mic_len = tsch_seclevel_mic_len(security_level);
 
-  if(key_index == 0 || key_index > N_KEYS) {
+  uint8_t* key = TSCH_SEC_KEY(key_index, receiver);
+  if(key == NULL) {
     return tschERR_NOKEY;
   }
 
@@ -205,7 +220,7 @@ int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
     memcpy(outbuf, hdr, a_len + m_len);
   }
 
-  CCM_STAR.set_key(keys[key_index - 1]);
+  CCM_STAR.set_key(key);
 
   CCM_STAR.aead(nonce,
                 outbuf + a_len, m_len,
@@ -248,8 +263,8 @@ tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
   with_encryption = (security_level & 0x4) ? 1 : 0;
   mic_len = tsch_security_mic_len(frame);
 
-  /* Check if key_index is in supported range */
-  if(key_index == 0 || key_index > N_KEYS) {
+  uint8_t* key = TSCH_SEC_KEY(key_index, sender);
+  if(key == NULL) {
     return 0;
   }
 
@@ -263,7 +278,7 @@ tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
     m_len = 0;
   }
 
-  CCM_STAR.set_key(keys[key_index - 1]);
+  CCM_STAR.set_key(key);
 
   CCM_STAR.aead(nonce,
                 (uint8_t *)hdr + a_len, m_len,

@@ -134,6 +134,9 @@
 #define TSCH_SECURITY_STRICT TSCH_SECURITY_STRICT_PAN_SECURED
 #endif
 
+// uint8_t* TSCH_SEC_KEY(uint8_t key_index, const linkaddr_t *addr)
+//#define TSCH_SEC_KEY(key_index, addr)
+
 /************ Types ***********/
 
 typedef uint8_t aes_key[16];
@@ -161,12 +164,12 @@ enum {
 };
 int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                                         int hdrlen, int datalen,
-                                        struct tsch_asn_t *asn);
+            const linkaddr_t *receiver, struct tsch_asn_t *asn);
 
 int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf,
                                         int hdrlen, int datalen
                                         , uint8_t keyid, int8_t sec_level
-                                        , struct tsch_asn_t *asn);
+            , const linkaddr_t *receiver, struct tsch_asn_t *asn);
 
 /**
  * \brief Parse and check a frame protected with encryption and/or MIC

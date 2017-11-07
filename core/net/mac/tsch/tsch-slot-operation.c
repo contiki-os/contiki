@@ -535,6 +535,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                       , current_packet->header_len
                       , packet_len - current_packet->header_len
                       , queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_KEY_INDEX), seclvl
+                      , queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER)
                       , &tsch_current_asn);
         if (len >= 0) {
             packet_len += len;
@@ -891,8 +892,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                   /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
                   //ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
                     int len = tsch_security_secure_packet(ack_buf, ack_buf, ack_len, 0
-                                              ,frame.aux_hdr.key_index, frame.aux_hdr.security_control.security_level
-                                              ,&tsch_current_asn);
+                                  , frame.aux_hdr.key_index
+                                  , frame.aux_hdr.security_control.security_level
+                                  , &source_address, &tsch_current_asn);
                     if (len >= 0){
                         ack_len += len;
                     }
