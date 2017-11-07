@@ -75,6 +75,17 @@
 /* The approximate number of slots per second */
 #define TSCH_SLOTS_PER_SECOND (1000000 / TSCH_DEFAULT_TS_TIMESLOT_LENGTH)
 
+/* Base drift value.
+ * Used to compensate locally know inaccuracies, such as
+ * the effect of having a binary 32.768 kHz timer as the TSCH time base. */
+#ifdef TSCH_CONF_DRIFT_SYNC_ESTIMATE
+#define TSCH_DRIFT_SYNC_ESTIMATE TSCH_CONF_DRIFT_SYNC_ESTIMATE
+#else
+#define TSCH_DRIFT_SYNC_ESTIMATE 0
+#endif
+
+// a handle for last_drift_ppm correction. invoke on learning in tsch_timesync_update
+//#define TSCH_TIMESYNC_ON_DRIFT(last_drift_ppm, time_delta_asn, drift_ticks) last_drift_ppm
 /***** External Variables *****/
 
 /* The neighbor last used as our time source */
@@ -85,5 +96,11 @@ extern struct tsch_neighbor *last_timesource_neighbor;
 void tsch_timesync_update(struct tsch_neighbor *n, uint16_t time_delta_asn, int32_t drift_correction);
 
 int32_t tsch_timesync_adaptive_compensate(rtimer_clock_t delta_ticks);
+
+#if TSCH_DRIFT_SYNC_ESTIMATE
+// estimates maximum time for keep in sync, update must be turn around in this time
+// \return timeout [ASN]
+int tsch_timesync_estimate_sync_timeout();
+#endif
 
 #endif /* __TSCH_ADAPTIVE_TIMESYNC_H__ */

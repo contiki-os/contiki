@@ -88,6 +88,49 @@ timesync_entry_add(int32_t val, uint32_t time_delta)
   return val / timesync_entry_count;
 }
 /*---------------------------------------------------------------------------*/
+#if TSCH_DRIFT_SYNC_ESTIMATE
+
+#define DRIFT_AVG2  2
+#define TSCH_DRIFT_AVG_UNIT (256L)
+static
+uint32_t drift_accu = 0;
+
+static inline
+uint32_t drift1t_avg() {return drift_accu>>DRIFT_AVG2;};
+
+void drift1t_reset(){
+    drift_accu = 0;
+}
+
+void    drift1t_append(uint32_t error_time, uint32_t time_delta_asn) {
+    TSCH_LOGF("drift %ld/256 [asn/tick]\n", error_time);
+    uint32_t avg_time = drift1t_avg();
+    if ((avg_time > 0) && (avg_time < error_time)) {
+        drift_accu -= avg_time;
+        drift_accu += error_time;
+    }
+    else {
+        //on error_time lower then avg, just force avg to lowest value
+        drift_accu = error_time << DRIFT_AVG2;
+    }
+}
+
+// estimates maximum time for keep in sync, update must be turn around in this time
+// \return timeout [ASN]
+int tsch_timesync_estimate_sync_timeout(){
+    uint32_t error_limit_ticks = tsch_timing[tsch_ts_rx_wait]/2;
+    //* take a safety gap for error limit estimate
+    error_limit_ticks -= error_limit_ticks/4;
+    if (timesync_entry_count < NUM_TIMESYNC_ENTRIES)
+        error_limit_ticks = error_limit_ticks / 4;
+    return (drift1t_avg()*error_limit_ticks)/TSCH_DRIFT_AVG_UNIT;
+}
+#else
+#define drift1t_append(x) (void)x
+#define drift1t_reset()
+#endif //TSCH_DRIFT_SYNC_ESTIMATE
+
+/*---------------------------------------------------------------------------*/
 /* Learn the neighbor drift rate at ppm */
 static void
 timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
@@ -96,6 +139,18 @@ timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
   int32_t time_delta_ticks = time_delta_asn * tsch_timing[tsch_ts_timeslot_length];
   int32_t real_drift_ticks = drift_ticks + compensated_ticks;
   int32_t last_drift_ppm = (int32_t)((int64_t)real_drift_ticks * TSCH_DRIFT_UNIT / time_delta_ticks);
+
+#if TSCH_DRIFT_SYNC_ESTIMATE
+  if(drift_ticks != 0){
+      if (drift_ticks < 0)
+          drift_ticks = -drift_ticks;
+      uint32_t ppt = ((time_delta_asn * TSCH_DRIFT_AVG_UNIT) / ((uint32_t)drift_ticks));
+      drift1t_append(ppt, time_delta_asn);
+  }
+#endif
+#ifdef TSCH_TIMESYNC_ON_DRIFT
+  last_drift_ppm = TSCH_TIMESYNC_ON_DRIFT(last_drift_ppm, time_delta_asn, drift_ticks);
+#endif
 
   drift_ppm = timesync_entry_add(last_drift_ppm, time_delta_ticks);
 
@@ -117,6 +172,7 @@ tsch_timesync_update(struct tsch_neighbor *n, uint16_t time_delta_asn, int32_t d
     timesync_entry_count = 0;
     compensated_ticks = 0;
     asn_since_last_learning = 0;
+    drift1t_reset();
   } else {
     asn_since_last_learning += time_delta_asn;
     if(asn_since_last_learning >= 4 * TSCH_SLOTS_PER_SECOND) {

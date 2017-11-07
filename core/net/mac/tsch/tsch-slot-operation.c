@@ -932,6 +932,10 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
   PT_END(pt);
 }
 /*---------------------------------------------------------------------------*/
+#ifndef TSCH_DESYNC_THRESHOLD_SLOTS
+#define TSCH_DESYNC_THRESHOLD_SLOTS() (100 * TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD / 100, tsch_timing[tsch_ts_timeslot_length]))
+#endif
+
 /* Protothread for slot operation, called from rtimer interrupt
  * and scheduled from tsch_schedule_slot_operation */
 static
@@ -998,8 +1002,10 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
     /* End of slot operation, schedule next slot or resynchronize */
 
     /* Do we need to resynchronize? i.e., wait for EB again */
-    if(!tsch_is_coordinator && (TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn) >
-        (100 * TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD / 100, tsch_timing[tsch_ts_timeslot_length])))) {
+    if(!tsch_is_coordinator
+       && (TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn) >  TSCH_DESYNC_THRESHOLD_SLOTS())
+       )
+    {
       TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
                 "! leaving the network, last sync %u",
