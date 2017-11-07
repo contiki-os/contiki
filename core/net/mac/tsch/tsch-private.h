@@ -81,6 +81,7 @@ extern const linkaddr_t tsch_broadcast_address;
 extern const linkaddr_t tsch_eb_address;
 /* The current Absolute Slot Number (ASN) */
 extern struct tsch_asn_t tsch_current_asn;
+extern struct tsch_asn_t tsch_last_sync_asn;
 extern uint8_t tsch_join_priority;
 extern struct tsch_link *current_link;
 /* TSCH channel hopping sequence */
@@ -95,11 +96,6 @@ PROCESS_NAME(tsch_send_eb_process);
 PROCESS_NAME(tsch_pending_events_process);
 
 /********** Functions *********/
-
-/* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
-void tsch_schedule_keepalive(void);
-/* Leave the TSCH network */
-void tsch_disassociate(void);
 
 /************ Macros **********/
 

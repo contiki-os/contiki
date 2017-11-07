@@ -139,7 +139,7 @@ struct ringbufindex input_ringbuf;
 struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
 /* Last time we received Sync-IE (ACK or data packet from a time source) */
-static struct tsch_asn_t last_sync_asn;
+struct tsch_asn_t tsch_last_sync_asn;
 
 /* A global lock for manipulating data structures safely from outside of interrupt */
 static volatile int tsch_locked = 0;
@@ -644,7 +644,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               if(ack_len != 0) {
                 if(is_time_source) {
                   int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
-                  int32_t since_last_timesync = TSCH_ASN_DIFF(tsch_current_asn, last_sync_asn);
+                  int32_t since_last_timesync = TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn);
                   if(eack_time_correction > SYNC_IE_BOUND) {
                     drift_correction = SYNC_IE_BOUND;
                   } else if(eack_time_correction < -SYNC_IE_BOUND) {
@@ -661,7 +661,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                   is_drift_correction_used = 1;
                   tsch_timesync_update(current_neighbor, since_last_timesync, drift_correction);
                   /* Keep track of sync time */
-                  last_sync_asn = tsch_current_asn;
+                  tsch_last_sync_asn = tsch_current_asn;
                   tsch_schedule_keepalive();
                 }
                 mac_tx_status = MAC_TX_OK;
@@ -884,9 +884,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             /* If the sender is a time source, proceed to clock drift compensation */
             n = tsch_queue_get_nbr(&source_address);
             if(n != NULL && n->is_time_source) {
-              int32_t since_last_timesync = TSCH_ASN_DIFF(tsch_current_asn, last_sync_asn);
+              int32_t since_last_timesync = TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn);
               /* Keep track of last sync time */
-              last_sync_asn = tsch_current_asn;
+              tsch_last_sync_asn = tsch_current_asn;
               /* Save estimated drift */
               drift_correction = -estimated_drift;
               is_drift_correction_used = 1;
@@ -998,12 +998,12 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
     /* End of slot operation, schedule next slot or resynchronize */
 
     /* Do we need to resynchronize? i.e., wait for EB again */
-    if(!tsch_is_coordinator && (TSCH_ASN_DIFF(tsch_current_asn, last_sync_asn) >
+    if(!tsch_is_coordinator && (TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn) >
         (100 * TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD / 100, tsch_timing[tsch_ts_timeslot_length])))) {
       TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
                 "! leaving the network, last sync %u",
-                          (unsigned)TSCH_ASN_DIFF(tsch_current_asn, last_sync_asn));
+                          (unsigned)TSCH_ASN_DIFF(tsch_current_asn, tsch_last_sync_asn));
       );
       last_timesource_neighbor = NULL;
       tsch_disassociate();
@@ -1086,7 +1086,7 @@ tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
 {
   current_slot_start = next_slot_start;
   tsch_current_asn = *next_slot_asn;
-  last_sync_asn = tsch_current_asn;
+  tsch_last_sync_asn = tsch_current_asn;
   current_link = NULL;
 }
 /*---------------------------------------------------------------------------*/
