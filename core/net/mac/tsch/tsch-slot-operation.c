@@ -531,13 +531,22 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
          * the original untouched. This is to allow for future retransmissions. */
         char with_encryption = seclvl & 0x4;
-        packet_len += tsch_security_secure_packet(packet, with_encryption ? encrypted_packet : packet
+        int len =  tsch_security_secure_packet(packet, with_encryption ? encrypted_packet : packet
                       , current_packet->header_len
                       , packet_len - current_packet->header_len
                       , queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_KEY_INDEX), seclvl
                       , &tsch_current_asn);
+        if (len >= 0) {
+            packet_len += len;
         if(with_encryption) {
           packet = encrypted_packet;
+        }
+        }
+        else{
+            packet_ready = 0;
+            mac_tx_status = MAC_TX_ERR_SEC;
+            //abort packet
+            current_packet->transmissions = TSCH_MAC_MAX_FRAME_RETRIES;
         }
         }//if (seclvl > 0)
       }
@@ -609,6 +618,10 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
                                  ack_start_time, tsch_timing[tsch_ts_max_ack]);
+              ack_len = 0;
+              if (NETSTACK_RADIO.receiving_packet()){
+                  ack_len = -1;
+              }
               TSCH_DEBUG_TX_EVENT();
               tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
@@ -681,7 +694,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
             mac_tx_status = MAC_TX_ERR;
           }
         }
-      }
+      }//if(packet_ready
     }
 
     tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
@@ -817,6 +830,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #if LLSEC802154_ENABLED
         /* Decrypt and verify incoming frame */
         if(frame_valid) {
+          if (frame.fcf.security_enabled){
           int data_len = current_input->len - tsch_security_mic_len(&frame);
           if(tsch_security_parse_frame(
                current_input->payload, header_len
@@ -830,6 +844,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                 "!failed to authenticate frame %u", current_input->len));
             frame_valid = 0;
           }
+          }//if (frame.fcf.security_enabled)
         } else {
           TSCH_LOG_ADD(tsch_log_message,
               snprintf(log->message, sizeof(log->message),
@@ -870,17 +885,24 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
                   &source_address, &frame, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
 
-              if(ack_len > 0) {
 #if LLSEC802154_ENABLED
+              if(ack_len > 0) {
                 if(frame.fcf.security_enabled) {
                   /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
                   //ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
-                  ack_len += tsch_security_secure_packet(ack_buf, ack_buf, ack_len, 0
+                    int len = tsch_security_secure_packet(ack_buf, ack_buf, ack_len, 0
                                               ,frame.aux_hdr.key_index, frame.aux_hdr.security_control.security_level
                                               ,&tsch_current_asn);
+                    if (len >= 0){
+                        ack_len += len;
+                    }
+                    else
+                        ack_len = 0;
+                }
                 }
 #endif /* LLSEC802154_ENABLED */
 
+              if(ack_len > 0) {
                 /* Copy to radio buffer */
                 NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 

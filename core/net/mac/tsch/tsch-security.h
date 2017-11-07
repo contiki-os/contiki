@@ -131,11 +131,20 @@ unsigned int tsch_seclevel_mic_len(unsigned level);
  * \brief Protect a frame with encryption and/or MIC
  * \return The length of a generated MIC (>= 0)
  */
-unsigned int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
+enum {
+      tschERR           = -1
+    //< no sequred
+    , tschERR_UNSECURED = -1
+    //< no required key found
+    , tschERR_NOKEY     = -2
+    //< no required key found
+    , tschERR_BADARG    = -3
+};
+int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                                         int hdrlen, int datalen,
                                         struct tsch_asn_t *asn);
 
-unsigned int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf,
+int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf,
                                         int hdrlen, int datalen
                                         , uint8_t keyid, int8_t sec_level
                                         , struct tsch_asn_t *asn);

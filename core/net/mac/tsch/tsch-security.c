@@ -140,7 +140,7 @@ unsigned int tsch_seclevel_mic_len(unsigned level){
 }
 
 /*---------------------------------------------------------------------------*/
-unsigned int
+int
 tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                            int hdrlen, int datalen, struct tsch_asn_t *asn)
 {
@@ -149,17 +149,17 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   uint8_t security_level = 0;
 
   if(hdr == NULL || outbuf == NULL || hdrlen < 0 || datalen < 0) {
-    return 0;
+    return tschERR_BADARG;
   }
 
   /* Parse the frame header to extract security settings */
   if(frame802154_parse(hdr, hdrlen + datalen, &frame) < 3) {
-    return 0;
+    return tschERR_UNSECURED;
   }
 
   if(!frame.fcf.security_enabled) {
     /* Security is not enabled for this frame, we're done */
-    return 0;
+    return tschERR_UNSECURED;
   }
 
   /* Read security key index */
@@ -169,7 +169,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
                     , key_index, security_level, asn);
 }
 
-unsigned int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
+int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
                         ,int hdrlen, int datalen
                         , uint8_t key_index, int8_t security_level
                         , struct tsch_asn_t *asn)
@@ -185,7 +185,7 @@ unsigned int tsch_security_secure_packet(uint8_t *hdr, uint8_t *outbuf
   mic_len = tsch_seclevel_mic_len(security_level);
 
   if(key_index == 0 || key_index > N_KEYS) {
-    return 0;
+    return tschERR_NOKEY;
   }
 
   tsch_security_init_nonce(nonce, &linkaddr_node_addr, asn);
