@@ -525,7 +525,9 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       }
 
 #if LLSEC802154_ENABLED
-      if(tsch_is_pan_secured) {
+      {
+        int seclvl = (char)queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL);
+        if (seclvl > 0){
         /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
          * the original untouched. This is to allow for future retransmissions. */
         int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
@@ -534,6 +536,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         if(with_encryption) {
           packet = encrypted_packet;
         }
+        }//if (seclvl > 0)
       }
 #endif /* LLSEC802154_ENABLED */
 
@@ -863,7 +866,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
               if(ack_len > 0) {
 #if LLSEC802154_ENABLED
-                if(tsch_is_pan_secured) {
+                if(frame.fcf.security_enabled) {
                   /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
                   ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &tsch_current_asn);
                 }

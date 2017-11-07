@@ -95,7 +95,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
 #endif
 #if LLSEC802154_ENABLED
-  if(tsch_is_pan_secured) {
+  if(frame->fcf.security_enabled) {
     p.fcf.security_enabled = 1;
     p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
     p.aux_hdr.security_control.key_id_mode = FRAME802154_1_BYTE_KEY_ID_MODE;

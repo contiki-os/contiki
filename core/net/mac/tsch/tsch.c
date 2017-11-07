@@ -915,9 +915,11 @@ send_packet(mac_callback_t sent, void *ptr)
 #if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
     /* Set security level, key id and index */
+    if (packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) == 0) {
     packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
+  }
   }
 #endif /* LLSEC802154_ENABLED */
 
