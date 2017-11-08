@@ -37,8 +37,8 @@
 
 #include "contiki.h"
 #include "lib/ringbufindex.h"
-#include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-private.h"
+#include "net/mac/tsch/tsch-packet.h"
 
 /******** Configuration *******/
 
@@ -91,6 +91,10 @@ struct input_packet {
   int len; /* Packet len */
   int16_t rssi; /* RSSI for this packet */
   uint8_t channel; /* Channel we received the packet on */
+#if TSCH_WITH_LINK_SELECTOR
+  tsch_sf_h     slotframe;
+  uint16_t      timeslot;
+#endif
 };
 
 /***** External Variables *****/

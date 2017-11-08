@@ -796,6 +796,10 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         current_input->rx_asn = tsch_current_asn;
         current_input->rssi = (signed)radio_last_rssi;
         current_input->channel = current_channel;
+#if TSCH_WITH_LINK_SELECTOR
+        current_input->slotframe = current_link->slotframe_handle;
+        current_input->timeslot  = current_link->timeslot;
+#endif
         header_len = frame802154_parse((uint8_t *)current_input->payload, current_input->len, &frame);
         frame_valid = header_len > 0 &&
           frame802154_check_dest_panid(&frame) &&
