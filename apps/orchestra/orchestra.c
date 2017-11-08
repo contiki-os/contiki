@@ -110,7 +110,7 @@ orchestra_callback_packet_ready(void)
 {
   int i;
   /* By default, use any slotframe, any timeslot */
-  uint16_t slotframe = 9;
+  uint16_t slotframe = 0xffff;
   uint16_t timeslot = 0xffff;
 
   /* Loop over all rules until finding one able to handle the packet */
