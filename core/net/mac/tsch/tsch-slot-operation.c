@@ -796,7 +796,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         current_input->rx_asn = tsch_current_asn;
         current_input->rssi = (signed)radio_last_rssi;
         current_input->channel = current_channel;
-#if TSCH_WITH_LINK_SELECTOR
+#if TSCH_WITH_LINK_SELECTOR > 1
         current_input->slotframe = current_link->slotframe_handle;
         current_input->timeslot  = current_link->timeslot;
 #endif

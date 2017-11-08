@@ -91,8 +91,8 @@ struct input_packet {
   int len; /* Packet len */
   int16_t rssi; /* RSSI for this packet */
   uint8_t channel; /* Channel we received the packet on */
-#if TSCH_WITH_LINK_SELECTOR
-  tsch_sf_h     slotframe;
+#if TSCH_WITH_LINK_SELECTOR > 1
+  uint16_t      slotframe;
   uint16_t      timeslot;
 #endif
 };
