@@ -427,42 +427,38 @@ tsch_disassociate(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-/* Attempt to associate to a network form an incoming EB */
-static int
-tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
+// Parse EB and extract ASN and join priority, and validate EB
+int tsch_packet_parse_my_eb(const struct input_packet *eb,
+    frame802154_t *frame, struct ieee802154_ies *ies
+    )
 {
-  frame802154_t frame;
-  struct ieee802154_ies ies;
   uint8_t hdrlen;
-  int i;
 
-  if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
-                                              &frame, &ies, &hdrlen, 0) == 0) {
-    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
-    return 0;
-  }
-
-  tsch_current_asn = ies.ie_asn;
-  tsch_join_priority = ies.ie_join_priority + 1;
+    if(tsch_packet_parse_eb(eb->payload, eb->len
+                            ,frame, ies, &hdrlen, 0) == 0)
+    {
+      PRINTF("TSCH:! failed to parse EB (len %u)\n", eb->len);
+      return 0;
+    }
 
 #if TSCH_JOIN_SECURED_ONLY
-  if(frame.fcf.security_enabled == 0) {
+  if(frame->fcf.security_enabled == 0) {
     PRINTF("TSCH:! parse_eb: EB is not secured\n");
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
   
 #if LLSEC802154_ENABLED
-  if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
-      input_eb->len - hdrlen - tsch_security_mic_len(&frame),
-      &frame, (linkaddr_t*)&frame.src_addr, &tsch_current_asn)) {
+  if(!tsch_security_parse_frame(eb->payload, hdrlen,
+      eb->len - hdrlen - tsch_security_mic_len(frame),
+      frame, (linkaddr_t*)frame->src_addr, &ies->ie_asn)) {
     PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
 #endif /* LLSEC802154_ENABLED */
 
 #if !LLSEC802154_ENABLED
-  if(frame.fcf.security_enabled == 1) {
+  if(frame->fcf.security_enabled == 1) {
     PRINTF("TSCH:! parse_eb: we do not support security, but EB is secured\n");
     return 0;
   }
@@ -470,11 +466,31 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 
 #if TSCH_JOIN_MY_PANID_ONLY
   /* Check if the EB comes from the PAN ID we expect */
-  if(frame.src_pid != IEEE802154_PANID) {
+  if(frame->src_pid != IEEE802154_PANID) {
     PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
     return 0;
   }
 #endif /* TSCH_JOIN_MY_PANID_ONLY */
+
+  return 1;
+}
+
+/* Attempt to associate to a network form an incoming EB */
+static int
+tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
+{
+  frame802154_t frame;
+  struct ieee802154_ies ies;
+  int i;
+  (void)i;
+
+  if(tsch_packet_parse_my_eb(input_eb, &frame, &ies) == 0) {
+    PRINTF("TSCH:! failed to validate EB (len %u)\n", input_eb->len);
+    return 0;
+  }
+
+  tsch_current_asn = ies.ie_asn;
+  tsch_join_priority = ies.ie_join_priority + 1;
 
   /* There was no join priority (or 0xff) in the EB, do not join */
   if(ies.ie_join_priority == 0xff) {
@@ -596,6 +612,8 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 /* Processes and protothreads used by TSCH */
 
 /*---------------------------------------------------------------------------*/
+struct input_packet tsch_temp_packet;
+
 /* Scanning protothread, called by tsch_process:
  * Listen to different channels, and when receiving an EB,
  * attempt to associate.
@@ -604,7 +622,6 @@ PT_THREAD(tsch_scan(struct pt *pt))
 {
   PT_BEGIN(pt);
 
-  static struct input_packet input_eb;
   static struct etimer scan_timer;
   /* Time when we started scanning on current_channel */
   static clock_time_t current_channel_since;
@@ -647,16 +664,17 @@ PT_THREAD(tsch_scan(struct pt *pt))
     }
 
     if(is_packet_pending) {
+      struct input_packet* input_eb = &tsch_temp_packet;
       /* Read packet */
-      input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
+      input_eb->len = NETSTACK_RADIO.read(input_eb->payload, TSCH_PACKET_MAX_LEN);
 
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
       /* Parse EB and attempt to associate */
-      PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
+      PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb->len, current_channel);
 
-      tsch_associate(&input_eb, t0);
+      tsch_associate(input_eb, t0);
     }
 
     if(tsch_is_associated) {
