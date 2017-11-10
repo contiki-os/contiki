@@ -17,3 +17,6 @@
 [submodule "tools/sensniff"]
 	path = tools/sensniff
 	url = https://github.com/g-oikonomou/sensniff.git
+[submodule "platform/stm32nucleo-st7580/stm32cube-lib"]
+	path = platform/stm32nucleo-st7580/stm32cube-lib
+	url = https://github.com/STclab/stm32nucleo-st7580-lib.git
