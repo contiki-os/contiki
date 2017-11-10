@@ -431,7 +431,7 @@ get_tx_power(void)
  * The caller must make sure to send a new CMD_PROP_RADIO_DIV_SETUP to the
  * radio after calling this function.
  */
-static void
+static int
 set_tx_power(radio_value_t power)
 {
   int i;
@@ -443,11 +443,13 @@ set_tx_power(radio_value_t power)
        * CMD_PROP_RADIO_DIV_SETP, including one immediately after this function
        * has returned
        */
+      if (tx_power_current == &TX_POWER_DRIVER[i])
+          return (RADIO_RESULT_OK-1);
       tx_power_current = &TX_POWER_DRIVER[i];
-
-      return;
+      return RADIO_RESULT_OK;
     }
   }
+  return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -1271,8 +1273,12 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
-    set_tx_power(value);
-    return update_prop(&(prop_txpower));
+    rv = set_tx_power(value);
+    if ((int)rv < (int)RADIO_RESULT_OK)
+        return RADIO_RESULT_OK;
+    if (rv == RADIO_RESULT_OK)
+      return update_prop(&(prop_txpower));
+    return rv;
 
   case RADIO_PARAM_RX_MODE:
       if(value & ~(RADIO_RX_MODE_POLL_MODE)) {
