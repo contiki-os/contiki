@@ -70,14 +70,6 @@ static volatile uint8_t st7580_txbuf_has_data = 0;
 static uint8_t st7580_txbuf[MAX_PACKET_LEN];
 static int count = 0;
 
-#if NULLRDC_CONF_802154_AUTOACK
-#define ACK_LEN 3
-static int wants_an_ack = 0; /* The packet sent expects an ack */
-static int just_got_an_ack = 0; /* Interrupt callback just detected an ack */
-#define ACKPRINTF printf
-/* #define ACKPRINTF(...) */
-#endif /* NULLRDC_CONF_802154_AUTOACK */
-
 /*---------------------------------------------------------------------------*/
 PROCESS(st7580_radio_process, "ST7580 radio driver");
 /*---------------------------------------------------------------------------*/
@@ -147,19 +139,6 @@ st7580_radio_prepare(const void *payload, unsigned short payload_len)
     return RADIO_TX_ERR;
   }
 
-  /* Should we delay for an ack? */
-#if NULLRDC_CONF_802154_AUTOACK
-  frame802154_t info154;
-  wants_an_ack = 0;
-  if(payload_len > ACK_LEN
-     && frame802154_parse((char *)payload, payload_len, &info154) != 0) {
-    if(info154.fcf.frame_type == FRAME802154_DATAFRAME
-       && info154.fcf.ack_required != 0) {
-      wants_an_ack = 1;
-    }
-  }
-#endif /* NULLRDC_CONF_802154_AUTOACK */
-
   /* Buffer outgoing data */
   memcpy(st7580_txbuf, payload, payload_len);
   st7580_txbuf_has_data = 1;
@@ -179,19 +158,12 @@ st7580_radio_transmit(unsigned short payload_len)
 {
 
   /* This function blocks until the packet has been transmitted */
-#if NULLRDC_CONF_802154_AUTOACK
-  rtimer_clock_t rtimer_txdone, rtimer_rxack;
-#endif
   int left = payload_len;
   int written = 0;
   int ret;
   static int tot = 0;
 
   PRINTF("TRANSMIT IN\n");
-
-#if NULLRDC_CONF_802154_AUTOACK
-  just_got_an_ack = 0;
-#endif
 
   while(left > 0) {
     tot += left;
@@ -222,22 +194,6 @@ st7580_radio_transmit(unsigned short payload_len)
   st7580_txbuf_has_data = 0; /* clear TX buf */
 
   /* Reset radio - needed for immediate RX of ack */
-
-#if NULLRDC_CONF_802154_AUTOACK
-  if(wants_an_ack) {
-    rtimer_txdone = RTIMER_NOW();
-#define ACK_DELAY (4 * RTIMER_SECOND / 1000)
-    BUSYWAIT_UNTIL(just_got_an_ack, ACK_DELAY);
-    rtimer_rxack = RTIMER_NOW();
-
-    if(just_got_an_ack) {
-      ACKPRINTF("debug_ack: ack received after %u/%u ticks\n",
-                (uint32_t)(rtimer_rxack - rtimer_txdone), ACK_DELAY);
-    } else {
-      ACKPRINTF("debug_ack: no ack received\n");
-    }
-  }
-#endif /* NULLRDC_CONF_802154_AUTOACK */
 
   return RADIO_TX_OK;
 }
@@ -366,13 +322,6 @@ wrapped_callback(ST7580Frame *frame)
     /* We didn't read the last byte, but aborted prematurely. Discard packet. */
   }
 
-#if NULLRDC_CONF_802154_AUTOACK
-  if(st7580_rxbuf_len == ACK_LEN) {
-    /* For debugging purposes we assume this is an ack for us */
-    just_got_an_ack = 1;
-  }
-#endif /* NULLRDC_CONF_802154_AUTOACK */
-
   /* INTPRINTF("RX OK %u %u\n", st7580_rxbuf_len, read); */
   process_poll(&st7580_radio_process);
   receiving_packet = 0;
@@ -398,28 +347,6 @@ PROCESS_THREAD(st7580_radio_process, ev, data)
     len = st7580_radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
     if(len > 0) {
-#if NULLRDC_CONF_802154_AUTOACK
-      /* Check if the packet has an ACK request */
-      frame802154_t info154;
-      if(len > ACK_LEN &&
-         frame802154_parse((char *)packetbuf_dataptr(), len, &info154) != 0) {
-        if(info154.fcf.frame_type == FRAME802154_DATAFRAME &&
-           info154.fcf.ack_required != 0 &&
-           rimeaddr_cmp((rimeaddr_t *)&info154.dest_addr,
-                        &rimeaddr_node_addr)) {
-
-          /* Send an ACK packet */
-          uint8_t ack_frame[ACK_LEN] = {
-            FRAME802154_ACKFRAME,
-            0x00,
-            info154.seq
-          };
-          BSP_PLM_Send_Data(DATA_OPT, (uint8_t *)ack_frame, (uint8_t)ACK_LEN, NULL);
-          ACKPRINTF("debug_ack: sent ack %d\n", ack_frame[2]);
-        }
-      }
-#endif /* NULLRDC_CONF_802154_AUTOACK */
-
       packetbuf_set_datalen(len);
       NETSTACK_RDC.input();
     }
