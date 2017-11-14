@@ -358,6 +358,11 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
   return PROCESS_ERR_OK;
 }
 /*---------------------------------------------------------------------------*/
+void process_post_pause(void){
+    process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);
+}
+
+/*---------------------------------------------------------------------------*/
 void
 process_post_synch(struct process *p, process_event_t ev, process_data_t data)
 {

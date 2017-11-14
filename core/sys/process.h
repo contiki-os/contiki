@@ -219,7 +219,7 @@ typedef unsigned char process_num_events_t;
  * \hideinitializer
  */
 #define PROCESS_PAUSE()             do {				\
-  process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);	\
+  process_post_pause();	\
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);               \
 } while(0)
 
@@ -363,6 +363,11 @@ CCIF void process_start(struct process *p, process_data_t data);
  * not be posted.
  */
 CCIF int process_post(struct process *p, process_event_t ev, process_data_t data);
+
+/**
+ * \brief Helper function for PROCESS_PAUSE
+ */
+CCIF void process_post_pause(void);
 
 /**
  * Post a synchronous event to a process.
