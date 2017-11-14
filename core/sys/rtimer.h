@@ -54,6 +54,7 @@
 #define RTIMER_H_
 
 #include "contiki-conf.h"
+#include <stdbool.h>
 
 #ifndef RTIMER_CLOCK_DIFF
 typedef unsigned short rtimer_clock_t;
