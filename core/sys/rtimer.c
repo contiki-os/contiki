@@ -104,6 +104,10 @@ rtimer_run_next(void)
   return;
 }
 /*---------------------------------------------------------------------------*/
+bool rtime_expired(rtimer_clock_t timeout){
+    return RTIME_EXPIRED(timeout);
+}
+/*---------------------------------------------------------------------------*/
 //* rtimer-arch should provide this macro for many net-stack modules
 //* often us-ticks conversion uses mul/div ops,
 //* use of routines helps deruce code size.
