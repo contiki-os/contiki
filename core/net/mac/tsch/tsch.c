@@ -68,7 +68,7 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/net-debug.h"
 
-#if TSCH_LOG_LEVEL != 0
+#if TSCH_LOG_LEVEL >= 0
 #define PRINTF_FAIL(...)    printf(__VA_ARGS__)
 #else
 #define PRINTF_FAIL(...)
