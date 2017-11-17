@@ -17,13 +17,11 @@
 #include "net/packetbuf.h"
 #include "dev/leds.h"
 #include "dev/adc.h"
-#include "dev/ff.h"
-#include "dev/integer.h"
 #include <dev/watchdog.h>
 
-#define MAX_BCAST_SIZE 99
+
 #define DEF_TTL 0xF
-#define TRANSMIT_INTERVAL 20
+#define TRANSMIT_INTERVAL 1
 
 char str_t[127], report [200];
 float v_in, v_mcu;
@@ -33,16 +31,14 @@ uint8_t rssi,lqi,v_low=0, count=0;
 struct broadcast_message {
 	uint8_t head; 
 	uint8_t seqno;
-	char buf[MAX_BCAST_SIZE+20];  /* Check for max payload 20 extra to be able to test */
-
+	char buf[120];  
 };
 
 uint8_t ttl = DEF_TTL;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sinknode_process, "Sink Node Process");
-PROCESS(post_process, "post Process");
-AUTOSTART_PROCESSES(&sinknode_process, &post_process);
+AUTOSTART_PROCESSES(&sinknode_process);
 
 
 static void
@@ -74,37 +70,25 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	PROCESS_BEGIN();
 	broadcast_open(&broadcast, 129, &broadcast_call);	
 	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, 26);
-	//NETSTACK_RADIO.off(); //for rpc change
-	//rf230_set_rpc(0xFF); 
-	//NETSTACK_RADIO.on();
-	printf("tx0 called\n");
-	// etimer_set(&et, CLOCK_SECOND * 2);
-	while(1) {
-		/* Delay 4 seconds */
-		//PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-		//  etimer_set(&et, CLOCK_SECOND * 3);
-		PROCESS_WAIT_EVENT_UNTIL(ev==0x10);	
+	etimer_set(&et, CLOCK_SECOND * TRANSMIT_INTERVAL);
+	while(1) {	
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+		etimer_reset(&et);
 		leds_on(LEDS_YELLOW);
-		
 		int len=0;	
-		len += sprintf(&msg.buf[len],"&: TXT=mak-gen3");
+		len += sprintf(&msg.buf[len],"TXT=test-node");
 		
 		v_in=adc_read_v_in();
 		p1 = (int)v_in; //e.g. 4.93 gives 4
 		p2 = (v_in*100)-(p1*100); // =93	
-		len += sprintf(&msg.buf[len]," V_IN=%d.%02d",p1,p2);
+		len += sprintf(&msg.buf[len]," V_IN=%d.%02d ",p1,p2);
 		
 		v_mcu = adc_read_v_mcu();
 		p1 = (int)v_mcu; //e.g. 4.93 gives 4
 		p2 = (v_mcu*100)-(p1*100); // =93	
-		len += sprintf(&msg.buf[len]," V_MCU=%d.%02d\n",p1,p2);	
+		len += sprintf(&msg.buf[len]," V_MCU=%d.%02d ",p1,p2);
 		
-		/*if(v_in < 2.80){
-			v_low=1;
-			len += sprintf(&msg.buf[len]," V_LOW=1");
-		}*/
-		
-		msg.buf[len++] = 0;		/*null terminate the string*/
+		msg.buf[len++] = '\0';		/*null terminate the string*/
 		packetbuf_copyfrom(&msg, len+2);		
 		
 		msg.head = 1<<4; 
@@ -116,20 +100,5 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		printf("%s", msg.buf);
 	}
 
-	PROCESS_END();
-}
-
-PROCESS_THREAD(post_process, ev, data)
-{
-	PROCESS_BEGIN();
-	static struct etimer et;
-	while(1){
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    etimer_set(&et, CLOCK_SECOND * 1);
-		if(count>3){
-			count=0;
-			process_post(&sinknode_process, 0x10, NULL);
-		}
-	}
 	PROCESS_END();
 }

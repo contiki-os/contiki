@@ -2,7 +2,7 @@
 * \file
 *         WIMEA-ICT Gen3 Sink Node
 * \details
-*	ATMEGA256RFR2 RSS2 MOTE with RTC, SD card
+*	ATMEGA256RFR2 RSS2 MOTE with RTC, SD card, and SIM5320E 3G module
 * \author
 *         Maximus Byamukama <maximus.byamukama@cedat.mak.ac.ug>
 */
@@ -31,7 +31,7 @@
 #define BATT_VLOW 2.70
 
 double v_in, v_mcu,t_box; 
-uint8_t rssi,lqi,seqno=0;
+uint8_t rssi,lqi;
 uint8_t p1,p2; /*temporary upper and lower parts of floating point variables*/
 uint16_t err=0, batt_ok=1,lines=0,rep_count=0,len=0;
 char report[200],sinkrep[200];
@@ -52,7 +52,9 @@ UINT bw; //function result holder
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sinknode_process, "Sink Node Process");
-AUTOSTART_PROCESSES(&sinknode_process);
+PROCESS(battery_process, "Battery Check Process");
+PROCESS(sleep_process, "Sleep process");
+AUTOSTART_PROCESSES(&sinknode_process, &battery_process/*, &sleep_process*/);
 /*---------------------------------------------------------------------------*/
 /* User Provided RTC Function called by FatFs module       */
 /* Used to provide a Timestamp for SDCard files and folders*/
@@ -76,7 +78,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
 	
 	ds3231_get_datetime(&datetime);
-	
+
 	sprintf(report, "RTC_T=20%d-%02d-%02d,%02d:%02d:%02d %s [ADDR=%-d.%-d SEQ=%-d TTL=%-u RSSI=%-u LQI=%-u]\n",
 	datetime.year,datetime.month,datetime.day, datetime.hours,datetime.mins,datetime.secs,msg->buf,
 	from->u8[0], from->u8[1],msg->seqno, msg->head & 0xF, rssi,lqi); //datetime string
@@ -98,7 +100,6 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 
 	}else ++err;
 	f_close(fp);// close the file
-
 }
 
 
@@ -110,8 +111,6 @@ static struct broadcast_conn broadcast;
 PROCESS_THREAD(sinknode_process, ev, data)
 {
 	static struct etimer et;
-	struct broadcast_message msg;  //to be sent out
-	
 	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
 	PROCESS_BEGIN();
 	broadcast_open(&broadcast, 129, &broadcast_call);	
@@ -143,7 +142,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		len=0;	
 		/*get RTC datetime --this is part of the report*/
 		ds3231_get_datetime(&datetime);
-		len += sprintf(&sinkrep[len],"RTC_T=20%d-%02d-%02d,%02d:%02d:%02d TXT=mak-g3",datetime.year,datetime.month,
+		len += sprintf(&sinkrep[len],"RTC_T=20%d-%02d-%02d,%02d:%02d:%02d TXT=makg3",datetime.year,datetime.month,
 		datetime.day, datetime.hours,datetime.mins,datetime.secs);
 		
 		v_in=adc_read_v_in();
@@ -154,7 +153,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		len += sprintf(&sinkrep[len]," T=%-5.2f", (double)(temp_sensor.value(0)*1.0/100));
 		SENSORS_DEACTIVATE(temp_sensor);
 		
-		if(v_in < BATT_VLOW){
+		if(!batt_ok){
 			len += sprintf(&sinkrep[len]," V_LOW=1");
 		}
 		
@@ -179,25 +178,43 @@ PROCESS_THREAD(sinknode_process, ev, data)
 
 		}else ++err;
 		f_close(fp);// close the file
-		
-		
-		if(rep_count > 1000){ 
-			
-			//turn on uplink and upload before radio is turned on again
-		}
-		NETSTACK_RADIO.on(); //enable radio if batt voltage is ok
 
-		//transmit		
-		snprintf(msg.buf, len, "%s", (char*)sinkrep);
-		msg.buf[len++]='\0';//null terminate report.
-		msg.head = (1<<4) | 0xF;
-		msg.seqno = seqno;
-		packetbuf_copyfrom(&msg, len+2);
-        broadcast_send(&broadcast);
-		
-		printf("%s \n", msg.buf);	
+		if(batt_ok) NETSTACK_RADIO.on(); //enable radio if batt voltage is ok
+		printf("%s \n", sinkrep);	
 	}
 	PROCESS_END();
 }
 
+PROCESS_THREAD(battery_process, ev, data) 
+{
+	static struct etimer et;
+	PROCESS_BEGIN();
+	while(1) 
+	{
+		etimer_set(&et, CLOCK_SECOND * 60);
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+		v_in=adc_read_v_in();	
+		if(v_in >= BATT_VLOW)
+		batt_ok=1;
+		else batt_ok=0;		
+	}
+	PROCESS_END();
+}
 
+/*MCU only sleep mode*/
+PROCESS_THREAD(sleep_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while(1) {
+    watchdog_periodic();
+    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+    cli(); /*cli clears the global interrupt flag in SREG to prevent any interrupt from occurring*/
+    sleep_enable();
+    sei();  /*set global interrupt enable - next instructions will be executed before any pending interrupts.*/
+    sleep_cpu();
+    sleep_disable();
+    sei();
+    PROCESS_PAUSE();
+  }
+  PROCESS_END();
+}
