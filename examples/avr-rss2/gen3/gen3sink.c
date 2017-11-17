@@ -191,7 +191,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		snprintf(msg.buf, len, "%s", (char*)sinkrep);
 		msg.buf[len++]='\0';//null terminate report.
 		msg.head = (1<<4) | 0xF;
-		msg.seqno = seqno;
+		msg.seqno = ++seqno;
 		packetbuf_copyfrom(&msg, len+2);
         broadcast_send(&broadcast);
 		
