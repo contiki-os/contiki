@@ -245,7 +245,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size,
     int i;
     ies.ie_tsch_timeslot_id = 1;
     for(i = 0; i < tsch_ts_elements_count; i++) {
-      ies.ie_tsch_timeslot[i] = RTIMERTICKS_TO_US(tsch_timing[i]);
+      ies.ie_tsch_timeslot[i] = rtimerticks_to_us(tsch_timing[i]);
     }
   }
 #endif /* TSCH_PACKET_EB_WITH_TIMESLOT_TIMING */
