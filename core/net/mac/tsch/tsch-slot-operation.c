@@ -514,6 +514,16 @@ bool tsch_next_timeslot_far(void){
     }
     return (timeout > time_gap);
 }
+
+unsigned tsch_next_slot_prefetched_time(unsigned timeout){
+    if (tsch_rf_state == tsch_rfOFF){
+        if (timeout > tsch_timing[tsch_ts_rfon_prepslot_guard])
+            timeout -= tsch_timing[tsch_ts_rfon_prepslot_guard];
+        else
+            return 0;
+    }
+    return timeout;
+}
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
@@ -733,8 +743,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       }
     }
 
-    tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
-
     current_packet->transmissions++;
     current_packet->ret = mac_tx_status;
 
@@ -926,6 +934,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                 }
 #endif /* LLSEC802154_ENABLED */
 
+                tsch_radio_off(TSCH_RADIO_CMD_ON_WITHIN_TIMESLOT);
                 /* Copy to radio buffer */
                 NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
@@ -972,7 +981,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         }
       }
 
-      tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
     }
 
     if(input_queue_drop != 0) {
@@ -1051,6 +1059,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
       }
       TSCH_DEBUG_SLOT_END();
     }
+    tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
 
     /* End of slot operation, schedule next slot or resynchronize */
 
@@ -1098,15 +1107,17 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
         current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
-        if (tsch_rf_state == tsch_rfOFF){
-        time_to_next_active_slot -= tsch_timing[tsch_ts_rfon_prepslot_guard];
-        }
+        time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
     tsch_in_slot_operation = 0;
+
+    if (!tsch_is_associated)
+        break;
     PT_YIELD(&slot_operation_pt);
-  }
+  }//while(tsch_is_associated)
+  tsch_radio_off(TSCH_RADIO_CMD_OFF_FORCE);
 
   PT_END(&slot_operation_pt);
 }
@@ -1136,6 +1147,8 @@ tsch_slot_operation_start(void)
     /* Update current slot start */
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
+    // forced use RF power prefetch, to ensure if RF powered off.
+    time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
   } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
 }
 /*---------------------------------------------------------------------------*/
