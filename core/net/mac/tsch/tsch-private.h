@@ -72,6 +72,7 @@ enum tsch_timeslot_timing_elements {
   tsch_ts_timeslot_length,
   tsch_ts_rfon_prepslot_guard,
   tsch_ts_elements_count, /* Not a timing element */
+  tsch_ts_netwide_count = tsch_ts_timeslot_length, /* Not a timing element */
 };
 
 /***** External Variables *****/

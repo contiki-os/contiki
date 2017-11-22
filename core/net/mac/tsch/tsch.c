@@ -484,7 +484,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   /* TSCH timeslot timing */
-  for(i = 0; i < tsch_ts_elements_count; i++) {
+  for(i = 0; i < tsch_ts_netwide_count; i++) {
     if(ies.ie_tsch_timeslot_id == 0) {
       tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
     } else {
