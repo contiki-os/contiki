@@ -476,7 +476,11 @@ int tsch_packet_parse_my_eb(const struct input_packet *eb,
 }
 
 /* Attempt to associate to a network form an incoming EB */
-static int
+//static
+// FIX! removed static here, since it cause gcc6 bug with O1 - call optimised
+//      cause invokes only from tsch_scan. tsch_scan - is a proto-thread, and
+//      this stack heavy affected by event case.
+int
 tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 {
   frame802154_t frame;
