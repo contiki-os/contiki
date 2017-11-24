@@ -64,7 +64,7 @@ static service_callback_t service_cbk = NULL;
 #if COAP_CHECK_DUPLICATES
 
 typedef struct coap_message_info {
-  struct coap_message *next;
+  struct coap_message_info *next;
   uint16_t mid;
   uip_ipaddr_t addr;
   uint16_t port;
@@ -127,7 +127,7 @@ is_coap_message_in_list(uint16_t mid,uip_ipaddr_t *addr,uint16_t port,size_t uri
 
     if (now > message->time + COAP_CHECK_DUPLICATES_MAX_SECONDS) {
       PRINTF("Message with mid:%u is expired (%us > %us)\n",message->mid,now,(message->time + COAP_CHECK_DUPLICATES_MAX_SECONDS));
-      next = (coap_message_info_t *) message->next;
+      next = message->next;
       list_remove(messages_list, message);
       memb_free(&coap_message_info_memb, message);
       message = next;
@@ -145,7 +145,7 @@ is_coap_message_in_list(uint16_t mid,uip_ipaddr_t *addr,uint16_t port,size_t uri
       break;
     }
 
-    message = (coap_message_info_t *) message->next;
+    message = message->next;
   }
 
   return found;
