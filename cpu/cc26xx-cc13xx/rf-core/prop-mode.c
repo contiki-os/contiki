@@ -427,6 +427,9 @@ get_tx_power(void)
   return tx_power_current->dbm;
 }
 /*---------------------------------------------------------------------------*/
+enum {
+    RADIO_RESULT_NOCHANGE = RADIO_RESULT_OK-1
+};
 /*
  * The caller must make sure to send a new CMD_PROP_RADIO_DIV_SETUP to the
  * radio after calling this function.
@@ -444,7 +447,7 @@ set_tx_power(radio_value_t power)
        * has returned
        */
       if (tx_power_current == &TX_POWER_DRIVER[i])
-          return (RADIO_RESULT_OK-1);
+          return RADIO_RESULT_NOCHANGE;
       tx_power_current = &TX_POWER_DRIVER[i];
       return RADIO_RESULT_OK;
     }
@@ -1236,7 +1239,7 @@ static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
   //uint8_t was_off = 0;
-  radio_result_t rv = RADIO_RESULT_OK;
+  int rv = RADIO_RESULT_OK;
 
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
@@ -1274,7 +1277,7 @@ set_value(radio_param_t param, radio_value_t value)
     }
 
     rv = set_tx_power(value);
-    if ((int)rv < (int)RADIO_RESULT_OK)
+    if (rv < (int)RADIO_RESULT_OK)
         return RADIO_RESULT_OK;
     if (rv == RADIO_RESULT_OK)
       return update_prop(&(prop_txpower));
