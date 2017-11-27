@@ -113,6 +113,21 @@
 #define RF_CORE_POLL_MODE RF_CORE_CONF_POLL_MODE
 #endif
 /*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End pending() api style
+ * 0 :  old behaviour - pending() return count of received packets in que.
+ * 1 :  pending() return count of packets ready for read.
+ */
+#define RF_CORE_PENDING_RECEIVED    0
+#define RF_CORE_PENDING_READS       1
+#ifdef RF_CORE_CONF_PENDING
+#define RF_CORE_PENDING RF_CORE_CONF_PENDING
+#else
+#define RF_CORE_PENDING     RF_CORE_PENDING_RECEIVED
+#endif
+
+
+/*---------------------------------------------------------------------------*/
 /* RF-Front End RAT resyncing strategy provides mechanisms for RAT sync monitoring
  *  and resyncing
  *  0 :    resync only on rf-core propety setup

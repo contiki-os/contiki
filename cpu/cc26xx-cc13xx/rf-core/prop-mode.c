@@ -989,7 +989,11 @@ static int
 pending_packet(void)
 {
   int rv = 0;
+#if RF_CORE_PENDING == RF_CORE_PENDING_READS
+  volatile rfc_dataEntry_t *entry = (rfc_dataEntry_t *)rx_read_entry;
+#else
   volatile rfc_dataEntry_t *entry = (rfc_dataEntry_t *)rx_data_queue.pCurrEntry;
+#endif
 
   /* Go through all RX buffers and check their status */
   do {
@@ -999,6 +1003,10 @@ pending_packet(void)
       process_poll(&rf_core_process);
     }
     }
+#if RF_CORE_PENDING == RF_CORE_PENDING_READS
+    else
+        break;
+#endif
 
     entry = (rfc_dataEntry_t *)entry->pNextEntry;
   } while(entry != (rfc_dataEntry_t *)rx_data_queue.pCurrEntry);
