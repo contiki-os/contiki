@@ -104,6 +104,11 @@
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT) */
 #define SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT / 4))
 
+#ifdef TSCH_CONF_RTIMER_GUARD
+#define RTIMER_GUARD TSCH_CONF_RTIMER_GUARD
+#elif  defined(RTIMER_GUARD_TIME)
+#define RTIMER_GUARD RTIMER_GUARD_TIME
+#else
 /* By default: check that rtimer runs at >=32kHz and use a guard time of 10us */
 #if RTIMER_SECOND < (32 * 1024)
 #error "TSCH: RTIMER_SECOND < (32 * 1024)"
@@ -116,6 +121,7 @@
 #else
 #define RTIMER_GUARD 2u
 #endif
+#endif //#define RTIMER_GUARD
 
 enum tsch_radio_state_on_cmd {
   TSCH_RADIO_CMD_ON_START_OF_TIMESLOT,
