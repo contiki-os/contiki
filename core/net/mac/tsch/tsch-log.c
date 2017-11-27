@@ -97,7 +97,7 @@ tsch_log_process_pending(void)
     }
     switch(log->type) {
       case tsch_log_tx:
-          LOG_PRINTF("%s-%u-%u %u tx %d, st %d-%d",
+          LOG_PRINTF("%s-%u-%u %u tx %x, st %d-%d",
             log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data, log->tx.sec_level,
                 log->tx.datalen,
                 log->tx.dest,
@@ -108,7 +108,7 @@ tsch_log_process_pending(void)
         LOG_PRINTF("\n");
         break;
       case tsch_log_rx:
-          LOG_PRINTF("%s-%u-%u %u rx %d",
+          LOG_PRINTF("%s-%u-%u %u rx %x",
             log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->rx.sec_level,
                 log->rx.datalen,
                 log->rx.src);

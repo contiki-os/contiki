@@ -209,7 +209,7 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         }
         linkaddr_copy(&l->addr, address);
 
-        TSCH_PRINTF8("TSCH-schedule: add_link %u %u %u %u %u %u\n",
+        TSCH_PRINTF8("TSCH-schedule: add_link %u %u %u %u %u %x\n",
                slotframe->handle, link_options, link_type, timeslot, channel_offset, TSCH_LOG_ID_FROM_LINKADDR(address));
 
         /* Release the lock before we update the neighbor (will take the lock) */
@@ -250,7 +250,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
       if(l == current_link) {
         current_link = NULL;
       }
-      TSCH_PRINTF8("TSCH-schedule: remove_link %u %u %u %u %u\n",
+      TSCH_PRINTF8("TSCH-schedule: remove_link %u %u %u %u %x\n",
              slotframe->handle, l->link_options, l->timeslot, l->channel_offset,
              TSCH_LOG_ID_FROM_LINKADDR(&l->addr));
 
@@ -433,7 +433,7 @@ tsch_schedule_print(void)
       printf("List of links:\n");
 
       while(l != NULL) {
-        printf("[Link] Options %02x, type %u, timeslot %u, channel offset %u, address %u\n",
+        printf("[Link] Options %02x, type %u, timeslot %u, channel offset %u, address %x\n",
                l->link_options, l->link_type, l->timeslot, l->channel_offset, l->addr.u8[7]);
         l = list_item_next(l);
       }
