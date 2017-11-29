@@ -968,7 +968,7 @@ packet_input(void)
       duplicate = mac_sequence_is_duplicate();
       if(duplicate) {
         /* Drop the packet. */
-          TSCH_PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
+          TSCH_PRINTF("TSCH:! drop dup ll from %x seqno %u\n",
                TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
                packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
       } else {
@@ -977,7 +977,7 @@ packet_input(void)
     }
 
     if(!duplicate) {
-        TSCH_PRINTF("TSCH: received from %u with seqno %u\n",
+        TSCH_PRINTF("TSCH: received from %x with seqno %u\n",
              TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
              packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
       NETSTACK_LLSEC.input();
