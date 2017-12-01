@@ -120,5 +120,6 @@ void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
     struct tsch_asn_t *next_slot_asn);
 /* Start actual slot operation */
 void tsch_slot_operation_start(void);
+void tsch_slot_operation_stop(void);
 
 #endif /* __TSCH_SLOT_OPERATION_H__ */
