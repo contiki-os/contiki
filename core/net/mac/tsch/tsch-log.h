@@ -38,6 +38,8 @@
 #include "contiki.h"
 #include "sys/rtimer.h"
 #include "net/mac/tsch/tsch-private.h"
+// need uip_lladdr_t
+#include "net/ip/uip.h"
 
 /******** Configuration *******/
 
@@ -188,11 +190,12 @@ void tsch_log_printf8(const char* fmt
                       , int arg5, int arg6, int arg7, int arg8);
 
 #define _TSCH_LOGF3( fmt, arg1,  arg2, arg3, ...) \
-        tsch_log_printf3(fmt, arg1, arg2, arg3)
+        tsch_log_printf3(fmt, (int)arg1, (int)arg2, (int)arg3)
 #define _TSCH_LOGF4( fmt, arg1, arg2, arg3, arg4, ...) \
-        tsch_log_printf4(fmt, arg1, arg2, arg3, arg4)
+        tsch_log_printf4(fmt, (int)arg1, (int)arg2, (int)arg3, (int)arg4)
 #define _TSCH_LOGF8( fmt, arg1,  arg2, arg3, arg4, arg5, arg6, arg7, arg8,...) \
-        tsch_log_printf8(fmt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+        tsch_log_printf8(fmt, (int)arg1, (int)arg2, (int)arg3, (int)arg4\
+                        , (int)arg5, (int)arg6, (int)arg7, (int)arg8)
 
 #define TSCH_LOGS(msg)    tsch_log_puts(msg)
 #define TSCH_LOGF(...)    _TSCH_LOGF4(__VA_ARGS__, 0,0,0,0)
@@ -208,6 +211,7 @@ void tsch_log_printf8(const char* fmt
     } while(false)
 
 
+#include "net/mac/frame802154.h"
 void tsch_log_print_frame(const char* msg, frame802154_t *frame, const void* raw);
 #define TSCH_LOG_FRAME(msg, frame, raw)  tsch_log_print_frame(msg, frame, raw)
 
