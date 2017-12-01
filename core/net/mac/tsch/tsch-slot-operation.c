@@ -1053,10 +1053,10 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
 /*---------------------------------------------------------------------------*/
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
+static struct rtimer tsch_slot_operation_timer;
 void
 tsch_slot_operation_start(void)
 {
-  static struct rtimer slot_operation_timer;
   rtimer_clock_t time_to_next_active_slot;
   rtimer_clock_t prev_slot_start;
   TSCH_DEBUG_INIT();
@@ -1076,8 +1076,13 @@ tsch_slot_operation_start(void)
     /* Update current slot start */
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
-  } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
+  } while(!tsch_schedule_slot_operation(&tsch_slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
 }
+/*---------------------------------------------------------------------------*/
+void tsch_slot_operation_stop(void){
+    rtimer_cancel(&tsch_slot_operation_timer);
+}
+
 /*---------------------------------------------------------------------------*/
 /* Start actual slot operation */
 void
