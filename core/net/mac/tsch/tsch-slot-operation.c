@@ -301,6 +301,11 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
     return 0;
   }
   ref_time += offset;
+  // FIX: this is when rtimer_set cant overide current timer. When, for some
+  //    cause, last timer was expired - in this case expired timer will counts for
+  //    rtimer clock override. thus, during override wait it will block new rtimer
+  //    operation start.
+  rtimer_cancel(tm);
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
   if(r != RTIMER_OK) {
     return 0;
