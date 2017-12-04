@@ -239,6 +239,17 @@ void tsch_schedule_link_change_addr(struct tsch_link *l, const linkaddr_t *addre
 }
 
 /*---------------------------------------------------------------------------*/
+/* Changes adress on a link*/
+void tsch_schedule_link_change_option(struct tsch_link *l, uint8_t link_options)
+{
+    if (l->link_options == link_options)
+        return;
+    tsch_schedule_link_addr_release(l->link_options, &l->addr);
+    l->link_options = link_options;
+    tsch_schedule_link_addr_aqure(l);
+}
+
+/*---------------------------------------------------------------------------*/
 /* Removes a link from slotframe. Return 1 if success, 0 if failure */
 int
 tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
