@@ -301,14 +301,19 @@ enable_interrupts(void)
   /* Clear all UART interrupts */
   ti_lib_uart_int_clear(UART0_BASE, CC26XX_UART_INTERRUPT_ALL);
 
+#if UART_TXBUFSIZE
+  if (!cc26xx_uart_send_empty())
+      ti_lib_uart_int_enable(UIO_BASE(tx), UART_INT_TX);
+#endif
+
   /* Enable RX-related interrupts only if we have an input handler */
   if(input_handler) {
     /* Configure which interrupts to generate: FIFO level or after RX timeout */
     ti_lib_uart_int_enable(UART0_BASE, CC26XX_UART_RX_INTERRUPT_TRIGGERS);
-
-    /* Acknowledge UART interrupts */
-    ti_lib_int_enable(INT_UART0_COMB);
   }
+
+  /* Acknowledge UART interrupts */
+  ti_lib_int_enable(INT_UART0_COMB);
 }
 /*---------------------------------------------------------------------------*/
 static void
