@@ -915,7 +915,7 @@ reswitch:	switch (ch) {
 			} else if (ch == 'f') {		/* f fmt */
 				if (expt > 0) {
 					size = expt;
-					if (prec || flags & ALT)
+					if (prec || (flags & ALT))
 						size += prec + 1;
 				} else	/* "0.X" */
 					size = (prec || flags & ALT)
