@@ -370,7 +370,9 @@ lpm_request(void)
         return LPM_MODE_MAX_SUPPORTED;
     }
 
-    if(cc26xx_uart_send_empty()) {
+    if(cc26xx_uart_send_empty())
+    if(!ti_lib_uart_busy(UART0_BASE))
+    {
         return LPM_MODE_MAX_SUPPORTED;
     }
 
