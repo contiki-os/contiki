@@ -117,9 +117,12 @@
  * RF Front-End pending() api style
  * 0 :  old behaviour - pending() return count of received packets in que.
  * 1 :  pending() return count of packets ready for read.
+ * 2 :  read_frame(..) - scan packets que for any finished packet. This helps when
+ *          for some reason RFcore skip some slot, leave it in PENDING state.
  */
 #define RF_CORE_PENDING_RECEIVED    0
 #define RF_CORE_PENDING_READS       1
+#define RF_CORE_PENDING_READSANY    2
 #ifdef RF_CORE_CONF_PENDING
 #define RF_CORE_PENDING RF_CORE_CONF_PENDING
 #else

@@ -889,7 +889,20 @@ read_frame(void *buf, unsigned short buf_len)
   uint8_t *data_ptr = &entry->data;
   int len = 0;
 
+#if RF_CORE_PENDING == RF_CORE_PENDING_READSANY
+      while(entry->status == DATA_ENTRY_STATUS_PENDING){
+          //if (entry == rx_data_queue.pCurrEntry)
+          //    return 0;
+          entry = (rfc_dataEntryGeneral_t *)entry->pNextEntry;
+          if ((void*)entry == rx_read_entry)
+              return 0;
+      }
+#endif
+
   if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
+      if ((void*)entry != rx_read_entry)
+          PRINTF("RF:reead_frame skip pending slots $%x -> $%x\n"
+                  , rx_read_entry, entry);
 
     /*
      * First 2 bytes in the data entry are the length.
