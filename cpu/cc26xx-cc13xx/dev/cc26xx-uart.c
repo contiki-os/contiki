@@ -126,24 +126,25 @@ int cc26xx_uart_write_bufs(/*struct uart_tx_t* buf*/ const void* data, unsigned 
     }
         }
     }
-    else if (ringbuf16index_full(&tx->buf.idx)){
+    //* buf index operations should be atomic
+    bool interrupts_disabled = ti_lib_int_master_disable();
+    ti_lib_uart_int_enable(UIO_BASE(tx), UART_INT_TX);
+    unsigned res = 0;
+
+    if (ringbuf16index_full(&tx->buf.idx)){
         // mark buffer overrun
 #ifdef UART_TXBUF_OVERMARK
         unsigned lastp = (tx->buf.idx.put_ptr-1) & tx->buf.idx.mask;
         tx->buf.data[lastp] = UART_TXBUF_OVERMARK;
 #endif
-        return 0;
     }
-
-    //* buf index operations should be atomic
-    bool interrupts_disabled = ti_lib_int_master_disable();
+    else {
 
     if(ringbuf16index_empty(&tx->buf.idx)) {
         //* reset buffer, if empty, to have maximum linear free block
         tx->buf.idx.put_ptr = 0;
         tx->buf.idx.get_ptr = 0;
     }
-    unsigned res = 0;
     if (len == 1) {
         tx->buf.data[tx->buf.idx.put_ptr] = *(const char*)data;
     ringbuf16index_put(&tx->buf.idx);
@@ -177,7 +178,7 @@ int cc26xx_uart_write_bufs(/*struct uart_tx_t* buf*/ const void* data, unsigned 
             }
         }
     }
-    ti_lib_uart_int_enable(UIO_BASE(tx), UART_INT_TX);
+    } // else if (ringbuf16index_full(&tx->buf.idx))
 
     cc26xx_uart_bufsend();
     if(!interrupts_disabled) {
