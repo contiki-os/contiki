@@ -2,7 +2,7 @@
 * \file
 *         WIMEA-ICT Gen3 Sink Node
 * \details
-*   ATMEGA256RFR2 RSS2 MOTE with RTC, SD card
+*   ATMEGA256RFR2 RSS2 MOTE with RTC, SD card and Electron 3G uplink
 * \author
 *         Maximus Byamukama <maximus.byamukama@cedat.mak.ac.ug>
 */
