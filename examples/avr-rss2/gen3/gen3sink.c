@@ -1,8 +1,8 @@
 /**
 * \file
-*         WIMEA-ICT Gen3 Sink Node
+*         WIMEA-ICT Gen3 AWS Gateway
 * \details
-*   ATMEGA256RFR2 RSS2 MOTE with RTC, SD card
+*   ATMEGA256RFR2 RSS2 MOTE with RTC, SD card and Electron 3G uplink
 * \author
 *         Maximus Byamukama <maximus.byamukama@cedat.mak.ac.ug>
 */
@@ -41,6 +41,7 @@ BOOL    sd_busy=0, debug=0, upload_complete=0;
 uint16_t err=0, v_low=1,len=0; 
 static int rep_count=0,id_count=0,up_conns=0,up_timeouts=0,time_to_conn=0;
 char report[200],sinkrep[200], rep_id[17], buff[1025];
+long filesize=0;
 
 datetime_t datetime;
 
@@ -306,9 +307,16 @@ PROCESS_THREAD(uplink_process, ev, data) /*Electron 3G uplink*/
 		NETSTACK_RADIO.on();
 		if(debug)printf("Radio back on. Process has completed");  
 		
+		/*get the file size*/
+		if (f_open(fp, "sensors.dat", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) 
+			{
+				filesize=f_size(fp);
+			}
+			f_close(fp);// close the file
+		
 		/*transmit diagnostic report to nearby nodes */
 		len=0;
-		len += sprintf(&sinkrep[len],"TXT=mak-gen3 UPLINK_CONS=%d TIME_TO_CON=%d TIME_OUTS=%d\n",up_conns,time_to_conn, up_timeouts); 
+		len += sprintf(&sinkrep[len],"TXT=mak-gen3 UPLINK_CONS=%d TIME_TO_CON=%d TIME_OUTS=%d F_SIZE=%ld\n",up_conns,time_to_conn, up_timeouts, filesize); 
         snprintf(msg.buf, len, "%s", (char*)sinkrep);
         msg.buf[len++]='\0';//null terminate report.
         msg.head = (1<<4) | 0xF;
