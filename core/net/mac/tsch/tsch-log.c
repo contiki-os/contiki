@@ -136,7 +136,7 @@ tsch_log_process_pending(void)
         break;
 
       case tsch_log_change_timesrc:
-          LOG_PRINTF("TSCH: update time source: %u -> %u\n"
+          LOG_PRINTF("TSCH: update time source: %x -> %x\n"
                   , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.was)
                   , TSCH_LOG_ID_FROM_LINKADDR(&log->timesrc_change.now)
                   );
