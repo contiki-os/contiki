@@ -35,6 +35,7 @@
 
 /********** Includes **********/
 
+#include <stdbool.h>
 #include "contiki.h"
 #include "lib/ringbufindex.h"
 #include "net/linkaddr.h"
@@ -172,7 +173,7 @@ void tsch_queue_reset(void);
 /* Deallocate neighbors with empty queue */
 void tsch_queue_free_unused_neighbors(void);
 /* Is the neighbor queue empty? */
-int tsch_queue_is_empty(const struct tsch_neighbor *n);
+bool tsch_queue_is_empty(const struct tsch_neighbor *n);
 /* Returns the first packet from a neighbor queue */
 struct tsch_packet *tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *link);
 /* Returns the head packet from a neighbor queue (from neighbor address) */

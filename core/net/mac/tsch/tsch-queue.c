@@ -350,10 +350,12 @@ tsch_queue_free_unused_neighbors(void)
 }
 /*---------------------------------------------------------------------------*/
 /* Is the neighbor queue empty? */
-int
+bool
 tsch_queue_is_empty(const struct tsch_neighbor *n)
 {
-  return !tsch_is_locked() && n != NULL && ringbufindex_empty(&n->tx_ringbuf);
+    if (!tsch_is_locked() && (n != NULL))
+        return  ringbufindex_empty(&n->tx_ringbuf);
+    return false;
 }
 /*---------------------------------------------------------------------------*/
 /* Returns the first packet from a neighbor queue */
