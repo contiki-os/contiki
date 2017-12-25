@@ -53,6 +53,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+// requred LPM support style for board SPI defined by BOARD_SPI_LPM
+// supported LPM modes:
+//< no LPM manage - minimum code size
+#define BOARD_SPI_LPM_NONE          0
+//< provides serial power domain on during SPI opened
+#define BOARD_SPI_LPM_BASIC         1
+//< allow deep_sleep mode, when SPI not busy
+//  shutdown SPI to enter deep_sleep, and reconfigures it when wake_up
+#define BOARD_SPI_LPM_DEEPSLEEP_OFF 2
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Initialize the SPI interface
