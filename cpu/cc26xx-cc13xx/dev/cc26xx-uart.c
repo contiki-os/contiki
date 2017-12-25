@@ -253,6 +253,7 @@ power_and_clock(void)
 
   /* Enable UART clock in active mode */
   ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_UART0);
+  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_UART0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 }
