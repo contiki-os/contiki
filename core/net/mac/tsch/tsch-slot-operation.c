@@ -1082,10 +1082,12 @@ tsch_slot_operation_start(void)
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
   } while(!tsch_schedule_slot_operation(&tsch_slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
+  tsch_in_slot_operation = 0;
 }
 /*---------------------------------------------------------------------------*/
 void tsch_slot_operation_stop(void){
     rtimer_cancel(&tsch_slot_operation_timer);
+    tsch_in_slot_operation = 0;
 }
 
 /*---------------------------------------------------------------------------*/
