@@ -444,7 +444,7 @@ tsch_radio_on(enum tsch_radio_state_on_cmd command)
 //* prognose next active timeslot. for heavy turn on/off RF, this prognose
 //* helps to avoid useless radio-off, and save timeslot time for work
 static
-bool tsch_next_timeslot_far(void);
+bool tsch_next_timeslot_far(rtimer_clock_t slot_start);
 
 
 /**
@@ -463,8 +463,15 @@ tsch_radio_off(enum tsch_radio_state_off_cmd command)
     if(TSCH_RADIO_ON_DURING_TIMESLOT) {
       do_it = 1;
     }
+    // provide power off between slot, when gaurding time defined
+    if (tsch_rf_state > tsch_rfOFF)
+    if (tsch_timing[tsch_ts_rfon_prepslot_guard] > 0)
+        do_it = 1;
     break;
+
   case TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT:
+    // provide power off in slot, only when gaurding time not defined
+    if (tsch_timing[tsch_ts_rfon_prepslot_guard] <= 0)
     if(!TSCH_RADIO_ON_DURING_TIMESLOT) {
       do_it = 1;
     }
@@ -474,44 +481,21 @@ tsch_radio_off(enum tsch_radio_state_off_cmd command)
     break;
   }
   if(do_it) {
-    if (tsch_next_timeslot_far()) {
     NETSTACK_RADIO.off();
     tsch_rf_state = tsch_rfOFF;
   }
 }
-}
 
-bool tsch_next_timeslot_far(void){
+static
+bool tsch_next_timeslot_far(rtimer_clock_t slot_start){
     if (tsch_timing[tsch_ts_rfon_prepslot_guard] <= 0)
         return true;
 
-    uint16_t tsch_next_timeslot_diff = 0;
-    struct tsch_link * next_link;
-    tsch_next_timeslot_diff = 0;
-    next_link = tsch_schedule_get_next_active_link(&tsch_current_asn
-                    , &tsch_next_timeslot_diff
-                    , &backup_link);
-    if (!next_link)
-        return true;
-    if (tsch_next_timeslot_diff != 1)
-        return true;
-
-    rtimer_clock_t time_to_next_active_slot;
-    time_to_next_active_slot = tsch_timing[tsch_ts_timeslot_length] + drift_correction;
-    rtimer_clock_t next_slot_start = current_slot_start
-                + time_to_next_active_slot
-                - RTIMER_GUARD;
+    rtimer_clock_t next_slot_start = slot_start - RTIMER_GUARD;
     rtimer_clock_t now = RTIMER_NOW();
     long timeout = RTIMER_CLOCK_DIFF(next_slot_start, now);
     // use tsch_ts_rfon_prepslot_guard to predict rf off+on time
     const rtimer_clock_t time_gap = tsch_timing[tsch_ts_rfon_prepslot_guard]*2;
-    if (timeout <= time_gap){
-        TSCH_LOG_ADD(tsch_log_message,
-                     snprintf(log->message, sizeof(log->message)
-                         , "TSCH:supress rf off, slot %ldus\n"
-                         , timeout);
-        );
-    }
     return (timeout > time_gap);
 }
 
@@ -1059,7 +1043,6 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
       }
       TSCH_DEBUG_SLOT_END();
     }
-    tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
 
     /* End of slot operation, schedule next slot or resynchronize */
 
@@ -1101,13 +1084,24 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         TSCH_ASN_INC(tsch_current_asn, timeslot_diff);
         /* Time to next wake up */
         time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length] + drift_correction;
+        time_to_next_active_slot += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
         drift_correction = 0;
         is_drift_correction_used = 0;
         /* Update current slot start */
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
-        current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
-        time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
+        if (tsch_next_timeslot_far(current_slot_start)){
+            tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
+            time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
+        }
+        else {
+                TSCH_LOG_ADD(tsch_log_message,
+                             snprintf(log->message, sizeof(log->message)
+                                 , "TSCH:supress rf off, slot %ldus\n"
+                                 , (time_to_next_active_slot-RTIMER_NOW())
+                                 );
+                );
+        }
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
