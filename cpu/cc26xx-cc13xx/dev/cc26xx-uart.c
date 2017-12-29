@@ -344,9 +344,9 @@ configure(void)
 
   /*
    * Generate an RX interrupt at FIFO 1/2 full.
-   * We don't really care about the TX interrupt
+   * Generate TX interrupt as rare as possible
    */
-  ti_lib_uart_fifo_level_set(UART0_BASE, UART_FIFO_TX7_8, UART_FIFO_RX4_8);
+  ti_lib_uart_fifo_level_set(UART0_BASE, UART_FIFO_TX1_8, UART_FIFO_RX4_8);
 
   /* Enable FIFOs */
   HWREG(UART0_BASE + UART_O_LCRH) |= UART_LCRH_FEN;
