@@ -371,10 +371,13 @@ lpm_request(void)
         return LPM_MODE_MAX_SUPPORTED;
     }
 
-    if(cc26xx_uart_send_empty())
-    if(!ti_lib_uart_busy(UART0_BASE))
-    {
-        return LPM_MODE_MAX_SUPPORTED;
+    if(cc26xx_uart_send_empty()) {
+        if(!ti_lib_uart_busy(UART0_BASE))
+            return LPM_MODE_MAX_SUPPORTED;
+        else
+            // when TX buffer empty, TX IRQ disabled. So, only way to handle
+            //  end of transmition is poling uart BUSY state.
+            return LPM_MODE_AWAKE;
     }
 
     //* have some data buffered, wait until tx buffer empty
