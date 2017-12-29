@@ -909,7 +909,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               log->rx.estimated_drift = estimated_drift;
               if (frame.fcf.security_enabled){
               log->rx.sec_level = frame.aux_hdr.security_control.security_level;
-              log->tx.sec_key   = frame.aux_hdr.key_index;
+              log->rx.sec_key   = frame.aux_hdr.key_index;
               }
               else {
                   log->rx.sec_level = 0;
