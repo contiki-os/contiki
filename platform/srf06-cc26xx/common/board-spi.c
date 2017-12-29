@@ -67,7 +67,7 @@ accessible(void)
 }
 
 bool  board_spi_busy(void){
-    return ti_lib_ssi_busy(SSI0_BASE) || ((ti_lib_ssi_status(SSI0_BASE) & SSI_TX_EMPTY) == 0);
+    return ti_lib_ssi_busy(SSI0_BASE) || !board_spi_empty();
 }
 
 static void board_spi_config(uint32_t bit_rate, uint32_t clk_pin);
@@ -89,9 +89,14 @@ static
 uint8_t lpm_request(void)
 {
 
-  if (accessible() != false)
-  if (board_spi_busy())
-      return LPM_MODE_SLEEP;
+  if (accessible() != false) {
+      if (!board_spi_empty())
+          return LPM_MODE_SLEEP;
+      else if (ti_lib_ssi_busy(BOARD_SSI_BASE))
+          // when TX buffer empty, TX IRQ disabled. So, only way to handle
+          //  end of transmition is poling uart BUSY state.
+          return LPM_MODE_AWAKE;
+  }
 
   return LPM_MODE_MAX_SUPPORTED;
 }
@@ -234,7 +239,7 @@ static
 void board_spi_down(){
 
 #if BOARD_SPI_LPM > BOARD_SPI_LPM_NONE
-  board_spi_module.domain_lock = LPM_DOMAIN_NONE | PRCM_DOMAIN_PERIPH;
+  board_spi_module.domain_lock = LPM_DOMAIN_NONE;
 #endif
 
   /* Power down SSI0 */
