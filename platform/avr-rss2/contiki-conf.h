@@ -127,7 +127,7 @@ typedef unsigned long off_t;
 #define RADIOSTATS                1
 
 /* More extensive stats, via main loop printfs or webserver status pages */
-#define ENERGEST_CONF_ON          1
+#define ENERGEST_CONF_ON          0
 
 /* Packet statistics */
 typedef unsigned short uip_stats_t;

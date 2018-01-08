@@ -71,7 +71,7 @@ PROCESS_THREAD(shell_reboot_process, ev, data)
   leds_on(LEDS_GREEN);
   etimer_reset(&etimer);
   PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_BLUE);
+  leds_on(LEDS_YELLOW);
   etimer_reset(&etimer);
   PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
   
