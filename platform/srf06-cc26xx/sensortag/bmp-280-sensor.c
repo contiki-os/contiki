@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26XX BMP280 Altimeter / Pressure Sensor
+ *  Driver for the Sensortag BMP280 Altimeter / Pressure Sensor
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
@@ -88,7 +88,6 @@
 /*---------------------------------------------------------------------------*/
 /* Misc. */
 #define MEAS_DATA_SIZE                      6
-#define CALIB_DATA_SIZE                     24
 /*---------------------------------------------------------------------------*/
 #define RES_OFF                             0
 #define RES_ULTRA_LOW_POWER                 1
@@ -121,6 +120,7 @@ typedef struct bmp_280_calibration {
   int32_t t_fine;
 } bmp_280_calibration_t;
 /*---------------------------------------------------------------------------*/
+#define CALIB_DATA_SIZE (sizeof(bmp_280_calibration_t))
 static uint8_t calibration_data[CALIB_DATA_SIZE];
 /*---------------------------------------------------------------------------*/
 #define SENSOR_STATUS_DISABLED     0

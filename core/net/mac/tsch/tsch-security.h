@@ -118,11 +118,28 @@
 typedef uint8_t aes_key[16];
 
 /********** Functions *********/
+/**
+ * \brief Return MIC length
+ * \return The length of MIC (>= 0)
+ */
+unsigned int tsch_security_mic_len(const frame802154_t *frame);
 
-int tsch_security_mic_len(const frame802154_t *frame);
-int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
-    int hdrlen, int datalen, struct asn_t *asn);
-int tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
-    const frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn);
+/**
+ * \brief Protect a frame with encryption and/or MIC
+ * \return The length of a generated MIC (>= 0)
+ */
+unsigned int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
+                                        int hdrlen, int datalen,
+                                        struct tsch_asn_t *asn);
+
+/**
+ * \brief Parse and check a frame protected with encryption and/or MIC
+ * \retval 0 On error or security check failure (insecure frame)
+ * \retval 1 On success or no need for security check (good frame)
+ */
+unsigned int tsch_security_parse_frame(const uint8_t *hdr, int hdrlen,
+                                       int datalen, const frame802154_t *frame,
+                                       const linkaddr_t *sender,
+                                       struct tsch_asn_t *asn);
 
 #endif /* __TSCH_SECURITY_H__ */

@@ -89,7 +89,27 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
+#ifdef RF_CHANNEL
+#define RF_CORE_CONF_CHANNEL             RF_CHANNEL
+#endif
+
+/* Number of Prop Mode RX buffers */
+#ifndef PROP_MODE_CONF_RX_BUF_CNT
+#define PROP_MODE_CONF_RX_BUF_CNT        4
+#endif
+
+/*
+ * Auto-configure Prop-mode radio if we are running on CC13xx, unless the
+ * project has specified otherwise. Depending on the final mode, determine a
+ * default channel (again, if unspecified) and configure RDC params
+ */
 #if CPU_FAMILY_CC13XX
+#ifndef CC13XX_CONF_PROP_MODE
+#define CC13XX_CONF_PROP_MODE 1
+#endif /* CC13XX_CONF_PROP_MODE */
+#endif /* CPU_FAMILY_CC13XX */
+
+#if CC13XX_CONF_PROP_MODE
 #define NETSTACK_CONF_RADIO        prop_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL
@@ -105,8 +125,8 @@
 #define CONTIKIMAC_CONF_CCA_SLEEP_TIME            (RTIMER_ARCH_SECOND / 210)
 #define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
 #define CONTIKIMAC_CONF_SEND_SW_ACK               1
-#define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
-#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 250)
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 920)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 220)
 #else
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 
@@ -172,10 +192,6 @@
 #ifndef RF_BLE_CONF_ENABLED
 #define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
-
-#ifndef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** @} */
@@ -209,10 +225,6 @@
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
@@ -285,6 +297,19 @@
 #if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name ROM Bootloader configuration
+ *
+ * Enable/Disable the ROM bootloader in your image, if the board supports it.
+ * Look in board.h to choose the DIO and corresponding level that will cause
+ * the chip to enter bootloader mode.
+ * @{
+ */
+#ifndef ROM_BOOTLOADER_ENABLE
+#define ROM_BOOTLOADER_ENABLE              0
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/

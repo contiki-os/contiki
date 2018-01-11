@@ -178,7 +178,7 @@ coap_serialize_array_option(unsigned int number, unsigned int current_number,
   size_t i = 0;
 
   PRINTF("ARRAY type %u, len %zu, full [%.*s]\n", number, length,
-	 (int)length, array);
+         (int)length, array);
 
   if(split_char != '\0') {
     int j;
@@ -529,7 +529,20 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       ++current_option;
     }
 
+    if(current_option + option_length > data + data_len) {
+      /* Malformed CoAP - out of bounds */
+      PRINTF("BAD REQUEST: options outside data packet: %u > %u\n",
+             (unsigned)(current_option + option_length - data), data_len);
+      return BAD_REQUEST_4_00;
+    }
+
     option_number += option_delta;
+
+    if(option_number > COAP_OPTION_SIZE1) {
+      /* Malformed CoAP - out of bounds */
+      PRINTF("BAD REQUEST: option number too large: %u\n", option_number);
+      return BAD_REQUEST_4_00;
+    }
 
     PRINTF("OPTION %u (delta %u, len %zu): ", option_number, option_delta,
            option_length);
@@ -602,7 +615,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       coap_pkt->uri_host = (char *)current_option;
       coap_pkt->uri_host_len = option_length;
       PRINTF("Uri-Host [%.*s]\n", (int)coap_pkt->uri_host_len,
-	     coap_pkt->uri_host);
+             coap_pkt->uri_host);
       break;
     case COAP_OPTION_URI_PORT:
       coap_pkt->uri_port = coap_parse_int_option(current_option,

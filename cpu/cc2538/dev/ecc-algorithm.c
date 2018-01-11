@@ -40,6 +40,7 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "dev/ecc-algorithm.h"
 #include "dev/ecc-driver.h"

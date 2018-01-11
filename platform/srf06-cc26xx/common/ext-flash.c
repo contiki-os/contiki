@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the LaunchPad Flash and the Sensortag WinBond W25X20CL/W25X40CL
+ * Sensortag/LaunchPad External Flash Driver
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -94,7 +94,7 @@
 static void
 select_on_bus(void)
 {
-  ti_lib_gpio_pin_write(BOARD_FLASH_CS, 0);
+  ti_lib_gpio_clear_dio(BOARD_IOID_FLASH_CS);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -103,7 +103,7 @@ select_on_bus(void)
 static void
 deselect(void)
 {
-  ti_lib_gpio_pin_write(BOARD_FLASH_CS, 1);
+  ti_lib_gpio_set_dio(BOARD_IOID_FLASH_CS);
 }
 /*---------------------------------------------------------------------------*/
 /**

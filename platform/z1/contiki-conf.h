@@ -222,7 +222,9 @@
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN                        0
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW                 48
+#endif
 #define UIP_CONF_TCP_MSS                        48
 #define UIP_CONF_MAX_CONNECTIONS                4
 #define UIP_CONF_MAX_LISTENPORTS                8
@@ -238,5 +240,9 @@
 #define UIP_CONF_TCP_SPLIT                      0
 
 #define BOARD_STRING        "Zolertia Z1 platform"
+
+#ifndef AES_128_CONF
+#define AES_128_CONF cc2420_aes_128_driver
+#endif /* AES_128_CONF */
 
 #endif /* CONTIKI_CONF_H */

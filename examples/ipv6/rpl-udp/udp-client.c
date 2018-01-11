@@ -40,9 +40,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Only for TMOTE Sky? */
 #include "dev/serial-line.h"
-#include "dev/uart1.h"
 #include "net/ipv6/uip-ds6-route.h"
 
 #define UDP_CLIENT_PORT 8765
@@ -144,15 +142,20 @@ set_global_address(void)
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
-/* The choice of server address determines its 6LoPAN header compression.
- * (Our address will be compressed Mode 3 since it is derived from our link-local address)
+/* The choice of server address determines its 6LoWPAN header compression.
+ * (Our address will be compressed Mode 3 since it is derived from our
+ * link-local address)
  * Obviously the choice made here must also be selected in udp-server.c.
  *
- * For correct Wireshark decoding using a sniffer, add the /64 prefix to the 6LowPAN protocol preferences,
- * e.g. set Context 0 to fd00::.  At present Wireshark copies Context/128 and then overwrites it.
- * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit compressed address of fd00::1111:22ff:fe33:xxxx)
+ * For correct Wireshark decoding using a sniffer, add the /64 prefix to the
+ * 6LowPAN protocol preferences,
+ * e.g. set Context 0 to fd00::. At present Wireshark copies Context/128 and
+ * then overwrites it.
+ * (Setting Context 0 to fd00::1111:2222:3333:4444 will report a 16 bit
+ * compressed address of fd00::1111:22ff:fe33:xxxx)
  *
- * Note the IPCMV6 checksum verification depends on the correct uncompressed addresses.
+ * Note the IPCMV6 checksum verification depends on the correct uncompressed
+ * addresses.
  */
  
 #if 0
@@ -198,11 +201,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
 	UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-
-  /* initialize serial line */
-  uart1_set_input(serial_line_input_byte);
-  serial_line_init();
-
 
 #if WITH_COMPOWER
   powertrace_sniff(POWERTRACE_ON);

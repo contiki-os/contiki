@@ -49,7 +49,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx BMP280 Altimeter / Pressure Sensor
+ * Header file for the Sensortag BMP280 Altimeter / Pressure Sensor
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BMP_280_SENSOR_H_

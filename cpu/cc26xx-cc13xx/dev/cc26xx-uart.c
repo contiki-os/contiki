@@ -65,10 +65,20 @@
 static int (*input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
 static bool
-usable(void)
+usable_rx(void)
 {
   if(BOARD_IOID_UART_RX == IOID_UNUSED ||
-     BOARD_IOID_UART_TX == IOID_UNUSED ||
+     CC26XX_UART_CONF_ENABLE == 0) {
+    return false;
+  }
+
+  return true;
+}
+/*---------------------------------------------------------------------------*/
+static bool
+usable_tx(void)
+{
+  if(BOARD_IOID_UART_TX == IOID_UNUSED ||
      CC26XX_UART_CONF_ENABLE == 0) {
     return false;
   }
@@ -120,7 +130,7 @@ static void
 disable_interrupts(void)
 {
   /* Acknowledge UART interrupts */
-  ti_lib_int_disable(INT_UART0);
+  ti_lib_int_disable(INT_UART0_COMB);
 
   /* Disable all UART module interrupts */
   ti_lib_uart_int_disable(UART0_BASE, CC26XX_UART_INTERRUPT_ALL);
@@ -141,7 +151,7 @@ enable_interrupts(void)
     ti_lib_uart_int_enable(UART0_BASE, CC26XX_UART_RX_INTERRUPT_TRIGGERS);
 
     /* Acknowledge UART interrupts */
-    ti_lib_int_enable(INT_UART0);
+    ti_lib_int_enable(INT_UART0_COMB);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -154,7 +164,7 @@ configure(void)
    * to avoid falling edge glitches
    */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_UART_TX);
-  ti_lib_gpio_pin_write(BOARD_UART_TX, 1);
+  ti_lib_gpio_set_dio(BOARD_IOID_UART_TX);
 
   /*
    * Map UART signals to the correct GPIO pins and configure them as
@@ -271,7 +281,7 @@ cc26xx_uart_init()
   bool interrupts_disabled;
 
   /* Return early if disabled by user conf or if ports are misconfigured */
-  if(usable() == false) {
+  if(!usable_rx() && !usable_tx()) {
     return;
   }
 
@@ -299,7 +309,7 @@ void
 cc26xx_uart_write_byte(uint8_t c)
 {
   /* Return early if disabled by user conf or if ports are misconfigured */
-  if(usable() == false) {
+  if(usable_tx() == false) {
     return;
   }
 
@@ -316,7 +326,7 @@ cc26xx_uart_set_input(int (*input)(unsigned char c))
   input_handler = input;
 
   /* Return early if disabled by user conf or if ports are misconfigured */
-  if(usable() == false) {
+  if(usable_rx() == false) {
     return;
   }
 
@@ -348,7 +358,7 @@ uint8_t
 cc26xx_uart_busy(void)
 {
   /* Return early if disabled by user conf or if ports are misconfigured */
-  if(usable() == false) {
+  if(usable_tx() == false) {
     return UART_IDLE;
   }
 

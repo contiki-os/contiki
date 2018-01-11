@@ -587,6 +587,40 @@ get_resource(const lwm2m_instance_t *instance, lwm2m_context_t *context)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * @brief Write a list of object instances as a CoRE Link-format list
+ */
+static int
+write_object_instances_link(const lwm2m_object_t *object,
+                            char *buffer, size_t size)
+{
+  const lwm2m_instance_t *instance;
+  int len, rdlen, i;
+
+  PRINTF("</%d>", object->id);
+  rdlen = snprintf(buffer, size, "</%d>",
+                   object->id);
+  if(rdlen < 0 || rdlen >= size) {
+    return -1;
+  }
+
+  for(i = 0; i < object->count; i++) {
+    if((object->instances[i].flag & LWM2M_INSTANCE_FLAG_USED) == 0) {
+      continue;
+    }
+    instance = &object->instances[i];
+    PRINTF(",</%d/%d>", object->id, instance->id);
+
+    len = snprintf(&buffer[rdlen], size - rdlen,
+                   ",<%d/%d>", object->id, instance->id);
+    rdlen += len;
+    if(len < 0 || rdlen >= size) {
+      return -1;
+    }
+  }
+  return rdlen;
+}
+/*---------------------------------------------------------------------------*/
 static int
 write_rd_link_data(const lwm2m_object_t *object,
                    const lwm2m_instance_t *instance,
@@ -1051,6 +1085,23 @@ lwm2m_engine_handler(const lwm2m_object_t *object,
       } else {
         REST.set_header_content_type(response, LWM2M_JSON);
       }
+    }
+  } else if(depth == 1) {
+    /* produce a list of instances */
+    if(method != METHOD_GET) {
+      REST.set_response_status(response, METHOD_NOT_ALLOWED_4_05);
+    } else {
+      int rdlen;
+      PRINTF("Sending instance list for object %u\n", object->id);
+      /* TODO: if(accept == APPLICATION_LINK_FORMAT) { */
+      rdlen = write_object_instances_link(object, (char *)buffer, preferred_size);
+      if(rdlen < 0) {
+        PRINTF("Failed to generate object response\n");
+        REST.set_response_status(response, SERVICE_UNAVAILABLE_5_03);
+        return;
+      }
+      REST.set_header_content_type(response, REST.type.APPLICATION_LINK_FORMAT);
+      REST.set_response_payload(response, buffer, rdlen);
     }
   }
 }

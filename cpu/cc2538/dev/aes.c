@@ -237,8 +237,8 @@ aes_auth_crypt_start(uint32_t ctrl, uint8_t key_area, const void *iv,
 
   if(process != NULL) {
     crypto_register_process_notification(process);
-    nvic_interrupt_unpend(NVIC_INT_AES);
-    nvic_interrupt_enable(NVIC_INT_AES);
+    NVIC_ClearPendingIRQ(AES_IRQn);
+    NVIC_EnableIRQ(AES_IRQn);
   }
 
   if(data_len != 0) {
@@ -282,7 +282,7 @@ aes_auth_crypt_get_result(void *iv, void *tag)
                           AES_CTRL_INT_CLR_KEY_ST_WR_ERR |
                           AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
 
-  nvic_interrupt_disable(NVIC_INT_AES);
+  NVIC_DisableIRQ(AES_IRQn);
   crypto_register_process_notification(NULL);
 
   /* Disable the master control / DMA clock */

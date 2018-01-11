@@ -56,6 +56,7 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
@@ -63,11 +64,11 @@
 #include "hw_rfc_pwr.h"
 /*---------------------------------------------------------------------------*/
 /* RF Core Mailbox API */
-#include "rf-core/api/mailbox.h"
-#include "rf-core/api/common_cmd.h"
 #include "rf-core/api/ieee_cmd.h"
-#include "rf-core/api/data_entry.h"
 #include "rf-core/api/ieee_mailbox.h"
+#include "driverlib/rf_mailbox.h"
+#include "driverlib/rf_common_cmd.h"
+#include "driverlib/rf_data_entry.h"
 /*---------------------------------------------------------------------------*/
 #include "smartrf-settings.h"
 /*---------------------------------------------------------------------------*/
@@ -103,8 +104,9 @@
 #define IEEE_MODE_RSSI_THRESHOLD 0xA6
 #endif /* IEEE_MODE_CONF_RSSI_THRESHOLD */
 /*---------------------------------------------------------------------------*/
-#define STATUS_CRC_OK      0x80
-#define STATUS_CORRELATION 0x7f
+#define STATUS_CRC_FAIL     0x80 /* bit 7 */
+#define STATUS_REJECT_FRAME 0x40 /* bit 6 */
+#define STATUS_CORRELATION  0x3f /* bits 0-5 */
 /*---------------------------------------------------------------------------*/
 /* Data entry status field constants */
 #define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
@@ -162,29 +164,39 @@ static uint8_t rf_stats[16] = { 0 };
 
 /* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
 #define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+/* How long to wait for the RF to react on CMD_ABORT: around 1 msec */
+#define RF_TURN_OFF_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
+
+#define LIMITED_BUSYWAIT(cond, timeout) do {                         \
+    rtimer_clock_t end_time = RTIMER_NOW() + timeout;                \
+    while(cond) {                                                    \
+      if(!RTIMER_CLOCK_LT(RTIMER_NOW(), end_time)) {                 \
+        break;                                                       \
+      }                                                              \
+    }                                                                \
+  } while(0)
 /*---------------------------------------------------------------------------*/
 /* TX Power dBm lookup table - values from SmartRF Studio */
 typedef struct output_config {
   radio_value_t dbm;
-  uint8_t register_ib;
-  uint8_t register_gc;
-  uint8_t temp_coeff;
+  uint16_t tx_power; /* Value for the CMD_RADIO_SETUP.txPower field */
 } output_config_t;
 
 static const output_config_t output_power[] = {
-  {  5, 0x30, 0x00, 0x93 },
-  {  4, 0x24, 0x00, 0x93 },
-  {  3, 0x1c, 0x00, 0x5a },
-  {  2, 0x18, 0x00, 0x4e },
-  {  1, 0x14, 0x00, 0x42 },
-  {  0, 0x21, 0x01, 0x31 },
-  { -3, 0x18, 0x01, 0x25 },
-  { -6, 0x11, 0x01, 0x1d },
-  { -9, 0x0e, 0x01, 0x19 },
-  {-12, 0x0b, 0x01, 0x14 },
-  {-15, 0x0b, 0x03, 0x0c },
-  {-18, 0x09, 0x03, 0x0c },
-  {-21, 0x07, 0x03, 0x0c },
+  {  5, 0x9330 },
+  {  4, 0x9324 },
+  {  3, 0x5a1c },
+  {  2, 0x4e18 },
+  {  1, 0x4214 },
+  {  0, 0x3161 },
+  { -3, 0x2558 },
+  { -6, 0x1d52 },
+  { -9, 0x194e },
+  {-12, 0x144b },
+  {-15, 0x0ccb },
+  {-18, 0x0cc9 },
+  {-21, 0x0cc7 },
 };
 
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
@@ -210,7 +222,7 @@ static uint64_t last_rat_timestamp64 = 0;
 
 /* For RAT overflow handling */
 static struct ctimer rat_overflow_timer;
-static uint32_t rat_overflow_counter = 0;
+static volatile uint32_t rat_overflow_counter = 0;
 static rtimer_clock_t last_rat_overflow = 0;
 
 /* RAT has 32-bit register, overflows once 18 minutes */
@@ -261,6 +273,12 @@ volatile static uint8_t *rx_read_entry;
 
 static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
+#ifdef IEEE_MODE_CONF_BOARD_OVERRIDES
+#define IEEE_MODE_BOARD_OVERRIDES IEEE_MODE_CONF_BOARD_OVERRIDES
+#else
+#define IEEE_MODE_BOARD_OVERRIDES
+#endif
+/*---------------------------------------------------------------------------*/
 /* Overrides for IEEE 802.15.4, differential mode */
 static uint32_t ieee_overrides[] = {
   0x00354038, /* Synth: Set RTRIM (POTAILRESTRIM) to 5 */
@@ -275,6 +293,7 @@ static uint32_t ieee_overrides[] = {
   0x002B50DC, /* Adjust AGC DC filter */
   0x05000243, /* Increase synth programming timeout */
   0x002082C3, /* Increase synth programming timeout */
+  IEEE_MODE_BOARD_OVERRIDES
   0xFFFFFFFF, /* End of override list */
 };
 /*---------------------------------------------------------------------------*/
@@ -340,13 +359,12 @@ transmitting(void)
  * It is the caller's responsibility to make sure the RF is on. This function
  * will return RF_GET_CCA_INFO_ERROR if the RF is off
  *
- * This function will in fact wait for a valid RSSI signal
+ * This function will in fact wait for a valid CCA state
  */
 static uint8_t
 get_cca_info(void)
 {
   uint32_t cmd_status;
-  int8_t rssi;
   rfc_CMD_IEEE_CCA_REQ_t cmd;
 
   if(!rf_is_on()) {
@@ -354,9 +372,10 @@ get_cca_info(void)
     return RF_GET_CCA_INFO_ERROR;
   }
 
-  rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+  memset(&cmd, 0x00, sizeof(cmd));
+  cmd.ccaInfo.ccaState = RF_CMD_CCA_REQ_CCA_STATE_INVALID;
 
-  while(rssi == RF_CMD_CCA_REQ_RSSI_UNKNOWN || rssi == 0) {
+  while(cmd.ccaInfo.ccaState == RF_CMD_CCA_REQ_CCA_STATE_INVALID) {
     memset(&cmd, 0x00, sizeof(cmd));
     cmd.commandNo = CMD_IEEE_CCA_REQ;
 
@@ -365,11 +384,9 @@ get_cca_info(void)
 
       return RF_GET_CCA_INFO_ERROR;
     }
-
-    rssi = cmd.currentRssi;
   }
 
-  /* We have a valid RSSI signal. Return the CCA Info */
+  /* We have a valid CCA state. Return the CCA Info */
   return *((uint8_t *)&cmd.ccaInfo);
 }
 /*---------------------------------------------------------------------------*/
@@ -384,9 +401,8 @@ static radio_value_t
 get_rssi(void)
 {
   uint32_t cmd_status;
-  int8_t rssi;
   uint8_t was_off = 0;
-  rfc_CMD_GET_RSSI_t cmd;
+  rfc_CMD_IEEE_CCA_REQ_t cmd;
 
   /* If we are off, turn on first */
   if(!rf_is_on()) {
@@ -398,13 +414,19 @@ get_rssi(void)
   }
 
   memset(&cmd, 0x00, sizeof(cmd));
-  cmd.commandNo = CMD_GET_RSSI;
+  cmd.ccaInfo.ccaEnergy = RF_CMD_CCA_REQ_CCA_STATE_INVALID;
 
-  rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+  while(cmd.ccaInfo.ccaEnergy == RF_CMD_CCA_REQ_CCA_STATE_INVALID) {
+    memset(&cmd, 0x00, sizeof(cmd));
+    cmd.commandNo = CMD_IEEE_CCA_REQ;
 
-  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-    /* Current RSSI in bits 23:16 of cmd_status */
-    rssi = (cmd_status >> 16) & 0xFF;
+    if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+      PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
+
+      /* Make sure to return RSSI unknown */
+      cmd.currentRssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+      break;
+    }
   }
 
   /* If we were off, turn back off */
@@ -412,7 +434,7 @@ get_rssi(void)
     off();
   }
 
-  return rssi;
+  return cmd.currentRssi;
 }
 /*---------------------------------------------------------------------------*/
 /* Returns the current TX power in dBm */
@@ -455,9 +477,7 @@ set_tx_power(radio_value_t power)
 
   memset(&cmd, 0x00, sizeof(cmd));
   cmd.commandNo = CMD_SET_TX_POWER;
-  cmd.txPower.IB = output_power[i].register_ib;
-  cmd.txPower.GC = output_power[i].register_gc;
-  cmd.txPower.tempCoeff = output_power[i].temp_coeff;
+  cmd.txPower = output_power[i].tx_power;
 
   if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
     PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
@@ -470,13 +490,15 @@ rf_radio_setup()
   uint32_t cmd_status;
   rfc_CMD_RADIO_SETUP_t cmd;
 
+  rf_switch_select_path(RF_SWITCH_PATH_2_4GHZ);
+
   /* Create radio setup command */
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_RADIO_SETUP);
 
-  cmd.txPower.IB = tx_power_current->register_ib;
-  cmd.txPower.GC = tx_power_current->register_gc;
-  cmd.txPower.tempCoeff = tx_power_current->temp_coeff;
+  cmd.txPower = tx_power_current->tx_power;
   cmd.pRegOverride = ieee_overrides;
+  cmd.config.frontEndMode = RF_CORE_RADIO_SETUP_FRONT_END_MODE;
+  cmd.config.biasMode = RF_CORE_RADIO_SETUP_BIAS_MODE;
   cmd.mode = 1;
 
   /* Send Radio setup to RF Core */
@@ -510,7 +532,6 @@ static uint8_t
 rf_cmd_ieee_rx()
 {
   uint32_t cmd_status;
-  rtimer_clock_t t0;
   int ret;
 
   ret = rf_core_send_cmd((uint32_t)cmd_ieee_rx_buf, &cmd_status);
@@ -521,10 +542,8 @@ rf_cmd_ieee_rx()
     return RF_CORE_CMD_ERROR;
   }
 
-  t0 = RTIMER_NOW();
-
-  while(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE &&
-        (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ENTER_RX_WAIT_TIMEOUT)));
+  LIMITED_BUSYWAIT(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE,
+                   ENTER_RX_WAIT_TIMEOUT);
 
   /* Wait to enter RX */
   if(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE) {
@@ -687,7 +706,7 @@ rx_off(void)
     /* Continue nonetheless */
   }
 
-  while(rf_is_on());
+  LIMITED_BUSYWAIT(rf_is_on(), RF_TURN_OFF_WAIT_TIMEOUT);
 
   if(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_STOPPED ||
      RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_ABORT) {
@@ -738,8 +757,8 @@ soft_off(void)
     return;
   }
 
-  while((cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS) ==
-        RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING);
+  LIMITED_BUSYWAIT((cmd->status & RF_CORE_RADIO_OP_MASKED_STATUS) ==
+                   RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING, RF_TURN_OFF_WAIT_TIMEOUT);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -758,12 +777,17 @@ static const rf_core_primary_mode_t mode_ieee = {
   soft_on,
 };
 /*---------------------------------------------------------------------------*/
-static void
+static uint8_t
 check_rat_overflow(bool first_time)
 {
   static uint32_t last_value;
   uint32_t current_value;
   uint8_t interrupts_disabled;
+
+  /* Bail out if the RF is not on */
+  if(!rf_is_on()) {
+    return 0;
+  }
 
   interrupts_disabled = ti_lib_int_master_disable();
   if(first_time) {
@@ -771,7 +795,7 @@ check_rat_overflow(bool first_time)
   } else {
     current_value = HWREG(RFC_RAT_BASE + RATCNT);
     if(current_value + RAT_RANGE / 4 < last_value) {
-      /* overflow detected */
+      /* Overflow detected */
       last_rat_overflow = RTIMER_NOW();
       rat_overflow_counter++;
     }
@@ -780,31 +804,40 @@ check_rat_overflow(bool first_time)
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
 handle_rat_overflow(void *unused)
 {
+  uint8_t success;
   uint8_t was_off = 0;
 
   if(!rf_is_on()) {
     was_off = 1;
     if(on() != RF_CORE_CMD_OK) {
       PRINTF("overflow: on() failed\n");
-      ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
+      ctimer_set(&rat_overflow_timer, CLOCK_SECOND,
                  handle_rat_overflow, NULL);
       return;
     }
   }
 
-  check_rat_overflow(false);
+  success = check_rat_overflow(false);
 
   if(was_off) {
     off();
   }
 
-  ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
-             handle_rat_overflow, NULL);
+  if(success) {
+    /* Retry after half of the interval */
+    ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
+               handle_rat_overflow, NULL);
+  } else {
+    /* Retry sooner */
+    ctimer_set(&rat_overflow_timer, CLOCK_SECOND,
+               handle_rat_overflow, NULL);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -994,7 +1027,22 @@ static uint32_t
 calc_last_packet_timestamp(uint32_t rat_timestamp)
 {
   uint64_t rat_timestamp64;
-  uint32_t adjusted_overflow_counter = rat_overflow_counter;
+  uint32_t adjusted_overflow_counter;
+  uint8_t was_off = 0;
+
+  if(!rf_is_on()) {
+    was_off = 1;
+    on();
+  }
+
+  if(rf_is_on()) {
+    check_rat_overflow(false);
+    if(was_off) {
+      off();
+    }
+  }
+
+  adjusted_overflow_counter = rat_overflow_counter;
 
   /* if the timestamp is large and the last oveflow was recently,
      assume that the timestamp refers to the time before the overflow */
@@ -1021,10 +1069,6 @@ read_frame(void *buf, unsigned short buf_len)
   int len = 0;
   rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
   uint32_t rat_timestamp;
-
-  if(rf_is_on()) {
-    check_rat_overflow(false);
-  }
 
   /* wait for entry to become finished */
   rtimer_clock_t t0 = RTIMER_NOW();
@@ -1057,7 +1101,7 @@ read_frame(void *buf, unsigned short buf_len)
   memcpy(buf, (char *)&rx_read_entry[9], len);
 
   last_rssi = (int8_t)rx_read_entry[9 + len + 2];
-  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 2] & STATUS_CORRELATION;
+  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 3] & STATUS_CORRELATION;
 
   /* get the timestamp */
   memcpy(&rat_timestamp, (char *)rx_read_entry + 9 + len + 4, 4);
@@ -1497,9 +1541,9 @@ set_value(radio_param_t param, radio_value_t value)
 
   /* Restart the radio timer (RAT).
      This causes resynchronization between RAT and RTC: useful for TSCH. */
-  rf_core_restart_rat();
-
-  check_rat_overflow(false);
+  if(rf_core_restart_rat() == RF_CORE_CMD_OK) {
+    check_rat_overflow(false);
+  }
 
   if(rx_on() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on() failed\n");
@@ -1547,7 +1591,7 @@ get_object(radio_param_t param, void *dest, size_t size)
 static radio_result_t
 set_object(radio_param_t param, const void *src, size_t size)
 {
-  radio_result_t rv;
+  radio_result_t rv = RADIO_RESULT_OK;
   int i;
   uint8_t *dst;
   rfc_CMD_IEEE_RX_t *cmd = (rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf;

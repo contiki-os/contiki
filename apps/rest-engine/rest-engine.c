@@ -113,6 +113,14 @@ rest_activate_resource(resource_t *resource, char *path)
     PRINTF("Periodic resource: %p (%s)\n", resource->periodic,
            resource->periodic->resource->url);
     list_add(restful_periodic_services, resource->periodic);
+    if(process_is_running(&rest_engine_process)) {
+      PRINTF("Periodic: Set timer for /%s to %lu\n",
+             resource->url, resource->periodic->period);
+      PROCESS_CONTEXT_BEGIN(&rest_engine_process);
+      etimer_set(&resource->periodic->periodic_timer,
+                 resource->periodic->period);
+      PROCESS_CONTEXT_END(&rest_engine_process);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

@@ -107,7 +107,7 @@ static int
 value(int type)
 {
   if(type == ADC_SENSOR_VALUE) {
-    int val;
+    int val, adj_val, adj_mv;
 
     if(!is_active) {
       puts("ADC not active");
@@ -119,10 +119,14 @@ value(int type)
 
     ti_lib_aux_adc_gen_manual_trigger();
     val = ti_lib_aux_adc_read_fifo();
-
+    adj_val = ti_lib_aux_adc_adjust_value_for_gain_and_offset(
+        val,
+        ti_lib_aux_adc_get_adjustment_gain(AUXADC_REF_FIXED),
+        ti_lib_aux_adc_get_adjustment_offset(AUXADC_REF_FIXED));
+    adj_mv = ti_lib_aux_adc_value_to_microvolts(AUXADC_FIXED_REF_VOLTAGE_NORMAL, adj_val);
     ti_lib_aux_adc_disable();
 
-    return val;
+    return adj_mv;
   }
 
   return 0;

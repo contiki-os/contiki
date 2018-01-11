@@ -36,7 +36,7 @@
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx Common sensor utilities
+ * Header file for the Sensortag Common sensor utilities
  */
 /*---------------------------------------------------------------------------*/
 #ifndef SENSOR_H

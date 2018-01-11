@@ -101,11 +101,6 @@
 #define CC2530_RF_TX_POWER_TXCTRL_MIN_VAL 0x09 /* Value for min TX Power */
 #define CC2530_RF_TX_POWER_TXCTRL_DEF_VAL 0x69 /* Reset Value */
 /*---------------------------------------------------------------------------*/
-#if CC2530_RF_CONF_HEXDUMP
-#include "dev/io-arch.h"
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
-#endif
-/*---------------------------------------------------------------------------*/
 #ifdef CC2530_RF_CONF_AUTOACK
 #define CC2530_RF_AUTOACK CC2530_RF_CONF_AUTOACK
 #else
@@ -531,15 +526,6 @@ read(void *buf, unsigned short bufsize)
     return 0;
   }
 
-#if CC2530_RF_CONF_HEXDUMP
-  /* If we reach here, chances are the FIFO is holding a valid frame */
-  io_arch_writeb(magic[0]);
-  io_arch_writeb(magic[1]);
-  io_arch_writeb(magic[2]);
-  io_arch_writeb(magic[3]);
-  io_arch_writeb(len);
-#endif
-
   RF_RX_LED_ON();
 
   PUTSTRING("RF: read (0x");
@@ -548,9 +534,6 @@ read(void *buf, unsigned short bufsize)
   len -= CHECKSUM_LEN;
   for(i = 0; i < len; ++i) {
     ((unsigned char *)(buf))[i] = RFD;
-#if CC2530_RF_CONF_HEXDUMP
-    io_arch_writeb(((unsigned char *)(buf))[i]);
-#endif
     PUTHEX(((unsigned char *)(buf))[i]);
   }
   PUTSTRING("\n");
@@ -558,12 +541,6 @@ read(void *buf, unsigned short bufsize)
   /* Read the RSSI and CRC/Corr bytes */
   rssi = ((int8_t) RFD) - RSSI_OFFSET;
   crc_corr = RFD;
-
-#if CC2530_RF_CONF_HEXDUMP
-  io_arch_writeb(rssi);
-  io_arch_writeb(crc_corr);
-  io_arch_flush();
-#endif
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
   if(crc_corr & CRC_BIT_MASK) {

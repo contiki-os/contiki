@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Test file for the BMP085/BMP180 digital pressure and temperature sensor
+ *         Test file for the BMP085/BMP180 digital pressure and temp sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>

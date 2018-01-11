@@ -48,6 +48,10 @@
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-conf.h"
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+#include "lib/simEnvChange.h"
+#include "sys/cooja_mt.h"
+#endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
 
 /************ Types ***********/
 
@@ -76,12 +80,12 @@ extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */
 extern const linkaddr_t tsch_eb_address;
 /* The current Absolute Slot Number (ASN) */
-extern struct asn_t current_asn;
+extern struct tsch_asn_t tsch_current_asn;
 extern uint8_t tsch_join_priority;
 extern struct tsch_link *current_link;
 /* TSCH channel hopping sequence */
 extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
-extern struct asn_divisor_t tsch_hopping_sequence_length;
+extern struct tsch_asn_divisor_t tsch_hopping_sequence_length;
 /* TSCH timeslot timing (in rtimer ticks) */
 extern rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
@@ -109,7 +113,14 @@ void tsch_disassociate(void);
 #define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c) / timeslot_length)
 
 /* Wait for a condition with timeout t0+offset. */
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+#define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
+  while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset))) { \
+    simProcessRunValue = 1; \
+    cooja_mt_yield(); \
+  };
+#else
 #define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
   while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset))) ;
-
+#endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
 #endif /* __TSCH_PRIVATE_H__ */

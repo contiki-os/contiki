@@ -35,6 +35,22 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-struct ethernet_config * config_read(char *filename);
+extern struct {
+  uip_ipaddr_t hostaddr;
+  uip_ipaddr_t netmask;
+  uip_ipaddr_t draddr;
+  uip_ipaddr_t resolvaddr;
+  union {
+    struct {
+      uint16_t addr;
+#ifndef STATIC_DRIVER
+      char     name[12+1];
+#endif /* !STATIC_DRIVER */
+    }          ethernet;
+    uint8_t    slip[5];
+  };
+} config;
+
+void config_read(char *filename);
 
 #endif /* CONFIG_H_ */

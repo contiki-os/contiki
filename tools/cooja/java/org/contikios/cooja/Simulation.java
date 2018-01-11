@@ -71,6 +71,7 @@ public class Simulation extends Observable implements Runnable {
   private long speedLimitLastSimtime;
   private long speedLimitLastRealtime;
 
+  private long lastStartTime;
   private long currentSimulationTime = 0;
 
   private String title = null;
@@ -248,7 +249,7 @@ public class Simulation extends Observable implements Runnable {
   }
 
   public void run() {
-    long lastStartTime = System.currentTimeMillis();
+    lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
     isRunning = true;
     speedLimitLastRealtime = System.currentTimeMillis();
@@ -543,6 +544,17 @@ public class Simulation extends Observable implements Runnable {
     return config;
   }
 
+  
+  /* indicator to components setting up that they need to respect the fast setup mode */
+  private boolean quick = false;
+  public boolean isQuickSetup() {
+      return quick;
+  }
+  
+  public void setQuickSetup(boolean q) {
+      quick = q;
+  }
+  
   /**
    * Sets the current simulation config depending on the given configuration.
    *
@@ -553,8 +565,9 @@ public class Simulation extends Observable implements Runnable {
    * @throws Exception If configuration could not be loaded
    */
   public boolean setConfigXML(Collection<Element> configXML,
-      boolean visAvailable, Long manualRandomSeed) throws Exception {
+      boolean visAvailable, boolean quick, Long manualRandomSeed) throws Exception {
 
+      setQuickSetup(quick);
     // Parse elements
     for (Element element : configXML) {
 
@@ -622,7 +635,7 @@ public class Simulation extends Observable implements Runnable {
 
         // Show configure simulation dialog
         boolean createdOK = false;
-        if (visAvailable) {
+        if (visAvailable && !quick) {
           createdOK = CreateSimDialog.showDialog(Cooja.getTopParentContainer(), this);
         } else {
           createdOK = true;
@@ -656,7 +669,7 @@ public class Simulation extends Observable implements Runnable {
         }
 
         /* Try to recreate simulation using a different mote type */
-        if (visAvailable) {
+        if (visAvailable && !quick) {
           String[] availableMoteTypes = getCooja().getProjectConfig().getStringArrayValue("org.contikios.cooja.Cooja.MOTETYPES");
           String newClass = (String) JOptionPane.showInputDialog(
               Cooja.getTopParentContainer(),
@@ -1073,6 +1086,16 @@ public class Simulation extends Observable implements Runnable {
    */
   public long getSimulationTimeMillis() {
     return currentSimulationTime / MILLISECOND;
+  }
+
+  /**
+   * Return the actual time value corresponding to an argument which
+   * is a simulation time value in microseconds.
+   *
+   * @return Actual time (microseconds)
+   */
+  public long convertSimTimeToActualTime(long simTime) {
+    return simTime + lastStartTime * 1000;
   }
 
   /**

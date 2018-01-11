@@ -187,9 +187,9 @@ uip_ds6_periodic(void)
   }
 #endif /* !UIP_CONF_ROUTER */
 
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
   uip_ds6_neighbor_periodic();
-#endif /* UIP_ND6_SEND_RA */
+#endif /* UIP_ND6_SEND_NS */
 
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Periodic RA sending */

@@ -197,10 +197,6 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_ARCH_CONF_USB          0 /**< SLIP over UART by default */
 #endif
 
-#ifndef CC2538_RF_CONF_SNIFFER_USB
-#define CC2538_RF_CONF_SNIFFER_USB  0 /**< Sniffer out over UART by default */
-#endif
-
 #ifndef DBG_CONF_USB
 #define DBG_CONF_USB                0 /**< All debugging over UART by default */
 #endif
@@ -212,12 +208,6 @@ typedef uint32_t rtimer_clock_t;
 #if !SLIP_ARCH_CONF_USB
 #ifndef SLIP_ARCH_CONF_UART
 #define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
-#endif
-#endif
-
-#if !CC2538_RF_CONF_SNIFFER_USB
-#ifndef CC2538_RF_CONF_SNIFFER_UART
-#define CC2538_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
 #endif
 #endif
 
@@ -247,15 +237,6 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #endif
 
-/*
- * When set, the radio turns off address filtering and sends all captured
- * frames down a peripheral (UART or USB, depending on the value of
- * CC2538_RF_CONF_SNIFFER_USB)
- */
-#ifndef CC2538_RF_CONF_SNIFFER
-#define CC2538_RF_CONF_SNIFFER      0
-#endif
-
 /**
  * \brief Define this as 1 to build a headless node.
  *
@@ -276,12 +257,6 @@ typedef uint32_t rtimer_clock_t;
 
 #undef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        0
-
-/* Little sanity check: We can't have quiet sniffers */
-#if CC2538_RF_CONF_SNIFFER
-#error "CC2538_RF_CONF_SNIFFER == 1 and CC2538_CONF_QUIET == 1"
-#error "These values are conflicting. Please set either to 0"
-#endif
 #endif /* CC2538_CONF_QUIET */
 
 /**
@@ -290,8 +265,7 @@ typedef uint32_t rtimer_clock_t;
 #ifndef USB_SERIAL_CONF_ENABLE
 #define USB_SERIAL_CONF_ENABLE \
   ((SLIP_ARCH_CONF_USB & SLIP_ARCH_CONF_ENABLED) | \
-   DBG_CONF_USB | \
-   (CC2538_RF_CONF_SNIFFER & CC2538_RF_CONF_SNIFFER_USB))
+   DBG_CONF_USB)
 #endif
 
 /*
@@ -311,9 +285,6 @@ typedef uint32_t rtimer_clock_t;
 #define UART_IN_USE_BY_SLIP(u)        (SLIP_ARCH_CONF_ENABLED && \
                                        !SLIP_ARCH_CONF_USB && \
                                        SLIP_ARCH_CONF_UART == (u))
-#define UART_IN_USE_BY_RF_SNIFFER(u)  (CC2538_RF_CONF_SNIFFER && \
-                                       !CC2538_RF_CONF_SNIFFER_USB && \
-                                       CC2538_RF_CONF_SNIFFER_UART == (u))
 #define UART_IN_USE_BY_DBG(u)         (!DBG_CONF_USB && DBG_CONF_UART == (u))
 #define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
 
@@ -321,7 +292,6 @@ typedef uint32_t rtimer_clock_t;
   UART_CONF_ENABLE && \
   (UART_IN_USE_BY_SERIAL_LINE(u) || \
    UART_IN_USE_BY_SLIP(u) || \
-   UART_IN_USE_BY_RF_SNIFFER(u) || \
    UART_IN_USE_BY_DBG(u) || \
    UART_IN_USE_BY_UART1(u)) \
 )
@@ -352,8 +322,8 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#define NULLRDC_CONF_802154_AUTOACK             1
+#define NULLRDC_CONF_802154_AUTOACK_HW			    1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
@@ -370,6 +340,26 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_FRAMER  contikimac_framer
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_FRAMER */
+
+#if CC1200_CONF_SUBGHZ_50KBPS_MODE
+#define NETSTACK_CONF_RADIO                                 cc1200_driver
+#define CC1200_CONF_RF_CFG                                  cc1200_802154g_863_870_fsk_50kbps
+#define ANTENNA_SW_SELECT_DEF_CONF                          ANTENNA_SW_SELECT_SUBGHZ
+#define CC1200_CONF_USE_GPIO2                               0
+#define CC1200_CONF_USE_RX_WATCHDOG                         0
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                          (RTIMER_SECOND / 200)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME           (RTIMER_SECOND / 1500)
+#define NULLRDC_CONF_802154_AUTOACK                         1
+#define NULLRDC_CONF_802154_AUTOACK_HW                      1
+#define NULLRDC_CONF_SEND_802154_ACK                        0
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME                      (RTIMER_ARCH_SECOND / 800)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME                      (RTIMER_ARCH_SECOND / 120)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED   (RTIMER_ARCH_SECOND / 8)
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME        (RTIMER_SECOND / 300)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL               (RTIMER_SECOND / 200)
+#endif
 
 /* This can be overriden to use the cc1200_driver instead */
 #ifndef NETSTACK_CONF_RADIO
@@ -463,6 +453,10 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0xABCD
 #endif
 
+#ifdef RF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL      RF_CHANNEL
+#endif
+
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              26
 #endif /* CC2538_RF_CONF_CHANNEL */
@@ -488,7 +482,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
 #ifndef NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_WITH_IPV6                        0
+#define NETSTACK_CONF_WITH_IPV6              0
 #endif
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -519,15 +513,11 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
 
-#ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_mrhof
-#endif
-
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                16
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        16
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 16
@@ -600,6 +590,27 @@ typedef uint32_t rtimer_clock_t;
 
 #ifndef CCM_STAR_CONF
 #define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name RTC
+ *
+ * @{
+ */
+#ifdef PLATFORM_HAS_RTC
+
+#ifndef RTC_CONF_INIT
+#define RTC_CONF_INIT   0 /**< Whether to initialize the RTC */
+#endif
+
+#ifndef RTC_CONF_SET_FROM_SYS
+#define RTC_CONF_SET_FROM_SYS    0 /**< Whether to set the RTC from the build system */
+#endif
+
+#else
+#undef RTC_CONF_INIT
+#define RTC_CONF_INIT   0
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/

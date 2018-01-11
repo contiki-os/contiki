@@ -125,7 +125,7 @@
 /** BUTTON_USER -> PC3 */
 #define BUTTON_USER_PORT       GPIO_C_NUM
 #define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_C
+#define BUTTON_USER_VECTOR     GPIO_C_IRQn
 /* Notify various examples that we have Buttons */
 #define PLATFORM_HAS_BUTTON    1
 /** @} */
