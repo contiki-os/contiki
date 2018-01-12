@@ -107,7 +107,7 @@ uint8_t debugflowsize, debugflow[DEBUGFLOWSIZE];
 #if PERIODICPRINTS
 /* #define PINGS 64 */
 #define ROUTES 600
-#define STAMPS 60
+#define STAMPS 0//WE DONT WANT TO TRANSMIT TIME 
 #define STACKMONITOR 1024
 uint32_t clocktime;
 #define TESTRTIMER 0
@@ -544,6 +544,7 @@ main(void)
 
 #if STAMPS
       if((clocktime % STAMPS) == 0) {
+
 #if ENERGEST_CONF_ON
 #include "lib/print-stats.h"
         print_stats();

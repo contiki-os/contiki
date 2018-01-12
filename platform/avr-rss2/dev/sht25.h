@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2014, OpenMote Technologies, S.L.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,52 +26,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
+ * \addtogroup openmote-sensors
+ * @{
+ *
+ * \defgroup openmote-sht21-sensor SHT21 sensor
+ * @{
+ *
  * \file
- *         includes for i2c core functions
+ * Header file for the SHT21 temperature and humidity sensor driver
+ *
  * \author
- *         Robert Olsson <robert@radio-sensors.com>
+ * Pere Tuset <peretuset@openmote.com>
  */
-
-#include "contiki.h"
-
-/* Here we define the i2c address for dev we support */
-#define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
-#define I2C_SHT25_ADDR    (0x40 << 1) /* SHT2X ADDR */
-#define I2C_DS1307_ADDR   0xD0 /* DS1307 rtc */
-#define I2C_MS5611_ADDR   0xEC/* ms5611 */
-#define I2C_MCP3424_ADDR  0x68//(0x68<<1)/*ADC */
-
-/* Here we define a enumration for devices */
-#define I2C_AT24MAC       (1<<0)
-#define I2C_SHT25         (1<<1)
-#define I2C_DS1307        (1<<2)
-#define I2C_MS5611	  (1<<3)
-#define I2C_MCP3424	  (1<<4)
-
- #define ADDR_W      0xEC  
-/* define CPU frequency in Mhz here if not defined in Makefile */
-#ifndef F_CPU
-#define F_CPU 16000000L
-#endif
-
-/* I2C clock in Hz */
-#define F_SCL  100000L
-#define I2C_READ    1
-#define I2C_WRITE   0
-
-void i2c_init(uint32_t speed);
-uint8_t i2c_start(uint8_t addr);
-void i2c_start_wait(uint8_t addr);
-void i2c_stop(void);
-uint8_t i2c_readNak(void);
-void i2c_write(uint8_t u8data);
-void i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes);
-void i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value);
-void i2c_at24mac_read(char *buf, uint8_t eui64);
-unsigned char i2c_write1(unsigned char data);
-uint16_t i2c_probe(void);
-extern uint16_t i2c_probed; /* i2c devices we have probed */
-void i2c_send(char cmd);
+/*---------------------------------------------------------------------------*/
+#ifndef SHT25_H_
+#define SHT25_H_
+/*---------------------------------------------------------------------------*/
+#define SHT25_ERROR             (-1)
+#define SHT25_SUCCESS           (0)
+#define SHT25_ACTIVATE          (SENSORS_ACTIVE)
+#define SHT25_READ_RAW_TEMP     (2)
+#define SHT25_READ_RAW_RHUM     (3)
+#define SHT25_READ_TEMP         (4)
+#define SHT25_READ_RHUM         (5)
+#define SHT25_RESET             (6)
+#define SHT25_NONE              (7)
+/*---------------------------------------------------------------------------*/
+#define SHT25_SENSOR "SHT25 Sensor"
+/*---------------------------------------------------------------------------*/
+extern const struct sensors_sensor sht25_sensor;
+/*---------------------------------------------------------------------------*/
+void
+sht25_init(void);
+#endif /* SHT25_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

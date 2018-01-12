@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,52 +26,50 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
+ *
+ * Author  : Robert Olsson
+ * Created : 2015-10-27
+ * Updated : $Date: 2010/01/14 20:23:02 $
+ *           $Revision: 1.2 $
  */
 
-/**
- * \file
- *         includes for i2c core functions
- * \author
- *         Robert Olsson <robert@radio-sensors.com>
- */
+#ifndef MCP3424_SENSOR_H_
+#define MCP3424_SENSOR_H_
 
-#include "contiki.h"
+#include "lib/sensors.h"
+#define TRUE 1
+#define FALSE 0
 
-/* Here we define the i2c address for dev we support */
-#define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
-#define I2C_SHT25_ADDR    (0x40 << 1) /* SHT2X ADDR */
-#define I2C_DS1307_ADDR   0xD0 /* DS1307 rtc */
-#define I2C_MS5611_ADDR   0xEC/* ms5611 */
-#define I2C_MCP3424_ADDR  0x68//(0x68<<1)/*ADC */
+#define SCL_CLOCK  100000L   
+ 
 
-/* Here we define a enumration for devices */
-#define I2C_AT24MAC       (1<<0)
-#define I2C_SHT25         (1<<1)
-#define I2C_DS1307        (1<<2)
-#define I2C_MS5611	  (1<<3)
-#define I2C_MCP3424	  (1<<4)
+extern const struct sensors_sensor mcp3424_sensor;
+#define MCP3424_ADDR 0x68//(0x68<< 1)
+#define MCP342X_START      0X80 // write: start a conversion
+#define MCP342X_BUSY 0X80 // read: output not ready
+typedef enum { false, true } bool;
 
- #define ADDR_W      0xEC  
-/* define CPU frequency in Mhz here if not defined in Makefile */
-#ifndef F_CPU
-#define F_CPU 16000000L
-#endif
 
-/* I2C clock in Hz */
-#define F_SCL  100000L
-#define I2C_READ    1
-#define I2C_WRITE   0
+//address (input) I2C bus address of the device
+//gain (input) Measurement gain multiplier (1,2,4,8)
+//resolution (input) ADC resolution (0,1,2,4)
+void mcp3424_init(uint8_t address, uint8_t channel, uint8_t gain, uint8_t resolution);
 
-void i2c_init(uint32_t speed);
-uint8_t i2c_start(uint8_t addr);
-void i2c_start_wait(uint8_t addr);
-void i2c_stop(void);
-uint8_t i2c_readNak(void);
-void i2c_write(uint8_t u8data);
-void i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes);
-void i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value);
-void i2c_at24mac_read(char *buf, uint8_t eui64);
-unsigned char i2c_write1(unsigned char data);
-uint16_t i2c_probe(void);
-extern uint16_t i2c_probed; /* i2c devices we have probed */
-void i2c_send(char cmd);
+// Start a one-shot channel measurement
+// @param channel (input) Analog input to read (1-4)
+void mcp3424_start_measure();
+
+// Test if a measurement is ready. Use getMeasurement() to return
+// the value of the result.
+// @return True if measurement was ready, false otherwise
+bool is_measurement_ready();
+
+// Get the result of the last channel measurement
+// @param value (output) Measured value of channel, in mV
+int32_t get_measurement_uv();
+
+// Get the divisor for converting a measurement into mV
+int get_mv_divisor();
+#endif /* MCP3424-SENSOR_H_ */

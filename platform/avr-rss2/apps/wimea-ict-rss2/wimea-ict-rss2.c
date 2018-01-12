@@ -50,8 +50,10 @@
 #include "dev/battery-sensor.h"
 #include "dev/temp-sensor.h"
 #include "dev/temp_mcu-sensor.h"
-#include "dev/light-sensor.h"
 #include "dev/ds1307.h"
+#include "dev/sht25.h"
+#include "dev/mcp3424.h"
+#include "dev/ms5611.h"
 #include "lib/fs/fat/diskio.h"
 #include "lib/fs/fat/ff.h"
 #include "net/rime/rime.h"
@@ -62,9 +64,6 @@
 #define NO_SENSORS 10
 #define MAX_BCAST_SIZE 99
 #define DEF_TTL 0xF
-
-#define END_OF_FILE 26
-uint8_t eof = END_OF_FILE;
 
 //Configuration Parameters
 uint16_t EEMEM eemem_transmission_interval;
@@ -86,7 +85,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 LIGHT";
+static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 PRESSURE T_SHT25 RH_SHT25 ADC";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -184,14 +183,30 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 {
 	PROCESS_BEGIN();
 	SENSORS_ACTIVATE(temp_sensor);
-	SENSORS_ACTIVATE(light_sensor);
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
+
+        if( i2c_probed & I2C_SHT25) {                
+                sht25_init();
+                printf("initialized");
+                SENSORS_ACTIVATE(sht25_sensor);
+                  printf("activated");            
+       
+        }
+         if( i2c_probed & I2C_MCP3424 ) {
+		mcp3424_init(MCP3424_ADDR,0,8,16);  
+		SENSORS_ACTIVATE(mcp3424_sensor);
+	}
+
+	 if(i2c_probed & I2C_MS5611_ADDR){
+		SENSORS_ACTIVATE(ms5611_sensor);
+	}
 
 	if( i2c_probed & I2C_DS1307 ) {
 			DS1307_init();
 			SENSORS_ACTIVATE(ds1307_sensor);
-		}
+	}
+        
 	while(1) {
 		time_interval=eeprom_read_word(&eemem_transmission_interval);
 		etimer_set(&et, CLOCK_SECOND * time_interval);
@@ -200,11 +215,12 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	}
 
 	SENSORS_DEACTIVATE(temp_sensor);
-	SENSORS_DEACTIVATE(light_sensor);
 	SENSORS_DEACTIVATE(temp_mcu_sensor);
 	SENSORS_DEACTIVATE(battery_sensor);
 	SENSORS_DEACTIVATE(ds1307_sensor);
-
+        SENSORS_DEACTIVATE(ms5611_sensor);
+        SENSORS_DEACTIVATE(mcp3424_sensor);
+        SENSORS_DEACTIVATE(sht25_sensor);
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -313,8 +329,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	msg_recv = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
-    printf("&: %s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
-    printf("%c", eof);
+    printf("%s [ADDR=%d.%d RSSI=%u LQI=%u TTL=%u SEQ=%u]\n", (char *)msg_recv->buf, from->u8[0], from->u8[1], rssi, lqi, msg_recv->head & 0xF, msg_recv->seqno);
 }
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
 /*---------------------------------------------------------------------------*/
@@ -341,14 +356,13 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		}
 		if (node_name>0){
 			strlcpy(node, (char*)node_name, NAME_LENGTH);
-			i += snprintf(msg.buf+i, 15, "NAME=%s ", node);
+			i += snprintf(msg.buf+i, 15, "&: NAME=%s ", node);
 		}
 		/* Read out mote 64bit MAC address */
 		len+=25;
 		i += snprintf(msg.buf+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		msg.buf[i++]='\0';//null terminate report.
-		printf("&: %s\n", msg.buf);
-		printf("%c", eof);
+		printf("%s\n", msg.buf);
 		msg.head = 1<<4;
 		msg.head |= ttl;
 		msg.seqno = seqno;
@@ -493,9 +507,27 @@ read_sensor_values(void){
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
 		} else if (!strncmp(trim(sensors), "T", 1)) {
 			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
-		} else if (!strncmp(trim(sensors), "LIGHT", 5)) {
-			i += snprintf(result+i, 10, " LIGHT=%-d", light_sensor.value(0));
+		} else if (!strncmp(trim(sensors), "PRESSURE", 8)) {
+			i += snprintf(result+i, 15, " Pressure=%d", ms5611_sensor.value(0));
 		}
+                else if (!strncmp(trim(sensors), "ADC", 8)) {
+			i += snprintf(result+i,7, " ADC=%d", mcp3424_sensor.value(0));
+		}
+                 else if (!strncmp(trim(sensors), "T_SHT25", 7)) {
+			i += snprintf(result+i,11, " T_SHT25=%d", sht25_sensor.value(SHT25_READ_TEMP));
+		}
+	        else if (!strncmp(trim(sensors), "RH_SHT25", 8)) {
+			i += snprintf(result+i,12, " RH_SHT25=%d",sht25_sensor.value(SHT25_READ_RHUM));
+		}
+
+
+               /* else if (!strncmp(trim(sensors), "T_SHT25", 5)) {
+			i += snprintf(result+i, 10, "SHT25=%-d", sht25_sensor.value(SHT25_READ_TEMP));
+		}
+		else if (!strncmp(trim(sensors), "RH_SHT25", 5)) {
+			i += snprintf(result+i, 10, "RH_SHT25=%-d", sht25_sensor.value(SHT25_READ_RHUM));
+		}*/
+                 
 		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
 			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
@@ -599,7 +631,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[9]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "LIGHT"}; //array of available sensors
+	char *sensors[10]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "PRESSURE","T_SHT25","RH_SHT25","ADC"}; //array of available sensors
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
