@@ -79,14 +79,28 @@
 #define MPU_9250_SENSOR_TYPE_ACC_X    0x20
 #define MPU_9250_SENSOR_TYPE_ACC_ALL  0x38
 
+#define MPU_9250_SENSOR_TYPE_MAG_Z    0x100 
+#define MPU_9250_SENSOR_TYPE_MAG_Y    0x80  
+#define MPU_9250_SENSOR_TYPE_MAG_X    0x40 
+#define MPU_9250_SENSOR_TYPE_MAG_ALL  0x1c0
+
 #define MPU_9250_SENSOR_TYPE_MASK     0x3F
 #define MPU_9250_SENSOR_TYPE_ACC      0x38
 #define MPU_9250_SENSOR_TYPE_GYRO     0x07
+#define MPU_9250_SENSOR_TYPE_MAG      0x1c0
 
 #define MPU_9250_SENSOR_TYPE_NONE        0
 #define MPU_9250_SENSOR_TYPE_ALL      (MPU_9250_SENSOR_TYPE_ACC | \
                                        MPU_9250_SENSOR_TYPE_GYRO)
 /*---------------------------------------------------------------------------*/
+/* Magnetometer */
+#define MAG_STATUS_OK     0x00
+#define MAG_READ_ST_ERR   0x01
+#define MAG_DATA_NOT_RDY  0x02
+#define MAG_OVERFLOW      0x03
+#define MAG_READ_DATA_ERR 0x04
+#define MAG_BYPASS_FAIL   0x05
+#define MAG_NO_POWER      0x06
 /* Accelerometer range */
 #define MPU_9250_SENSOR_ACC_RANGE_2G     0
 #define MPU_9250_SENSOR_ACC_RANGE_4G     1

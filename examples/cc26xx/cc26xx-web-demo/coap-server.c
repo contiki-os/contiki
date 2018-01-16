@@ -82,6 +82,9 @@ extern resource_t res_mpu_acc_z;
 extern resource_t res_mpu_gyro_x;
 extern resource_t res_mpu_gyro_y;
 extern resource_t res_mpu_gyro_z;
+extern resource_t res_mpu_mag_x;
+extern resource_t res_mpu_mag_y;
+extern resource_t res_mpu_mag_z;
 #else
 extern resource_t res_toggle_orange;
 extern resource_t res_toggle_yellow;
@@ -119,6 +122,9 @@ start_board_resources(void)
   rest_activate_resource(&res_mpu_gyro_x, "sen/mpu/gyro/x");
   rest_activate_resource(&res_mpu_gyro_y, "sen/mpu/gyro/y");
   rest_activate_resource(&res_mpu_gyro_z, "sen/mpu/gyro/z");
+  rest_activate_resource(&res_mpu_mag_x, "sen/mpu/mag/x");
+  rest_activate_resource(&res_mpu_mag_y, "sen/mpu/mag/y");
+  rest_activate_resource(&res_mpu_mag_z, "sen/mpu/mag/z");
 #elif BOARD_SMARTRF06EB
   rest_activate_resource(&res_toggle_yellow, "lt/y");
   rest_activate_resource(&res_toggle_orange, "lt/o");

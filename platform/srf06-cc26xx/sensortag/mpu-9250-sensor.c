@@ -50,7 +50,7 @@
 #include <stdio.h>
 #include <math.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -196,11 +196,51 @@
 
 #define MPU_AX_MAG        6
 /*---------------------------------------------------------------------------*/
-#define MPU_DATA_READY    0x01
-#define MPU_MOVEMENT      0x40
+#define MPU_DATA_READY      0x01
+#define MPU_MOVEMENT        0x40
+
+#define EN_BYPASS           0x22          
+
+// Magnetometer registers
+#define MAG_WHO_AM_I        0x00 /* R */
+#define MAG_INFO            0x01 /* R */
+#define MAG_ST1             0x02 /* R */
+#define MAG_XOUT_L          0x03 /* R */
+#define MAG_XOUT_H          0x04 /* R */
+#define MAG_YOUT_L          0x05 /* R */
+#define MAG_YOUT_H          0x06 /* R */
+#define MAG_ZOUT_L          0x07 /* R */
+#define MAG_ZOUT_H          0x08 /* R */
+#define MAG_ST2             0x09 /* R */
+#define MAG_CNTL1           0x0A /* R */
+#define MAG_CNTL2           0x0B /* R */
+#define MAG_ASTC            0x0C /* R/W */
+#define MAG_I2CDIS          0x0F /* R/W */
+#define MAG_ASAX            0x10 /* R */
+#define MAG_ASAY            0x11 /* R */
+#define MAG_ASAZ            0x12 /* R */
+
+// Mode
+#define MAG_MODE_OFF        0x00
+#define MAG_MODE_SINGLE     0x01
+#define MAG_MODE_CONT1      0x02
+#define MAG_MODE_CONT2      0x06
+#define MAG_MODE_FUSE       0x0F
+
+// Resolution
+#define MFS_14BITS 0 // 0.6 mG per LSB
+#define MFS_16BITS 1 // 0.15 mG per LSB
+
+#define MAG_XOUT_H 0x04 /* R */
+#define MAG_XOUT_L 0x03 /* R */
+#define MAG_YOUT_H 0x06 /* R */
+#define MAG_YOUT_L 0x05 /* R */
+#define MAG_ZOUT_H 0x08 /* R */
+#define MAG_ZOUT_L 0x07 /* R */
 /*---------------------------------------------------------------------------*/
 /* Sensor selection/deselection */
 #define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_1, SENSOR_I2C_ADDRESS)
+#define SENSOR_SELECT_MAG() board_i2c_select(BOARD_I2C_INTERFACE_1, SENSOR_MAG_I2_ADDRESS)
 #define SENSOR_DESELECT()   board_i2c_deselect()
 /*---------------------------------------------------------------------------*/
 /* Delay */
@@ -211,6 +251,12 @@ static uint8_t acc_range;
 static uint8_t acc_range_reg;
 static uint8_t val;
 static uint8_t interrupt_status;
+static uint8_t magStatus;
+static int16_t calX;
+static int16_t calY;
+static int16_t calZ;
+static uint8_t scale = MFS_16BITS;     
+static uint8_t mode = MAG_MODE_SINGLE; 
 /*---------------------------------------------------------------------------*/
 #define SENSOR_STATE_DISABLED     0
 #define SENSOR_STATE_BOOTING      1
@@ -242,6 +288,14 @@ rtimer_clock_t t0;
  * first time we read the sensor status, it should be ready to return data
  */
 #define READING_WAIT_TIMEOUT 10
+/*---------------------------------------------------------------------------*/
+/**
+ * Private Function Declaration
+ */
+bool power_test(void);
+static void mag_enable(void);
+static bool set_bypass(void);
+bool mag_init(void);
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Place the MPU in low power mode
@@ -291,6 +345,7 @@ select_axes(void)
   val = ~mpu_config;
   SENSOR_SELECT();
   sensor_common_write_reg(PWR_MGMT_2, &val, 1);
+  mag_enable();
   SENSOR_DESELECT();
 }
 /*---------------------------------------------------------------------------*/
@@ -375,6 +430,119 @@ enable_sensor(uint16_t axes)
   } else if(mpu_config == 0) {
     sensor_sleep();
   }
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Enable the MAG
+ */
+static void 
+mag_enable(void)
+{
+  uint8_t val;
+  if(power_test() != 0) {
+    if(!set_bypass()) {
+      return;
+    }
+    SENSOR_SELECT_MAG();  
+    val = (scale << 4) | mode; // Set magnetometer data resolution and sample ODR
+    sensor_common_write_reg(MAG_CNTL1, &val, 1);
+    delay_ms(10);
+    val = 0;
+    sensor_common_read_reg(MAG_WHO_AM_I, &val, 1);
+    
+  }
+  SENSOR_DESELECT();
+}
+/*---------------------------------------------------------------------------*/
+/**
+* \brief  Shift the I2C bus to control the magnetomoter
+* \return true if success
+*/
+static bool 
+set_bypass(void)
+{
+  bool success;
+  uint8_t val;
+
+  SENSOR_SELECT();
+  delay_ms(100);
+  val = EN_BYPASS;
+  sensor_common_write_reg(INT_PIN_CFG, &val, 1);
+  delay_ms(10);
+  val = 0;
+  sensor_common_read_reg(INT_PIN_CFG, &val, 1);
+  SENSOR_DESELECT();
+  if (val == 0x22) {
+    success = true;
+  }
+  else {
+    success = false;
+  }
+  return success;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read data from the magnetometer - X, Y, Z - 3 words
+ * \param data for storing values
+ * \return magnetometer status, 0 if no error
+ */
+uint8_t 
+mag_read(int16_t *data)
+{
+  uint8_t val;
+  uint8_t rawData[7];
+  magStatus = MAG_NO_POWER;
+  if (power_test() != 0)
+    magStatus = MAG_STATUS_OK;
+
+  SENSOR_SELECT();
+  val = BIT_BYPASS_EN | BIT_LATCH_EN;
+  if (!sensor_common_write_reg(INT_PIN_CFG, &val, 1)) {
+    magStatus = MAG_BYPASS_FAIL;
+  }
+  SENSOR_DESELECT();
+
+  if (magStatus != MAG_STATUS_OK) {
+    return false;
+  }
+  SENSOR_SELECT_MAG();
+  delay_ms(10);
+  if (sensor_common_read_reg(MAG_ST1, &val, 1)) {
+    if (val & 0x01) {
+      if (sensor_common_read_reg(MAG_XOUT_L, &rawData[0], 7)) {
+        
+        val = rawData[6]; // ST2 register
+        if (!(val & 0x08)) {
+
+          data[0] = ((int16_t)rawData[1] << 8) | rawData[0];
+          data[1] = ((int16_t)rawData[3] << 8) | rawData[2];
+          data[2] = ((int16_t)rawData[5] << 8) | rawData[4];
+
+          data[0] = data[0] * calX >> 8;
+          data[1] = data[1] * calY >> 8;
+          data[2] = data[2] * calZ >> 8;
+        }
+        else {
+          magStatus = MAG_OVERFLOW;
+        }
+        sensor_common_read_reg(MAG_ST2, &val, 1);
+      }
+      else {
+        magStatus = MAG_READ_DATA_ERR;
+      }
+    }
+    else {
+      magStatus = MAG_DATA_NOT_RDY;
+    }
+  }
+  else {
+    magStatus = MAG_READ_ST_ERR;
+  }
+  val = (scale << 4) | mode;
+  sensor_common_write_reg(MAG_CNTL1, &val, 1);
+  SENSOR_DESELECT();
+  PRINTF("\r\ magStatus | %d \t\n", magStatus); //Muste be 0
+  return magStatus;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -482,6 +650,19 @@ gyro_convert(int16_t raw_data)
   return (raw_data * 1.0) / (65536 / 500);
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Convert MAG raw reading to a value in uTesla
+ * \param raw_data The raw Magnetometer reading
+ * \return The converted value
+ */
+static float 
+mag_convert(int16_t raw_data)
+{
+  /* calculate magnetic flux, unit micro Tesla, range -4800, + 4800*/
+  return (raw_data * 1.0) / (65536 / 9600); 
+}
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 notify_ready(void *not_used)
 {
@@ -492,14 +673,72 @@ notify_ready(void *not_used)
 static void
 initialise(void *not_used)
 {
-  /* Configure the accelerometer range */
-  if((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
+  if ((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
     acc_set_range(MPU_9250_SENSOR_ACC_RANGE);
   }
+  SENSOR_SELECT();
+  val = 0x80;
+  sensor_common_write_reg(PWR_MGMT_1, &val, 1); //Device Reset
+  SENSOR_DESELECT();
+  delay_ms(100);
 
-  enable_sensor(elements & MPU_9250_SENSOR_TYPE_ALL);
+  val = 0x00;
+  SENSOR_SELECT();
+  sensor_common_read_reg(WHO_AM_I, &val, 1);
+  // WHO_AM_I Default Value = 0x71
+  PRINTF("\r 4 - MPU_9250 - WHO_AM_I Register should be 0x71|x%x \t\n", val);
+  SENSOR_DESELECT();
+  delay_ms(100);
 
-  ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
+  if (mag_init() == true) {
+    enable_sensor(elements & MPU_9250_SENSOR_TYPE_ALL);
+    state = SENSOR_STATE_ENABLED;
+    ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
+  }
+}
+/*---------------------------------------------------------------------------*/
+/**
+* \brief Initialise and configure Magnetometer at MPU_9250
+* \return TRUE if it is Successful
+*/
+bool mag_init(void)
+{
+  
+  bool success;
+  if (power_test() != 0) {
+    if (!set_bypass()) {
+      success = false;
+      return success;
+    }
+    SENSOR_SELECT_MAG();
+    static uint8_t rawData[3];
+    val = 0x01;
+    sensor_common_write_reg(MAG_CNTL2, &val, 1);
+    delay_ms(100);
+    val = MAG_MODE_FUSE;
+    sensor_common_write_reg(MAG_CNTL1, &val, 1);
+    delay_ms(10);
+    if (sensor_common_read_reg(MAG_ASAX, &rawData[0], 3))
+    {
+      calX = (int16_t)rawData[0] + 128;
+      calY = (int16_t)rawData[1] + 128;
+      calZ = (int16_t)rawData[2] + 128;
+    }
+    val = MAG_MODE_OFF;
+    sensor_common_write_reg(MAG_CNTL1, &val, 1);
+    delay_ms(10);
+    val = MAG_MODE_SINGLE;
+    sensor_common_write_reg(MAG_CNTL1, &val, 1);
+    delay_ms(10);
+    val = 0x01;
+    sensor_common_write_reg(MAG_CNTL2, &val, 1);
+    SENSOR_DESELECT();
+    success = true;
+  }
+  else {
+    success = false;
+  }
+  return success;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -512,15 +751,27 @@ power_up(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
+* \brief Test if MPU power is ON or OFF
+* \return state of MPU power, TRUE if it is ON
+*/
+bool power_test(void)
+{
+  if (ti_lib_gpio_read_dio(BOARD_IOID_MPU_POWER) == 1)
+    return true;
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief Returns a reading from the sensor
- * \param type MPU_9250_SENSOR_TYPE_ACC_[XYZ] or MPU_9250_SENSOR_TYPE_GYRO_[XYZ]
- * \return centi-G (ACC) or centi-Deg/Sec (Gyro)
+ * \param type MPU_9250_SENSOR_TYPE_ACC_[XYZ] or MPU_9250_SENSOR_TYPE_GYRO_[XYZ] or MPU_9250_SENSOR_TYPE_MAG_[XYZ]
+ * \return centi-G (ACC) or centi-Deg/Sec (Gyro) or uTesla (MAG)
  */
 static int
 value(int type)
 {
   int rv;
+  int magTest;
   float converted_val = 0;
+  uint8_t magValueStatus;
 
   if(state == SENSOR_STATE_DISABLED) {
     PRINTF("MPU: Sensor Disabled\n");
@@ -576,13 +827,34 @@ value(int type)
       converted_val = gyro_convert(sensor_value[2]);
     }
     rv = (int)(converted_val * 100);
-  } else {
+  } else if((type & MPU_9250_SENSOR_TYPE_MAG) != 0) {
+    t0 = RTIMER_NOW();
+
+    while (!int_status() && 
+          (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + READING_WAIT_TIMEOUT)));
+
+    magValueStatus = mag_read(sensor_value);
+
+    PRINTF("MPU: MAG = 0x%04x 0x%04x 0x%04x = ", sensor_value[0], sensor_value[1], sensor_value[2]);
+    PRINTF("\r type|%u \t\n", type);
+
+    if (magValueStatus == 0) {
+      if (type == MPU_9250_SENSOR_TYPE_MAG_X) {
+        converted_val = mag_convert(sensor_value[0]);
+      } else if (type == MPU_9250_SENSOR_TYPE_MAG_Y) {
+        converted_val = mag_convert(sensor_value[1]);
+      } else if (type == MPU_9250_SENSOR_TYPE_MAG_Z) {
+        converted_val = mag_convert(sensor_value[2]);
+      }
+      rv = (int)(converted_val * 100);
+    }
+  }
+  else
+  {
     PRINTF("MPU: Invalid type\n");
     rv = CC26XX_SENSOR_READING_ERROR;
   }
-
   PRINTF("%ld\n", (long int)(converted_val * 100));
-
   return rv;
 }
 /*---------------------------------------------------------------------------*/
