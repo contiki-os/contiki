@@ -50,7 +50,7 @@
 #include <stdio.h>
 #include <math.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -440,11 +440,12 @@ mag_enable(void)
 {
   uint8_t val;
   if(power_test() != 0) {
+    /* Set magnetometer configurtation, read mode and data resolution */
     if(!set_bypass()) {
       return;
     }
     SENSOR_SELECT_MAG();  
-    val = (scale << 4) | mode; // Set magnetometer data resolution and sample ODR
+    val = (scale << 4) | mode; 
     sensor_common_write_reg(MAG_CNTL1, &val, 1);
     delay_ms(10);
     val = 0;
@@ -541,7 +542,8 @@ mag_read(int16_t *data)
   val = (scale << 4) | mode;
   sensor_common_write_reg(MAG_CNTL1, &val, 1);
   SENSOR_DESELECT();
-  PRINTF("\r\ magStatus | %d \t\n", magStatus); //Muste be 0
+  /* Check magStatus Value, it must be 0 for MAG_STATUS_OK*/
+  PRINTF("\r magStatus value = %d \t\n", magStatus); 
   return magStatus;
 }
 /*---------------------------------------------------------------------------*/
@@ -662,7 +664,6 @@ mag_convert(int16_t raw_data)
   return (raw_data * 1.0) / (65536 / 9600); 
 }
 /*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
 static void
 notify_ready(void *not_used)
 {
@@ -673,6 +674,7 @@ notify_ready(void *not_used)
 static void
 initialise(void *not_used)
 {
+  /* Configure the accelerometer range */
   if ((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
     acc_set_range(MPU_9250_SENSOR_ACC_RANGE);
   }
@@ -685,8 +687,8 @@ initialise(void *not_used)
   val = 0x00;
   SENSOR_SELECT();
   sensor_common_read_reg(WHO_AM_I, &val, 1);
-  // WHO_AM_I Default Value = 0x71
-  PRINTF("\r 4 - MPU_9250 - WHO_AM_I Register should be 0x71|x%x \t\n", val);
+  /* Check WHO_AM_I Register, it must be 0x71*/
+  PRINTF("\r WHO_AM_I Register = x%x \t\n", val);
   SENSOR_DESELECT();
   delay_ms(100);
 
@@ -835,8 +837,8 @@ value(int type)
 
     magValueStatus = mag_read(sensor_value);
 
-    PRINTF("MPU: MAG = 0x%04x 0x%04x 0x%04x = ", sensor_value[0], sensor_value[1], sensor_value[2]);
-    PRINTF("\r type|%u \t\n", type);
+    PRINTF("MPU: MAG = 0x%04x 0x%04x 0x%04x = ", 
+            sensor_value[0], sensor_value[1], sensor_value[2]);
 
     if (magValueStatus == 0) {
       if (type == MPU_9250_SENSOR_TYPE_MAG_X) {
@@ -854,7 +856,9 @@ value(int type)
     PRINTF("MPU: Invalid type\n");
     rv = CC26XX_SENSOR_READING_ERROR;
   }
+
   PRINTF("%ld\n", (long int)(converted_val * 100));
+  
   return rv;
 }
 /*---------------------------------------------------------------------------*/
