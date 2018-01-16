@@ -771,7 +771,6 @@ static int
 value(int type)
 {
   int rv;
-  int magTest;
   float converted_val = 0;
   uint8_t magValueStatus;
 
