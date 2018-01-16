@@ -473,7 +473,7 @@ set_bypass(void)
   val = 0;
   sensor_common_read_reg(INT_PIN_CFG, &val, 1);
   SENSOR_DESELECT();
-  if (val == 0x22) {
+  if(val == 0x22) {
     success = true;
   }
   else {
@@ -493,27 +493,27 @@ mag_read(int16_t *data)
   uint8_t val;
   uint8_t rawData[7];
   magStatus = MAG_NO_POWER;
-  if (power_test() != 0)
+  if(power_test() != 0)
     magStatus = MAG_STATUS_OK;
 
   SENSOR_SELECT();
   val = BIT_BYPASS_EN | BIT_LATCH_EN;
-  if (!sensor_common_write_reg(INT_PIN_CFG, &val, 1)) {
+  if(!sensor_common_write_reg(INT_PIN_CFG, &val, 1)) {
     magStatus = MAG_BYPASS_FAIL;
   }
   SENSOR_DESELECT();
 
-  if (magStatus != MAG_STATUS_OK) {
+  if(magStatus != MAG_STATUS_OK) {
     return false;
   }
   SENSOR_SELECT_MAG();
   delay_ms(10);
-  if (sensor_common_read_reg(MAG_ST1, &val, 1)) {
-    if (val & 0x01) {
-      if (sensor_common_read_reg(MAG_XOUT_L, &rawData[0], 7)) {
+  if(sensor_common_read_reg(MAG_ST1, &val, 1)) {
+    if(val & 0x01) {
+      if(sensor_common_read_reg(MAG_XOUT_L, &rawData[0], 7)) {
         
         val = rawData[6]; // ST2 register
-        if (!(val & 0x08)) {
+        if(!(val & 0x08)) {
 
           data[0] = ((int16_t)rawData[1] << 8) | rawData[0];
           data[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -675,7 +675,7 @@ static void
 initialise(void *not_used)
 {
   /* Configure the accelerometer range */
-  if ((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
+  if((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
     acc_set_range(MPU_9250_SENSOR_ACC_RANGE);
   }
   SENSOR_SELECT();
@@ -692,7 +692,7 @@ initialise(void *not_used)
   SENSOR_DESELECT();
   delay_ms(100);
 
-  if (mag_init() == true) {
+  if(mag_init() == true) {
     enable_sensor(elements & MPU_9250_SENSOR_TYPE_ALL);
     state = SENSOR_STATE_ENABLED;
     ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
@@ -707,8 +707,8 @@ bool mag_init(void)
 {
   
   bool success;
-  if (power_test() != 0) {
-    if (!set_bypass()) {
+  if(power_test() != 0) {
+    if(!set_bypass()) {
       success = false;
       return success;
     }
@@ -720,7 +720,7 @@ bool mag_init(void)
     val = MAG_MODE_FUSE;
     sensor_common_write_reg(MAG_CNTL1, &val, 1);
     delay_ms(10);
-    if (sensor_common_read_reg(MAG_ASAX, &rawData[0], 3))
+    if(sensor_common_read_reg(MAG_ASAX, &rawData[0], 3))
     {
       calX = (int16_t)rawData[0] + 128;
       calY = (int16_t)rawData[1] + 128;
@@ -758,7 +758,7 @@ power_up(void)
 */
 bool power_test(void)
 {
-  if (ti_lib_gpio_read_dio(BOARD_IOID_MPU_POWER) == 1)
+  if(ti_lib_gpio_read_dio(BOARD_IOID_MPU_POWER) == 1)
     return true;
 }
 /*---------------------------------------------------------------------------*/
@@ -840,12 +840,12 @@ value(int type)
     PRINTF("MPU: MAG = 0x%04x 0x%04x 0x%04x = ", 
             sensor_value[0], sensor_value[1], sensor_value[2]);
 
-    if (magValueStatus == 0) {
-      if (type == MPU_9250_SENSOR_TYPE_MAG_X) {
+    if(magValueStatus == 0) {
+      if(type == MPU_9250_SENSOR_TYPE_MAG_X) {
         converted_val = mag_convert(sensor_value[0]);
-      } else if (type == MPU_9250_SENSOR_TYPE_MAG_Y) {
+      } else if(type == MPU_9250_SENSOR_TYPE_MAG_Y) {
         converted_val = mag_convert(sensor_value[1]);
-      } else if (type == MPU_9250_SENSOR_TYPE_MAG_Z) {
+      } else if(type == MPU_9250_SENSOR_TYPE_MAG_Z) {
         converted_val = mag_convert(sensor_value[2]);
       }
       rv = (int)(converted_val * 100);
@@ -858,7 +858,7 @@ value(int type)
   }
 
   PRINTF("%ld\n", (long int)(converted_val * 100));
-  
+
   return rv;
 }
 /*---------------------------------------------------------------------------*/
