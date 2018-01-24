@@ -361,11 +361,44 @@ uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n)
 {
   list_remove(echo_reply_callback_list, n);
 }
+
+/*---------------------------------------------------------------------------*/
+static void
+destination_unreachable_input(void)
+{
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF(": destination unreachable (");
+  switch(UIP_ICMP_BUF->icode) {
+    case ICMP6_DST_UNREACH_NOROUTE:
+      PRINTF("no route to destination");
+      break;
+    case ICMP6_DST_UNREACH_ADMIN:
+      PRINTF("communication with destination administratively prohibited");
+      break;
+    case ICMP6_DST_UNREACH_BEYONDSCOPE:
+      PRINTF("beyond scope of source address");
+      break;
+    case ICMP6_DST_UNREACH_ADDR:
+      PRINTF("address unreachable");
+      break;
+    case ICMP6_DST_UNREACH_NOPORT:
+      PRINTF("port unreachable");
+      break;
+    default:
+      printf("unknown reason code");
+  }
+  PRINTF(")\n");
+
+  return;
+}
+
 /*---------------------------------------------------------------------------*/
 UIP_ICMP6_HANDLER(echo_request_handler, ICMP6_ECHO_REQUEST,
                   UIP_ICMP6_HANDLER_CODE_ANY, echo_request_input);
 UIP_ICMP6_HANDLER(echo_reply_handler, ICMP6_ECHO_REPLY,
                   UIP_ICMP6_HANDLER_CODE_ANY, echo_reply_input);
+UIP_ICMP6_HANDLER(destination_unreachable_handler, ICMP6_DST_UNREACH,
+                  UIP_ICMP6_HANDLER_CODE_ANY, destination_unreachable_input);
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_init()
@@ -373,6 +406,7 @@ uip_icmp6_init()
   /* Register Echo Request and Reply handlers */
   uip_icmp6_register_input_handler(&echo_request_handler);
   uip_icmp6_register_input_handler(&echo_reply_handler);
+  uip_icmp6_register_input_handler(&destination_unreachable_handler);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
