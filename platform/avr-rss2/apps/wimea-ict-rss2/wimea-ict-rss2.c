@@ -30,7 +30,8 @@
  *
  *
  * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
- * @Author: Nsabagwa Mary, Flavia Nshemerirwe, Osbert Mugabe, Nahabwe Brian
+ * @Author: Nsabagwa Mary <mnsabagwa@cit.ac.ug>, Flavia Nshemerirwe<flavianshemerirwe@gmail.com>, Osbert Mugabe, Nahabwe Brian
+ *
  * The application reads sensor data, transmits it via broadbast, unicast .. using RIME
  */
 
@@ -85,7 +86,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="T T_MCU V_MCU V_IN V_AD1 V_AD2 PRESSURE T_SHT25 RH_SHT25 ADC";
+static char default_sensors[]="T_MCU V_MCU V_IN V_AD1 V_AD2 P T RH ADC";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -187,10 +188,10 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_ACTIVATE(battery_sensor);
 
         if( i2c_probed & I2C_SHT25) {                
-                sht25_init();
-                printf("initialized");
+               // sht25_init();
+               // printf("initialized");
                 SENSORS_ACTIVATE(sht25_sensor);
-                  printf("activated");            
+                //  printf("activated");            
        
         }
          if( i2c_probed & I2C_MCP3424 ) {
@@ -351,6 +352,7 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		eeprom_read_block((void*)&node_name, (const void*)&eemem_node_name, NAME_LENGTH);
 		sei();
 		len=strlen(data);
+              //  i += snprintf(msg.buf+i, 15, "&: NAME=%s ", );
 		if( i2c_probed & I2C_DS1307 ) {
 				i += snprintf(msg.buf+i, 25, "%s %s ", return_date(), return_time());
 		}
@@ -505,28 +507,21 @@ read_sensor_values(void){
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(1), adc_read_a1());
 		} else if (!strncmp(trim(sensors), "V_AD2", 5)) {
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
-		} else if (!strncmp(trim(sensors), "T", 1)) {
+		} /*else if (!strncmp(trim(sensors), "T", 1)) {
 			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
-		} else if (!strncmp(trim(sensors), "PRESSURE", 8)) {
-			i += snprintf(result+i, 15, " Pressure=%d", ms5611_sensor.value(0));
+		}*/ else if (!strncmp(trim(sensors), "P", 1))    			
+                {                                                                 
+			i += snprintf(result+i, 12, " P=%f", ms5611_sensor.value(0));            
 		}
                 else if (!strncmp(trim(sensors), "ADC", 8)) {
 			i += snprintf(result+i,7, " ADC=%d", mcp3424_sensor.value(0));
 		}
-                 else if (!strncmp(trim(sensors), "T_SHT25", 7)) {
-			i += snprintf(result+i,11, " T_SHT25=%d", sht25_sensor.value(SHT25_READ_TEMP));
+                 else if (!strncmp(trim(sensors), "T", 7) ) {
+			i += snprintf(result+i,11, " T=%u", sht25_sensor.value(0));
 		}
-	        else if (!strncmp(trim(sensors), "RH_SHT25", 8)) {
-			i += snprintf(result+i,12, " RH_SHT25=%d",sht25_sensor.value(SHT25_READ_RHUM));
+	        else if (!strncmp(trim(sensors), "RH", 8)) {
+			i += snprintf(result+i,12, " RH=%u",sht25_sensor.value(1));
 		}
-
-
-               /* else if (!strncmp(trim(sensors), "T_SHT25", 5)) {
-			i += snprintf(result+i, 10, "SHT25=%-d", sht25_sensor.value(SHT25_READ_TEMP));
-		}
-		else if (!strncmp(trim(sensors), "RH_SHT25", 5)) {
-			i += snprintf(result+i, 10, "RH_SHT25=%-d", sht25_sensor.value(SHT25_READ_RHUM));
-		}*/
                  
 		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
@@ -631,7 +626,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[10]={"T_MCU", "T", "V_MCU", "V_IN", "V_AD1", "V_AD2", "PRESSURE","T_SHT25","RH_SHT25","ADC"}; //array of available sensors
+	char *sensors[10]={"T_MCU", "V_MCU", "V_IN", "V_AD1", "V_AD2", "P","T","RH","ADC"}; //array of available sensors
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas

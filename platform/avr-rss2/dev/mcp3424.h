@@ -42,12 +42,11 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SCL_CLOCK  100000L   
- 
+#define SCL_CLOCK  100000L  //stardard mode  100khz
 
 extern const struct sensors_sensor mcp3424_sensor;
-#define MCP3424_ADDR 0x68//(0x68<< 1)
-#define MCP342X_START      0X80 // write: start a conversion
+#define MCP3424_ADDR 0x68   //(0x68<< 1) 0 1101 000 the last 3 bits represent adr0 and adr1 set low
+#define MCP342X_START 0X80 // write: start a conversion
 #define MCP342X_BUSY 0X80 // read: output not ready
 typedef enum { false, true } bool;
 
