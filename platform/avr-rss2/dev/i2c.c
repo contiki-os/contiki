@@ -59,18 +59,20 @@ i2c_init(uint32_t speed)
   TWBR = ((F_CPU / speed) - 16) / 2;  /* must be > 10 for stable operation */
 }
 
+
 void i2c_send(char cmd){
 unsigned char ret;  
- ret = i2c_start(ADDR_W); 
-if ( ret )
-{      
+ret = i2c_start(ADDR_W); 
+if( ret ){      
    i2c_stop();   
-   } 
+ } 
    else   {   
    ret=i2c_write1(cmd);                         
    i2c_stop();    
 
-                          }  }  
+   }
+
+}  
 uint8_t
 i2c_start(uint8_t addr)
 {
@@ -112,6 +114,9 @@ i2c_start(uint8_t addr)
 
   return 0;
 }
+
+
+
 void 
 i2c_start_wait(uint8_t addr)
 {
@@ -210,6 +215,15 @@ i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes)
     }
   }
   i2c_stop();
+}
+
+
+uint8_t
+i2c_readAck(void)
+{
+  TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
+  while((TWCR & (1 << TWINT)) == 0) ;
+  return TWDR;
 }
 
 

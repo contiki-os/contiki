@@ -41,7 +41,7 @@
 #define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
 #define I2C_SHT25_ADDR    (0x40 << 1) /* SHT2X ADDR */
 #define I2C_DS1307_ADDR   0xD0 /* DS1307 rtc */
-#define I2C_MS5611_ADDR   0xEC/* ms5611 */
+#define I2C_MS5611_ADDR   0xEC /* ms5611 */
 #define I2C_MCP3424_ADDR  0x68//(0x68<<1)/*ADC */
 
 /* Here we define a enumration for devices */
@@ -53,6 +53,7 @@
 
  #define ADDR_W      0xEC  
 /* define CPU frequency in Mhz here if not defined in Makefile */
+
 #ifndef F_CPU
 #define F_CPU 16000000L
 #endif
@@ -75,3 +76,4 @@ unsigned char i2c_write1(unsigned char data);
 uint16_t i2c_probe(void);
 extern uint16_t i2c_probed; /* i2c devices we have probed */
 void i2c_send(char cmd);
+uint8_t i2c_readAck(void);
