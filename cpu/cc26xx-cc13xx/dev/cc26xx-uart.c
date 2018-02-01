@@ -64,6 +64,11 @@
 /*---------------------------------------------------------------------------*/
 static int (*input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
+/* UART configurations. Defaults are for 115,200, 8-N-1 operation. */
+static uint32_t cc26xx_uart_baudrate = CC26XX_UART_CONF_BAUD_RATE;
+static uint32_t cc26xx_uart_config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
+        | UART_CONFIG_PAR_NONE);
+/*---------------------------------------------------------------------------*/
 static bool
 usable_rx(void)
 {
@@ -173,11 +178,9 @@ configure(void)
   ti_lib_ioc_pin_type_uart(UART0_BASE, BOARD_IOID_UART_RX, BOARD_IOID_UART_TX,
                            BOARD_IOID_UART_CTS, BOARD_IOID_UART_RTS);
 
-  /* Configure the UART for 115,200, 8-N-1 operation. */
+  /* Configure the UART with defined configurations. */
   ti_lib_uart_config_set_exp_clk(UART0_BASE, ti_lib_sys_ctrl_clock_get(),
-                                 CC26XX_UART_CONF_BAUD_RATE,
-                                 (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-                                  UART_CONFIG_PAR_NONE));
+                                 cc26xx_uart_baudrate, cc26xx_uart_config);
 
   /*
    * Generate an RX interrupt at FIFO 1/2 full.
@@ -303,6 +306,21 @@ cc26xx_uart_init()
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+cc26xx_uart_setup(uint32_t baudrate, uint32_t config)
+{
+  /* Return early if disabled by user conf or if ports are misconfigured */
+  if(!usable_rx() && !usable_tx()) {
+    return;
+  }
+
+  cc26xx_uart_baudrate = baudrate;
+  cc26xx_uart_config = config;
+
+  /* Reconfigure UART with new parameters */
+  enable();
 }
 /*---------------------------------------------------------------------------*/
 void
