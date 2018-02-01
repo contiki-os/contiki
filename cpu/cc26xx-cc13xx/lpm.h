@@ -54,7 +54,11 @@
 #define LPM_MODE_DEEP_SLEEP    2
 #define LPM_MODE_SHUTDOWN      3
 
+#ifdef  LPM_CONF_MAX_PM
+#define LPM_MODE_MAX_SUPPORTED LPM_MODE_CONF_MAX
+#else
 #define LPM_MODE_MAX_SUPPORTED LPM_MODE_DEEP_SLEEP
+#endif
 /*---------------------------------------------------------------------------*/
 #define LPM_DOMAIN_NONE        0
 #define LPM_DOMAIN_SERIAL      PRCM_DOMAIN_SERIAL
