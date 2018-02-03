@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
@@ -56,6 +57,7 @@ typedef enum { false, true } bool;
 //resolution (input) ADC resolution (0,1,2,4)
 void mcp3424_init(uint8_t address, uint8_t channel, uint8_t gain, uint8_t resolution);
 
+
 // Start a one-shot channel measurement
 // @param channel (input) Analog input to read (1-4)
 void mcp3424_start_measure();
@@ -72,3 +74,6 @@ int32_t get_measurement_uv();
 // Get the divisor for converting a measurement into mV
 int get_mv_divisor();
 #endif /* MCP3424-SENSOR_H_ */
+
+
+
