@@ -195,7 +195,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
        
         }
          if( i2c_probed & I2C_MCP3424 ) {
-		mcp3424_init(MCP3424_ADDR,0,8,16);  
+		//mcp3424_init(MCP3424_ADDR,0,8,16);  
 		SENSORS_ACTIVATE(mcp3424_sensor);
 	}
 
