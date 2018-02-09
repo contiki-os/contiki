@@ -136,7 +136,9 @@ unsigned int cmd_prom(char coef_num) {
 }  
  
 /**/
-static float value (int type) {  //static uint16_t value(int type){
+static int value (int type) { 
+ //static uint16_t value(int type){
+int pressure;
    unsigned long D1;    // ADC value of the pressure conversion 
    unsigned long D2;    // ADC value of the temperature conversion  
    unsigned int C[8];   // calibration coefficients 
@@ -163,8 +165,9 @@ static float value (int type) {  //static uint16_t value(int type){
   //T=(2000+(dT*C[6])/pow(2,23))/100;  
    P = (((D1 * SENS/2097152 - OFF)/32768)/100)-1000.0;
    // if(type==0){
-    	printf("Pressure is %f",P);
-        return P;   
+         pressure = P;
+        return pressure;  
+
 
 } 
 
