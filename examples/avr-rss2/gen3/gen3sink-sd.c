@@ -24,24 +24,25 @@
 #include "dev/i2c.h"
 #include "dev/ds3231.h"
 #include "dev/temp-sensor.h"
-#include <dev/watchdog.h>
-#include "lib/fs/fat/diskio.h"
 #include "lib/fs/fat/ff.h"
 #include "lib/fs/fat/integer.h"
 
 #define SYS_VLOW 2.80
 #define UPLINK_VLOW 3.50
-#define WATCHDOG_CONF_TIMEOUT WDTO_2S
 #define BOOL uint8_t
-#define BYTES_TO_READ 200
 
 double v_in, v_mcu,t_box;
-uint8_t rssi,lqi,seqno=0;
-BOOL    sd_busy=0, debug=0, upload_complete=0;
-uint16_t err=0, v_low=1,len=0,up_time=0; 
-static int rep_count=0,id_count=0,up_conns=0,up_timeouts=0,time_to_conn=0;
-char report[200],sinkrep[200], rep_id[17], buff[BYTES_TO_READ];
+uint8_t rssi,lqi,seqno=0,v_low=1;
+BOOL    sd_busy=0, debug=1, upload_complete=0;
+int err=0, len=0,rep_count=0;
+long int up_time=0; 
+static int id_count=0,up_conns=0,up_timeouts=0;
+char report[220],sinkrep[200], rep_id[17];
 long filesize=0;
+
+FATFS FatFs;    // FatFs work area 
+FIL *fp;        // file object 
+UINT bw; //function result holder
 
 datetime_t datetime;
 
@@ -52,9 +53,6 @@ struct broadcast_message {
 };
 
 
-FATFS FatFs;    // FatFs work area 
-FIL *fp;        // file object 
-UINT bw; //function result holder
 
 
 /*---------------------------------------------------------------------------*/
@@ -102,23 +100,24 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 			{
 				f_write(fp, report, strlen(report), &bw);   // write data to the file
 			}   
+			if(debug) printf("bw=%d strlen =%d",bw , strlen(report));
 			if (bw == strlen(report))  //we wrote the entire string
 			{
 				++rep_count;
-				leds_off(LEDS_RED);
-			}
+				if(debug) printf("rep_count= %d  ",rep_count);
 
-		}else ++err;
+			}
+			leds_off(LEDS_RED);
+
+		}else 
+		{
+			++err;
+			if(debug) printf("SD write failed for rep_id %d  ",id_count);
+		}
 		f_close(fp);// close the file
 		if(debug) printf("%s\n", report);
 		
-		
-		if(err > 10){ /*sd card write has failed 10 times*/
-			err=0; 
-			watchdog_start();  /*watchdog will elaspse and reset mcu in 2 seconds*/
-		}
-		
-		if(rep_count > 300){ 
+		if(rep_count > 40){ 
 			process_post(&uplink_process, 0x10, NULL);
 		}
 	}
@@ -133,7 +132,6 @@ static struct broadcast_conn broadcast;
 PROCESS_THREAD(sinknode_process, ev, data)
 {
 	static struct etimer et;
-	struct broadcast_message msg;  //to be sent out
 	
 	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
 	PROCESS_BEGIN();
@@ -147,7 +145,6 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	/*initialize rtc, leds and watchdog*/
 	ds3231_init();
 	leds_init();
-	watchdog_init(); /*default is wtd disabled*/
 	
 	DDRE |= (1 << PWR_1); //init power pin (uplink switch)
 	PORTE |= (1 << PWR_1); //and make sure its off -- pulled high
@@ -163,7 +160,6 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		etimer_reset(&et);
 		++up_time;
-		//up_time /= 1440; /*get up_time in fractional days*/
 		if(!sd_busy){
 			NETSTACK_RADIO.off(); //switch off radio to ensure broadcast_recv doesn't try to access sd card         
 			leds_on(LEDS_YELLOW);
@@ -189,6 +185,11 @@ PROCESS_THREAD(sinknode_process, ev, data)
 			}
 			
 			v_mcu = adc_read_v_mcu();
+			if(up_time%5==0) /*every 1 hour; give status on timeouts and up_time*/
+			{
+				len += sprintf(&sinkrep[len]," V_MCU=%-4.2f SD.ERR=%d REPS=%d UP_TIME=%ld UP_CONS=%d, UP_TIMEOUTS=%d\n",v_mcu,err,rep_count,up_time,up_conns,up_timeouts); 
+			}
+			else
 			len += sprintf(&sinkrep[len]," V_MCU=%-4.2f SD.ERR=%d REPS=%d\n",v_mcu,err,rep_count); 
 			
 			sinkrep[len++] = '\0';  
@@ -214,14 +215,6 @@ PROCESS_THREAD(sinknode_process, ev, data)
 			
 			if(debug) printf("%s \n", sinkrep);		
 			NETSTACK_RADIO.on(); /*enable radio */
-			
-			/*transmit diagnositic report to nearby nodes */
-			snprintf(msg.buf, len, "%s", (char*)sinkrep);
-			msg.buf[len++]='\0';//null terminate report.
-			msg.head = (1<<4) | 0xF;
-			msg.seqno = ++seqno;
-			packetbuf_copyfrom(&msg, len+2);
-			broadcast_send(&broadcast);
 		}
 	}
 	PROCESS_END();
@@ -232,7 +225,6 @@ PROCESS_THREAD(uplink_process, ev, data) /*Electron 3G uplink*/
 	static struct etimer et;
 	static int counter=0;  
 	double a2=0;	
-	struct broadcast_message msg;  //diagnostic msg to be sent out
 	
 	PROCESS_BEGIN();
 	while(1) {
@@ -244,48 +236,24 @@ PROCESS_THREAD(uplink_process, ev, data) /*Electron 3G uplink*/
 		//power on modem and wait 5 seconds to start polling VA2
 		PORTE &= ~ (1 << PWR_1); 
 		if(debug) printf("modem power on.\n");  
-		int i=0;
 		while(1)
 		{
-			etimer_set(&et, CLOCK_SECOND/5);
+			etimer_set(&et, CLOCK_SECOND);
 			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));  
 			a2=adc_read_a2();
-			if(a2 > 2.50)/* uplink is ready to receive data (sets B0-->V_A2-HIGH) */
+			if(a2 >= 2.50)/* uplink has finished sending data data, or error (sets B0-->V_A2-HIGH) */
 			{
 				up_conns++; /*increment number of succesful connections*/
-				time_to_conn=counter/5; /*time it took to connect in seconds*/
-				counter=0;
-				if(debug) printf("ready to send data\n");
-				etimer_set(&et, CLOCK_SECOND); /*after getting signal, wait 1 second to allow stability*/
-				PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et)); 
-				if (f_open(fp, "sensors.dat", FA_READ) == FR_OK) 
-				{	/* read until end of file*/
-					for(i=0; f_eof(fp) == 0; i++)
-					{
-						//f_read(fp, buff, BYTES_TO_READ, &bw);
-						f_gets((char*)buff, sizeof(buff), fp);
-						printf("%s", buff);
-						etimer_set(&et, CLOCK_SECOND/3); /*after getting signal, wait 1 second to allow stability*/
-						PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-						buff[0]='\0';
-					}
-				}
-				etimer_set(&et, CLOCK_SECOND*2); /*after getting signal, wait 1 second to allow stability*/
-			    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 				upload_complete=1;
-				f_close(fp);
 				break;
-				
 			}
-			if(a2 < 2.50)  /*or 120 seconds elapsed without response*/
+			if(a2 < 2.50)  
 			{
 				++counter; 
-				if(counter % 5) if(debug) printf("time waiting for uplink =%d seconds.\n",counter/5);
-				if(counter >300)
+				if(counter >100) /*or 120 seconds elapsed without response*/
 				{
 					counter=0;
-					up_timeouts++;  /*increment uplink timeouts*/
-					time_to_conn=0;
+					up_timeouts++;  
 					break;
 				}
 			}
@@ -302,27 +270,11 @@ PROCESS_THREAD(uplink_process, ev, data) /*Electron 3G uplink*/
 			f_close(fp);// close the file
 			upload_complete=0;
 		}
+		
 		sd_busy=0;
 		rep_count=0;
 		NETSTACK_RADIO.on();
 		if(debug)printf("Radio back on. Process has completed");  
-		
-		/*get the file size*/
-		if (f_open(fp, "sensors.dat", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) 
-		{
-			filesize=f_size(fp);
-		}
-		f_close(fp);// close the file
-		
-		/*transmit diagnostic report to nearby nodes */
-		len=0;
-		len += sprintf(&sinkrep[len],"TXT=mak-gen3 UPLINK_CONS=%d TIME_TO_CON=%d TIME_OUTS=%d F_SIZE=%ld\n",up_conns,time_to_conn, up_timeouts, filesize); 
-		snprintf(msg.buf, len, "%s", (char*)sinkrep);
-		msg.buf[len++]='\0';//null terminate report.
-		msg.head = (1<<4) | 0xF;
-		msg.seqno = ++seqno;
-		packetbuf_copyfrom(&msg, len+2);
-		broadcast_send(&broadcast);      		
 	}
 	PROCESS_END();
 }
