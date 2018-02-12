@@ -31,19 +31,13 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
-
+ * \addtogroup zoul-sht25-sensor
  * @{
  *
  * \file
  *         MCP3424 sensor driver
- * \adopted from
+ * \author
  *         Antonio Lignan <alinan@zolertia.com>
-* \authors 
- * Okello Joel <okellojoelacaye@gmail.com>
- * Alinitwe Sandra <sandraalinitwe@gmail.com>
- * Byamukama Maximus <maximus.byamukama@gmail.com>
- * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
-
  */
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
@@ -79,25 +73,30 @@ return enabled;
 
 
 
-static int
-value(int type)
+static uint16_t value(int type)
 {
+ float data;
 uint16_t returned;
 uint16_t data_low;
 uint16_t data_high;
 uint16_t command;
+uint16_t value;
+//default configuration
+command = 0b00010000;
 switch(type){
+//type for channel number 
 case 0:
-command = 16;
+command = command;
 break;
 case 1:
-command = 48;
+command |= (0b01<<5);
 break;
 case 2:
-command = 80;
+command |= (0b10<<5);
 break;
 case 3:
-command = 112;
+command |= (0b11<<5);
+printf("The command is %d",command);
 break;
 }
 /*else 
@@ -118,12 +117,10 @@ i2c_start_wait((MCP3424_ADDR<<1)|1);
 data_high = i2c_readAck();
 data_low = i2c_readNak();
 float temp = (data_high<<8) +(data_low);
-float data;
-data =    (temp);
-i2c_stop(); 
-printf("The voltage is %d",temp); 
-return temp;
-
+		data = temp;
+printf("The value is %u",data);
+		//returned = data1;
+		return data;
 
 }
 
@@ -142,4 +139,3 @@ return 0;
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(mcp3424_sensor,"MCP3424_SENSOR", value, configure, status);
 /*--------------------------------------------------------------------------*/
-/** @} */
