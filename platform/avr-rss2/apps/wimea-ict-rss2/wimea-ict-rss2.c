@@ -86,7 +86,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="T_MCU V_MCU V_IN V_AD1 V_AD2 P T RH ADC";
+static char default_sensors[]="ADC_1 ADC_2 ADC_3 ADC_4 RH V_AD1 V_AD2 P T V_IN ADC T_MCU V_MCU";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -511,7 +511,7 @@ read_sensor_values(void){
 			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
 		}*/ else if (!strncmp(trim(sensors), "P", 1))    			
                 {                                                                 
-			i += snprintf(result+i, 12, " P=%f", ms5611_sensor.value(0));            
+			i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0));            
 		}
                 else if (!strncmp(trim(sensors), "ADC", 8)) {
 			i += snprintf(result+i,7, " ADC=%d", mcp3424_sensor.value(0));
@@ -521,6 +521,18 @@ read_sensor_values(void){
 		}
 	        else if (!strncmp(trim(sensors), "RH", 8)) {
 			i += snprintf(result+i,12, " RH=%u",sht25_sensor.value(1));
+		}
+                else if (!strncmp(trim(sensors), "ADC_1", 8)) {
+			i += snprintf(result+i,12, " ADC_1=%.4f",mcp3424_sensor.value(0)/1000.000);
+		}
+                else if (!strncmp(trim(sensors), "ADC_2", 8)) {
+			i += snprintf(result+i,12, " ADC_2=%.4f",mcp3424_sensor.value(1)/1000.000);
+		}
+               else if (!strncmp(trim(sensors), "ADC_3", 8)) {
+			i += snprintf(result+i,12, " ADC_3=%.4f",mcp3424_sensor.value(2)/1000.000);
+		}
+               else if (!strncmp(trim(sensors), "ADC_4", 8)) {
+			i += snprintf(result+i,12, " ADC_4=%.4f",mcp3424_sensor.value(3)/1000.000);
 		}
                  
 		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
@@ -626,7 +638,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[10]={"T_MCU", "V_MCU", "V_IN", "V_AD1", "V_AD2", "P","T","RH","ADC"}; //array of available sensors
+	char *sensors[13]={"ADC_1","ADC_2","ADC_3","ADC_4", "RH", "V_AD1", "V_AD2", "P","T","V_IN","ADC","T_MCU", "V_MCU"}; //array of available sensors
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -634,7 +646,7 @@ change_tagmask(char *value){
 	{
 		split_tagmask=trim(split_tagmask);
 		/*Compare sensors requested by the user with the array of available sensors and return a string that can be written to eeprom*/
-		for (i=0; i < 9; i++){
+		for (i=0; i < 13; i++){
 			size=strlen(sensors[i]);
 			if (!strncmp(split_tagmask, sensors[i], size)){
 				if (m==0){
