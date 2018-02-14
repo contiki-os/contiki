@@ -45,6 +45,8 @@
 #include "net/ip/uiplib.h"
 #include "net/ipv6/uip-icmp6.h"
 
+#include "cpu/cc26xx-cc13xx/ble-addr.h"
+
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 #define SERVER_IP               "::"
@@ -98,11 +100,19 @@ timeout_handler(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ipv6_ble_client_process, ev, data)
 {
+  uint8_t ble_addr[BLE_ADDR_SIZE];
+
   PROCESS_BEGIN();
   PRINTF("CC26XX-IPv6-over-BLE client started\n");
 
   uiplib_ipaddrconv(SERVER_IP, &server_addr);
   uip_icmp6_echo_reply_callback_add(&icmp_notification, icmp_reply_handler);
+
+  ble_addr_cpy_to(ble_addr);
+
+  PRINTF("My BLE address is: %02X:%02X:%02X:%02X:%02X:%02X\n",
+		  ble_addr[0], ble_addr[1], ble_addr[2],
+		  ble_addr[3], ble_addr[4], ble_addr[5]);
 
   PRINTF("pinging the IPv6-over-BLE server: ");
   PRINT6ADDR(&server_addr);

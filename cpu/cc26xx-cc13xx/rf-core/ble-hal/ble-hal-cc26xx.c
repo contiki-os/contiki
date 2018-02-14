@@ -61,9 +61,10 @@
 #include "inc/hw_rfc_dbell.h"
 
 #include <string.h>
+#include <math.h>
 
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -109,17 +110,32 @@ LPM_MODULE(cc26xx_ble_lpm_module, request, NULL, NULL, LPM_DOMAIN_NONE);
 #define TIME_UNIT_RF_CORE      4000000    /*  runs at 4 MHz */
 #define TIME_UNIT_RTIMER        RTIMER_SECOND
 
-rtimer_clock_t
-ticks_from_unit(uint32_t value, uint32_t unit)
-{
-  double temp = (((double)value) / unit) * RTIMER_SECOND;
-  return (rtimer_clock_t)temp;
+/* RAT has 32-bit register, overflows once every 18 minutes */
+#define RAT_RANGE  4294967296ull
+
+static uint32_t radio_timer_overflow_count = 0;
+
+void check_for_radio_timer_overflow(uint32_t current_radio_time, uint32_t conn_interval) {
+	uint64_t next_radio_event = ((uint64_t)current_radio_time) + ((uint64_t) conn_interval);
+	if(next_radio_event > RAT_RANGE) {
+		radio_timer_overflow_count++;
+	}
 }
-uint32_t
-ticks_to_unit(rtimer_clock_t value, uint32_t unit)
-{
-  double temp = (((double)value) / RTIMER_SECOND) * unit;
-  return (uint32_t)temp;
+
+rtimer_clock_t rtimer_from_1_25_ms(uint32_t time_in_1_25_ms) {
+	double temp = (((double)time_in_1_25_ms) / TIME_UNIT_1_25_MS) * RTIMER_SECOND;
+	return (rtimer_clock_t) temp;
+}
+
+rtimer_clock_t rtimer_from_radio_time(uint32_t radio_time) {
+	uint64_t corrected_radio_time = radio_time + radio_timer_overflow_count * RAT_RANGE;
+	double temp = (( (double) corrected_radio_time)/ TIME_UNIT_RF_CORE) * RTIMER_SECOND;
+	return (rtimer_clock_t) temp;
+}
+uint32_t radio_time_from_rtimer(rtimer_clock_t rtimer_ticks) {
+	double temp = (((double)rtimer_ticks) / RTIMER_SECOND) * TIME_UNIT_RF_CORE;
+	uint64_t temp_cast = (uint64_t) temp;
+	return (uint32_t)(temp_cast & 0xFFFFFFFF);
 }
 /*---------------------------------------------------------------------------*/
 #define CMD_BUFFER_SIZE         24
@@ -552,8 +568,7 @@ set_adv_enable(unsigned short enable)
 {
   uint32_t now = RTIMER_NOW();
   if((enable) && (!adv_param.active)) {
-    adv_param.start_rt = now + ticks_from_unit(adv_param.adv_interval,
-                                               TIME_UNIT_1_25_MS);
+    adv_param.start_rt = now + rtimer_from_1_25_ms(adv_param.adv_interval);
     rtimer_set(&adv_param.timer, adv_param.start_rt,
                0, advertising_event, (void *)&adv_param);
   }
@@ -656,7 +671,7 @@ create_connection(unsigned int scan_interval,
   init->init_timeout = supervision_timeout;
   init->init_window = 15;
   init->own_addr_type = BLE_ADDR_TYPE_PUBLIC;
-  init->start_rt = RTIMER_NOW() + ticks_from_unit(interval, TIME_UNIT_1_25_MS);
+  init->start_rt = RTIMER_NOW() + rtimer_from_1_25_ms(interval);
   rtimer_set(&init->timer, (init->start_rt - INIT_PREPROCESSING_TIME_TICKS), 0, initiator_event, (void *)init);
   return BLE_RESULT_OK;
 #else
@@ -773,6 +788,8 @@ send(void *buf, unsigned short buf_len)
       }
     }
   }
+
+
   return BLE_RESULT_OK;
 }
 /*---------------------------------------------------------------------------*/
@@ -842,7 +859,7 @@ advertising_rx(ble_adv_param_t *param)
 
       /* convert all received timing values to rtimer ticks */
 
-      c_param->timestamp_rt = ticks_from_unit(c_param->timestamp_rt, TIME_UNIT_RF_CORE);
+      c_param->timestamp_rt = rtimer_from_radio_time(c_param->timestamp_rt);
       c_param->hop = c_param->hop & 0x1F;
       c_param->sca = (c_param->sca >> 5) & 0x07;
 
@@ -859,8 +876,8 @@ advertising_rx(ble_adv_param_t *param)
 
       /* calculate the first anchor point
        * (add an interval, because we skip the first connection event ) */
-      wakeup = c_param->timestamp_rt + ticks_from_unit(c_param->win_offset, TIME_UNIT_1_25_MS) - CONN_WINDOW_WIDENING_TICKS;
-      wakeup += ticks_from_unit(c_param->interval, TIME_UNIT_1_25_MS) - CONN_PREPROCESSING_TIME_TICKS;
+      wakeup = c_param->timestamp_rt + rtimer_from_1_25_ms(c_param->win_offset) - CONN_WINDOW_WIDENING_TICKS;
+      wakeup += rtimer_from_1_25_ms(c_param->interval) - CONN_PREPROCESSING_TIME_TICKS;
       rtimer_set(&c_param->timer, wakeup, 0, connection_event_slave, (void *)c_param);
 
       /* initialization for the connection */
@@ -911,7 +928,7 @@ advertising_event(struct rtimer *t, void *ptr)
     return;
   }
 
-  param->start_rt = param->start_rt + ticks_from_unit(param->adv_interval, TIME_UNIT_MS);
+  param->start_rt = param->start_rt + rtimer_from_1_25_ms(param->adv_interval);
   wakeup = adv_param.start_rt - ADV_PREPROCESSING_TIME_TICKS;
   rtimer_set(&param->timer, wakeup, 0, advertising_event, (void *)param);
 }
@@ -933,8 +950,8 @@ initiator_rx(ble_init_param_t *init)
       for(i = 0; i < BLE_ADDR_SIZE; i++) {
         conn->peer_address[i] = rx_data[BLE_ADDR_SIZE + 1 - i];
       }
-      conn->timestamp_rt = ticks_from_unit(((rfc_bleInitiatorOutput_t *)init->output_buf)->timeStamp, TIME_UNIT_RF_CORE);
-      wakeup = conn->timestamp_rt + ticks_from_unit((conn->win_offset + conn->interval), TIME_UNIT_1_25_MS) - CONN_PREPROCESSING_TIME_TICKS;
+      conn->timestamp_rt = rtimer_from_radio_time(((rfc_bleInitiatorOutput_t *)init->output_buf)->timeStamp);
+      wakeup = conn->timestamp_rt + rtimer_from_1_25_ms(conn->win_offset + conn->interval) - CONN_PREPROCESSING_TIME_TICKS;
       rtimer_set(&conn->timer, wakeup, 0, connection_event_master, (void *)conn);
       conn->active = 1;
       conn->conn_handle = conn_counter;
@@ -1018,13 +1035,14 @@ initiator_event(struct rtimer *t, void *ptr)
   memcpy(&conn_req_buf[16], &conn->channel_map, 5);
   memcpy(&conn_req_buf[21], &scaHop, 1);
 
+
   rf_ble_cmd_create_initiator_params(init->param_buf, &init->rx_queue,
-                                     ticks_to_unit(ticks_from_unit(init->init_window, TIME_UNIT_1_25_MS), TIME_UNIT_RF_CORE),
+                                     radio_time_from_rtimer(rtimer_from_1_25_ms(init->init_window)),
                                      init->own_addr_type, (uint8_t *)BLE_ADDR_LOCATION,
                                      BLE_ADDR_TYPE_PUBLIC, (uint8_t *)whitelist, 0, conn_req_buf);
 
   rf_ble_cmd_create_initiator_cmd(init->cmd_buf, BLE_ADV_CHANNEL_1, init->param_buf,
-                                  init->output_buf, ticks_to_unit(init->start_rt, TIME_UNIT_RF_CORE));
+                                  init->output_buf, radio_time_from_rtimer(init->start_rt));
 
   if(on() != BLE_RESULT_OK) {
     PRINTF("BLE-HAL: initiator_event: could not enable rf core\n");
@@ -1032,7 +1050,7 @@ initiator_event(struct rtimer *t, void *ptr)
   }
   rf_ble_cmd_send(init->cmd_buf);
   /* Waiting for the initiating command to be finished takes a while (usually the whole initiator window) */
-  while(RTIMER_NOW() < (start_time + ticks_from_unit(init->init_window, TIME_UNIT_1_25_MS)) && (wait_status != RF_BLE_CMD_OK)) {
+  while(RTIMER_NOW() < (start_time + rtimer_from_1_25_ms(init->init_window)) && (wait_status != RF_BLE_CMD_OK)) {
     wait_status = rf_ble_cmd_wait(init->cmd_buf);
   }
   if(wait_status != RF_BLE_CMD_OK) {
@@ -1046,7 +1064,7 @@ initiator_event(struct rtimer *t, void *ptr)
     return;
   }
 
-  init->start_rt += ticks_from_unit(init->init_interval, TIME_UNIT_1_25_MS);
+  init->start_rt += rtimer_from_1_25_ms(init->init_interval);
   rtimer_set(&init->timer, (init->start_rt - INIT_PREPROCESSING_TIME_TICKS), 0, initiator_event, (void *)init);
 }
 #endif
@@ -1190,6 +1208,32 @@ connection_rx(ble_conn_param_t *param)
     param->rx_queue_current = RX_ENTRY_NEXT_ENTRY(param->rx_queue_current);
   }
 }
+
+//#define NUMBER_OF_RSSI_VALUES  200
+//
+//static int8_t rssi_values[NUMBER_OF_RSSI_VALUES];
+//static void measure_rssi(void) {
+//	uint16_t i;
+//	double sum = 0.0;
+//	double mean;
+//	double std_dev = 0.0;
+//	for(i = 0; i < NUMBER_OF_RSSI_VALUES; i++) {
+//		sum += rssi_values[i];
+////		printf("%d,", rssi_values[i]);
+//	}
+//	mean = sum / NUMBER_OF_RSSI_VALUES;
+//
+//	for(i = 0; i < NUMBER_OF_RSSI_VALUES; i++) {
+//		std_dev += pow(rssi_values[i] - mean, 2);
+//	}
+//
+//	std_dev = sqrt(std_dev/NUMBER_OF_RSSI_VALUES);
+//
+//
+//	printf("mean: %d, std_dev: %d\n", ((int8_t)mean), ((int8_t)std_dev));
+//}
+
+
 /*---------------------------------------------------------------------------*/
 static void
 connection_event_slave(struct rtimer *t, void *ptr)
@@ -1202,9 +1246,12 @@ connection_event_slave(struct rtimer *t, void *ptr)
   uint8_t i;
   uint8_t tx_data = tx_queue_data_to_transmit(conn);
 
+  static uint32_t last_radio_timestamp;
+  uint32_t current_radio_timestamp;
+
   if(conn->counter == 0) {
     /* the slave skips connection event 0, because it is usually too early */
-    conn->start_rt = conn->timestamp_rt + ticks_from_unit(conn->win_offset, TIME_UNIT_1_25_MS) - CONN_WINDOW_WIDENING_TICKS;
+    conn->start_rt = conn->timestamp_rt + rtimer_from_1_25_ms(conn->win_offset) - CONN_WINDOW_WIDENING_TICKS;
     update_data_channel(conn);
     first_packet = 1;
   }
@@ -1212,7 +1259,7 @@ connection_event_slave(struct rtimer *t, void *ptr)
 
   /* connection timing */
   if(conn->counter == conn->conn_update_counter) {
-    conn->start_rt += ticks_from_unit(conn->interval + conn->conn_update_win_offset, TIME_UNIT_1_25_MS);
+    conn->start_rt += rtimer_from_1_25_ms(conn->interval + conn->conn_update_win_offset);
 
     conn->win_size = conn->conn_update_win_size;
     conn->win_offset = conn->conn_update_win_offset;
@@ -1225,10 +1272,10 @@ connection_event_slave(struct rtimer *t, void *ptr)
     conn->conn_update_latency = 0;
     conn->conn_update_timeout = 0;
   } else if(output->pktStatus.bTimeStampValid) {
-    conn->start_rt = ticks_from_unit(output->timeStamp, TIME_UNIT_RF_CORE) +
-      ticks_from_unit(conn->interval, TIME_UNIT_1_25_MS) - CONN_WINDOW_WIDENING_TICKS;
+    conn->start_rt = rtimer_from_radio_time(output->timeStamp) +
+      rtimer_from_1_25_ms(conn->interval) - CONN_WINDOW_WIDENING_TICKS;
   } else {
-    conn->start_rt += ticks_from_unit(conn->interval, TIME_UNIT_1_25_MS);
+    conn->start_rt += rtimer_from_1_25_ms(conn->interval);
   }
 
   /* connection channel */
@@ -1246,11 +1293,11 @@ connection_event_slave(struct rtimer *t, void *ptr)
     conn->skipped_events = 0;
     rf_ble_cmd_create_slave_params(conn->param_buf, &conn->rx_queue, &conn->tx_queue, conn->access_address,
                                    conn->crc_init_0, conn->crc_init_1, conn->crc_init_2,
-                                   ticks_to_unit(ticks_from_unit(conn->win_size, TIME_UNIT_1_25_MS), TIME_UNIT_RF_CORE),
-                                   ticks_to_unit(CONN_WINDOW_WIDENING_TICKS, TIME_UNIT_RF_CORE), first_packet);
+                                   radio_time_from_rtimer(rtimer_from_1_25_ms(conn->win_size)),
+                                   radio_time_from_rtimer(CONN_WINDOW_WIDENING_TICKS), first_packet);
 
     rf_ble_cmd_create_slave_cmd(conn->cmd_buf, conn->mapped_channel, conn->param_buf, conn->output_buf,
-                                ticks_to_unit(conn->start_rt, TIME_UNIT_RF_CORE));
+                                radio_time_from_rtimer(conn->start_rt));
 
     if(on() != BLE_RESULT_OK) {
       PRINTF("connection_event: could not enable radio core\n");
@@ -1266,12 +1313,33 @@ connection_event_slave(struct rtimer *t, void *ptr)
     }
     rf_ble_cmd_send(conn->cmd_buf);
     rf_ble_cmd_wait(conn->cmd_buf);
+
+    if(last_radio_timestamp == 0) {
+    	last_radio_timestamp = HWREG(RFC_RAT_BASE + RATCNT);
+    }
+    else {
+    	current_radio_timestamp = HWREG(RFC_RAT_BASE + RATCNT);
+    	if(current_radio_timestamp < last_radio_timestamp) {
+    		PRINTF("radio timer overflow\n");
+    		radio_timer_overflow_count++;
+    	}
+    	last_radio_timestamp = current_radio_timestamp;
+    }
+
+
     off();
 
     if(CMD_GET_STATUS(conn->cmd_buf) != RF_CORE_RADIO_OP_STATUS_BLE_DONE_OK) {
       PRINTF("command status: 0x%04X; connection event counter: %d, channel: %d\n",
              CMD_GET_STATUS(conn->cmd_buf), conn->counter, conn->mapped_channel);
     }
+//    rssi_values[conn->counter % NUMBER_OF_RSSI_VALUES] = ((rfc_bleMasterSlaveOutput_t *)conn->output_buf)->lastRssi;
+//    if(conn->counter % NUMBER_OF_RSSI_VALUES == 0) {
+//    	measure_rssi();
+//    }
+
+//    PRINTF("command status: 0x%04X; connection event counter: %d, channel: %d, rssi: %d\n",
+//                 CMD_GET_STATUS(conn->cmd_buf), conn->counter, conn->mapped_channel, ((rfc_bleMasterSlaveOutput_t *)conn->output_buf)->lastRssi);
 
     /* free finished TX buffers */
     for(i = 0; i < CONN_TX_BUFFERS_NUM; i++) {
@@ -1286,7 +1354,7 @@ connection_event_slave(struct rtimer *t, void *ptr)
     conn->skipped_events++;
     output->pktStatus.bTimeStampValid = 0;
   }
-  wakeup = conn->start_rt + ticks_from_unit(conn->interval, TIME_UNIT_1_25_MS) - CONN_PREPROCESSING_TIME_TICKS;
+  wakeup = conn->start_rt + rtimer_from_1_25_ms(conn->interval) - CONN_PREPROCESSING_TIME_TICKS;
   rtimer_set(&conn->timer, wakeup, 0, connection_event_slave, ptr);
   process_post(&ble_hal_conn_rx_process, rx_data_event, ptr);
 }
@@ -1301,9 +1369,12 @@ connection_event_master(struct rtimer *t, void *ptr)
   rtimer_clock_t wakeup = RTIMER_NOW();
   uint8_t i;
 
+  static uint32_t last_radio_timestamp;
+  uint32_t current_radio_timestamp;
+
   if(conn->counter == 0) {
     /* the master skips connection event 0, because it is usually too early */
-    conn->start_rt = conn->timestamp_rt + ticks_from_unit(conn->win_offset, TIME_UNIT_1_25_MS);
+    conn->start_rt = conn->timestamp_rt + rtimer_from_1_25_ms(conn->win_offset);
     update_data_channel(conn);
     first_packet = 1;
   }
@@ -1311,7 +1382,7 @@ connection_event_master(struct rtimer *t, void *ptr)
 
   /* connection timing */
   if(conn->counter == conn->conn_update_counter) {
-    conn->start_rt += ticks_from_unit(conn->interval + conn->conn_update_win_offset, TIME_UNIT_1_25_MS);
+    conn->start_rt += rtimer_from_1_25_ms(conn->interval + conn->conn_update_win_offset);
 
     conn->win_size = conn->conn_update_win_size;
     conn->win_offset = conn->conn_update_win_offset;
@@ -1324,7 +1395,7 @@ connection_event_master(struct rtimer *t, void *ptr)
     conn->conn_update_latency = 0;
     conn->conn_update_timeout = 0;
   } else {
-    conn->start_rt += ticks_from_unit(conn->interval, TIME_UNIT_1_25_MS);
+    conn->start_rt += rtimer_from_1_25_ms(conn->interval);
   }
 
   /* connection channel */
@@ -1341,7 +1412,7 @@ connection_event_master(struct rtimer *t, void *ptr)
                                   conn->crc_init_0, conn->crc_init_1, conn->crc_init_2, first_packet);
 
   rf_ble_cmd_create_master_cmd(conn->cmd_buf, conn->mapped_channel, conn->param_buf, conn->output_buf,
-                               ticks_to_unit(conn->start_rt, TIME_UNIT_RF_CORE));
+                               radio_time_from_rtimer(conn->start_rt));
 
   if(on() != BLE_RESULT_OK) {
     PRINTF("connection_event: could not enable radio core\n");
@@ -1356,6 +1427,19 @@ connection_event_master(struct rtimer *t, void *ptr)
   }
   rf_ble_cmd_send(conn->cmd_buf);
   rf_ble_cmd_wait(conn->cmd_buf);
+
+  if(last_radio_timestamp == 0) {
+  	last_radio_timestamp = HWREG(RFC_RAT_BASE + RATCNT);
+  }
+  else {
+  	current_radio_timestamp = HWREG(RFC_RAT_BASE + RATCNT);
+  	if(current_radio_timestamp < last_radio_timestamp) {
+  		PRINTF("radio timer overflow\n");
+  		radio_timer_overflow_count++;
+  	}
+  	last_radio_timestamp = current_radio_timestamp;
+  }
+
   off();
 
   if((CMD_GET_STATUS(conn->cmd_buf) == RF_CORE_RADIO_OP_STATUS_BLE_DONE_NOSYNC) && (conn->skipped_events < conn->latency)) {
@@ -1367,6 +1451,9 @@ connection_event_master(struct rtimer *t, void *ptr)
   } else {
     conn->skipped_events = 0;
   }
+
+//    PRINTF("BLE-HAL: status: 0x%04X; connection event counter: %d, channel: %d, rssi: %d\n",
+//           CMD_GET_STATUS(conn->cmd_buf), conn->counter, conn->mapped_channel, ((rfc_bleMasterSlaveOutput_t *)conn->output_buf)->lastRssi);
   /* free finished TX buffers */
   for(i = 0; i < CONN_TX_BUFFERS_NUM; i++) {
     if(TX_ENTRY_STATUS(conn->tx_buffers[i]) == DATA_ENTRY_FINISHED) {
@@ -1376,7 +1463,7 @@ connection_event_master(struct rtimer *t, void *ptr)
     }
   }
 
-  wakeup = conn->start_rt + ticks_from_unit(conn->interval, TIME_UNIT_1_25_MS) - CONN_PREPROCESSING_TIME_TICKS;
+  wakeup = conn->start_rt + rtimer_from_1_25_ms(conn->interval) - CONN_PREPROCESSING_TIME_TICKS;
   rtimer_set(&conn->timer, wakeup, 0, connection_event_master, ptr);
   process_post(&ble_hal_conn_rx_process, rx_data_event, ptr);
 }
