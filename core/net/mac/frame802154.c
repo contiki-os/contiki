@@ -68,6 +68,7 @@
 #include "net/llsec/llsec802154.h"
 #include "net/linkaddr.h"
 #include <string.h>
+#include <stdbool.h>
 
 /**  \brief The 16-bit identifier of the PAN on which the device is
  *   operating.  If this value is 0xffff, the device is not
@@ -138,9 +139,6 @@ frame802154_set_pan_id(uint16_t pan_id)
 void
 frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id)
 {
-  int src_pan_id = 0;
-  int dest_pan_id = 0;
-
   if(fcf == NULL) {
     return;
   }
@@ -150,54 +148,60 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
      * IEEE 802.15.4-2015
      * Table 7-2, PAN ID Compression value for frame version 0b10
      */
-    if((fcf->dest_addr_mode == FRAME802154_NOADDR &&
-        fcf->src_addr_mode == FRAME802154_NOADDR &&
-        fcf->panid_compression == 1) ||
-       (fcf->dest_addr_mode != FRAME802154_NOADDR &&
-        fcf->src_addr_mode == FRAME802154_NOADDR &&
-        fcf->panid_compression == 0) ||
-       (fcf->dest_addr_mode == FRAME802154_LONGADDRMODE &&
-        fcf->src_addr_mode == FRAME802154_LONGADDRMODE &&
-        fcf->panid_compression == 0) ||
-       ((fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
-         fcf->src_addr_mode != FRAME802154_NOADDR) ||
-        (fcf->dest_addr_mode != FRAME802154_NOADDR &&
-         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE)) ){
-      dest_pan_id = 1;
+      bool no_dest = (fcf->dest_addr_mode == FRAME802154_NOADDR);
+      bool no_src  = (fcf->src_addr_mode == FRAME802154_NOADDR);
+      bool short_dest = (fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE);
+      bool short_src  = (fcf->src_addr_mode == FRAME802154_SHORTADDRMODE);
+      bool long_dest = (fcf->dest_addr_mode == FRAME802154_LONGADDRMODE);
+      bool long_src  = (fcf->src_addr_mode == FRAME802154_LONGADDRMODE);
+
+    if(has_dest_pan_id != NULL){
+    if((no_dest && no_src && (fcf->panid_compression == 1) ) ||
+       ( !no_dest && no_src && (fcf->panid_compression == 0) ) ||
+       ( long_dest && long_src && (fcf->panid_compression == 0) ) ||
+       ( short_dest && !no_src) || (!no_dest && short_src)
+       )
+    {
+        *has_dest_pan_id = 1;
+    }
+    else
+        *has_dest_pan_id = 0;
     }
 
-    if(fcf->panid_compression == 0 &&
-       ((fcf->dest_addr_mode == FRAME802154_NOADDR &&
-         fcf->src_addr_mode == FRAME802154_LONGADDRMODE) ||
-        (fcf->dest_addr_mode == FRAME802154_NOADDR &&
-         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE) ||
-        (fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
-         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE) ||
-        (fcf->dest_addr_mode == FRAME802154_SHORTADDRMODE &&
-         fcf->src_addr_mode == FRAME802154_LONGADDRMODE) ||
-        (fcf->dest_addr_mode == FRAME802154_LONGADDRMODE &&
-         fcf->src_addr_mode == FRAME802154_SHORTADDRMODE))) {
-      src_pan_id = 1;
+    if(has_src_pan_id != NULL){
+    if((fcf->panid_compression == 0) &&
+      ( (no_dest && long_src) ||
+        (no_dest && short_src) ||
+        (short_dest && short_src) ||
+        (short_dest && long_src) ||
+        (long_dest && short_src)
+      ))
+    {
+        *has_src_pan_id = 1;
     }
+    else
+        *has_src_pan_id = 0;
+    }//if(has_src_pan_id != NULL)
 
   } else {
     /* No PAN ID in ACK */
     if(fcf->frame_type != FRAME802154_ACKFRAME) {
+      if(has_src_pan_id != NULL){
       if(!fcf->panid_compression && (fcf->src_addr_mode & 3)) {
         /* If compressed, don't include source PAN ID */
-        src_pan_id = 1;
+          *has_src_pan_id = 1;
       }
+      else
+          *has_src_pan_id = 0;
+      }
+      if(has_dest_pan_id != NULL){
       if(fcf->dest_addr_mode & 3) {
-        dest_pan_id = 1;
+          *has_dest_pan_id = 1;
+      }
+      else
+          *has_dest_pan_id = 0;
       }
     }
-  }
-
-  if(has_src_pan_id != NULL) {
-    *has_src_pan_id = src_pan_id;
-  }
-  if(has_dest_pan_id != NULL) {
-    *has_dest_pan_id = dest_pan_id;
   }
 }
 /*---------------------------------------------------------------------------*/
