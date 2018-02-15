@@ -181,6 +181,8 @@ enum {
   RADIO_CONST_TXPOWER_MIN,
   /* The maximum transmission power in dBm. */
   RADIO_CONST_TXPOWER_MAX
+
+  , RADIO_PARAM_TOTAL
 };
 
 /* Radio power modes */
