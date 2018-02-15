@@ -103,6 +103,17 @@
 #define RF_CORE_PROP_BIAS_MODE RF_CORE_BIAS_MODE_EXTERNAL
 #endif
 /*---------------------------------------------------------------------------*/
+/* RF-Front End RAT resyncing strategy provides mechanisms for RAT sync monitoring
+ *  and resyncing
+ *  0 :    resync only on rf-core propety setup
+ *  1 :    validate RF-timestamp in window of current operation, and resync if violate
+ * */
+#ifdef RF_CORE_CONF_HFOSC_STARTUP_TOUS
+#define RF_CORE_HFOSC_STARTUP_TOUS    RF_CORE_CONF_HFOSC_STARTUP_TOUS
+#else
+//#define RF_CORE_HFOSC_STARTUP_TOUS    1000
+#endif
+/*---------------------------------------------------------------------------*/
 #define RF_CORE_CMD_ERROR                     0
 #define RF_CORE_CMD_OK                        1
 /*---------------------------------------------------------------------------*/
