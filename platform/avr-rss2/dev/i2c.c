@@ -31,10 +31,13 @@
 /**
  * \file
  *         i2c core functions
- * \author
- *         Robert Olsson <robert@radio-sensors.com>
- * \changes
- * 		   Flavia Nshemerirwe
+ *
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  *
  */
 

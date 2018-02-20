@@ -30,10 +30,13 @@
  * This file is part of the Contiki operating system.
  *
  *
- * Author  : Robert Olsson
- * Created : 2015-10-27
- * Updated : $Date: 2010/01/14 20:23:02 $
- *           $Revision: 1.2 $
+ *
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  */
 
 #ifndef MCP3424_SENSOR_H_

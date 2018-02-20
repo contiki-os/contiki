@@ -31,14 +31,13 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul-sht25-sensor
- * @{
  *
- * \file
- *         MCP3424 sensor driver
- * \author
- *         Antonio Lignan <alinan@zolertia.com>
- */
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"

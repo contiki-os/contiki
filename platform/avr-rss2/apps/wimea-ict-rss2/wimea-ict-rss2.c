@@ -30,7 +30,11 @@
  *
  *
  * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
- * @Author: Nsabagwa Mary <mnsabagwa@cit.ac.ug>, Flavia Nshemerirwe<flavianshemerirwe@gmail.com>, Osbert Mugabe, Nahabwe Brian
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  *
  * The application reads sensor data, transmits it via broadbast, unicast .. using RIME
  */
@@ -53,6 +57,7 @@
 #include "dev/temp_mcu-sensor.h"
 #include "dev/ds1307.h"
 #include "dev/sht25.h"
+#include "math.h"
 #include "dev/mcp3424.h"
 #include "dev/ms5611.h"
 #include "lib/fs/fat/diskio.h"
@@ -86,7 +91,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="ADC_1 ADC_2 ADC_3 ADC_4 RH V_AD1 V_AD2 P T V_IN ADC T_MCU V_MCU";
+static char default_sensors[]="ADC_1 ADC_2 ADC_3 ADC_4 RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU ";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -117,7 +122,7 @@ DWORD get_fattime (void)
 			| ((DWORD)0 << 11)				/* Hour 0 */
 			| ((DWORD)0 << 5)				/* Min 0 */
 			| ((DWORD)0 >> 1);				/* Sec 0 */
-	}
+       }
 }
 
 AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &sensor_data_process, &broadcast_data_process, &serial_input_process);
@@ -191,16 +196,18 @@ PROCESS_THREAD(sensor_data_process, ev, data)
                // sht25_init();
                // printf("initialized");
                 SENSORS_ACTIVATE(sht25_sensor);
-                //  printf("activated");            
+                strcpy(default_sensors,"T RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU");           
        
         }
          if( i2c_probed & I2C_MCP3424 ) {
 		//mcp3424_init(MCP3424_ADDR,0,8,16);  
 		SENSORS_ACTIVATE(mcp3424_sensor);
+           strcpy(default_sensors,"ADC_1 ADC_2 ADC_3 ADC_4 V_AD1 V_AD2 V_IN ADC T_MCU V_MCU"); 
 	}
 
 	 if(i2c_probed & I2C_MS5611_ADDR){
 		SENSORS_ACTIVATE(ms5611_sensor);
+           strcpy(default_sensors,"P RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU");
 	}
 
 	if( i2c_probed & I2C_DS1307 ) {
@@ -507,31 +514,49 @@ read_sensor_values(void){
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(1), adc_read_a1());
 		} else if (!strncmp(trim(sensors), "V_AD2", 5)) {
 			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
-		} /*else if (!strncmp(trim(sensors), "T", 1)) {
-			i += snprintf(result+i, 9, " T=%-5.2f", ((double) temp_sensor.value(0))/100.);
-		}*/ else if (!strncmp(trim(sensors), "P", 1))    			
-                {                                                                 
-			i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0));            
+		} 
+                  else if (!strncmp(trim(sensors), "P", 1))   			
+                {      if(i2c_probed & I2C_MS5611_ADDR)              
+			i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0)); 
+           
 		}
                 else if (!strncmp(trim(sensors), "ADC", 8)) {
+                        if(i2c_probed & I2C_MS5611_ADDR) 
 			i += snprintf(result+i,7, " ADC=%d", mcp3424_sensor.value(0));
 		}
                  else if (!strncmp(trim(sensors), "T", 7) ) {
+                         if( i2c_probed & I2C_SHT25) 
 			i += snprintf(result+i,11, " T=%u", sht25_sensor.value(0));
+                       
 		}
 	        else if (!strncmp(trim(sensors), "RH", 8)) {
-			i += snprintf(result+i,12, " RH=%u",sht25_sensor.value(1));
+                        if( i2c_probed & I2C_SHT25) {
+			//RH above ice(d) = RH above water(sht25_sensor.value(1)) * d2;
+			double tempe = sht25_sensor.value(0) * 1.000;
+			double d = exp(17.62*(tempe)/(243+(tempe)));
+			double d1 = exp(22.46*tempe/(272.62+tempe));
+			//double d2 = d/d1;
+						i += snprintf(result+i,12, " RH=%u",sht25_sensor.value(1));
+                     
+
+			///(exp(22.46(sht25_sensor.value(0))/((272.62+sht25_sensor.value(0))));
+                       }
+
 		}
                 else if (!strncmp(trim(sensors), "ADC_1", 8)) {
+                 if( i2c_probed & I2C_MCP3424 )
 			i += snprintf(result+i,12, " ADC_1=%.4f",mcp3424_sensor.value(0)/1000.000);
 		}
                 else if (!strncmp(trim(sensors), "ADC_2", 8)) {
+                if( i2c_probed & I2C_MCP3424 )
 			i += snprintf(result+i,12, " ADC_2=%.4f",mcp3424_sensor.value(1)/1000.000);
 		}
                else if (!strncmp(trim(sensors), "ADC_3", 8)) {
+               if( i2c_probed & I2C_MCP3424 )
 			i += snprintf(result+i,12, " ADC_3=%.4f",mcp3424_sensor.value(2)/1000.000);
 		}
                else if (!strncmp(trim(sensors), "ADC_4", 8)) {
+               if( i2c_probed & I2C_MCP3424 )
 			i += snprintf(result+i,12, " ADC_4=%.4f",mcp3424_sensor.value(3)/1000.000);
 		}
                  

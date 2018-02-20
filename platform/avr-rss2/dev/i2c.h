@@ -29,10 +29,13 @@
  */
 
 /**
- * \file
- *         includes for i2c core functions
- * \author
- *         Robert Olsson <robert@radio-sensors.com>
+ *
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  */
 
 #include "contiki.h"
@@ -40,9 +43,9 @@
 /* Here we define the i2c address for dev we support */
 #define I2C_AT24MAC_ADDR  0xB0 /* EUI64 ADDR */
 #define I2C_SHT25_ADDR    (0x40 << 1) /* SHT2X ADDR */
-#define I2C_DS1307_ADDR   0xD0 /* DS1307 rtc */
+#define I2C_DS1307_ADDR   0xD2 /* DS1307 rtc */
 #define I2C_MS5611_ADDR   0xEC /* ms5611 */
-#define I2C_MCP3424_ADDR  0x68//(0x68<<1)/*ADC */
+#define I2C_MCP3424_ADDR  (0x68<<1)//(0x68<<1)/*ADC */
 
 /* Here we define a enumration for devices */
 #define I2C_AT24MAC       (1<<0)
