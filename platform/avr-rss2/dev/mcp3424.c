@@ -117,7 +117,7 @@ data_high = i2c_readAck();
 data_low = i2c_readNak();
 float temp = (data_high<<8) +(data_low);
 		data = temp;
-printf("The value is %u",data);
+//printf("The value is %u",data);
 		//returned = data1;
 		return data;
 
