@@ -543,8 +543,7 @@ read_sensor_values(void){
                        }
 
 		}
-                else if (!strncmp(trim(sensors), "
--1C_1", 8)) {
+                else if (!strncmp(trim(sensors), "ADC_1", 8)) {
                  if( i2c_probed & I2C_MCP3424 )
 			i += snprintf(result+i,12, " ADC_1=%.4f",mcp3424_sensor.value(0)/1000.000);
 		}
