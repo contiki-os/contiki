@@ -99,96 +99,96 @@ contiki-apple2.zip: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.d
 
 contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
-	java -jar $(AC) -p    $@ menu.system        sys   < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ $(DEV)confi        bin   < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
-	java -jar $(AC) -p    $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ ipconfig           bin   < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webbrows.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ webbrows           bin   < ../../examples/webbrowser-80col/webbrowser.apple2enh
-	java -jar $(AC) -p    $@ wget.system        sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ wget               bin   < ../../examples/wget/wget.apple2enh
+	java -jar $(AC) -p  $@ menu.system        sys   < ../apple2enh/menu.system
+	java -jar $(AC) -p  $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ $(DEV)confi              < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
+	java -jar $(AC) -p  $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ ipconfig                 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
+	java -jar $(AC) -p  $@ webbrows.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ webbrows                 < ../../examples/webbrowser-80col/webbrowser.apple2enh
+	java -jar $(AC) -p  $@ wget.system        sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ wget                     < ../../examples/wget/wget.apple2enh
 ifdef SLIP
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < default.cfg
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < default.cfg
 else
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
-	java -jar $(AC) -p    $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
+	java -jar $(AC) -p  $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p  $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p  $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 endif
 
 contiki-apple2-2.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
-	java -jar $(AC) -p    $@ menu.system        sys   < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ $(DEV)confi        bin   < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
-	java -jar $(AC) -p    $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ ipconfig           bin   < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ irc.system         sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ irc                bin   < ../../examples/irc-80col/irc-client.apple2enh
+	java -jar $(AC) -p  $@ menu.system        sys   < ../apple2enh/menu.system
+	java -jar $(AC) -p  $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ $(DEV)confi              < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
+	java -jar $(AC) -p  $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ ipconfig                 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
+	java -jar $(AC) -p  $@ irc.system         sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ irc                      < ../../examples/irc-80col/irc-client.apple2enh
 ifdef SLIP
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < default.cfg
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < default.cfg
 else
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
-	java -jar $(AC) -p    $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
+	java -jar $(AC) -p  $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p  $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p  $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 endif
 
 contiki-apple2-3.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
-	java -jar $(AC) -p    $@ menu.system        sys   < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ $(DEV)confi        bin   < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
-	java -jar $(AC) -p    $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ ipconfig           bin   < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webserv.system     sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ webserv            bin   < ../../examples/webserver/webserver-example.apple2enh
-	java -jar $(AC) -p    $@ telnetd.system     sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ telnetd            bin   < ../../examples/telnet-server/telnet-server.apple2enh
+	java -jar $(AC) -p  $@ menu.system        sys   < ../apple2enh/menu.system
+	java -jar $(AC) -p  $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ $(DEV)confi              < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
+	java -jar $(AC) -p  $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ ipconfig                 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
+	java -jar $(AC) -p  $@ webserv.system     sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ webserv                  < ../../examples/webserver/webserver-example.apple2enh
+	java -jar $(AC) -p  $@ telnetd.system     sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ telnetd                  < ../../examples/telnet-server/telnet-server.apple2enh
 ifdef SLIP
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < default.cfg
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < default.cfg
 else
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
-	java -jar $(AC) -p    $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
+	java -jar $(AC) -p  $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p  $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p  $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 endif
-	java -jar $(AC) -p    $@ index.htm          bin 0 < ../../examples/webserver/httpd-cfs/index.htm
-	java -jar $(AC) -p    $@ backgrnd.gif       bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
-	java -jar $(AC) -p    $@ contiki.gif        bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
-	java -jar $(AC) -p    $@ notfound.htm       bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
+	java -jar $(AC) -p  $@ index.htm          bin 0 < ../../examples/webserver/httpd-cfs/index.htm
+	java -jar $(AC) -p  $@ backgrnd.gif       bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
+	java -jar $(AC) -p  $@ contiki.gif        bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
+	java -jar $(AC) -p  $@ notfound.htm       bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
 contiki-apple2.po: apple2enh-makes
 	cp ../apple2enh/prodos.po $@
-	java -jar $(AC) -p    $@ menu.system        sys   < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ $(DEV)confi        bin   < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
-	java -jar $(AC) -p    $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ ipconfig           bin   < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webbrows.system    sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ webbrows           bin   < ../../examples/webbrowser-80col/webbrowser.apple2enh
-	java -jar $(AC) -p    $@ wget.system        sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ wget               bin   < ../../examples/wget/wget.apple2enh
-	java -jar $(AC) -p    $@ irc.system         sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ irc                bin   < ../../examples/irc-80col/irc-client.apple2enh
-	java -jar $(AC) -p    $@ webserv.system     sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ webserv            bin   < ../../examples/webserver/webserver-example.apple2enh
-	java -jar $(AC) -p    $@ telnetd.system     sys   < $(CC65)/apple2enh/util/loader.system
-	java -jar $(AC) -cc65 $@ telnetd            bin   < ../../examples/telnet-server/telnet-server.apple2enh
+	java -jar $(AC) -p  $@ menu.system        sys   < ../apple2enh/menu.system
+	java -jar $(AC) -p  $@ $(DEV)confi.system sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ $(DEV)confi              < ../../cpu/6502/$(DEV)config/$(DEV)config.apple2enh
+	java -jar $(AC) -p  $@ ipconfig.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ ipconfig                 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
+	java -jar $(AC) -p  $@ webbrows.system    sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ webbrows                 < ../../examples/webbrowser-80col/webbrowser.apple2enh
+	java -jar $(AC) -p  $@ wget.system        sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ wget                     < ../../examples/wget/wget.apple2enh
+	java -jar $(AC) -p  $@ irc.system         sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ irc                      < ../../examples/irc-80col/irc-client.apple2enh
+	java -jar $(AC) -p  $@ webserv.system     sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ webserv                  < ../../examples/webserver/webserver-example.apple2enh
+	java -jar $(AC) -p  $@ telnetd.system     sys   < $(CC65)/apple2enh/util/loader.system
+	java -jar $(AC) -as $@ telnetd                  < ../../examples/telnet-server/telnet-server.apple2enh
 ifdef SLIP
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < default.cfg
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < default.cfg
 else
-	java -jar $(AC) -p    $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
-	java -jar $(AC) -p    $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
+	java -jar $(AC) -p  $@ contiki.cfg        bin 0 < ../apple2enh/default.cfg
+	java -jar $(AC) -p  $@ cs8900a.eth        rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p  $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p  $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 endif
-	java -jar $(AC) -p    $@ contiki.mou        rel 0 < $(CC65)/apple2enh/drv/mou/a2e.stdmou.mou
-	java -jar $(AC) -p    $@ index.htm          bin 0 < ../../examples/webserver/httpd-cfs/index.htm
-	java -jar $(AC) -p    $@ backgrnd.gif       bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
-	java -jar $(AC) -p    $@ contiki.gif        bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
-	java -jar $(AC) -p    $@ notfound.htm       bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
+	java -jar $(AC) -p  $@ contiki.mou        rel 0 < $(CC65)/apple2enh/drv/mou/a2e.stdmou.mou
+	java -jar $(AC) -p  $@ index.htm          bin 0 < ../../examples/webserver/httpd-cfs/index.htm
+	java -jar $(AC) -p  $@ backgrnd.gif       bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
+	java -jar $(AC) -p  $@ contiki.gif        bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
+	java -jar $(AC) -p  $@ notfound.htm       bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
 $(eval $(call makes,atarixl))
 $(eval $(call makes,atarixl,clean))
