@@ -61,19 +61,19 @@ endif
 
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk contiki.dsk
-	java -jar $(AC) -p    contiki.dsk contiki.system sys   < $(CC65_TARGET_DIR)/util/loader.system
-	java -jar $(AC) -cc65 contiki.dsk contiki        bin   < $(CONTIKI_PROJECT).$(TARGET)
+	java -jar $(AC) -p  contiki.dsk contiki.system sys   < $(CC65_TARGET_DIR)/util/loader.system
+	java -jar $(AC) -as contiki.dsk contiki              < $(CONTIKI_PROJECT).$(TARGET)
 ifdef SLIP
-	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/6502/sample.cfg
+	java -jar $(AC) -p  contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/6502/sample.cfg
 else
-	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
-	java -jar $(AC) -p    contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth
-	java -jar $(AC) -p    contiki.dsk lan91c96.eth   rel 0 < lan91c96.eth
-	java -jar $(AC) -p    contiki.dsk w5100.eth      rel 0 < w5100.eth
+	java -jar $(AC) -p  contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
+	java -jar $(AC) -p  contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth
+	java -jar $(AC) -p  contiki.dsk lan91c96.eth   rel 0 < lan91c96.eth
+	java -jar $(AC) -p  contiki.dsk w5100.eth      rel 0 < w5100.eth
 endif
 ifeq ($(HTTPD-CFS),1)
-	java -jar $(AC) -p    contiki.dsk index.htm      bin 0 < httpd-cfs/index.htm
-	java -jar $(AC) -p    contiki.dsk backgrnd.gif   bin 0 < httpd-cfs/backgrnd.gif
-	java -jar $(AC) -p    contiki.dsk contiki.gif    bin 0 < httpd-cfs/contiki.gif
-	java -jar $(AC) -p    contiki.dsk notfound.htm   bin 0 < httpd-cfs/notfound.htm
+	java -jar $(AC) -p  contiki.dsk index.htm      bin 0 < httpd-cfs/index.htm
+	java -jar $(AC) -p  contiki.dsk backgrnd.gif   bin 0 < httpd-cfs/backgrnd.gif
+	java -jar $(AC) -p  contiki.dsk contiki.gif    bin 0 < httpd-cfs/contiki.gif
+	java -jar $(AC) -p  contiki.dsk notfound.htm   bin 0 < httpd-cfs/notfound.htm
 endif
