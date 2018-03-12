@@ -85,7 +85,7 @@ static uint16_t value(int type){
 else{
 
 	i2c_start_wait(SHT25_ADDR<<1);
-	i2c_write(SHT25_TEMP_HOLD);
+	i2c_write(command);
 	i2c_start_wait((SHT25_ADDR<<1)|1);
 	data_high = i2c_readAck();
 	data_low = i2c_readNak();
