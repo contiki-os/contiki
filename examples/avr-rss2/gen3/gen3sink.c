@@ -25,14 +25,11 @@
 
 #define SYS_VLOW 2.80
 
-double v_in, v_mcu,t_box;
-uint8_t rssi,lqi,seqno=0,v_low=1,secs;
-int len=0,rep_count=0,ps=1;
-long int up_time=0; 
-static int id_count=0;
-char report[220],sinkrep[200], rep_id[17];
+double v_in=0, v_mcu=0,t_box=0,up_time=0;
+uint8_t rssi,lqi,seqno=0,v_low=1,secs=0,len=0,id_count=0;
+long int rep_count=0;
+char report[200],sinkrep[150], rep_id[17];
 static struct timer t;
-
 
 datetime_t datetime;
 
@@ -53,8 +50,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
 	struct broadcast_message *msg; 
 	len=0;
-	
-	
+		
 	msg = packetbuf_dataptr();
 	rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
@@ -113,7 +109,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 	while(1) {  
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		etimer_reset(&et);
-		++up_time;       
+		up_time+=(1.0/1440);     
 		len=0;  
 		/*get RTC datetime --this is part of the report*/
 		ds3231_get_datetime(&datetime);
@@ -139,7 +135,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		
 		v_mcu = adc_read_v_mcu();
 		
-		len += sprintf(&sinkrep[len]," V_MCU=%-4.2f REPS=%d UP_TIME=%ld",v_mcu,rep_count,up_time); 
+		len += sprintf(&sinkrep[len]," V_MCU=%-4.2f REPS=%ld UP_TIME=%.2f",v_mcu,rep_count,up_time); 
 		
 		sinkrep[len++] = '\0';  
 		PORTE &= ~ (1 << PWR_1); //high
