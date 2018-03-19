@@ -126,6 +126,10 @@ platform/galileo/bsp/grub/bin/
 *.galileo.efi
 LOG_OPENOCD
 
-# nRF52 build artifacts
-*.jlink
-*.nrf52dk
+# Gradle
+.gradle
+build/
+.gradletasknamecache
+
+# Ignore Gradle GUI config
+gradle-app.setting

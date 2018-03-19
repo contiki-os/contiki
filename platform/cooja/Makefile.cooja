@@ -22,7 +22,7 @@ ifdef QUICKSTART
 # Create COOJA JAR rule
 $(CONTIKI)/tools/cooja/dist/cooja.jar:
 	@echo "Creating COOJA Java archive..."
-	(cd $(CONTIKI)/tools/cooja && ant jar)
+	(cd $(CONTIKI)/tools/cooja && ./gradlew jar)
 
 # Quickstart rule
 ifneq ($(MAKECMDGOALS),clean)

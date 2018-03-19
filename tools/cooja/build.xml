@@ -1,248 +1,54 @@
 <?xml version="1.0"?>
 
-<project name="COOJA Simulator" default="run" basedir=".">
-  <property name="java" location="java"/>
-  <property name="build" location="build"/>
-  <property name="javadoc" location="javadoc"/>
-  <property name="config" location="config"/>
-  <property name="dist" location="dist"/>
-  <property name="lib" location="lib"/>
-  <property name="args" value="" />
+<project name="COOJA Simulator" default="deprecated" basedir=".">
 
-  <target name="help">
+  <target name="deprecated">
     <echo>
-The COOJA Simulator
+The COOJA Simulator use gradle to build and run
+
+On UNIX; ./gradlew
+On Windows: ./gradlew.bat
 
   Start COOJA
-  > ant run
+  > ./gradlew run
+  
   Build COOJA (dist/cooja.jar) and all default projects (MSPSim et al)
-  > ant jar
+  > ./gradlew jar
 
-  Start COOJA with more memory allocated (for large simulations)
-  > ant run_bigmem
-  Start COOJA, show error box if process terminates unexpectedly.
-  > ant run_errorbox
+  Create Javadoc
+  > ./gradlew javadoc
 
-  Start COOJA and immediately load simulation in sim.csc
+  Clean
+  > ./gradlew clean
+
+  Compile Cooja
+  > ./gradlew compileJava
+
+  Start COOJA (with a limit of mem used of 512m) and immediately load simulation in sim.csc
   > java -mx512m -jar dist/cooja.jar -quickstart=sim.csc
-  Start COOJA without GUI and run simulation in sim.csc
+
+  Start COOJA (with a limit of mem used of 512m) without GUI and run simulation in sim.csc
   > java -mx512m -jar dist/cooja.jar -nogui=sim.csc
 
-  Build executable simulation JAR from mysim.csc
-  > ant export-jar -DCSC="c:/mysim.csc"
-    or
-  > ant export-jar -DCSC="/home/user/sim.csc"
-    The output JAR is saved to exported.jar
     </echo>
   </target>
 
-  <target name="init">
-    <tstamp/>
-  </target>
-  
-  <target name="export-jar" depends="init, jar">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.util.ExecuteJAR" maxmemory="512m">
-        <sysproperty key="user.language" value="en"/>
-        <arg file="${CSC}"/>
-        <arg file="exported.jar"/>
-        <env key="LD_LIBRARY_PATH" value="."/>
-        <classpath>
-          <pathelement path="${build}"/>
-          <pathelement location="lib/jdom.jar"/>
-          <pathelement location="lib/log4j.jar"/>
-          <pathelement location="lib/jsyntaxpane.jar"/>
-          <pathelement location="lib/swingx-all-1.6.4.jar"/>
-        </classpath>
-    </java>
-  </target>
-  
-  <target name="javadoc" depends="init">
-    <delete dir="${javadoc}" quiet="true"/>
-    <mkdir dir="${javadoc}/"/>
-    <javadoc destdir="${javadoc}">
-      <fileset dir="${java}/" includes="**/*.java"/>
-      <classpath>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </javadoc>
-  </target>
-
-  <target name="compile" depends="init">
-    <mkdir dir="${build}"/>
-    <javac srcdir="${java}" destdir="${build}" debug="on"
-           includeantruntime="false"
-           encoding="utf-8">
-      <classpath>
-        <pathelement path="."/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </javac>
-  </target>
-
-  <target name="copy configs" depends="init">
-    <mkdir dir="${build}"/>
-    <copy todir="${build}">
-      <fileset dir="${config}"/>
-    </copy>
-  </target>
-
-  <target name="clean" depends="init">
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
-    <ant antfile="build.xml" dir="apps/mrm" target="clean" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/mspsim" target="clean" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/avrora" target="clean" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/serial_socket" target="clean" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/collect-view" target="clean" inheritAll="false"/>
-	<ant antfile="build.xml" dir="apps/powertracker" target="clean" inheritAll="false"/>
-  </target>
-
-  <target name="run" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
-      <sysproperty key="user.language" value="en"/>
-      <arg line="${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="run64" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
-      <sysproperty key="user.language" value="en"/>
-      <jvmarg value="-d64 -XX:+ShowMessageBoxOnError"/>
-      <arg line="${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="run_errorbox" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
-      <sysproperty key="user.language" value="en"/>
-      <jvmarg value="-XX:+ShowMessageBoxOnError"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="runprof" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja">
-      <arg line="${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <jvmarg line="-agentlib:yjpagent"/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="runfree" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="1536m">
-      <arg line="${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-        <pathelement location="../mspsim/lib/jfreechart-1.0.11.jar"/>
-        <pathelement location="../mspsim/lib/jcommon-1.0.14.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="run_bigmem" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="1536m">
-      <arg line="${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-        <pathelement location="lib/swingx-all-1.6.4.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="jar" depends="jar_cooja">
-    <ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/avrora" target="jar" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/serial_socket" target="jar" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/collect-view" target="jar" inheritAll="false"/>
-    <ant antfile="build.xml" dir="apps/powertracker" target="jar" inheritAll="false"/>
-  </target>
-
-  <target name="run_nogui" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
-      <arg line="-nogui=${args}"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <classpath>
-        <pathelement path="${build}"/>
-        <pathelement location="lib/jdom.jar"/>
-        <pathelement location="lib/log4j.jar"/>
-        <pathelement location="lib/jsyntaxpane.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="run_applet" depends="init, compile, jar, copy configs">
-    <exec executable="appletviewer" dir="${build}">
-      <arg value="-J-Djava.security.policy=cooja.policy"/>
-      <arg value="cooja.html"/>
-      <env key="LD_LIBRARY_PATH" value="."/>
-      <env key="CLASSPATH" path="${build}"/>
-    </exec>
-  </target>
-
-  <target name="java_version" depends="init">
-    <exec executable="javac" dir="${build}" includeantruntime="false">
-      <arg value="-version"/>
-    </exec>
-  </target>
-
-  <target name="jar_cooja" depends="init, compile, copy configs">
-    <mkdir dir="${dist}"/>
-    <jar destfile="${dist}/cooja.jar" basedir="${build}">
-      <manifest>
-        <attribute name="Main-Class" value="org.contikios.cooja.Cooja"/>
-        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar lib/swingx-all-1.6.4.jar"/>
-      </manifest>
-    </jar>
-    <mkdir dir="${dist}/lib"/>
-    <copy todir="${dist}/lib">
-      <fileset dir="${lib}"/>
-    </copy>
-  </target>
+  <target name="init" depends='deprecated'></target>
+  <target name="export-jar" depends="deprecated"></target>
+  <target name="javadoc" depends="deprecated"></target>
+  <target name="copy configs" depends="deprecated"></target>
+  <target name="clean" depends="deprecated"></target>
+  <target name="run64" depends="deprecated"></target>
+  <target name="run_errorbox" depends="deprecated"></target>
+  <target name="runprof" depends="deprecated"></target>
+  <target name="runfree" depends="deprecated"></target>
+  <target name="run_bigmem" depends="deprecated"></target>
+  <target name="run_applet" depends="deprecated"></target>
+  <target name="java_version" depends="deprecated"></target>
+  <target name="jar_cooja" depends="deprecated"></target>
+  <target name="compile" depends="deprecated"></target>
+  <target name="run" depends="deprecated"></target>
+  <target name="jar" depends="deprecated"></target>
+  <target name="run_nogui" depends="deprecated"></target>
 
 </project>

@@ -45,7 +45,7 @@ clean:
 
 cooja: $(CONTIKI)/tools/cooja/dist/cooja.jar
 $(CONTIKI)/tools/cooja/dist/cooja.jar:
-	(cd $(CONTIKI)/tools/cooja; ant jar)
+	(cd $(CONTIKI)/tools/cooja; ./gradlew build)
 
 scan-build:
 	cd scan_build && scan-build $(MAKE)

@@ -1,0 +1,63 @@
+apply plugin: "java"
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+}
+
+task buildMspsimJar(type: GradleBuild) {
+    buildFile = 'importedmspsimBuild.gradle'
+    tasks = ['jar']
+}
+task buildCoffeeJar(type: GradleBuild) {
+    buildFile = '../../../coffee-manager/build.gradle'
+    tasks = ["jar"]
+}
+task copyMspsimJar(type: Copy, dependsOn: buildMspsimJar) {
+    from "../../../mspsim/mspsim.jar"
+    into 'lib'
+}
+task copyJipv6Jar(type: Copy) {
+    from '../../../mspsim/lib/jipv6.jar'
+    into 'lib'
+}
+task copyCoffeeJar(type: Copy, dependsOn: buildCoffeeJar) {
+    from '../../../coffee-manager/coffee.jar'
+    into 'lib'
+}
+compileJava.dependsOn copyMspsimJar
+compileJava.dependsOn copyCoffeeJar
+compileJava.dependsOn copyJipv6Jar
+
+repositories {
+   jcenter()
+   flatDir {
+       dirs 'lib'
+   }
+}
+
+project.gradle.buildFinished { buildResult ->
+  if (buildResult.getFailure() != null) {
+    println """Could not find the MSPSim build file. Did you run:
+        git submodule update --init
+    """
+  }
+}
+
+jar {
+    archiveName = "cooja_mspsim.jar"
+}
+
+libsDirName = "../lib"
+
+dependencies {
+    compile name: 'mspsim'
+    compile name: 'coffee'
+    compile name: 'jipv6'
+    compile project(":")
+    compile 'log4j:log4j:1.2.16'
+    compile 'org.jdom:jdom:1.1'
+}

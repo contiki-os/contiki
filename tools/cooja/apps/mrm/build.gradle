@@ -1,0 +1,21 @@
+apply plugin: "java"
+
+repositories {
+    jcenter()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'java'
+    }
+  }
+}
+
+libsDirName = "../lib"
+
+dependencies {
+    compile project(":")
+    compile 'log4j:log4j:1.2.16'
+    compile 'org.jdom:jdom:1.1'
+}

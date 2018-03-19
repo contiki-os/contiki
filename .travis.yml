@@ -113,8 +113,9 @@ before_script:
 
   ## Compile cooja.jar only when it's going to be needed
   - if [ ${BUILD_CATEGORY:-sim} = sim ] ; then
+      ./tools/cooja/gradlew -version &&
       java -version &&
-      ant -q -f tools/cooja/build.xml jar &&
+      ./tools/cooja/gradlew --console=plain -b tools/cooja/build.gradle build &&
       sudo java -Xshare:dump -version ;
     fi
 
@@ -163,6 +164,5 @@ env:
   - BUILD_TYPE='compile-nrf52-ports' BUILD_CATEGORY='compile' BUILD_ARCH='nrf52dk'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='compile-avr' BUILD_CATEGORY='compile' BUILD_ARCH='avr-rss2'
-  - BUILD_TYPE='ieee802154'
-  - BUILD_TYPE='tsch'
+  - BUILD_TYPE="cooja-checkstyle"
+  - BUILD_TYPE="cooja-findbugs"
