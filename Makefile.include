@@ -148,7 +148,13 @@ endif
 ifdef MODULES
   UNIQUEMODULES = $(call uniq,$(MODULES))
   MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
-  MODULES_SOURCES = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
+  MODULES_SOURCES_COMPLETE = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
+  ifdef IGNORE_SOURCE_FILE_LIST
+    UNIQUEIGNORES = $(call uniq,$(IGNORE_SOURCE_FILE_LIST))
+    MODULES_SOURCES = ${filter-out $(UNIQUEIGNORES),$(MODULES_SOURCES_COMPLETE)}
+  else
+    MODULES_SOURCES = MODULES_SOURCES_COMPLETE
+  endif
   CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
   APPDS += $(MODULEDIRS)
 endif
