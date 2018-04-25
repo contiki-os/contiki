@@ -1092,7 +1092,6 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         current_slot_start += time_to_next_active_slot;
         if (tsch_next_timeslot_far(current_slot_start)){
             tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
-            time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
         }
         else {
                 TSCH_LOG_ADD(tsch_log_message,
@@ -1102,6 +1101,8 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
                                  );
                 );
         }
+        if (tsch_rf_state < tsch_rfON)
+            time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
