@@ -30,15 +30,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author(s): Philipp Scholl <scholl@teco.edu>
+ *            Tokita Hiroshi <tokita.hiroshi@gmail.com>
  */
 
 /* Copied from Philipp Scholl's (BSD) Contiki port to Jennic */
+/* Added mtarch implementation by Tokita Hiroshi. */
 
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
+#ifndef MTARCH_STACKSIZE
+#define MTARCH_STACKSIZE 256
+#endif /* MTARCH_STACKSIZE */
+
 struct mtarch_thread {
-  void *mt_thread;
+  unsigned int *sp;
+  unsigned int stack[MTARCH_STACKSIZE];
+  void (*function)(void *);
+  void *data;
 };
 
 #endif /* __MTARCH_H__ */
