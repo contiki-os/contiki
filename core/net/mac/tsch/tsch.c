@@ -794,7 +794,7 @@ PROCESS_THREAD(tsch_pending_events_process, ev, data)
   activity = 0;
   while(1) {
     if (activity <= 0)
-    PROCESS_YIELD_UNTIL(activity);
+    PROCESS_WAIT_UNTIL(activity);
 
     do {
         activity = tsch_rx_process_pending();
