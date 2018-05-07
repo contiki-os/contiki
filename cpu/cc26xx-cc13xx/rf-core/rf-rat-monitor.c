@@ -32,8 +32,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#undef DEBUG
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -60,8 +62,9 @@ extern int32_t rat_offset;
 
 /* For RAT overflow handling */
 static struct ctimer rat_overflow_timer;
+typedef uint64_t rtc64_t;
 struct {
-    rtimer_clock_t          last_time;
+    rtc64_t                 last_time;
     volatile uint_fast8_t   counter;
 } rat_overflow;
 
@@ -78,6 +81,12 @@ static struct rf_rat_controler rf_control;
 rf_rat_time_t rf_rat_now(){
     return HWREG(RFC_RAT_BASE + RATCNT);
 }
+
+rtc64_t rtc64_now()
+{
+  return ti_lib_aon_rtc_current_64_bit_value_get() >> 16;
+}
+
 /*---------------------------------------------------------------------------*/
 #define GAP_RATE 4
 static const rtimer_clock_t OVERFLOW_GAP = (RAT_OVERFLOW_PERIOD_SECONDS * RTIMER_SECOND / GAP_RATE);
@@ -101,15 +110,29 @@ uint_fast8_t rf_rat_check_overflow(bool first_time)
   // this gap can be compensated at evaluation time.
   if(first_time) {
     last_value = rf_rat_now();
-    rtimer_clock_t now = RTIMER_NOW();
-    if (now < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP))
+    rtc64_t now = rtc64_now();
+    if (now < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP)){
     rat_overflow.counter = 0;
-    else
-    if ( RTIMER_CLOCK_DIFF( now, rat_overflow.last_time) < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP) )
-        // rat_overflow.counter no need update since last check time
-        {;}
+    PRINTF("rat: init =0 , now=%lx rat=%lx\n", now, last_value);
+    }
     else {
+        rtc64_t diff = llabs( now - rat_overflow.last_time );
+    if ( diff < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP-16) )
+        // rat_overflow.counter no need update since last check time
+        {
+        PRINTF("rat: leave %lu , now=%lu ..last=%lu\n"
+                , rat_overflow.counter
+                , now, rat_overflow.last_time
+                );
+        }
+    else
         rat_overflow.counter = now / RAT_OVERFLOW_PERIOD_RT;
+    PRINTF("rat: set %lu , now=%lx.%lx ..last=...%lx  rat=%lx\n"
+            , rat_overflow.counter
+            , (uint32_t)(now>>32), (uint32_t)now
+            , rat_overflow.last_time
+            , last_value
+            );
     }
     rat_overflow.last_time = now;
     if ( last_value <= (RAT_RANGE / GAP_RATE) )
