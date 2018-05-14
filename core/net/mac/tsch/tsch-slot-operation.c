@@ -805,6 +805,12 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
     current_input = &input_array[input_index];
 
+    // clenup receiving buffer from packets that have ocasionaly received not
+    //  in this time-slot
+    while (NETSTACK_RADIO.pending_packet()){
+        NETSTACK_RADIO.read(NULL, 0);
+    }
+
     /* Wait before starting to listen */
     TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start
                             , tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX
