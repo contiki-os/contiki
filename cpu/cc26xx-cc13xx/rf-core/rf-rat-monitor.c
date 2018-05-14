@@ -113,20 +113,28 @@ uint_fast8_t rf_rat_check_overflow(bool first_time)
     rtc64_t now = rtc64_now();
     if (now < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP)){
     rat_overflow.counter = 0;
+    rat_overflow.last_time = now;
+    if ( last_value <= (RAT_RANGE / GAP_RATE) )
+        rat_overflow.last_time += OVERFLOW_GAP;
     PRINTF("rat: init =0 , now=%lx rat=%lx\n", now, last_value);
     }
     else {
-        rtc64_t diff = llabs( now - rat_overflow.last_time );
+        int64_t diff = /*llabs*/( now - rat_overflow.last_time );
     if ( diff < (RAT_OVERFLOW_PERIOD_RT - OVERFLOW_GAP-16) )
         // rat_overflow.counter no need update since last check time
+        // so avoid u64 divison
         {
         PRINTF("rat: leave %lu , now=%lu ..last=%lu\n"
                 , rat_overflow.counter
                 , now, rat_overflow.last_time
                 );
         }
-    else
+    else{
         rat_overflow.counter = now / RAT_OVERFLOW_PERIOD_RT;
+        rat_overflow.last_time = rat_overflow.counter*RAT_OVERFLOW_PERIOD_RT; //now;
+        if ( last_value <= (RAT_RANGE / GAP_RATE) )
+            rat_overflow.last_time += OVERFLOW_GAP;
+    }
     PRINTF("rat: set %lu , now=%lx.%lx ..last=...%lx  rat=%lx\n"
             , rat_overflow.counter
             , (uint32_t)(now>>32), (uint32_t)now
@@ -134,9 +142,6 @@ uint_fast8_t rf_rat_check_overflow(bool first_time)
             , last_value
             );
     }
-    rat_overflow.last_time = now;
-    if ( last_value <= (RAT_RANGE / GAP_RATE) )
-        rat_overflow.last_time += OVERFLOW_GAP;
   } else {
     current_value = rf_rat_now();// + RAT_RANGE / GAP_RATE;
     if( current_value < last_value) {
