@@ -183,6 +183,7 @@ typedef enum { // https://www.iana.org/assignments/core-parameters/core-paramete
   APPLICATION_OMA_TLV          = 11542,  //  application/vnd.oma.lwm2m+tlv                /* Ref: [OMA-TS-LightweightM2M-V1_0] */
   APPLICATION_OMA_JSON         = 11543,   //  application/vnd.oma.lwm2m+json               /* Ref: [OMA-TS-LightweightM2M-V1_0] */
   /* 65000-65535  Experimental use (no operational use) */
-  CONTENT_MAX_VALUE = 0xFFFF
+  COAP_CONTENT_TYPE_MAX_VALUE = 0xFFFF
 } coap_content_type_t;
+
 #endif /* ER_COAP_CONSTANTS_H_ */
