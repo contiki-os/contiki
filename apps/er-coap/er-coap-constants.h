@@ -164,7 +164,7 @@ typedef enum { // https://www.iana.org/assignments/core-parameters/core-paramete
   APPLICATION_FASTINFOSET      = 48   ,  //                                               /* Ref: ??? */
   APPLICATION_SOAP_FASTINFOSET = 49   ,  //                                               /* Ref: ??? */
   APPLICATION_JSON             = 50   ,  //  application/json                             /* Ref: [RFC4627] */
-  /* conflicting: APPLICATION_X_OBIX_BINARY = 51, */
+  APPLICATION_X_OBIX_BINARY    = 51   ,  //  note: Conflicts with application/json-patch+json /* Ref: ??? */
   APPLICATION_JSON_PATCH_JSON  = 51   ,  //  application/json-patch+json                  /* Ref: [RFC6902] */
   APPLICATION_MERGE_PATCH_JSON = 52   ,  //  application/merge-patch+json                 /* Ref: [RFC7396] */
   APPLICATION_CBOR             = 60   ,  //  application/cbor                             /* Ref: [RFC7049] */
