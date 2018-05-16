@@ -796,13 +796,27 @@ PROCESS_THREAD(tsch_pending_events_process, ev, data)
     if (activity <= 0)
     PROCESS_WAIT_UNTIL(activity);
 
-    do {
-        activity = tsch_rx_process_pending();
-        activity += tsch_tx_process_pending();
+#if TSCH_POLLING_STYLE == TSCH_POLLING_RELAXED
+    do { //rx cycle
+    do { //tx cycle
+        activity = tsch_tx_process_pending();
         if (activity <= 0)
             break;
         PROCESS_PAUSE();
     } while (1);
+        activity = tsch_rx_process_pending();
+        if (activity <= 0)
+            break;
+        PROCESS_PAUSE();
+    } while (1);
+#else //if TSCH_POLLING_STYLE == TSCH_POLLING_STRONG
+    do {
+        activity = tsch_tx_process_pending();
+    } while (activity > 0);
+    do {
+        activity = tsch_rx_process_pending();
+    } while (activity > 0);
+#endif
 
     activity = 0;
     do {

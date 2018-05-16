@@ -198,4 +198,18 @@
 #define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
 #endif
 
+/* TSCH send/receive events polling style.
+ * */
+//< tsch events are executed all in one cycle. Simpler code.
+#define TSCH_POLLING_STRONG    0
+//< tsch events are executed yielding by pause. Gives better cooperative
+//      it still enSUREs TX events before RX
+#define TSCH_POLLING_RELAXED   1
+#ifdef TSCH_CONF_POLLING_STYLE
+#define TSCH_POLLING_STYLE TSCH_CONF_POLLING_STYLE
+#else
+#define TSCH_POLLING_STYLE 0
+#endif
+
+
 #endif /* __TSCH_CONF_H__ */
