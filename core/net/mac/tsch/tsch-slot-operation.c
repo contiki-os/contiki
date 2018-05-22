@@ -631,11 +631,13 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               uint8_t ack_hdrlen;
               frame802154_t frame;
 
+#if TSCH_RADIO_ON_DURING_TIMESLOT
               // clenup receiving buffer from packets that have ocasionaly received not
               //  in this time-slot
               while (NETSTACK_RADIO.pending_packet()){
                   NETSTACK_RADIO.read(NULL, 0);
               }
+#endif
 
 #if TSCH_HW_FRAME_FILTERING
               radio_value_t radio_rx_mode;
@@ -813,9 +815,11 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
     // clenup receiving buffer from packets that have ocasionaly received not
     //  in this time-slot
+#if TSCH_RADIO_ON_DURING_TIMESLOT
     while (NETSTACK_RADIO.pending_packet()){
         NETSTACK_RADIO.read(NULL, 0);
     }
+#endif
 
     /* Wait before starting to listen */
     TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start
