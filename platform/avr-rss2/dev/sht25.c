@@ -57,7 +57,7 @@
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 /*---------------------------------------------------------------------------*/
-static int
+static float
 status(int type)
 {
 	return enabled;
@@ -65,8 +65,7 @@ status(int type)
 
 
 static uint16_t value(int type){
- uint16_t returned;
- uint16_t data_low;
+ uint8_t data_low;
  uint16_t data_high;
  uint16_t command;
  unsigned int ret;
@@ -86,24 +85,23 @@ else{
 
 	i2c_start_wait(SHT25_ADDR<<1);
 	i2c_write(command);
-	i2c_start_wait((SHT25_ADDR<<1)|1);
+	i2c_start_wait((SHT25_ADDR<<1)|I2C_READ);
 	data_high = i2c_readAck();
 	data_low = i2c_readNak();
 	if(type==0){
-		float temp = (data_high<<8) +(data_low);	
-		data =    ((temp/65536)* 175.72)-46.85;
-		//returned = data;
+		float temp = (data_high<<8) +(data_low);
+		// increase to cater for single decimal point	
+		data =    (((temp/65536)* 175.72)-46.85) * 10;
 		return data;
          }
 
 	if(type==1){
 		float temp = (data_high<<8) +(data_low);
-		data = ((temp/(65536)) * 125)-6;
-		//returned = data1;
+		data = (((temp/(65536)) * 125)-6)* 10;
 		return data;
  	}
   }//else 
-
+return 0;
 }
 
 

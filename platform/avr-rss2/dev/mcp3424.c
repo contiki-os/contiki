@@ -74,10 +74,10 @@ return enabled;
 
 static uint16_t value(int type)
 {
- float data;
+ uint16_t data;
 uint16_t returned;
-uint16_t data_low;
-uint16_t data_high;
+uint8_t data_low;
+uint8_t data_high;
 uint16_t command;
 uint16_t value;
 //default configuration
@@ -95,36 +95,33 @@ command |= (0b10<<5);
 break;
 case 3:
 command |= (0b11<<5);
-printf("The command is %d",command);
 break;
 }
-/*else 
-command = SHT25_HUM_HOLD; */
+
 
 
  unsigned int ret;  
- ret = i2c_start(MCP3424_ADDR<<1);         // set device address and read mode 
+ ret = i2c_start(MCP3424_ADDR<<1); 
+// set device address and read mode 
   if ( ret )   
 {//failed to issue start condition, possibly no device found  
 i2c_stop();      
 } 
 else
 {
+
 i2c_start_wait(MCP3424_ADDR<<1);
 i2c_write(command);
 i2c_start_wait((MCP3424_ADDR<<1)|1);
 data_high = i2c_readAck();
 data_low = i2c_readNak();
-float temp = (data_high<<8) +(data_low);
-		data = temp;
-//printf("The value is %u",data);
-		//returned = data1;
+data = (data_high<<8) +(data_low);
+		 
 		return data;
 
 }
 
-
-
+return 0;
 }
 
 

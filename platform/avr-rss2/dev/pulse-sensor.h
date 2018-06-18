@@ -1,3 +1,6 @@
+
+	
+
 /*
  * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB
  * All rights reserved.
@@ -41,3 +44,6 @@
 extern const struct sensors_sensor pulse_sensor;
 
 #endif /* PULSE-SENSOR_H_ */
+void reset_count();
+
+

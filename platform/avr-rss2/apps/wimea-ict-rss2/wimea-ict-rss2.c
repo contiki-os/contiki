@@ -48,6 +48,7 @@
 #include <ctype.h>
 #include "dev/serial-line.h"
 #include <avr/eeprom.h>
+#include <avr/sleep.h>
 #include "sys/etimer.h"
 #include "dev/adc.h"
 #include "dev/i2c.h"
@@ -59,15 +60,16 @@
 #include "dev/sht25.h"
 #include "math.h"
 #include "dev/mcp3424.h"
+#include "dev/pulse-sensor.h"
 #include "dev/ms5611.h"
 #include "lib/fs/fat/diskio.h"
 #include "lib/fs/fat/ff.h"
 #include "net/rime/rime.h"
 #include "netstack.h"
 
-#define NAME_LENGTH 10
-#define TAGMASK_LENGTH 50
-#define NO_SENSORS 10
+#define NAME_LENGTH 12
+#define TAGMASK_LENGTH 100
+#define NO_SENSORS 16
 #define MAX_BCAST_SIZE 99
 #define DEF_TTL 0xF
 
@@ -91,7 +93,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[]="ADC_1 ADC_2 ADC_3 ADC_4 RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU ";
+static char default_sensors[50]="ADC RH V_AD1 V_AD2 V_IN T_MCU V_MCU";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -109,7 +111,7 @@ UINT bw;
 DWORD get_fattime (void)
 {
 	if( i2c_probed & I2C_DS1307 ) {
-		return ((DWORD)(ds1307_sensor.value(11) - 1980) << 25)	/* RTC Year */
+	return ((DWORD)(ds1307_sensor.value(11) - 1980) << 25)	/* RTC Year */
 			| ((DWORD)ds1307_sensor.value(10) << 21)			/* RTC Month*/
 			| ((DWORD)ds1307_sensor.value(9) << 16)				/* RTC day*/
 			| ((DWORD)ds1307_sensor.value(8) << 11)				/* RTC Hours*/
@@ -191,23 +193,26 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 	SENSORS_ACTIVATE(temp_sensor);
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
-
+        SENSORS_ACTIVATE(pulse_sensor);
         if( i2c_probed & I2C_SHT25) {                
                // sht25_init();
                // printf("initialized");
                 SENSORS_ACTIVATE(sht25_sensor);
-                strcpy(default_sensors,"T RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU");           
+                strcpy(default_sensors," V_AD1 V_AD2 V_IN V_MCU T RH ");  
+                set_default_tagmask();        
        
         }
          if( i2c_probed & I2C_MCP3424 ) {
 		//mcp3424_init(MCP3424_ADDR,0,8,16);  
-		SENSORS_ACTIVATE(mcp3424_sensor);
-           strcpy(default_sensors,"ADC_1 ADC_2 ADC_3 ADC_4 V_AD1 V_AD2 V_IN ADC T_MCU V_MCU"); 
+          	SENSORS_ACTIVATE(mcp3424_sensor);
+           	strcpy(default_sensors," V_AD1 V_AD2 V_IN V_MCU INTR ADC ");
+            set_default_tagmask(); 
 	}
 
 	 if(i2c_probed & I2C_MS5611_ADDR){
 		SENSORS_ACTIVATE(ms5611_sensor);
-           strcpy(default_sensors,"P RH V_AD1 V_AD2 V_IN ADC T_MCU V_MCU");
+           	strcpy(default_sensors," V_AD1 V_AD2 V_IN T_MCU V_MCU P ");
+           set_default_tagmask();
 	}
 
 	if( i2c_probed & I2C_DS1307 ) {
@@ -220,6 +225,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 		etimer_set(&et, CLOCK_SECOND * time_interval);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		read_sensor_values();
+		reset_count();
 	}
 
 	SENSORS_DEACTIVATE(temp_sensor);
@@ -229,6 +235,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
         SENSORS_DEACTIVATE(ms5611_sensor);
         SENSORS_DEACTIVATE(mcp3424_sensor);
         SENSORS_DEACTIVATE(sht25_sensor);
+        SENSORS_DEACTIVATE(pulse_sensor);
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -360,15 +367,16 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		sei();
 		len=strlen(data);
               //  i += snprintf(msg.buf+i, 15, "&: NAME=%s ", );
-		if( i2c_probed & I2C_DS1307 ) {
-				i += snprintf(msg.buf+i, 25, "%s %s ", return_date(), return_time());
-		}
+		/*if( i2c_probed & I2C_DS1307 ) {
+				//i += snprintf(msg.buf+i, 25, "%s %s ", return_date(), return_time());
+		}*/
 		if (node_name>0){
 			strlcpy(node, (char*)node_name, NAME_LENGTH);
-			i += snprintf(msg.buf+i, 15, "&: NAME=%s ", node);
+			i += snprintf(msg.buf+i, 20, "&: NAME=%s ", node);
 		}
 		/* Read out mote 64bit MAC address */
 		len+=25;
+
 		i += snprintf(msg.buf+i, len, "E64=%02x%02x%02x%02x%02x%02x%02x%02x %s", eui64_addr[0], eui64_addr[1], eui64_addr[2], eui64_addr[3], eui64_addr[4], eui64_addr[5], eui64_addr[6], eui64_addr[7], (char*)data);
 		msg.buf[i++]='\0';//null terminate report.
 		printf("%s\n", msg.buf);
@@ -446,7 +454,8 @@ display_system_information()
 		printf("Memory card mounted: Yes.\n");
 	} else printf("Memory card mounted: No.\n");
 	display_node_name();
-	if( i2c_probed & I2C_DS1307 ) {
+	if( i2c_probed & I2C_DS1307 ) 
+	{
 		printf("System date: %s.\n", return_date());
 		printf("System time: %s.\n", return_time());
 	}
@@ -497,11 +506,14 @@ display_node_name(){
  */
 void
 read_sensor_values(void){
+//SMCR = 0x01;
+//sleep_disable();
 	char result[TAGMASK_LENGTH], *sensors;
 	uint8_t tagmask[TAGMASK_LENGTH], i=0;
 	cli();
 	eeprom_read_block((void*)&tagmask, (const void*)&eemem_tagmask, TAGMASK_LENGTH);
 	sei();
+
 	sensors=strtok ((char*)tagmask, " ");
 	while (sensors != NULL){
 		if (!strncmp(trim(sensors), "T_MCU", 5)) {
@@ -509,57 +521,51 @@ read_sensor_values(void){
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {
 			i += snprintf(result+i, 11, " V_MCU=%-3.1f", ((double) battery_sensor.value(0))/1000.);
 		} else if (!strncmp(trim(sensors), "V_IN", 4)) {
-			i += snprintf(result+i, 11, " V_IN=%-4.2f", adc_read_v_in());
-		} else if (!strncmp(trim(sensors), "V_AD1", 5)) {
-			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(1), adc_read_a1());
+			i += snprintf(result+i, 11, " V_IN=%-4.2f",adc_read_v_in());
 		} else if (!strncmp(trim(sensors), "V_AD2", 5)) {
-			i += snprintf(result+i, 15, " %s=%-4.2f", return_alias(2), adc_read_a2());
+			i += snprintf(result+i, 13, " V_AD2=%-4.2f",adc_read_a2());
+                  
 		} 
-                  else if (!strncmp(trim(sensors), "P", 1))   			
-                {      if(i2c_probed & I2C_MS5611_ADDR)              
+ 		   else if (!strncmp(trim(sensors), "V_AD1", 5)) {
+			i += snprintf(result+i, 15, " V_AD1=%-4.2f",adc_read_a1());
+		}
+               else if (!strncmp(trim(sensors), "P", 1)) {      
+			if(i2c_probed & I2C_MS5611_ADDR)              
 			i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0)); 
            
 		}
-                else if (!strncmp(trim(sensors), "ADC", 8)) {
-                        if(i2c_probed & I2C_MS5611_ADDR) 
-			i += snprintf(result+i,7, " ADC=%d", mcp3424_sensor.value(0));
-		}
-                 else if (!strncmp(trim(sensors), "T", 7) ) {
+                
+                 else if (!strncmp(trim(sensors), "T", 1) ) {
                          if( i2c_probed & I2C_SHT25) 
-			i += snprintf(result+i,11, " T=%u", sht25_sensor.value(0));
+                       
+			i += snprintf(result+i,9, " T=%.1f", sht25_sensor.value(0)/10.0);
                        
 		}
-	        else if (!strncmp(trim(sensors), "RH", 8)) {
+	        else if (!strncmp(trim(sensors), "RH", 2)) {
                         if( i2c_probed & I2C_SHT25) {
-			//RH above ice(d) = RH above water(sht25_sensor.value(1)) * d2;
-			double tempe = sht25_sensor.value(0) * 1.000;
-			double d = exp(17.62*(tempe)/(243+(tempe)));
-			double d1 = exp(22.46*tempe/(272.62+tempe));
-			//double d2 = d/d1;
-						i += snprintf(result+i,12, " RH=%u",sht25_sensor.value(1));
+			
+						i += snprintf(result+i,10, " RH=%.1f",sht25_sensor.value(1)/10.0);
                      
-
-			///(exp(22.46(sht25_sensor.value(0))/((272.62+sht25_sensor.value(0))));
                        }
 
 		}
-                else if (!strncmp(trim(sensors), "ADC_1", 8)) {
-                 if( i2c_probed & I2C_MCP3424 )
-			i += snprintf(result+i,12, " ADC_1=%.4f",mcp3424_sensor.value(0)/1000.000);
+
+else if (!strncmp(trim(sensors), "INTR", 4) ) {//int pin eg. rain gauge and anenometer 
+     			i += snprintf(result+i,18," INTR=%d IS=%d", pulse_sensor.value(0),pulse_sensor.value(2));
 		}
-                else if (!strncmp(trim(sensors), "ADC_2", 8)) {
-                if( i2c_probed & I2C_MCP3424 )
-			i += snprintf(result+i,12, " ADC_2=%.4f",mcp3424_sensor.value(1)/1000.000);
+
+
+                else if (!strncmp(trim(sensors), "ADC", 5)) {
+                 if( i2c_probed & I2C_MCP3424 ){
+			i += snprintf(result+i,52, " ADC_1=%-1.3f ADC_2=%-1.3f ADC_3=%-1.3f ADC_4=%-1.3f",mcp3424_sensor.value(0)/1000.000,mcp3424_sensor.value(1)/1000.000,mcp3424_sensor.value(2)/1000.000,mcp3424_sensor.value(3)/1000.000);
+
+//i += snprintf(result+i,26, " ADC_1=%.4f ADC_2=%.4f ",mcp3424_sensor.value(0)/1000.000,mcp3424_sensor.value(1)/1000.000);
+
 		}
-               else if (!strncmp(trim(sensors), "ADC_3", 8)) {
-               if( i2c_probed & I2C_MCP3424 )
-			i += snprintf(result+i,12, " ADC_3=%.4f",mcp3424_sensor.value(2)/1000.000);
+
 		}
-               else if (!strncmp(trim(sensors), "ADC_4", 8)) {
-               if( i2c_probed & I2C_MCP3424 )
-			i += snprintf(result+i,12, " ADC_4=%.4f",mcp3424_sensor.value(3)/1000.000);
-		}
-                 
+
+
 		if(i>44){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
 			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
@@ -570,6 +576,15 @@ read_sensor_values(void){
 	}
 	result[i++]='\0';//null terminate result before sending
 	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
+
+//sleep_enable();
+ // go to deep sleep
+//SMCR = 0x01;
+//SMCR = 0x03;
+//sleep_cpu();
+//PRR1 |= (1<<6);
+
+
 }
 
 //return time form rtc
@@ -663,7 +678,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[13]={"ADC_1","ADC_2","ADC_3","ADC_4", "RH", "V_AD1", "V_AD2", "P","T","V_IN","ADC","T_MCU", "V_MCU"}; //array of available sensors
+	char *sensors[10]={"ADC","RH","P","T","V_AD1","V_AD2","V_IN","T_MCU","V_MCU","INTR"}; //array of available senso
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -671,18 +686,24 @@ change_tagmask(char *value){
 	{
 		split_tagmask=trim(split_tagmask);
 		/*Compare sensors requested by the user with the array of available sensors and return a string that can be written to eeprom*/
-		for (i=0; i < 13; i++){
+		for (i=0; i < 10; i++){
 			size=strlen(sensors[i]);
 			if (!strncmp(split_tagmask, sensors[i], size)){
 				if (m==0){
 					strlcpy(save_tagmask, split_tagmask, size+1);
 					m+=1;
+                                         
 				} else {
 					strncat(save_tagmask, " ", 1);
 					strncat(save_tagmask, split_tagmask, size);
 				}
 				break;
 			}
+
+
+
+
+
 		}
 		split_tagmask = strtok(NULL, ",");
 	}

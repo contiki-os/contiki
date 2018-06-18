@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB
  * All rights reserved.
@@ -42,7 +43,9 @@ const struct sensors_sensor pulse_sensor;
 
 #define NP 2
 
-uint32_t volatile pc[NP];
+uint8_t volatile pc[NP];
+int counter=0;
+int intr_counts=0;
 
 /*
  * Note interrupt sources can be woken up from sleep mode PWR_SAVE
@@ -81,13 +84,20 @@ ISR(INT2_vect)
   if(!(PCICR & (1 << PCIE0))) {
     return;
   }
-  pc[0]++;
+ pc[0]++;
+ intr_counts++;// per second counter 
+ 
+}
+void reset_count(){
+  intr_counts =0; 
 }
 
 ISR(INT3_vect)
 {
+
   if(!(PCICR & (1 << PCIE0))) {
     return;
+
   }
   pc[1]++;
 }
@@ -100,6 +110,9 @@ value(int type)
   }
   if(type == 1) {
     return (int)pc[1];
+  }
+   if(type == 2) { //interrupts on green int port per second
+    return intr_counts;
   }
   return -1;
 }
@@ -118,3 +131,4 @@ configure(int type, int c)
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pulse_sensor, "Pulse", value, configure, status);
+
