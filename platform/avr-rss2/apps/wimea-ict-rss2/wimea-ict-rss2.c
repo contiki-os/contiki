@@ -93,7 +93,7 @@ PROCESS(buffer_process, "Buffer sensor data");
 uint16_t time_interval;
 struct etimer et;
 unsigned char eui64_addr[8];
-static char default_sensors[50]="ADC RH V_AD1 V_AD2 V_IN T_MCU V_MCU";
+static char default_sensors[50]=" ADC_1 ADC_2 RH V_AD1 V_AD2 V_IN T_MCU V_MCU ";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 struct broadcast_message {
 	uint8_t head;
@@ -205,7 +205,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
          if( i2c_probed & I2C_MCP3424 ) {
 		//mcp3424_init(MCP3424_ADDR,0,8,16);  
           	SENSORS_ACTIVATE(mcp3424_sensor);
-           	strcpy(default_sensors," V_AD1 V_AD2 V_IN V_MCU INTR ADC ");
+           	strcpy(default_sensors," V_AD1 V_AD2 V_IN V_MCU INTR ADC_1 ");
             set_default_tagmask(); 
 	}
 
@@ -225,7 +225,7 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 		etimer_set(&et, CLOCK_SECOND * time_interval);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		read_sensor_values();
-		reset_count();
+		//reset_count();
 	}
 
 	SENSORS_DEACTIVATE(temp_sensor);
@@ -555,14 +555,30 @@ else if (!strncmp(trim(sensors), "INTR", 4) ) {//int pin eg. rain gauge and anen
 		}
 
 
-                else if (!strncmp(trim(sensors), "ADC", 5)) {
+else if (!strncmp(trim(sensors), "ADC_1", 5)) {
                  if( i2c_probed & I2C_MCP3424 ){
-			i += snprintf(result+i,52, " ADC_1=%-1.3f ADC_2=%-1.3f ADC_3=%-1.3f ADC_4=%-1.3f",mcp3424_sensor.value(0)/1000.000,mcp3424_sensor.value(1)/1000.000,mcp3424_sensor.value(2)/1000.000,mcp3424_sensor.value(3)/1000.000);
-
-//i += snprintf(result+i,26, " ADC_1=%.4f ADC_2=%.4f ",mcp3424_sensor.value(0)/1000.000,mcp3424_sensor.value(1)/1000.000);
-
+		i += snprintf(result+i,14, " ADC_1=%.3f",mcp3424_sensor.value(0)/1000.000);
 		}
 
+		}
+            
+  else if (!strncmp(trim(sensors), "ADC_2", 5)) {
+                 if( i2c_probed & I2C_MCP3424 ){
+		i += snprintf(result+i,14, " ADC_2=%.3f",mcp3424_sensor.value(1)/1000.000);
+		}
+
+		}
+  else if (!strncmp(trim(sensors), "ADC_3", 5)) {
+                 if( i2c_probed & I2C_MCP3424 ){
+		i += snprintf(result+i,14, " ADC_3=%.3f",mcp3424_sensor.value(2)/1000.000);
+		}
+
+		}
+ else if (!strncmp(trim(sensors), "ADC_4", 5)) {
+                 if( i2c_probed & I2C_MCP3424 ){
+		i += snprintf(result+i,14, " ADC_4=%.3f",mcp3424_sensor.value(3)/1000.000);
+		
+		}
 		}
 
 
@@ -678,7 +694,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[10]={"ADC","RH","P","T","V_AD1","V_AD2","V_IN","T_MCU","V_MCU","INTR"}; //array of available senso
+	char *sensors[11]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","V_AD1","V_AD2","V_IN","T_MCU","V_MCU","INTR"}; //array of available sens3
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -686,7 +702,7 @@ change_tagmask(char *value){
 	{
 		split_tagmask=trim(split_tagmask);
 		/*Compare sensors requested by the user with the array of available sensors and return a string that can be written to eeprom*/
-		for (i=0; i < 10; i++){
+		for (i=0; i < 13; i++){
 			size=strlen(sensors[i]);
 			if (!strncmp(split_tagmask, sensors[i], size)){
 				if (m==0){
