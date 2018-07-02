@@ -23,12 +23,12 @@
 #include "dev/ds3231.h"
 #include "dev/temp-sensor.h"
 
-#define SYS_VLOW 2.80
+#define SYS_VLOW 3.30
 
 double v_in=0, v_mcu=0,t_box=0,up_time=0;
-uint8_t rssi,lqi,seqno=0,v_low=1,secs=0,len=0,id_count=0;
+uint8_t rssi,lqi,seqno=0,v_low=1,secs=0,len=0;
 long int rep_count=0;
-char report[200],sinkrep[150], rep_id[17];
+char report[200],sinkrep[150];
 static struct timer t;
 
 datetime_t datetime;
@@ -59,12 +59,8 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	secs=datetime.secs;
 	
 	
-	++id_count; if(id_count>99) id_count=0;
-	sprintf(rep_id,"mak%02d%02d%02d%02d%02d%02d%02d",datetime.year,datetime.month,datetime.day, 
-	datetime.hours,datetime.mins,secs,id_count); //-mak17120415475601
-	
-	len+=sprintf(report, "ID=%s RTC_T=20%d-%02d-%02d,%02d:%02d:%02d %s [ADDR=%-d.%-d SEQ=%-d TTL=%-u RSSI=%-u LQI=%-u]\n",
-	rep_id, datetime.year,datetime.month,datetime.day, datetime.hours,datetime.mins,secs,msg->buf,
+	len+=sprintf(report, "RTC_T=20%d-%02d-%02d,%02d:%02d:%02d %s [ADDR=%-d.%-d SEQ=%-d TTL=%-u RSSI=%-u LQI=%-u]\n",
+	datetime.year,datetime.month,datetime.day, datetime.hours,datetime.mins,secs,msg->buf,
 	from->u8[0], from->u8[1],msg->seqno, msg->head & 0xF, rssi,lqi);
 
 	report[len++] = '\0'; 
@@ -74,7 +70,11 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	PORTE |= (1 << PWR_1); //low
 	
 	leds_on(LEDS_RED);
-	printf("%s", report);
+	if(strstr(report,"NAME")!=NULL) /*exclude reports from WIMEA OS firmware*/
+	{
+		
+	}else printf("%s", report);
+
 	leds_off(LEDS_RED);
 	++rep_count;
 }
@@ -115,11 +115,7 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		ds3231_get_datetime(&datetime);
 		secs=datetime.secs;
 		
-		++id_count; if(id_count>99) id_count=0;
-		sprintf(rep_id,"mak%02d%02d%02d%02d%02d%02d%02d",datetime.year,datetime.month,datetime.day, 
-		datetime.hours,datetime.mins,secs,id_count); //-mak17112915475600001
-		
-		len += sprintf(&sinkrep[len],"ID=%s RTC_T=20%d-%02d-%02d,%02d:%02d:%02d TXT=mak-gen3",rep_id,
+		len += sprintf(&sinkrep[len],"RTC_T=20%d-%02d-%02d,%02d:%02d:%02d TXT=mak-gen3",
 		datetime.year,datetime.month, datetime.day, datetime.hours,datetime.mins,secs);
 		
 		v_in=adc_read_v_in();
@@ -131,7 +127,9 @@ PROCESS_THREAD(sinknode_process, ev, data)
 		
 		if(v_in < SYS_VLOW){
 			len += sprintf(&sinkrep[len]," V_LOW=1");
+			NETSTACK_RADIO.off(); 
 		}
+		else NETSTACK_RADIO.on();
 		
 		v_mcu = adc_read_v_mcu();
 		

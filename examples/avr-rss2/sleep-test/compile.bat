@@ -1,0 +1,1 @@
+avr-objcopy -j .text -j .data -O ihex sleep-test.avr-rss2 sleep-test.hex
