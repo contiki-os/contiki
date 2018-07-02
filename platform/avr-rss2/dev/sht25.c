@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,60 +29,91 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
+ * \addtogroup zoul-sht25-sensor
+ * @{
+ *
  * \file
- *         Reboot Contiki shell command
+ *         SHT25 temperature and humidity sensor driver
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Antonio Lignan <alinan@zolertia.com>
+ *         SHT25 temperature and humidity sensor driver
+ * Authors : Joel Okello <okellojoelacaye@gmail.com>, Mary Nsabagwa <mnsabagwa@cit.ac.ug
  */
-
-#include "contiki.h"
-#include "shell.h"
-#include "dev/leds.h"
-#include "dev/watchdog.h"
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
-#include <string.h>
-
+#include "contiki.h"
+#include "i2c.h"
+#include "sht25.h"
+#include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_reboot_process, "reboot");
-SHELL_COMMAND(reboot_command,
-	      "reboot",
-	      "reboot: reboot the system",
-	      &shell_reboot_process);
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_reboot_process, ev, data)
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
+static float
+status(int type)
 {
-  static struct etimer etimer;
+	return enabled;
+}
 
-  PROCESS_EXITHANDLER(leds_off(LEDS_ALL);)
+
+static uint16_t value(int type){
+ uint8_t data_low;
+ uint16_t data_high;
+ uint16_t command;
+ unsigned int ret;
+ float data;
+
+ if(type==0)
+      command = SHT25_TEMP_HOLD;
+ else 
+      command = SHT25_HUM_HOLD;
   
-  PROCESS_BEGIN();
+ ret = i2c_start(SHT25_ADDR<<1);         // set device address and read mode 
+ if ( ret )  {
+//failed to issue start condition, possibly no device found     
+	i2c_stop();    
+} 
+else{
 
-  shell_output_str(&reboot_command,
-		   "Rebooting the node in four seconds...", "");
+	i2c_start_wait(SHT25_ADDR<<1);
+	i2c_write(command);
+	i2c_start_wait((SHT25_ADDR<<1)|I2C_READ);
+	data_high = i2c_readAck();
+	data_low = i2c_readNak();
+	if(type==0){
+		float temp = (data_high<<8) +(data_low);
+		// increase to cater for single decimal point	
+		data =    (((temp/65536)* 175.72)-46.85) * 10;
+		return data;
+         }
 
-  etimer_set(&etimer, CLOCK_SECOND);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_RED);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_GREEN);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_YELLOW);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  
-  watchdog_reboot();
+	if(type==1){
+		float temp = (data_high<<8) +(data_low);
+		data = (((temp/(65536)) * 125)-6)* 10;
+		return data;
+ 	}
+  }//else 
+return 0;
+}
 
-  PROCESS_END();
+
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+
+return SHT25_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
-void
-shell_reboot_init(void)
-{
-  shell_register_command(&reboot_command);
-}
-/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(sht25_sensor,SHT25_SENSOR, value, configure, status);
+/*--------------------------------------------------------------------------*/
+/** @} */
+

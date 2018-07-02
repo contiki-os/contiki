@@ -31,10 +31,13 @@
 /**
  * \file
  *         i2c core functions
- * \author
- *         Robert Olsson <robert@radio-sensors.com>
- * \changes
- * 		   Flavia Nshemerirwe
+ *
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  *
  */
 
@@ -58,6 +61,21 @@ i2c_init(uint32_t speed)
   TWSR = 0;                         /* no prescaler */
   TWBR = ((F_CPU / speed) - 16) / 2;  /* must be > 10 for stable operation */
 }
+
+
+void i2c_send(char cmd){
+unsigned char ret;  
+ret = i2c_start(ADDR_W); 
+if( ret ){      
+   i2c_stop();   
+ } 
+   else   {   
+   ret=i2c_write1(cmd);                         
+   i2c_stop();    
+
+   }
+
+}  
 uint8_t
 i2c_start(uint8_t addr)
 {
@@ -99,6 +117,9 @@ i2c_start(uint8_t addr)
 
   return 0;
 }
+
+
+
 void 
 i2c_start_wait(uint8_t addr)
 {
@@ -138,35 +159,19 @@ i2c_stop(void)
   /* wait until ready */
   while(TWCR & (1<<TWSTO));
 }
-void
-i2c_write(uint8_t u8data)
-{
-  TWDR = u8data;
-  TWCR = (1 << TWINT) | (1 << TWEN);
-  while((TWCR & (1 << TWINT)) == 0) ;
-}
-uint8_t
-i2c_readAck(void)
-{
-  TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
-  while((TWCR & (1 << TWINT)) == 0) ;
-  return TWDR;
-}
-uint8_t
-i2c_readNak(void)
-{
-  TWCR = (1 << TWINT) | (1 << TWEN);
-  while((TWCR & (1 << TWINT)) == 0) ;
-  return TWDR;
-}
-static void
-print_delim(int p, char *s, const char *d)
-{
-  if(p) {
-    printf("%s", d);
+
+ unsigned char i2c_write1(unsigned char data){
+  unsigned char   twst;
+  TWDR = data; // send data to the previously addressed device  
+  TWCR = (1<<TWINT) | (1<<TWEN);  
+  while(!(TWCR & (1<<TWINT))); // wait until transmission completed 
+  twst = TW_STATUS & 0xF8; // check value of TWI Status Register. Mask prescaler bits  
+  if( twst != TW_MT_DATA_ACK) return 1;  return 0;
+  
+  
   }
-  printf("%s", s);
-}
+
+/* Write to Memory*/
 void
 i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value)
 {
@@ -175,6 +180,29 @@ i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value)
   i2c_write(value);
   i2c_stop();
 }
+
+void
+i2c_write(uint8_t u8data)
+{
+  TWDR = u8data;
+  TWCR = (1 << TWINT) | (1 << TWEN);
+  while((TWCR & (1 << TWINT)) == 0) ;
+}
+
+
+/* Read mac address*/
+void
+i2c_at24mac_read(char *buf, uint8_t eui64)
+{
+  if(eui64) {
+    i2c_read_mem(I2C_AT24MAC_ADDR, 0x98, (uint8_t *)buf, 8);
+  }
+  /* 128bit unique serial number */
+  else {
+    i2c_read_mem(I2C_AT24MAC_ADDR, 0x80, (uint8_t *)buf, 16);
+  }
+}
+
 void
 i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes)
 {
@@ -191,17 +219,34 @@ i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t buf[], uint8_t bytes)
   }
   i2c_stop();
 }
-void
-i2c_at24mac_read(char *buf, uint8_t eui64)
+
+
+uint8_t
+i2c_readAck(void)
 {
-  if(eui64) {
-    i2c_read_mem(I2C_AT24MAC_ADDR, 0x98, (uint8_t *)buf, 8);
-  }
-  /* 128bit unique serial number */
-  else {
-    i2c_read_mem(I2C_AT24MAC_ADDR, 0x80, (uint8_t *)buf, 16);
-  }
+  TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
+  while((TWCR & (1 << TWINT)) == 0) ;
+  return TWDR;
 }
+
+
+uint8_t
+i2c_readNak(void)
+{
+  TWCR = (1 << TWINT) | (1 << TWEN);
+  while((TWCR & (1 << TWINT)) == 0) ;
+  return TWDR;
+}
+static void
+print_delim(int p, char *s, const char *d)
+{
+  if(p) {
+    printf("%s", d);
+  }
+  printf("%s", s);
+}
+
+
 
 uint16_t
 i2c_probe(void)
@@ -216,28 +261,30 @@ i2c_probe(void)
     print_delim(p++, "AT24MAC", del);
   }
   watchdog_periodic();
-  if(!i2c_start(I2C_SHT2X_ADDR)) {
+  if(!i2c_start(I2C_SHT25_ADDR)) {
     i2c_stop();
-    probed |= I2C_SHT2X;
-    print_delim(p++, "SHT2X", del);
+    probed |= I2C_SHT25;
+    print_delim(p++, "SHT25 (T & RH)", del);
   }
-  watchdog_periodic();
-  if(!i2c_start(I2C_CO2SA_ADDR)) {
+ if(!i2c_start(I2C_MS5611_ADDR)) {
     i2c_stop();
-    probed |= I2C_CO2SA;
-    print_delim(p++, "CO2SA", del);
+    probed |= I2C_MS5611;
+    print_delim(p++, "MS5611 (PRESSURE)", del);
   }
-  watchdog_periodic();
-  if(!i2c_start(I2C_BME280_ADDR)) {
-    i2c_stop();
-    probed |= I2C_BME280;
-    print_delim(p++, "BME280", del);
-  }
+  
   watchdog_periodic();
   if(!i2c_start(I2C_DS1307_ADDR)) {
 	i2c_stop();
     probed |= I2C_DS1307;
-    print_delim(p++, "DS1307", del);
+    print_delim(p++, "DS1307 (RTC)", del);
+  }
+
+   watchdog_periodic();
+  if(!i2c_start(I2C_MCP3424_ADDR)) {
+	i2c_stop();
+    probed |= I2C_MCP3424;
+    print_delim(p++, "MCP3424 (ADC)", del);
   }
   return probed;
 }
+

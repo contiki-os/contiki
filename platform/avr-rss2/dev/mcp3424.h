@@ -1,5 +1,6 @@
+
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,61 +29,54 @@
  *
  * This file is part of the Contiki operating system.
  *
+ *
+ *
+ * Some code adopted from Robert Olsson <robert@herjulf.se> and Manee
+ * @Author: 
+ * Nsabagwa Mary <mnsabagwa@cit.ac.ug>
+ * Okello Joel <okellojoelocaye@gmail.com>,
+ * Alinitwe Sandra Kamugisha <sandraalinitwe@gmail.com>
+ * Byamukama Maximus <maximus.byamukama@gmail.com>
  */
 
-/**
- * \file
- *         Reboot Contiki shell command
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#ifndef MCP3424_SENSOR_H_
+#define MCP3424_SENSOR_H_
 
-#include "contiki.h"
-#include "shell.h"
-#include "dev/leds.h"
-#include "dev/watchdog.h"
+#include "lib/sensors.h"
+#define TRUE 1
+#define FALSE 0
 
-#include <stdio.h>
-#include <string.h>
+#define SCL_CLOCK  100000L  //stardard mode  100khz
 
-/*---------------------------------------------------------------------------*/
-PROCESS(shell_reboot_process, "reboot");
-SHELL_COMMAND(reboot_command,
-	      "reboot",
-	      "reboot: reboot the system",
-	      &shell_reboot_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_reboot_process, ev, data)
-{
-  static struct etimer etimer;
+extern const struct sensors_sensor mcp3424_sensor;
+#define MCP3424_ADDR 0x68   //(0x68<< 1) 0 1101 000 the last 3 bits represent adr0 and adr1 set low
+#define MCP342X_START 0X80 // write: start a conversion
+#define MCP342X_BUSY 0X80 // read: output not ready
+typedef enum { false, true } bool;
 
-  PROCESS_EXITHANDLER(leds_off(LEDS_ALL);)
-  
-  PROCESS_BEGIN();
 
-  shell_output_str(&reboot_command,
-		   "Rebooting the node in four seconds...", "");
+//address (input) I2C bus address of the device
+//gain (input) Measurement gain multiplier (1,2,4,8)
+//resolution (input) ADC resolution (0,1,2,4)
+void mcp3424_init(uint8_t address, uint8_t channel, uint8_t gain, uint8_t resolution);
 
-  etimer_set(&etimer, CLOCK_SECOND);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_RED);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_GREEN);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  leds_on(LEDS_YELLOW);
-  etimer_reset(&etimer);
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  
-  watchdog_reboot();
 
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-void
-shell_reboot_init(void)
-{
-  shell_register_command(&reboot_command);
-}
-/*---------------------------------------------------------------------------*/
+// Start a one-shot channel measurement
+// @param channel (input) Analog input to read (1-4)
+void mcp3424_start_measure();
+
+// Test if a measurement is ready. Use getMeasurement() to return
+// the value of the result.
+// @return True if measurement was ready, false otherwise
+bool is_measurement_ready();
+
+// Get the result of the last channel measurement
+// @param value (output) Measured value of channel, in mV
+int32_t get_measurement_uv();
+
+// Get the divisor for converting a measurement into mV
+int get_mv_divisor();
+#endif /* MCP3424-SENSOR_H_ */
+
+
+

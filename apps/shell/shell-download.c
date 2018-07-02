@@ -176,9 +176,9 @@ PROCESS_THREAD(shell_download_process, ev, data)
   runicast_send(&runicast, &addr, MAX_RETRANSMISSIONS);
 
   /* Wait for download to finish */
-  leds_on(LEDS_BLUE);
+  leds_on(LEDS_YELLOW);
   PROCESS_WAIT_UNTIL(!runicast_is_transmitting(&runicast) && !downloading);
-  leds_off(LEDS_BLUE);
+  leds_off(LEDS_YELLOW);
 
   rucb_close(&rucb);
   /*shell_output_str(&download_command, "Done!", "");*/
