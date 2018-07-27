@@ -133,7 +133,9 @@ main(void)
   clock_init();
   rtimer_init();
 
+#ifndef USE_WOLFSSL
   watchdog_init();
+#endif
   process_init();
 
   // Seed value is ignored since hardware RNG is used.
