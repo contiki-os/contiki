@@ -2,13 +2,12 @@ CONTIKI_TARGET_DIRS = . apps net loader dev
 
 CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c params.c battery-sensor.c i2c.c
 
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c params.c battery-sensor.c i2c.c
 CONTIKI_TARGET_SOURCEFILES += sensors.c button-sensor.c slip_uart0.c slip.c leds.c temp_mcu-sensor.c 
 CONTIKI_TARGET_SOURCEFILES += adc.c cfs-eeprom.c eeprom.c  pulse-sensor.c 
-
 CONTIKI_TARGET_SOURCEFILES += temp-sensor.c ds3231.c enc28j60_avr.c co2_sa_kxx-sensor.c bme280-arch.c
-CONTIKI_TARGET_SOURCEFILES += ds1307.c diskio.c  ff.c ms5611.c mcp3424.c sht25.c
+CONTIKI_TARGET_SOURCEFILES += ds1307.c diskio.c  ff.c ms5611.c mcp3424.c sht25.c pwrpin.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
