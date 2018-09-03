@@ -1,0 +1,1 @@
+avr-objcopy -j .text -j .data -O ihex clocksync.avr-rss2 clocksync.hex

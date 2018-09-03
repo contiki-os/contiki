@@ -1,1 +1,0 @@
-avr-objcopy -j .text -j .data -O ihex gen3-baresink.avr-rss2 gen3-baresink.hex
