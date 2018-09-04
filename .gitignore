@@ -6,7 +6,6 @@
 *.elf
 *.zip
 *.d
-*.hex
 *.ihex
 *.pyc
 *.redbee-econotag
