@@ -1,6 +1,6 @@
 void print_help_command_menu();
 void display_reporting_interval();
-void change_reporting_interval(char *value);
+void change_reporting_interval(int interval);
 void display_system_information();
 void display_system_uptime();
 void change_node_name(char * value);

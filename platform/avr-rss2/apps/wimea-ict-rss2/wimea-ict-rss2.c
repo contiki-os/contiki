@@ -243,97 +243,93 @@ PROCESS_THREAD(sensor_data_process, ev, data)
 PROCESS_THREAD(serial_input_process, ev, data)
 {
 	PROCESS_BEGIN();
-	char delimiter[]=" ";
+
+	char *arg;
 	char *command = NULL;
-	uint8_t flag;
-	char * value;
-	for(;;){
+	uint8_t flag = 0;
+	const char *delim = " ";
+
+	for (;;) {
 		PROCESS_YIELD_UNTIL(ev == serial_line_event_message);
-		command = (char*)strtok((char*)data, (const char*)delimiter);
-		if(!strncmp(command, "h", 1)) {
-			if (strlen(command) == 1){
-				print_help_command_menu();
-			} else {
-				printf("Invalid command %s. Try h for a list of commands\n", command);
-			}
-		} else if (!strncmp(command,"ri",2)) {
-			if(strlen(command)>2) {
-				value=(char*) malloc(6);
-				strlcpy(value, command+3, 6);//(strlen(command)-3)
-				change_reporting_interval(value);
-				free(value);
-			} else {
-				display_reporting_interval();
-			}
-		} else if (!strncmp(command,"ss",2)) {
+
+		command = strtok(data, delim);
+		if(strcmp(command, "h") == 0) {
+	        print_help_command_menu();
+		}
+		else if (strcmp(command, "ri") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        display_reporting_interval();
+		    }
+		    else {
+		        change_reporting_interval(atoi((const char *)arg));
+		    }
+		}
+		else if (strcmp(command, "ss") == 0) {
 			display_system_information();
-		} else if(!strncmp(command, "name", 4)) {
-			if(strlen(command)>4){
-				value=(char*) malloc(12);
-				strlcpy(value, command+5, 12);//(strlen(command)-3)
-				change_node_name(value);
-				free(value);
-			} else {
-				display_node_name();
-			}
-		} else if (!strncmp(command,"u", 1)){
+		}
+		else if(strcmp(command, "name") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        display_node_name();
+		    }
+		    else {
+		        change_node_name(arg);
+		    }
+		}
+		else if (strcmp(command, "u") == 0) {
 			display_system_uptime();
-		} else if(!strncmp(command,"date", 4)) {//date setup
-			if (strlen(command) == 4){
-				printf("Date: %s\n", return_date());
-			} else if (strlen(command)>4 && strlen(command)<=13) {
-				value = (char*) malloc(9);
-				flag = 0;
-				strlcpy(value, command+5, 9);
-				set_datetime(value, flag);
-				free(value);
-			} else {
-				printf("Invalid command: %s. Try example date 01/01/17.\n", command);
-			}
-		} else if(!strncmp(command,"time", 4)) {//time setup
-			if (strlen(command) == 4){
-				printf("Time: %s\n", return_time());
-			} else if (strlen(command)>4 && strlen(command)<=13) {
-				value = (char*) malloc(9);
-				flag = 1;
-				strlcpy(value, command+5, 9);
-				set_datetime(value, flag);
-				free(value);
-			} else{
-				printf("Invalid command: %s. Try example time 13:01:56.\n", command);
-			}
-		} else if(!strncmp(command, "tagmask", 7)) {
-			if (strlen(command) == 7){
-				display_tagmask();
-			} else {
-				value=(char*) malloc(TAGMASK_LENGTH);
-				strlcpy(value, command+8, TAGMASK_LENGTH);
-				if (!strncmp(value, "auto", 4)){
-					set_default_tagmask();
+		}
+		else if(strcmp(command, "date") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        printf("Date: %s\n", return_date());
+		    }
+		    else {
+		        flag = 0;
+		        set_datetime(arg, flag);
+		    }
+		}
+		else if(strcmp(command, "time") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        printf("Time: %s\n", return_time());
+		    }
+		    else {
+		        flag = 1;
+				set_datetime(arg, flag);
+		    }
+		}
+		else if(strcmp(command, "tagmask") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        display_tagmask();
+		    }
+		    else {
+		        if (strcmp(arg, "auto") == 0) {
+		            set_default_tagmask();
 					display_tagmask();
-				} else if(strlen(value)>0) {
-					change_tagmask(value);
-				}
-				free(value);
-			}
-		} else if(!strncmp(command, "alias", 5)) {
-			if (strlen(command) == 5){
-				printf("V_AD1=%s\n", return_alias(1));
-				printf("V_AD2=%s\n", return_alias(2));
-			} else {
-				value=(char*) malloc(20);
-				strlcpy(value, command+6, 19);
-				if (strlen(value)>0){
-					change_alias(value);
-				} else {
-					printf("Can not set alias name: %s. Try 'alias V_AD1=soil'\n", value);
-				}
-				free(value);
-			}
-		} else {
+		        }
+		        else {
+		            change_tagmask(arg);
+		        }
+		    }
+		}
+		else if(strcmp(command, "alias") == 0) {
+		    arg = strtok(NULL, delim);
+		    if (arg == NULL) {
+		        printf("V_AD1 = %s\n", return_alias(1));
+				printf("V_AD2 = %s\n", return_alias(2));
+		    }
+		    else {
+		        change_alias(arg);
+		    }
+		}
+		else {
 			printf("Invalid command %s. Try h for a list of commands\n", command);
 		}
 	}
+
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -425,19 +421,16 @@ display_reporting_interval()
 }
 
 //changing reporting interval
-void 
-change_reporting_interval(char* value)
-{
-	// check if value is an integer
-    int interval = atoi(value);
-    if (interval == 0) {
-    	printf("Invalid value %s!, Please enter an interger for period.\nUsage: ri <period in seconds>.\n ", value);
-    	return;
+void change_reporting_interval(int interval) {
+    if (interval <= 0) {
+        printf("Please enter a non-zero value for interval\n");
+        return;
     }
+
 	cli();
 	eeprom_update_word(&eemem_transmission_interval, interval);  
 	sei();
-	printf("Interval changed to %d\n",interval);
+	printf("Interval changed to %d\n", interval);
 	time_interval = eeprom_read_word(&eemem_transmission_interval);
 }
 
