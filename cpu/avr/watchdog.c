@@ -47,6 +47,7 @@
  */
 //#define WATCHDOG_CONF_TIMEOUT -1
 
+
 #ifndef WATCHDOG_CONF_TIMEOUT
 #define WATCHDOG_CONF_TIMEOUT WDTO_2S
 #endif
