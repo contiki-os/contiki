@@ -24,7 +24,6 @@
 #include "dev/i2c.h"
 #include "dev/ds3231.h"
 #include "dev/temp-sensor.h"
-#include <dev/watchdog.h>
 
 #define SYS_VLOW 3.30
 #define ARR_SZ 15
@@ -176,8 +175,8 @@ PROCESS_THREAD(radio_process, ev, data)
 			else 
 			{
 				NETSTACK_RADIO.off();
-				if(!mcu_sleeping){
-				set_sleep_mode(SLEEP_MODE_IDLE);
+				if(!mcu_sleeping){  
+				set_sleep_mode(SLEEP_MODE_IDLE);  //we need lower sleep mode but issue with timing!!!
 				mcu_sleeping=1;
 				cli();
 				sleep_enable();
