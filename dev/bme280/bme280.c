@@ -200,8 +200,8 @@ bme280_init(uint8_t mode)
   bm.dig_h2 = ((int16_t)buf[1] << 8) | (uint16_t)buf[0];
   bm.dig_h3 = (unsigned char)buf[2];
   bm.dig_h4 = ((int16_t)buf[3] << 4) | (((uint16_t)buf[4]) & 0xF);
-  bm.dig_h5 = ((int16_t)buf[6] << 4) | (((uint16_t)buf[5]) & 0xF);
-  bm.dig_h6 = (unsigned char)buf[7];
+  bm.dig_h5 = ((int16_t)buf[4] << 4) | (((uint16_t)buf[5]) & 0xF);
+  bm.dig_h6 = (signed char)buf[6];
 
   bm.mode = mode;
   return 1;
