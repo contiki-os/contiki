@@ -94,6 +94,7 @@ PROCESS_THREAD(dtls_server_process, ev, data)
         while(1) {}
 
     sk->ssl = wolfSSL_new(sk->ctx);
+    wolfSSL_CTX_set_verify(sk->ctx, SSL_VERIFY_NONE, 0);
     wolfSSL_SetIOReadCtx(sk->ssl, sk);
     wolfSSL_SetIOWriteCtx(sk->ssl, sk);
     if (sk->ssl == NULL) {
