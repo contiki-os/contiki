@@ -184,7 +184,6 @@ else
 	java -jar $(AC) -p  $@ lan91c96.eth       rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p  $@ w5100.eth          rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 endif
-	java -jar $(AC) -p  $@ contiki.mou        rel 0 < $(CC65)/apple2enh/drv/mou/a2e.stdmou.mou
 	java -jar $(AC) -p  $@ index.htm          bin 0 < ../../examples/webserver/httpd-cfs/index.htm
 	java -jar $(AC) -p  $@ backgrnd.gif       bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
 	java -jar $(AC) -p  $@ contiki.gif        bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
