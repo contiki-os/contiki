@@ -138,7 +138,13 @@ public class MicaZID extends MoteID {
         }
         if (tosID) {
             moteMem.setIntValueOf("TOS_NODE_ID", newID);
-            moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+
+            if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+                moteMem.setIntValueOf("ActiveMessageAddressC__addr", newID);
+            }
+            else {
+                moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+            }
         }
         setChanged();
         notifyObservers();
