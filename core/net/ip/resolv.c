@@ -118,31 +118,6 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 
 #define UIP_UDP_BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-/* If RESOLV_CONF_SUPPORTS_MDNS is set, then queries
- * for domain names in the local TLD will use mDNS as
- * described by draft-cheshire-dnsext-multicastdns.
- */
-#ifndef RESOLV_CONF_SUPPORTS_MDNS
-#define RESOLV_CONF_SUPPORTS_MDNS 1
-#endif
-
-#ifndef RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS
-#define RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS 0
-#endif
-
-/** The maximum number of retries when asking for a name. */
-#ifndef RESOLV_CONF_MAX_RETRIES
-#define RESOLV_CONF_MAX_RETRIES 4
-#endif
-
-#ifndef RESOLV_CONF_MAX_MDNS_RETRIES
-#define RESOLV_CONF_MAX_MDNS_RETRIES 3
-#endif
-
-#ifndef RESOLV_CONF_MAX_DOMAIN_NAME_SIZE
-#define RESOLV_CONF_MAX_DOMAIN_NAME_SIZE 32
-#endif
-
 #ifdef RESOLV_CONF_AUTO_REMOVE_TRAILING_DOTS
 #define RESOLV_AUTO_REMOVE_TRAILING_DOTS RESOLV_CONF_AUTO_REMOVE_TRAILING_DOTS
 #else
@@ -210,6 +185,16 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 #define MDNS_RESPONDER_PORT 5354
 #endif
 
+/**
+ * The interval after which check_entries is being called to check the
+ * state in the current name map and send out new requests if required
+ *
+ * Measured in clock_time_t ticks
+ */
+#ifndef RESOLV_CHECK_ENTRIES_INTERVAL
+  #define RESOLV_CHECK_ENTRIES_INTERVAL (CLOCK_SECOND / 4)
+#endif
+
 /** \internal The DNS message header. */
 struct dns_hdr {
   uint16_t id;
@@ -247,25 +232,52 @@ struct dns_answer {
 };
 
 struct namemap {
+/** The entry in the name map table is not in use */
 #define STATE_UNUSED 0
+/**
+ * The name could not be resolved, either because the DNS could not be reached
+ * or because the DNS server responded with an error code
+ */
 #define STATE_ERROR  1
+/** This name will be queried with the next DNS query sent to the server */
 #define STATE_NEW    2
+/** A DNS query has been sent to the DNS server, response awaiting */
 #define STATE_ASKING 3
+/**
+ * This name was once successfully resolved, however it could have expired by
+ * now
+ */
 #define STATE_DONE   4
+  /**
+   * The state of the name map entry
+   *
+   * This must be either: STATE_UNUSED, STATE_ERROR, STATE_NEW, STATE_ASKING or
+   * STATE_DONE
+   */
   uint8_t state;
+  /**
+   * How often must RESOLV_CHECK_ENTRIES_INTERVAL elapse until this entry is
+   * being queried again against the DNS server
+   */
   uint8_t tmr;
+  /** The DNS request ID */
   uint16_t id;
+  /** How often it was already tried to resolve this name */
   uint8_t retries;
   uint8_t seqno;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
   unsigned long expiration;
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+  /** The resolved IP address */
   uip_ipaddr_t ipaddr;
+  /** The DNS error response codes */
   uint8_t err;
+  /** Index of the DNS Server to query, see \ref uip_nameserver_get */
   uint8_t server;
 #if RESOLV_CONF_SUPPORTS_MDNS
   int is_mdns:1, is_probe:1;
 #endif
+  /** The name to resolve */
   char name[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
 };
 
@@ -646,6 +658,80 @@ try_next_server(struct namemap *namemapptr)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Returns the maximum amount of retries allowed for this entry
+ *
+ * \param namemapptr A pointer to the name map entry to check
+ *
+ * \return The maximum retries allowed for this entry
+ *
+ * The maximum amount of retries can be different for mDNS and regular DNS
+ * queries. See `RESOLV_CONF_MAX_RETRIES` and `RESOLV_CONF_MAX_MDNS_RETRIES`.
+ */
+static uint8_t
+get_max_retries(struct namemap *namemapptr)
+{
+  uint8_t max_retries = RESOLV_CONF_MAX_RETRIES;
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(namemapptr->is_mdns) {
+    max_retries = RESOLV_CONF_MAX_MDNS_RETRIES;
+  }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+  return max_retries;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Update the tmr for an entry in the name map
+ * \param namemapptr The entry in the name map to update
+ *
+ * This will schedule the retransmission is compliance to the mDNS RFC 6762 [1]
+ * where probing will be done within 250 msec and regular (m)DNS request will
+ * have at least 1 sec interval between subsequent queries. In case the query
+ * fails, the next request will be scheduled with an exponential backoff.
+ *
+ * Please note that this will check the namemapptr->state therefore it must be
+ * ensured that the state information is correct.
+ *
+ * [1] https://tools.ietf.org/html/rfc6762
+ */
+static void
+update_tmr(struct namemap *namemapptr)
+{
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(namemapptr->is_probe) {
+    /* Probing retries are much more aggressive, 250ms */
+    namemapptr->tmr = 1;
+    return;
+  }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+
+  /*
+   * Initial retransmission interval is 1 second. Increase exponentially,
+   * depending on how often it was tried to resolve the given entry
+   */
+  if(STATE_NEW == namemapptr->state) {
+    namemapptr->tmr = 4;
+  } else {
+    /*
+     * Note that
+     *
+     *     9 * 9 * 3 = 243 < UINT8_MAX (OK)
+     *
+     * whereas
+     *
+     *     10 * 10 * 3 = 300 > UINT_MAX (ERROR)
+     *
+     * Therefore check the current amount of retries to prevent overflows
+     */
+    if(namemapptr->retries <= 9) {
+      namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
+    } else {
+      namemapptr->tmr = UINT8_MAX;
+    }
+  }
+  return;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Runs through the list of names to see if there are any that have
  * not yet been queried and, if so, sends out a query.
@@ -664,17 +750,10 @@ check_entries(void)
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     namemapptr = &names[i];
     if(namemapptr->state == STATE_NEW || namemapptr->state == STATE_ASKING) {
-      etimer_set(&retry, CLOCK_SECOND / 4);
+      etimer_set(&retry, RESOLV_CHECK_ENTRIES_INTERVAL);
       if(namemapptr->state == STATE_ASKING) {
         if(--namemapptr->tmr == 0) {
-#if RESOLV_CONF_SUPPORTS_MDNS
-          if(++namemapptr->retries ==
-             (namemapptr->is_mdns ? RESOLV_CONF_MAX_MDNS_RETRIES :
-              RESOLV_CONF_MAX_RETRIES))
-#else /* RESOLV_CONF_SUPPORTS_MDNS */
-          if(++namemapptr->retries == RESOLV_CONF_MAX_RETRIES)
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
-          {
+          if(++namemapptr->retries == get_max_retries(namemapptr)) {
             /* Try the next server (if possible) before failing. Otherwise
                simply mark the entry as failed. */
             if(try_next_server(namemapptr) == 0) {
@@ -690,14 +769,7 @@ check_entries(void)
               continue;
             }
           }
-          namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
-
-#if RESOLV_CONF_SUPPORTS_MDNS
-          if(namemapptr->is_probe) {
-            /* Probing retries are much more aggressive, 250ms */
-            namemapptr->tmr = 2;
-          }
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+          update_tmr(namemapptr);
         } else {
           /* Its timer has not run out, so we move on to next
            * entry.
@@ -705,9 +777,9 @@ check_entries(void)
           continue;
         }
       } else {
-        namemapptr->state = STATE_ASKING;
-        namemapptr->tmr = 1;
+        update_tmr(namemapptr);
         namemapptr->retries = 0;
+        namemapptr->state = STATE_ASKING;
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
@@ -1081,6 +1153,16 @@ newdata(void)
 
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+  static uint8_t initialized = 0;
+  if(!initialized) {
+    process_start(&resolv_process, NULL);
+	initialized = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if RESOLV_CONF_SUPPORTS_MDNS
 /**
  * \brief           Changes the local hostname advertised by MDNS.
@@ -1117,9 +1199,13 @@ resolv_get_hostname(void)
  */
 PROCESS_THREAD(mdns_probe_process, ev, data)
 {
+#if RESOLV_CONF_MDNS_PROBING
   static struct etimer delay;
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   PROCESS_BEGIN();
+
+#if RESOLV_CONF_MDNS_PROBING
   mdns_state = MDNS_STATE_WAIT_BEFORE_PROBE;
 
   PRINTF("mdns-probe: Process (re)started.\n");
@@ -1135,7 +1221,15 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   /* We need to wait a random (0-250ms) period of time before
    * probing to be in compliance with the MDNS spec. */
   etimer_set(&delay, CLOCK_SECOND * (random_rand() & 0xFF) / 1024);
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+  do {
+    PROCESS_WAIT_EVENT();
+    if(PROCESS_EVENT_TIMER == ev) {
+      break;
+    } else if(PROCESS_EVENT_EXIT == ev) {
+      etimer_stop(&delay);
+      PROCESS_EXIT();
+    }
+  } while(1);
 
   /* Begin searching for our name. */
   mdns_state = MDNS_STATE_PROBING;
@@ -1144,11 +1238,20 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   do {
     PROCESS_WAIT_EVENT_UNTIL(ev == resolv_event_found);
   } while(strcasecmp(resolv_hostname, data) != 0);
+#else /* RESOLV_CONF_MDNS_PROBING */
+  // The probing starts the resolv_process, if we are not probing we have to
+  // start manually.
+  if(!process_is_running(&resolv_process)) {
+    init();
+  }
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   mdns_state = MDNS_STATE_READY;
-  mdns_announce_requested();
 
+#if RESOLV_CONF_MDNS_PROBING
+  mdns_announce_requested();
   PRINTF("mdns-probe: Finished probing.\n");
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   PROCESS_END();
 }
@@ -1179,7 +1282,12 @@ PROCESS_THREAD(resolv_process, ev, data)
   /* TODO: Is there anything we need to do here for IPv4 multicast? */
 #endif
 
-  resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
+  /* Only set a default hostname if there is none. This prevents overwriting
+   * the hostname set by resolv_set_hostname(const char *) by the user on
+   * initialization of resolv */
+  if(0 == strlen(resolv_get_hostname())) {
+    resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
+  }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
   while(1) {
@@ -1230,16 +1338,6 @@ PROCESS_THREAD(resolv_process, ev, data)
   }
 
   PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  static uint8_t initialized = 0;
-  if(!initialized) {
-    process_start(&resolv_process, NULL);
-    initialized = 1;
-  }
 }
 /*---------------------------------------------------------------------------*/
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
@@ -1438,22 +1536,51 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
-/** \internal
- * Callback function which is called when a hostname is found.
- *
- */
-static void
-resolv_found(char *name, uip_ipaddr_t * ipaddr)
+void
+resolv_clear_cache(void)
 {
-#if RESOLV_CONF_SUPPORTS_MDNS
-  if(strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
-     ipaddr
+  uint32_t i;
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    names[i].state = STATE_UNUSED;
+  }
+}
+/*---------------------------------------------------------------------------*/
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
+/**
+ * \brief Check if the ipaddr is mine
+ * \param ipaddr The IP address to check
+ * \return 1 if it is my address, 0 otherwise
+ *
+ * This will return 0 if `ipaddr` is `NULL`.
+ */
+static int
+is_my_addr(const uip_ipaddr_t *ipaddr)
+{
+  if(NULL != ipaddr) {
 #if NETSTACK_CONF_WITH_IPV6
-     && !uip_ds6_is_my_addr(ipaddr)
+    return uip_ds6_is_my_addr((uip_ipaddr_t *) ipaddr);
 #else
-     && uip_ipaddr_cmp(&uip_hostaddr, ipaddr) != 0
+    return uip_ipaddr_cmp(&uip_hostaddr, ipaddr) == 0;
 #endif
-    ) {
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Check for mDNS name collisions
+ * \param name The newly resolved name
+ * \param ipaddr The IP address of the newly resolved name
+ * \return 1 if a collision has been detected 0 otherwise
+ *
+ * The collision will automatically re-start the name check. If the collision
+ * has been detected during probing the hostname will be extended by parts of
+ * the link layer address to create a unique address.
+ */
+static int
+mdns_detect_collision(const char *name, const uip_ipaddr_t *ipaddr)
+{
+  int is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
+  if(is_my_hostname && ipaddr && !is_my_addr(ipaddr)) {
     uint8_t i;
 
     if(mdns_state == MDNS_STATE_PROBING) {
@@ -1482,6 +1609,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
       strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE - strlen(resolv_hostname));
 
       start_name_collision_check(CLOCK_SECOND * 5);
+      return 1;
     } else if(mdns_state == MDNS_STATE_READY) {
       /* We found a collision after we had already asserted
        * that we owned this name. We need to immediately
@@ -1489,10 +1617,23 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
        */
       PRINTF("resolver: Possible name collision, probing...\n");
       start_name_collision_check(0);
+      return 1;
     }
-
-  } else
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+  }
+  return 0;
+}
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
+/*---------------------------------------------------------------------------*/
+/** \internal
+ * Callback function which is called when a hostname is found.
+ *
+ */
+static void
+resolv_found(char *name, uip_ipaddr_t * ipaddr)
+{
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
+  mdns_detect_collision(name, ipaddr);
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 
 #if VERBOSE_DEBUG
   if(ipaddr) {
