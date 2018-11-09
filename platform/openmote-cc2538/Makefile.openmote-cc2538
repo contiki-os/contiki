@@ -35,11 +35,16 @@ MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
            core/net/llsec core/net/llsec/noncoresec
 
+SERIALDUMP := $(CONTIKI)/tools/sky/serialdump-linux
+MOTELIST := $(CONTIKI)/tools/sky/motelist-linux
+MOTES := $(shell $(MOTELIST) -c 2>&- | cut -f 2 -d ,)
+
 PYTHON = python
 BSL_FLAGS += -e --bootloader-invert-lines -w -v -b 450000
 
 ifdef PORT
   BSL_FLAGS += -p $(PORT)
+  MOTES := $(PORT)
 endif
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
@@ -53,3 +58,15 @@ else
 	                               sort -g | head -1))
 	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
 endif
+
+motelist:
+	$(MOTELIST)
+
+openmote-motes:
+	@echo $(MOTES) 
+
+login: 
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES))
+
+serialview: 
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES)) | $(CONTIKI)/tools/timestamp
