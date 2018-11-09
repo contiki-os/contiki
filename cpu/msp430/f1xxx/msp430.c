@@ -320,21 +320,22 @@ msp430_sync_dco(void) {
 /*   uint32_t speed; */
   /* DELTA_2 assumes an ACLK of 32768 Hz */
 #define DELTA_2    ((MSP430_CPU_SPEED) / 32768)
-
   /* Select SMCLK clock, and capture on ACLK for TBCCR6 */
   TBCTL = TBSSEL1 | TBCLR;
-  TBCCTL6 = CCIS0 + CM0 + CAP;
+  TBCCTL6 = CCIS0 + CM0 + CAP + SCS;
   /* start the timer */
   TBCTL |= MC1;
 
-  /* wait for next Capture */
+  /* wait for next Capture, avoid an overflow */
   TBCCTL6 &= ~CCIFG;
-  while(!(TBCCTL6 & CCIFG));
+  TBCCTL6 &= ~COV;
+  while(!(TBCCTL6 & CCIFG) && (TBCCTL6 & ~COV));
   last = TBCCR6;
 
   TBCCTL6 &= ~CCIFG;
-  /* wait for next Capture - and calculate difference */
-  while(!(TBCCTL6 & CCIFG));
+  TBCCTL6 &= ~COV;
+  /* wait for next Capture, avoid an overflow - and calculate difference */
+  while(!(TBCCTL6 & CCIFG) && (TBCCTL6 & ~COV));
   diff = TBCCR6 - last;
 
   /* Stop timer - conserves energy according to user guide */
