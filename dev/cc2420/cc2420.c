@@ -118,6 +118,7 @@ static const struct output_config output_power[] = {
   { -7, 15 }, /* 0xef */
   {-10, 11 }, /* 0xeb */
   {-15,  7 }, /* 0xe7 */
+  {-20,  5 }, /* 0xe5 */
   {-25,  3 }, /* 0xe3 */
 };
 #define OUTPUT_NUM (sizeof(output_power) / sizeof(struct output_config))
