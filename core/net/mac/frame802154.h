@@ -140,6 +140,18 @@
  *            5. CRC                  - 2 bytes       - Fixed
  */
 
+
+typedef union {
+   uint8_t assignAddr[2];
+   uint16_t readAddr;
+}short_addr_t;
+
+typedef union {
+   uint8_t assignAddr[8];
+   uint16_t readAddr[4];
+}ext_addr_t;
+
+
 /**
  * \brief Defines the bitfields of the frame control field (FCF).
  */
@@ -185,6 +197,62 @@ typedef struct {
   uint8_t key_index;                         /**< Key Index subfield */
 } frame802154_aux_hdr_t;
 
+typedef struct {
+  uint8_t beaconOrder;
+  uint8_t superframeOrder;
+  uint8_t finalCapSlot;
+  uint8_t ble;
+  uint8_t reserved;
+  uint8_t panCoord;
+  uint8_t assocPermit;
+} frame_superframe_spec_t;
+
+typedef struct {
+ uint8_t descCount;
+ uint8_t reserved;
+ uint8_t permit;
+}frame_gts_spec_t;
+
+typedef struct {
+ uint8_t directionMask;
+ uint8_t reserved;
+}frame_gts_dir_t;
+
+typedef struct {
+ uint16_t shortAddr;
+ uint8_t startSlot;
+ uint8_t gtsLength;
+}frame_gts_list_t;
+
+typedef struct {
+ frame_gts_spec_t gts_spec;
+ frame_gts_dir_t gts_dir;
+ frame_gts_list_t gts_list[7];
+}frame_gts_t;
+
+typedef struct {
+ ext_addr_t extAddr[7];
+ short_addr_t shortAddr[7];
+}frame_addr_list_t;
+
+typedef struct {
+ uint8_t numberOfShort;
+ uint8_t numberOfExt;
+}frame_pending_spec_t;
+
+typedef struct {
+ frame_pending_spec_t spec;
+ frame_addr_list_t list;
+}frame_pendingAddr_t;
+
+typedef struct {
+  uint8_t deviceType;
+  uint8_t powerSource;
+  uint8_t recOnIdle;
+  uint8_t security;
+  uint8_t allocate;
+}capability_info_t;
+
 /** \brief Parameters used by the frame802154_create() function.  These
  *  parameters are used in the 802.15.4 frame header.  See the 802.15.4
  *  specification for details.
@@ -202,6 +270,14 @@ typedef struct {
   frame802154_aux_hdr_t aux_hdr;  /**< Aux security header */
   uint8_t *payload;               /**< Pointer to 802.15.4 payload */
   int payload_len;                /**< Length of payload field */
+  frame_superframe_spec_t superframe_spec;
+  frame_gts_t gts_fields;
+  frame_pendingAddr_t pendingAddr_fields;
+  uint8_t commandIdentifier;
+  capability_info_t capability_info;
+  short_addr_t assignedAddr;
+  uint8_t assocStatus;
+  short_addr_t allocAddress;
 } frame802154_t;
 
 /* Prototypes */
