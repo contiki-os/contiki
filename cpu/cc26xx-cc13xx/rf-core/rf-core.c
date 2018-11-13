@@ -77,7 +77,7 @@
 /*---------------------------------------------------------------------------*/
 /* RF interrupts */
 #define RX_FRAME_IRQ IRQ_RX_ENTRY_DONE
-#define ERROR_IRQ    IRQ_INTERNAL_ERROR
+#define ERROR_IRQ    (IRQ_INTERNAL_ERROR | IRQ_RX_BUF_FULL)
 #define RX_NOK_IRQ   IRQ_RX_NOK
 
 /* Those IRQs are enabled all the time */
@@ -572,17 +572,24 @@ cc26xx_rf_cpe1_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  PRINTF("RF Error\n");
-
-  if(!rf_core_is_accessible()) {
-    if(rf_core_power_up() != RF_CORE_CMD_OK) {
-      return;
-    }
+  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & IRQ_RX_BUF_FULL) {
+    PRINTF("\nRF: BUF_FULL\n\n");
+    /* make sure read_frame() will be called to make space in RX buffer */
+    process_poll(&rf_core_process);
+    /* Clear the IRQ_RX_BUF_FULL interrupt flag by writing zero to bit */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = ~(IRQ_RX_BUF_FULL);
   }
 
-  /* Clear INTERNAL_ERROR interrupt flag */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x7FFFFFFF;
-
+  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & IRQ_INTERNAL_ERROR) {
+    PRINTF("RF: Error\n");
+    if(!rf_core_is_accessible()) {
+      if(rf_core_power_up() != RF_CORE_CMD_OK) {
+        return;
+      }
+    }
+    /* Clear INTERNAL_ERROR interrupt flag */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = ~(IRQ_INTERNAL_ERROR);
+  }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
