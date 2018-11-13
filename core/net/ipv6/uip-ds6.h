@@ -45,7 +45,12 @@
 #include "net/ip/uip.h"
 #include "sys/stimer.h"
 /* The size of uip_ds6_addr_t depends on UIP_ND6_DEF_MAXDADNS. Include uip-nd6.h to define it. */
+#if !(UIP_CONF_IPv6_LOWPAN_ND)
 #include "net/ipv6/uip-nd6.h"
+#else
+#include "net/ipv6/uip-6lowpan-nd6.h"
+#include "net/ipv6/uip-ds6-reg.h"
+#endif
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
@@ -247,6 +252,9 @@ typedef struct uip_ds6_netif {
   uint32_t base_reachable_time; /* in msec */
   uint32_t reachable_time;      /* in msec */
   uint32_t retrans_timer;       /* in msec */
+#if UIP_CONF_IPv6_LOWPAN_ND
+  uip_ds6_reg_t* registration_in_progress;
+#endif
   uint8_t maxdadns;
 #if UIP_DS6_ADDR_NB
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
@@ -361,14 +369,17 @@ void uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst);
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
 /** \brief Send a RA as an asnwer to a RS */
-void uip_ds6_send_ra_sollicited(void);
+void uip_ds6_send_ra_sollicited(uip_ipaddr_t * dest);
 
+#if !(UIP_CONF_IPV6_LOWPAN_ND)
 /** \brief Send a periodic RA */
 void uip_ds6_send_ra_periodic(void);
+#endif
+
 #endif /* UIP_ND6_SEND_RA */
 #else /* UIP_CONF_ROUTER */
 /** \brief Send periodic RS to find router */
-void uip_ds6_send_rs(void);
+void uip_ds6_send_rs(uip_ds6_defrt_t *defrt);
 #endif /* UIP_CONF_ROUTER */
 
 /** \brief Compute the reachable time based on base reachable time, see RFC 4861*/

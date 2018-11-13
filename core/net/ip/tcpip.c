@@ -467,7 +467,7 @@ eventhandler(process_event_t ev, process_data_t data)
 #if !UIP_CONF_ROUTER
     if(data == &uip_ds6_timer_rs &&
         etimer_expired(&uip_ds6_timer_rs)) {
-      uip_ds6_send_rs();
+      uip_ds6_send_rs(NULL);
       tcpip_ipv6_output();
     }
 #endif /* !UIP_CONF_ROUTER */

@@ -173,6 +173,10 @@ typedef struct uip_ds6_defrt {
   uip_ipaddr_t ipaddr;
   struct stimer lifetime;
   uint8_t isinfinite;
+#if UIP_CONF_IPV6_LOWPAN_ND
+  /* The number of registrations with a router */
+  uint8_t registrations;
+#endif
 } uip_ds6_defrt_t;
 
 /** \name Default router list basic routines */
