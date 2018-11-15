@@ -267,11 +267,27 @@ typedef struct rf_core_primary_mode_s {
 #define RF_CORE_COMMAND_PROTOCOL_IEEE                    0x2000
 #define RF_CORE_COMMAND_PROTOCOL_PROP                    0x3000
 /*---------------------------------------------------------------------------*/
+#define RF_CORE_EVENT_RX                                 0x1000
+#define RF_CORE_EVENT_RX_CONN_REQUEST                    0x1001
+/*---------------------------------------------------------------------------*/
+/* The ticks per second of the rf core timer                                 */
+#define RF_CORE_TIMER_SECOND                            4000000
+/* The channel number of the rf core hardware timer                          */
+#define RF_CORE_TIMER_INTERRUPT                               7
+/*---------------------------------------------------------------------------*/
+
 /* Radio timer register */
 #define RATCNT  0x00000004
 /*---------------------------------------------------------------------------*/
 /* Make the main driver process visible to mode drivers */
 PROCESS_NAME(rf_core_process);
+/*---------------------------------------------------------------------------*/
+/* Event triggered, when a finished rx entry is available                    */
+extern process_event_t rf_core_data_rx_event;
+/* Event triggered, when rf_core timer interrupt was received                */
+extern process_event_t rf_core_command_done_event;
+/* Event triggered, when rf_core timer interrupt was received                */
+extern process_event_t rf_core_timer_event;
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Check whether the RF core is accessible
@@ -369,6 +385,25 @@ uint8_t rf_core_stop_rat(void);
  * To achieve good timing accuracy, it should be called periodically.
  */
 uint8_t rf_core_restart_rat(void);
+
+/**
+ * \brief Reads the current rf ticks.
+ * \return current ticks of the rf core
+ */
+uint32_t rf_core_read_current_rf_ticks(void);
+
+/**
+ * \brief Start compare mode of RAT channel
+ * \param time the time when the HW interrupt should occure
+ * (in rf_core timer ticks)
+ * \return RF_CORE_CMD_OK or RF_CORE_CMD_ERROR
+ *
+ * This function starts the RAT channel (RF_CORE_TIMER_INTERRUPT) in
+ * compare mode. If the current timer value is greater or equal to
+ * the time parameter, a HW interrupt is raised.
+ * The HW interrupt fires the rf_core_timer_event.
+ */
+uint8_t rf_core_start_timer_comp(uint32_t time);
 
 /**
  * \brief Boot the RF Core

@@ -259,6 +259,19 @@ ns_input(void)
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
   }
 
+  /**
+   * In case the src_addr is not specified but the target IP addr is,
+   * this target addr is added to the nbr table
+   */
+  if((uip_l3_icmp_hdr_len + UIP_ND6_NS_LEN == uip_len)
+     && (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr))
+     && (!uip_is_addr_unspecified(&UIP_ND6_NS_BUF->tgtipaddr))) {
+    uip_lladdr_t lladdr_aligned;
+    extract_lladdr_from_llao_aligned(&lladdr_aligned);
+    uip_ds6_nbr_add(&UIP_ND6_NS_BUF->tgtipaddr, &lladdr_aligned,
+                    0, NBR_STALE, NBR_TABLE_REASON_IPV6_ND, NULL);
+  }
+
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
@@ -541,6 +554,10 @@ na_input(void)
       if(nd6_opt_llao == NULL || !extract_lladdr_from_llao_aligned(&lladdr_aligned)) {
         goto discard;
       }
+
+      /**
+       * The neighbor table is not needed in ble mode
+       */
       if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
         /* failed to update the lladdr */
         goto discard;
