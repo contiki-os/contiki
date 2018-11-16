@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "er-coap-engine.h"
+#include "er-coap-communication.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -64,8 +65,8 @@ static service_callback_t service_cbk = NULL;
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
-static int
-coap_receive(void)
+int
+coap_receive()
 {
   erbium_status_code = NO_ERROR;
 
@@ -346,7 +347,7 @@ PROCESS_THREAD(coap_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_receive();
+      coap_handle_receive();
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();

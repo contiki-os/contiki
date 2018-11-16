@@ -31,57 +31,68 @@
 
 /**
  * \file
- *      CoAP implementation for the REST Engine.
+ *      Erbium (Er) REST Engine example.
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *      Gaëtan Harter <gaetan.harter@inria.fr>
  */
 
-#ifndef ER_COAP_ENGINE_H_
-#define ER_COAP_ENGINE_H_
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "contiki.h"
+#include "contiki-net.h"
+#include "rest-engine.h"
 
-#include "pt.h"
-#include "er-coap.h"
-#include "er-coap-transactions.h"
-#include "er-coap-observe.h"
-#include "er-coap-separate.h"
-#include "er-coap-observe-client.h"
+#define DEBUG 0
+#include "uip-debug.h"
 
-#define SERVER_LISTEN_PORT      UIP_HTONS(COAP_SERVER_PORT)
+/*
+ * Resources to be activated need to be imported through the extern keyword.
+ * The build system automatically compiles the resources in the corresponding sub-directory.
+ */
+extern resource_t
+  res_hello,
+  res_push;
 
-typedef coap_packet_t rest_request_t;
-typedef coap_packet_t rest_response_t;
+PROCESS(er_example_server, "Erbium Example Server");
+AUTOSTART_PROCESSES(&er_example_server);
 
-void coap_init_engine(void);
-int coap_receive();
+PROCESS_THREAD(er_example_server, ev, data)
+{
+  PROCESS_BEGIN();
 
-/*---------------------------------------------------------------------------*/
-/*- Client Part -------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-struct request_state_t {
-  struct pt pt;
-  struct process *process;
-  coap_transaction_t *transaction;
-  coap_packet_t *response;
-  uint32_t block_num;
-};
+  PROCESS_PAUSE();
 
-typedef void (*blocking_response_handler)(void *response);
+  PRINTF("Starting Erbium Example Server\n");
 
-PT_THREAD(coap_blocking_request
-            (struct request_state_t *state, process_event_t ev,
-            uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
-            coap_packet_t *request,
-            blocking_response_handler request_callback));
+#ifdef RF_CHANNEL
+  PRINTF("RF channel: %u\n", RF_CHANNEL);
+#endif
+#ifdef IEEE802154_PANID
+  PRINTF("PAN ID: 0x%04X\n", IEEE802154_PANID);
+#endif
 
-#define COAP_BLOCKING_REQUEST(server_addr, server_port, request, chunk_handler) \
-  { \
-    static struct request_state_t request_state; \
-    PT_SPAWN(process_pt, &request_state.pt, \
-             coap_blocking_request(&request_state, ev, \
-                                   server_addr, server_port, \
-                                   request, chunk_handler) \
-             ); \
-  }
-/*---------------------------------------------------------------------------*/
+  PRINTF("uIP buffer: %u\n", UIP_BUFSIZE);
+  PRINTF("LL header: %u\n", UIP_LLH_LEN);
+  PRINTF("IP+UDP header: %u\n", UIP_IPUDPH_LEN);
+  PRINTF("REST max chunk: %u\n", REST_MAX_CHUNK_SIZE);
 
-#endif /* ER_COAP_ENGINE_H_ */
+  /* Initialize the REST engine. */
+  rest_init_engine();
+
+  /*
+   * Bind the resources to their Uri-Path.
+   * WARNING: Activating twice only means alternate path, not two instances!
+   * All static variables are the same for each URI path.
+   */
+  rest_activate_resource(&res_hello, "test/hello");
+  rest_activate_resource(&res_push, "test/push");
+
+  /* Define application-specific events here. */
+  while(1) {
+    PROCESS_WAIT_EVENT();
+  }                             /* while (1) */
+
+  PROCESS_END();
+}
