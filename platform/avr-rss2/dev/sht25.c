@@ -56,6 +56,8 @@
 #endif
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
+static uint8_t missing_t_value_flag = 1;
+static uint8_t missing_rh_value_flag = 1;
 /*---------------------------------------------------------------------------*/
 static float
 status(int type)
@@ -78,7 +80,9 @@ static uint16_t value(int type){
   
  ret = i2c_start(SHT25_ADDR<<1);         // set device address and read mode 
  if ( ret )  {
-//failed to issue start condition, possibly no device found     
+//failed to issue start condition, possibly no device found 
+        missing_t_value_flag = 1;
+        missing_rh_value_flag = 1;    
 	i2c_stop();    
 } 
 else{
@@ -92,15 +96,19 @@ else{
 		float temp = (data_high<<8) +(data_low);
 		// increase to cater for single decimal point	
 		data =    (((temp/65536)* 175.72)-46.85) * 10;
+                missing_t_value_flag = 0;
 		return data;
          }
 
 	if(type==1){
 		float temp = (data_high<<8) +(data_low);
 		data = (((temp/(65536)) * 125)-6)* 10;
+                missing_rh_value_flag = 0;
 		return data;
  	}
-  }//else 
+  }//else
+missing_t_value_flag = 1;
+missing_rh_value_flag = 1;
 return 0;
 }
 
@@ -111,6 +119,14 @@ configure(int type, int value)
 {
 
 return SHT25_SUCCESS;
+}
+uint8_t missing_t_value(){
+
+return missing_t_value_flag;
+}
+uint8_t missing_rh_value(){
+
+return missing_rh_value_flag;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(sht25_sensor,SHT25_SENSOR, value, configure, status);

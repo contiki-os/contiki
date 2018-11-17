@@ -257,7 +257,7 @@ initialize(void)
   }
 #endif
 
-  PRINTA("\n*******Booting %s*******\n", CONTIKI_VERSION_STRING);
+  PRINTA("\n******* Booting WIMEA-ICT APPLICATION VERSION 2.1 *******\n" );
 
   print_mcusr(GPIOR0); /* MCUSR passed from bootloader in GPIOR0 */
 
@@ -295,9 +295,9 @@ initialize(void)
   linkaddr_t addr;
   char eui64[8];
 
-  printf("I2C: ");
+  printf("I2C: ");   
   i2c_probed = i2c_probe();
-  printf("\n");
+ 
   
   if( i2c_probed & I2C_AT24MAC ) {
     i2c_at24mac_read((char *)&eui64, 1);

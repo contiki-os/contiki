@@ -63,5 +63,6 @@ extern const struct sensors_sensor ms5611_sensor;
   unsigned long cmd_adc(char cmd);
   unsigned int cmd_prom(char coef_num); 
   unsigned char crc4(unsigned int n_prom[]);
+  uint8_t missing_p_value();
 
 #endif /* LIGHT-SENSOR_H_ */

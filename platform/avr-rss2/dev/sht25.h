@@ -149,6 +149,8 @@ u8t SHT2x_GetSerialNumber(u8t u8SerialNumber[]);
 // SNA_1 SNA_0 SNB_3 SNB_2 SNB_1 SNB_0 SNC_1 SNC_0
 // return: error
 
+uint8_t missing_t_value();
+uint8_t missing_rh_value();
 
 #ifndef SHT25_H_
 #define SHT25_H_

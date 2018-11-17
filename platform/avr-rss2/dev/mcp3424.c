@@ -54,6 +54,7 @@
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 static uint8_t user_reg;
+uint8_t missing_adc_value_flag = 1;
 /*---------------------------------------------------------------------------*/
 static int
 status(int type)
@@ -116,11 +117,11 @@ i2c_start_wait((MCP3424_ADDR<<1)|1);
 data_high = i2c_readAck();
 data_low = i2c_readNak();
 data = (data_high<<8) +(data_low);
-		 
+		missing_adc_value_flag = 0;
 		return data;
 
 }
-
+missing_adc_value_flag = 1;
 return 0;
 }
 
@@ -131,6 +132,9 @@ configure(int type, int value)
 {
 
 return 0;
+}
+uint8_t missing_adc_value(){
+ return missing_adc_value_flag;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(mcp3424_sensor,"MCP3424_SENSOR", value, configure, status);

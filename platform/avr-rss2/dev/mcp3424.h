@@ -53,7 +53,7 @@ extern const struct sensors_sensor mcp3424_sensor;
 #define MCP342X_START 0X80 // write: start a conversion
 #define MCP342X_BUSY 0X80 // read: output not ready
 typedef enum { false, true } bool;
-
+uint8_t missing_adc_value();
 
 //address (input) I2C bus address of the device
 //gain (input) Measurement gain multiplier (1,2,4,8)

@@ -41,6 +41,9 @@
 #include <avr/io.h>
 #include <math.h>
 
+ static uint8_t missing_p_value_flag = 1;
+ uint8_t ac_value_flag = 0;
+ uint8_t nac_value_flag =0;
 /*Send I2C Reset command */
 void cmd_reset(void) {   
   i2c_send(CMD_RESET);   
@@ -76,14 +79,19 @@ unsigned long cmd_adc(char cmd) {
   if ( ret )   {//failed to issue start condition, possibly no device found     
  	 i2c_stop();      }  
   else   {//issuing start condition ok, device accessible    
-  	ret = i2c_readAck();    // read MSB and acknowledge  
+  	ret = i2c_readAck(); 
+        ac_value_flag= ret; // read MSB and acknowledge  
   	temp=65536*ret; 
   	ret = i2c_readAck();    // read byte and acknowledge       
   	temp=temp+256*ret;  
- 	ret = i2c_readNak();   // read LSB and not acknowledge   
+ 	ret = i2c_readNak();  
+        nac_value_flag= ret; // read LSB and not acknowledge   
   	temp=temp+ret;    
-  	i2c_stop();     // send stop condition 
-  }  
+  	i2c_stop();     // send stop condition
+        missing_p_value_flag = 0;
+       return temp; 
+  }
+ missing_p_value_flag = 1;  
  return temp; 
 
 }
@@ -184,6 +192,18 @@ configure(int type, int c)
 {
 
   return 0;
+}
+uint8_t missing_p_value()
+{
+ return missing_p_value_flag;
+}
+uint8_t nac_value()
+{
+ return nac_value_flag;
+}
+uint8_t ac_value()
+{
+ return ac_value_flag;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(ms5611_sensor, "Pressure", value, configure, status);
