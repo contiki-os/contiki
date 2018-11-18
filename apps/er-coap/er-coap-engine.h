@@ -47,6 +47,9 @@
 #include "er-coap-observe-client.h"
 
 #define SERVER_LISTEN_PORT      UIP_HTONS(COAP_SERVER_PORT)
+#define COAP_CHECK_DUPLICATES 0
+#define COAP_CHECK_DUPLICATES_MAX_SECONDS 25
+#define COAP_CHECK_DUPLICATES_LIST_SIZE 10
 
 typedef coap_packet_t rest_request_t;
 typedef coap_packet_t rest_response_t;

@@ -61,9 +61,97 @@ PROCESS(coap_engine, "CoAP Engine");
 /*---------------------------------------------------------------------------*/
 static service_callback_t service_cbk = NULL;
 
+#if COAP_CHECK_DUPLICATES
+
+typedef struct coap_message_info {
+  struct coap_message_info *next;
+  uint16_t mid;
+  uip_ipaddr_t addr;
+  uint16_t port;
+  size_t uri_path_len;
+  const char *uri_path;
+  clock_time_t time;
+} coap_message_info_t;
+
+MEMB(coap_message_info_memb, coap_message_info_t, COAP_CHECK_DUPLICATES_LIST_SIZE);
+LIST(messages_list);
+
+#endif
+
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
+
+#if COAP_CHECK_DUPLICATES
+
+static int
+add_coap_message_to_list(uint16_t mid,uip_ipaddr_t *addr,uint16_t port,size_t uri_path_len,const char *uri_path)
+{
+  PRINTF("Adding message: ");
+  PRINT6ADDR(addr);
+  PRINTF(":%u ",port);
+  PRINTF("mid:%u url(%u):%.*s\n",mid, uri_path_len,uri_path_len, uri_path);
+
+  coap_message_info_t *message = memb_alloc(&coap_message_info_memb);
+
+  if (message) {
+    message->mid = mid;
+    uip_ipaddr_copy(&message->addr, addr);
+    message->port = port;
+    message->time = clock_seconds();
+    message->uri_path_len = uri_path_len;
+    message->uri_path = malloc(uri_path_len);
+    memcpy((void *)message->uri_path, uri_path, uri_path_len);
+
+    list_add(messages_list, message);
+  }
+
+  return 1;
+}
+
+static int
+is_coap_message_in_list(uint16_t mid,uip_ipaddr_t *addr,uint16_t port,size_t uri_path_len,const char *uri_path)
+{
+  
+  coap_message_info_t *message = (coap_message_info_t*)list_head(messages_list);
+  coap_message_info_t *next = NULL;
+  clock_time_t now = clock_seconds();
+  int found = 0;
+
+  while (message)
+  {
+    PRINTF("Checking message: ");
+    PRINT6ADDR(&message->addr);
+    PRINTF(":%u ",message->port);
+    PRINTF("mid:%u url(%u):%.*s age:%u\n",message->mid, message->uri_path_len,message->uri_path_len, message->uri_path,message->time);
+
+    if (now > message->time + COAP_CHECK_DUPLICATES_MAX_SECONDS) {
+      PRINTF("Message with mid:%u is expired (%us > %us)\n",message->mid,now,(message->time + COAP_CHECK_DUPLICATES_MAX_SECONDS));
+      next = message->next;
+      list_remove(messages_list, message);
+      memb_free(&coap_message_info_memb, message);
+      message = next;
+      continue;
+    }
+
+    if (
+      (message->mid == mid) &&
+      (message->uri_path_len == uri_path_len && !memcmp(message->uri_path,uri_path,uri_path_len)) &&
+      (message->port == port) &&
+      (uip_ipaddr_cmp(&message->addr,addr))
+    ) {
+      message->time = clock_seconds();
+      found = 1;
+      break;
+    }
+
+    message = message->next;
+  }
+
+  return found;
+}
+#endif
+
 static int
 coap_receive(void)
 {
@@ -95,6 +183,22 @@ coap_receive(void)
              message->type, message->token_len, message->code, message->mid);
       PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
       PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
+
+#if COAP_CHECK_DUPLICATES
+      if(message->type==COAP_TYPE_CON) {
+        if(is_coap_message_in_list(message->mid,&UIP_IP_BUF->srcipaddr,uip_ntohs(UIP_UDP_BUF->srcport),message->uri_path_len,message->uri_path)) {
+          PRINTF("COAP Message is already on replied list, reply with an ACK\n");
+          coap_init_message(response, COAP_TYPE_ACK, CONTENT_2_05, message->mid);
+          if(message->token_len) {
+            coap_set_token(response, message->token, message->token_len);
+          }
+          coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
+          return erbium_status_code;
+        } else {
+          add_coap_message_to_list(message->mid,&UIP_IP_BUF->srcipaddr,uip_ntohs(UIP_UDP_BUF->srcport),message->uri_path_len,message->uri_path);
+        }
+      }
+#endif
 
       /* handle requests */
       if(message->code >= COAP_GET && message->code <= COAP_DELETE) {
