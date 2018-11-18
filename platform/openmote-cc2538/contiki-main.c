@@ -71,6 +71,7 @@
 #include "reg.h"
 #include "ieee-addr.h"
 #include "lpm.h"
+#include "lib/csprng.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -193,17 +194,21 @@ main(void)
   ctimer_init();
 
   board_init();
+  set_rf_params();
 
 #if CRYPTO_CONF_INIT
   crypto_init();
   crypto_disable();
+  csprng_init();
 #endif
 
+  queuebuf_init();
   netstack_init();
-  set_rf_params();
 
   PRINTF("Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
+  PRINTF("LLSEC: ");
+  PRINTF("%s\n", NETSTACK_LLSEC.name);
   PRINTF("MAC: ");
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF("RDC: ");
@@ -211,7 +216,6 @@ main(void)
 
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
-  queuebuf_init();
   process_start(&tcpip_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 

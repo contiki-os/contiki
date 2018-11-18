@@ -44,6 +44,7 @@
 
 #include "net/llsec/nullsec.h"
 #include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 
@@ -58,6 +59,7 @@ static void
 send(mac_callback_t sent, void *ptr)
 {
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+  framer_802154_set_seqno();
   NETSTACK_MAC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/

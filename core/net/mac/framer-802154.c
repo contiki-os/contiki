@@ -43,6 +43,22 @@
 #include "lib/random.h"
 #include <string.h>
 
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+#ifdef FRAMER_802154_CONF_SUPPRESS_UNICAST_SEQNO
+#define SUPPRESS_UNICAST_SEQNO FRAMER_802154_CONF_SUPPRESS_UNICAST_SEQNO
+#else /* FRAMER_802154_CONF_SUPPRESS_UNICAST_SEQNO */
+#define SUPPRESS_UNICAST_SEQNO 0
+#endif /* FRAMER_802154_CONF_SUPPRESS_UNICAST_SEQNO */
+#ifdef FRAMER_802154_CONF_SUPPRESS_BROADCAST_SEQNO
+#define SUPPRESS_BROADCAST_SEQNO FRAMER_802154_CONF_SUPPRESS_BROADCAST_SEQNO
+#else /* FRAMER_802154_CONF_SUPPRESS_BROADCAST_SEQNO */
+#define SUPPRESS_BROADCAST_SEQNO 1
+#endif /* FRAMER_802154_CONF_SUPPRESS_BROADCAST_SEQNO */
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+#define SUPPRESS_UNICAST_SEQNO 0
+#define SUPPRESS_BROADCAST_SEQNO 0
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+
 #define DEBUG 0
 
 #if DEBUG
@@ -59,9 +75,22 @@
  *   the range.
  */
 static uint8_t mac_dsn;
+static int is_mac_dsn_initialized;
 
-static uint8_t initialized = 0;
+/*---------------------------------------------------------------------------*/
+void
+framer_802154_set_seqno(void)
+{
+  if(!is_mac_dsn_initialized) {
+    is_mac_dsn_initialized = 1;
+    mac_dsn = random_rand();
+  }
 
+  if((!SUPPRESS_UNICAST_SEQNO && !packetbuf_holds_broadcast())
+      || (!SUPPRESS_BROADCAST_SEQNO && packetbuf_holds_broadcast())) {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, mac_dsn++);
+  }
+}
 /*---------------------------------------------------------------------------*/
 static int
 create_frame(int type, int do_create)
@@ -76,21 +105,15 @@ create_frame(int type, int do_create)
   /* init to zeros */
   memset(&params, 0, sizeof(params));
 
-  if(!initialized) {
-    initialized = 1;
-    mac_dsn = random_rand() & 0xff;
-  }
-
   /* Build the FCF. */
   params.fcf.frame_type = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE);
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
   if(packetbuf_holds_broadcast()) {
     params.fcf.ack_required = 0;
-    /* Suppress seqno on broadcast if supported (frame v2 or more) */
-    params.fcf.sequence_number_suppression = FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012;
+    params.fcf.sequence_number_suppression = SUPPRESS_BROADCAST_SEQNO;
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
-    params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
+    params.fcf.sequence_number_suppression = SUPPRESS_UNICAST_SEQNO;
   }
   /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
    * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
@@ -120,22 +143,8 @@ create_frame(int type, int do_create)
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 #endif /* LLSEC802154_USES_AUX_HEADER */
 
-  /* Increment and set the data sequence number. */
-  if(!do_create) {
-    /* Only length calculation - no sequence number is needed and
-       should not be consumed. */
-
-  } else if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
-    params.seq = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-
-  } else {
-    /* Ensure that the sequence number 0 is not used as it would bypass the above check. */
-    if(mac_dsn == 0) {
-      mac_dsn++;
-    }
-    params.seq = mac_dsn++;
-    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, params.seq);
-  }
+  /* sequence number. */
+  params.seq = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
 
   /* Complete the addressing fields. */
   /**

@@ -42,6 +42,12 @@
 
 #include "net/mac/framer.h"
 
+#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
+#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
+#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+#define CONTIKIMAC_FRAMER_ENABLED 0
+#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+
 extern const struct framer contikimac_framer;
 
 #endif /* CONTIKIMAC_FRAMER_H_ */

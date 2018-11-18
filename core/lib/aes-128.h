@@ -67,11 +67,6 @@ struct aes_128_driver {
   void (* encrypt)(uint8_t *plaintext_and_result);
 };
 
-/**
- * \brief Pads the key with zeroes before calling AES_128.set_key
- */
-void aes_128_set_padded_key(uint8_t *key, uint8_t key_len);
-
 extern const struct aes_128_driver AES_128;
 
 #endif /* AES_128_H_ */

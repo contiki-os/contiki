@@ -146,7 +146,7 @@ CLEAN += *.jn516x.bin
 MODULES += core/net \
            core/net/mac \
            core/net/mac/contikimac \
-           core/net/llsec core/net/llsec/noncoresec 
+           core/net/llsec
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH)
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
