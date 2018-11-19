@@ -52,6 +52,33 @@
  * @{
  */
 
+/**
+ * \name CRC16 CITT poly realisation style
+ *
+ *             different  realisations uses different size of lookup table,
+ *             so it can be choose between code size vs speed
+ *      *use: declare CRC16_STYLE define in contiki configuration
+ * @{
+ */
+
+/**
+ * \brief      crc16 function without lookup table.
+ *
+ *             it uses bit operations, with no lookup.
+ *             smalest code memory, but slowest code, especialy for 8bit mcu
+ */
+#define CRC16_STYLE_CITT_NOLOOKUP   0
+/**
+ * \brief      crc16 function with lookup table*256 - byte wise operation.
+ *
+ *             most popular algorithm - byte opiented operation, with lokup
+ *             table on 256 entryes. most speed code, even 8bit mcu.
+ *             but may impact on data cache.
+ */
+#define CRC16_STYLE_CITT_LOOKUP8   1
+/* @} */
+
+
 #ifndef CRC16_H_
 #define CRC16_H_
 
@@ -87,7 +114,7 @@ unsigned short crc16_add(unsigned char b, unsigned short crc);
  *             well as a table-driven algorithm when checksumming an
  *             entire data block.
  */
-unsigned short crc16_data(const unsigned char *data, int datalen,
+unsigned short crc16_data(const void* data, int datalen,
 			  unsigned short acc);
 
 #endif /* CRC16_H_ */
