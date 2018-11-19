@@ -161,17 +161,14 @@ clock_update(void)
 CCIF unsigned long
 clock_seconds(void)
 {
-  bool interrupts_disabled;
   uint32_t secs_now;
-
-  interrupts_disabled = ti_lib_int_master_disable();
-
   secs_now = ti_lib_aon_rtc_sec_get();
 
-  /* Re-enable interrupts */
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
+  /*
+  uint32_t secs_now2;
+  while (secs_now2 = ti_lib_aon_rtc_sec_get(), (secs_now2 != secs_now) )
+      secs_now = secs_now2;
+  */
 
   return (unsigned long)secs_now;
 }
