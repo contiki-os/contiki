@@ -78,7 +78,11 @@
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
+
+#ifndef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+#endif
+
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
@@ -96,6 +100,15 @@
 /* Number of Prop Mode RX buffers */
 #ifndef PROP_MODE_CONF_RX_BUF_CNT
 #define PROP_MODE_CONF_RX_BUF_CNT        4
+#endif
+
+#define CC26XX_RADIO_MODE_15_4       1
+#define CC26XX_RADIO_MODE_BLE      2
+
+#ifdef CC26XX_CONF_RADIO_MODE
+#define CC26XX_RADIO_MODE       CC26XX_CONF_RADIO_MODE
+#else
+#define CC26XX_RADIO_MODE       CC26XX_RADIO_MODE_15_4
 #endif
 
 /*
@@ -128,7 +141,9 @@
 #define CONTIKIMAC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 920)
 #define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 220)
 #else
+#ifndef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
+#endif
 
 #ifndef RF_CORE_CONF_CHANNEL
 #define RF_CORE_CONF_CHANNEL                     25
@@ -141,9 +156,18 @@
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN        125
 
 /* 6LoWPAN */
+#ifndef SICSLOWPAN_CONF_COMPRESSION
 #define SICSLOWPAN_CONF_COMPRESSION          SICSLOWPAN_COMPRESSION_HC06
+#endif
+
+#ifndef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD  63
+#endif
+
+#ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
+#endif
+
 #define SICSLOWPAN_CONF_MAXAGE                  8
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -222,7 +246,10 @@
 #define UIP_CONF_ROUTER                      1
 #endif
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA                 0
+#endif
+
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
 
@@ -379,7 +406,7 @@ typedef uint32_t rtimer_clock_t;
 #if (RTIMER_SECOND % 256) || (RADIO_TIMER_SECOND % 256)
 #error RADIO_TO_RTIMER macro must be fixed!
 #endif
-#define RADIO_TO_RTIMER(X)   ((uint32_t)(((uint64_t)(X) * (RTIMER_SECOND / 256)) / (RADIO_TIMER_SECOND / 256)))
+#define RADIO_TO_RTIMER(X)   ((uint32_t)(((uint64_t)(X)*(RTIMER_SECOND / 256)) / (RADIO_TIMER_SECOND / 256)))
 #define USEC_TO_RADIO(X)     ((X) * 4)
 
 /* The PHY header (preamble + SFD, 4+1 bytes) duration is equivalent to 10 symbols */
@@ -389,7 +416,7 @@ typedef uint32_t rtimer_clock_t;
 #define TSCH_CONF_RADIO_ON_DURING_TIMESLOT 1
 
 /* Disable TSCH frame filtering */
-#define TSCH_CONF_HW_FRAME_FILTERING	0
+#define TSCH_CONF_HW_FRAME_FILTERING  0
 
 /* Use hardware timestamps */
 #ifndef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS

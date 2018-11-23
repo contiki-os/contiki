@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Michael Spoerk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,53 +26,36 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/*---------------------------------------------------------------------------*/
-/**
- * \addtogroup cc26xx-clocks
- * @{
  *
- * \defgroup cc26xx-rtimer CC13xx/CC26xx rtimer
+ * Author: Michael Spoerk <mi.spoerk@gmail.com>
  *
- * Implementation of the rtimer module for the CC13xx/CC26xx
- * @{
- */
-/**
- * \file
- * Header file for the CC13xx/CC26xx rtimer driver
  */
 /*---------------------------------------------------------------------------*/
-#ifndef RTIMER_ARCH_H_
-#define RTIMER_ARCH_H_
+#ifndef BLE_ADDR_H_
+#define BLE_ADDR_H_
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
+#include "contiki-conf.h"
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define RTIMER_ARCH_SECOND 65536
-/*---------------------------------------------------------------------------*/
-/* Need 4 ticks to syncronize with AON, 2 ticks to account for 2 tick RTC read
-   precision and 2 more ticks to put the value in the future. */
-#define RTIMER_CONF_MINIMAL_SAFE_SCHEDULE 8u
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t rtimer_arch_now(void);
+/* primary BLE address location */
+#define BLE_ADDR_LOCATION   0x500012E8
 
-/* HW oscillator frequency is 32 kHz, not 64 kHz and RTIMER_NOW() never returns
- * an odd value; so US_TO_RTIMERTICKS always rounds to the nearest even number.
- */
-#define US_TO_RTIMERTICKS(US)  (2 * ((US) >= 0 ?                        \
-                               (((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) + 500000) / 1000000L) :      \
-                                ((int32_t)(US) * (RTIMER_ARCH_SECOND / 2) - 500000) / 1000000L))
+/* BLE device address size */
+#define BLE_ADDR_SIZE 6
 
-#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
-                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
-                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+/*---------------------------------------------------------------------------*/
+/* Type of BLE device address */
+typedef enum {
+  BLE_ADDR_TYPE_PUBLIC,
+  BLE_ADDR_TYPE_RANDOM
+} ble_addr_type_t;
 
-/* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
-   Intended only for positive values of T. */
-#define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
 /*---------------------------------------------------------------------------*/
-#endif /* RTIMER_ARCH_H_ */
+void ble_addr_cpy_to(uint8_t *dst);
+
+void ble_addr_to_eui64(uint8_t *dst, uint8_t *src);
+
+void ble_eui64_addr_cpy_to(uint8_t *dst);
 /*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
- */
+
+#endif /* BLE_ADDR_H_ */

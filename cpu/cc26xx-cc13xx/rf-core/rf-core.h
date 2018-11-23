@@ -267,6 +267,11 @@ typedef struct rf_core_primary_mode_s {
 #define RF_CORE_COMMAND_PROTOCOL_IEEE                    0x2000
 #define RF_CORE_COMMAND_PROTOCOL_PROP                    0x3000
 /*---------------------------------------------------------------------------*/
+#define RF_CORE_EVENT_RX                                 0x1000
+#define RF_CORE_EVENT_RX_CONN_REQUEST                    0x1001
+/*---------------------------------------------------------------------------*/
+/* The ticks per second of the rf core timer                                 */
+#define RF_CORE_TIMER_SECOND                            4000000
 /* Radio timer register */
 #define RATCNT  0x00000004
 /*---------------------------------------------------------------------------*/

@@ -112,7 +112,7 @@ PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
                              | RFC_PWR_PWMCLKEN_RFERAM_M | RFC_PWR_PWMCLKEN_RFE_M \
                              | RFC_PWR_PWMCLKEN_MDMRAM_M | RFC_PWR_PWMCLKEN_MDM_M)
 /*---------------------------------------------------------------------------*/
-#define RF_CMD0	0x0607
+#define RF_CMD0 0x0607
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf_core_is_accessible()
@@ -246,11 +246,11 @@ rf_core_power_up()
   /* Enable RF Core power domain */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_RFCORE);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
-        != PRCM_DOMAIN_POWER_ON);
+        != PRCM_DOMAIN_POWER_ON) ;
 
   ti_lib_prcm_domain_enable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
+  while(!ti_lib_prcm_load_get()) ;
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
@@ -268,7 +268,7 @@ rf_core_power_up()
 
   /* Turn on additional clocks on boot */
   HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFACKIFG) = 0;
-  HWREG(RFC_DBELL_BASE+RFC_DBELL_O_CMDR) =
+  HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDR) =
     CMDR_DIR_CMD_2BYTE(RF_CMD0,
                        RFC_PWR_PWMCLKEN_MDMRAM | RFC_PWR_PWMCLKEN_RFERAM);
 
@@ -328,7 +328,7 @@ rf_core_stop_rat(void)
   ret = rf_core_wait_cmd_done(&cmd_stop);
   if(ret != RF_CORE_CMD_OK) {
     PRINTF("rf_core_cmd_ok: SYNC_STOP_RAT wait, CMDSTA=0x%08lx, status=0x%04x\n",
-        cmd_status, cmd_stop.status);
+           cmd_status, cmd_stop.status);
     return ret;
   }
 
@@ -361,12 +361,12 @@ rf_core_power_down()
   /* Shut down the RFCORE clock domain in the MCU VD */
   ti_lib_prcm_domain_disable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
+  while(!ti_lib_prcm_load_get()) ;
 
   /* Turn off RFCORE PD */
   ti_lib_prcm_power_domain_off(PRCM_DOMAIN_RFCORE);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
-        != PRCM_DOMAIN_POWER_OFF);
+        != PRCM_DOMAIN_POWER_OFF) ;
 
   rf_switch_power_down();
 

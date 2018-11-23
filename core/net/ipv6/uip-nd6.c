@@ -147,6 +147,20 @@ extract_lladdr_from_llao_aligned(uip_lladdr_t *dest) {
   return 0;
 }
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
+
+#if UIP_ND6_SEND_NA
+/*------------------------------------------------------------------*/
+/* Copy link-layer address from IP address */
+static int
+extract_lladdr_from_ip_addr(uip_lladdr_t *dest, uip_ipaddr_t *ip_addr) {
+	if(dest != NULL) {
+		memcpy(dest, &ip_addr->u8[sizeof(uip_ipaddr_t) - UIP_LLADDR_LEN], UIP_LLADDR_LEN);
+		dest->addr[0] = dest->addr[0] ^ 0x02;
+		return 1;
+	}
+  return 0;
+}
+#endif /* UIP_ND6_SEND_NA */
 /*------------------------------------------------------------------*/
 /* create a llao */
 static void
@@ -257,6 +271,18 @@ ns_input(void)
       break;
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+  }
+
+  /**
+   * In case the src_addr is not specified but the target IP addr is,
+   * this target addr is added to the nbr table
+   */
+  if((uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr))
+     && (!uip_is_addr_unspecified(&UIP_ND6_NS_BUF->tgtipaddr))) {
+    uip_lladdr_t lladdr_aligned;
+    extract_lladdr_from_ip_addr(&lladdr_aligned, &UIP_ND6_NS_BUF->tgtipaddr);
+    uip_ds6_nbr_add(&UIP_ND6_NS_BUF->tgtipaddr, &lladdr_aligned,
+                    0, NBR_STALE, NBR_TABLE_REASON_IPV6_ND, NULL);
   }
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);

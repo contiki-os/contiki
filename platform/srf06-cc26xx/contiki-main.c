@@ -53,6 +53,7 @@
 #include "dev/watchdog.h"
 #include "dev/oscillators.h"
 #include "ieee-addr.h"
+#include "ble-addr.h"
 #include "vims.h"
 #include "dev/cc26xx-uart.h"
 #include "dev/soc-rtc.h"
@@ -99,10 +100,17 @@ fade(unsigned char l)
 static void
 set_rf_params(void)
 {
-  uint16_t short_addr;
   uint8_t ext_addr[8];
-  radio_value_t val = 0;
 
+#if CC26XX_RADIO_MODE == CC26XX_RADIO_MODE_BLE
+  ble_eui64_addr_cpy_to(ext_addr);
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+#else
+  uint16_t short_addr;
+  radio_value_t val = 0;
   ieee_addr_cpy_to(ext_addr, 8);
 
   short_addr = ext_addr[7];
@@ -119,6 +127,10 @@ set_rf_params(void)
   NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &val);
   printf(" RF: Channel %d\n", val);
 
+  /* also set the global node id */
+  node_id = short_addr;
+#endif
+
 #if STARTUP_CONF_VERBOSE
   {
     int i;
@@ -128,11 +140,8 @@ set_rf_params(void)
     }
     printf("%02x\n", linkaddr_node_addr.u8[i]);
   }
-#endif
-
-  /* also set the global node id */
-  node_id = short_addr;
   printf(" Node ID: %d\n", node_id);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /**
