@@ -36,19 +36,27 @@
 #include <stddef.h>
 
 #include "contiki.h"
-#include "shell.h"
 #include "contiki-net.h"
+#include "net/ip/ip64-addr.h"
+#include "net/ipv6/uip-icmp6.h"
+
+#include "shell.h"
+
+#ifndef HAVE_SNPRINTF
+int snprintf(char *str, size_t size, const char *format, ...);
+#endif /* HAVE_SNPRINTF */
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_ping_process, "ping");
 SHELL_COMMAND(ping_command,
-	      "ping",
-	      "ping <host>: ping an IP host",
-	      &shell_ping_process);
+              "ping",
+              "ping <host>: ping an IP host",
+              &shell_ping_process);
 /*---------------------------------------------------------------------------*/
 
 #define UIP_IP_BUF     ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_ICMP_BUF   ((struct uip_icmp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_ICMP_BUF   ((struct uip_icmp_hdr *)&uip_buf[UIP_LLH_LEN +   \
+                                                        UIP_IPH_LEN])
 #define PING_DATALEN 16
 
 #define ICMP_ECHO_REPLY 0
@@ -57,8 +65,78 @@ SHELL_COMMAND(ping_command,
 #define ICMP6_ECHO_REPLY             129
 #define ICMP6_ECHO                   128
 
+/*
+ * buffer is supposed to have the following string:
+ * ${len} bytes from ${src} ttl=${ttl}
+ * - len:  5 chars at most
+ * - src: 39 chars at most
+ * - ttl:  3 chars at most
+ *
+ * --> 5 + 49 + 3 + 18 (static part) + 1 (null) = 65 bytes
+ */
+#define SHELL_PING_BUFSIZE            65
+
 static uip_ipaddr_t remoteaddr;
 static unsigned char running;
+static int pong_is_received = 0;
+/*---------------------------------------------------------------------------*/
+#if NETSTACK_CONF_WITH_IPV6
+static int
+fill_ipv6_addr(char *buf, int len, uip_ipaddr_t *addr)
+{
+  char *p = buf;
+  int rest = len;
+  uint16_t a;
+  unsigned int i;
+  int f;
+
+  if(buf == NULL || addr == NULL) {
+    return 0;
+  }
+
+  /* borrow the code from uip_debug_ipaddr_print() */
+  if(ip64_addr_is_ipv4_mapped_addr(addr)) {
+    return snprintf(buf, len, "::FFFF:%u.%u.%u.%u",
+                    addr->u8[12], addr->u8[13], addr->u8[14], addr->u8[15]);
+  }
+
+  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+    rest = len - (p - buf);
+    a = (addr->u8[i] << 8) + addr->u8[i + 1];
+    if(a == 0 && f >= 0) {
+      if(f++ == 0) {
+        p += snprintf(p, rest, "::");
+      }
+    } else {
+      if(f > 0) {
+        f = -1;
+      } else if(i > 0) {
+        p += snprintf(p, rest, ":");
+      }
+      p += snprintf(p, rest, "%x", a);
+    }
+  }
+
+  return p - buf;
+}
+/*---------------------------------------------------------------------------*/
+static void
+pong6_callback(uip_ipaddr_t *src_addr, uint8_t ttl,
+               uint8_t *data, uint16_t datalen)
+{
+  char buf[SHELL_PING_BUFSIZE];
+  int written_len = 0;
+  written_len = snprintf(buf, sizeof(buf), "%u bytes from ", datalen);
+  written_len += fill_ipv6_addr(buf + written_len, sizeof(buf) - written_len,
+                                src_addr);
+  written_len += snprintf(buf + written_len, sizeof(buf) - written_len,
+                          " ttl=%u", ttl);
+  shell_output_str(&ping_command, "ping6 OK - ", buf);
+
+  pong_is_received = 1;
+  process_poll(&shell_ping_process); /* wake up our process */
+}
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 static void
 send_ping(uip_ipaddr_t *dest_addr)
@@ -72,31 +150,31 @@ send_ping(uip_ipaddr_t *dest_addr)
   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, dest_addr);
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
-  
+
   UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
   UIP_ICMP_BUF->icode = 0;
   /* set identifier and sequence number to 0 */
   memset((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 0, 4);
   /* put one byte of data */
   memset((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN,
-	 count, PING_DATALEN);
+         count, PING_DATALEN);
   count++;
-  
+
   uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN +
     UIP_IPH_LEN + PING_DATALEN;
   UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
   UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00ff);
-  
+
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
-  
+
   tcpip_ipv6_output();
 }
 #else /* NETSTACK_CONF_WITH_IPV6 */
 {
   static uint16_t ipid = 0;
   static uint16_t seqno = 0;
-  
+
   UIP_IP_BUF->vhl = 0x45;
   UIP_IP_BUF->tos = 0;
   UIP_IP_BUF->ipoffset[0] = UIP_IP_BUF->ipoffset[1] = 0;
@@ -108,19 +186,19 @@ send_ping(uip_ipaddr_t *dest_addr)
 
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, dest_addr);
   uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &uip_hostaddr);
-  
+
   UIP_ICMP_BUF->type = ICMP_ECHO;
   UIP_ICMP_BUF->icode = 0;
   UIP_ICMP_BUF->id = 0xadad;
   UIP_ICMP_BUF->seqno = uip_htons(seqno++);
-  
+
   uip_len = UIP_ICMPH_LEN + UIP_IPH_LEN + PING_DATALEN;
   UIP_IP_BUF->len[0] = (uint8_t)((uip_len) >> 8);
   UIP_IP_BUF->len[1] = (uint8_t)((uip_len) & 0x00ff);
-  
+
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_chksum((uint16_t *)&(UIP_ICMP_BUF->type),
-					 UIP_ICMPH_LEN + PING_DATALEN);
+                                         UIP_ICMPH_LEN + PING_DATALEN);
 
   /* Calculate IP checksum. */
   UIP_IP_BUF->ipchksum = 0;
@@ -139,38 +217,46 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 
   if(data == NULL) {
     shell_output_str(&ping_command,
-		     "ping <server>: server as address", "");
+                     "ping <server>: server as address", "");
     PROCESS_EXIT();
   }
   uiplib_ipaddrconv(data, &remoteaddr);
 
   send_ping(&remoteaddr);
-  
+
   running = 1;
 
   while(running) {
     etimer_set(&e, CLOCK_SECOND * 10);
-    
+
     PROCESS_WAIT_EVENT();
 
-    if(etimer_expired(&e)) {
-      PROCESS_EXIT();      
+    if(pong_is_received) {
+      /* exit with ping success */
+      PROCESS_EXIT();
     }
-    
+
+    if(etimer_expired(&e)) {
+      shell_output_str(&ping_command, "ping6 NG - ", "timeout");
+      PROCESS_EXIT();
+    }
+
     if(ev == shell_event_input) {
       input = data;
       if(input->len1 + input->len2 == 0) {
-	PROCESS_EXIT();
+        /* cancel ping */
+        shell_output_str(&ping_command, "ping6 NG - ", "canceled by user");
+        PROCESS_EXIT();
       }
 #if 0
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-	 resolv_lookup((char *)data, &ipaddr) == RESOLV_STATUS_CACHED) {
-	uip_ipaddr_copy(serveraddr, ipaddr);
-	telnet_connect(&s, server, serveraddr, nick);
+         resolv_lookup((char *)data, &ipaddr) == RESOLV_STATUS_CACHED) {
+        uip_ipaddr_copy(serveraddr, ipaddr);
+        telnet_connect(&s, server, serveraddr, nick);
       } else {
-	shell_output_str(&ping_command, "Host not found.", "");
+        shell_output_str(&ping_command, "Host not found.", "");
       }
 #endif /* 0 */
     }
@@ -182,6 +268,10 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 void
 shell_ping_init(void)
 {
+#if NETSTACK_CONF_WITH_IPV6
+  static struct uip_icmp6_echo_reply_notification pong6_notification;
+  uip_icmp6_echo_reply_callback_add(&pong6_notification, pong6_callback);
+#endif
   shell_register_command(&ping_command);
 }
 /*---------------------------------------------------------------------------*/
