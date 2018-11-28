@@ -182,6 +182,29 @@ res_get_handler_mpu_gyro_z(void *request, void *response, uint8_t *buffer,
   res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z, request, response,
                       buffer, preferred_size, offset);
 }
+static void
+res_get_handler_mpu_mag_x(void *request, void *response, uint8_t *buffer,
+                           uint16_t preferred_size, int32_t *offset)
+{
+  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_MPU_MAG_X, request, response,
+                      buffer, preferred_size, offset);
+}
+/*---------------------------------------------------------------------------*/
+static void
+res_get_handler_mpu_mag_y(void *request, void *response, uint8_t *buffer,
+                           uint16_t preferred_size, int32_t *offset)
+{
+  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Y, request, response,
+                      buffer, preferred_size, offset);
+}
+/*---------------------------------------------------------------------------*/
+static void
+res_get_handler_mpu_mag_z(void *request, void *response, uint8_t *buffer,
+                           uint16_t preferred_size, int32_t *offset)
+{
+  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Z, request, response,
+                      buffer, preferred_size, offset);
+}
 /*---------------------------------------------------------------------------*/
 RESOURCE(res_mpu_acc_x, "title=\"Acc X\";rt=\"G\"", res_get_handler_mpu_acc_x,
          NULL, NULL, NULL);
@@ -196,6 +219,13 @@ RESOURCE(res_mpu_gyro_y, "title=\"Gyro Y\";rt=\"deg/sec\"",
          res_get_handler_mpu_gyro_y, NULL, NULL, NULL);
 RESOURCE(res_mpu_gyro_z, "title=\"Gyro Z\";rt=\"deg/sec\"",
          res_get_handler_mpu_gyro_z, NULL, NULL, NULL);
+
+RESOURCE(res_mpu_mag_x, "title=\"Mag X\";rt=\"uT\"", 
+          res_get_handler_mpu_mag_x, NULL, NULL, NULL);
+RESOURCE(res_mpu_mag_y, "title=\"Mag Y\";rt=\"uT\"", 
+          res_get_handler_mpu_mag_y, NULL, NULL, NULL);
+RESOURCE(res_mpu_mag_z, "title=\"Mag Z\";rt=\"uT\"", 
+          res_get_handler_mpu_mag_z, NULL, NULL, NULL);
 /*---------------------------------------------------------------------------*/
 /* TMP sensor resources and handlers: Object, Ambient */
 static void

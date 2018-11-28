@@ -153,6 +153,9 @@
 #define CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Y    13
 #define CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z    14
 #define CC26XX_WEB_DEMO_SENSOR_ADC_DIO23     15
+#define CC26XX_WEB_DEMO_SENSOR_MPU_MAG_X     16
+#define CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Y     17
+#define CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Z     18
 /*---------------------------------------------------------------------------*/
 extern process_event_t cc26xx_web_demo_publish_event;
 extern process_event_t cc26xx_web_demo_config_loaded_event;
@@ -165,6 +168,7 @@ extern process_event_t cc26xx_web_demo_load_config_defaults;
 #define CC26XX_WEB_DEMO_UNIT_LIGHT    "lux"
 #define CC26XX_WEB_DEMO_UNIT_ACC      "G"
 #define CC26XX_WEB_DEMO_UNIT_GYRO     "deg per sec"
+#define CC26XX_WEB_DEMO_UNIT_MAG      "uTesla"
 /*---------------------------------------------------------------------------*/
 /* A data type for sensor readings, internally stored in a linked list */
 #define CC26XX_WEB_DEMO_CONVERTED_LEN        12

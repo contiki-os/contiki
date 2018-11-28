@@ -170,6 +170,15 @@ DEMO_SENSOR(mpu_gyro_y, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Y,
 DEMO_SENSOR(mpu_gyro_z, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z,
             "Gyro Z", "gyro-z", "gyro_Z",
             CC26XX_WEB_DEMO_UNIT_GYRO);
+DEMO_SENSOR(mpu_mag_x, CC26XX_WEB_DEMO_SENSOR_MPU_MAG_X, 
+            "Mag x", "mag-x", "mag_x",                     
+            CC26XX_WEB_DEMO_UNIT_MAG);
+DEMO_SENSOR(mpu_mag_y, CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Y,
+            "Mag y", "mag-y", "mag_y",
+            CC26XX_WEB_DEMO_UNIT_MAG);
+DEMO_SENSOR(mpu_mag_z, CC26XX_WEB_DEMO_SENSOR_MPU_MAG_Z,
+            "Mag z", "mag-z", "mag_z",
+            CC26XX_WEB_DEMO_UNIT_MAG);
 #endif
 /*---------------------------------------------------------------------------*/
 #if BOARD_SENSORTAG
@@ -725,6 +734,27 @@ get_mpu_reading()
     }
   }
 
+  if(mpu_mag_x_reading.publish) {
+    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_MAG_X);
+    if (raw != CC26XX_SENSOR_READING_ERROR) {
+      mpu_mag_x_reading.raw = raw;
+    }
+  }
+
+  if(mpu_mag_y_reading.publish) {
+    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_MAG_Y);
+    if (raw != CC26XX_SENSOR_READING_ERROR) {
+      mpu_mag_y_reading.raw = raw;
+    }
+  }
+
+  if(mpu_mag_z_reading.publish) {
+    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_MAG_Z);
+    if (raw != CC26XX_SENSOR_READING_ERROR) {
+      mpu_mag_z_reading.raw = raw;
+    }
+  }
+
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 
   if(mpu_gyro_x_reading.publish) {
@@ -761,6 +791,22 @@ get_mpu_reading()
     compare_and_update(&mpu_acc_z_reading);
     memset(mpu_acc_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
     print_mpu_reading(mpu_acc_z_reading.raw, mpu_acc_z_reading.converted);
+  }
+
+  if(mpu_mag_x_reading.publish) {
+    compare_and_update(&mpu_mag_x_reading);
+    memset(mpu_mag_x_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+    print_mpu_reading(mpu_mag_x_reading.raw, mpu_mag_x_reading.converted);
+  }
+  if(mpu_mag_y_reading.publish) {
+    compare_and_update(&mpu_mag_y_reading);
+    memset(mpu_mag_y_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+    print_mpu_reading(mpu_mag_y_reading.raw, mpu_mag_y_reading.converted);
+  }
+  if(mpu_mag_z_reading.publish) {
+    compare_and_update(&mpu_mag_z_reading);
+    memset(mpu_mag_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+    print_mpu_reading(mpu_mag_z_reading.raw, mpu_mag_z_reading.converted);
   }
 
   /* We only use the single timer */
@@ -881,6 +927,9 @@ init_sensors(void)
   list_add(sensor_list, &mpu_gyro_x_reading);
   list_add(sensor_list, &mpu_gyro_y_reading);
   list_add(sensor_list, &mpu_gyro_z_reading);
+  list_add(sensor_list, &mpu_mag_x_reading);
+  list_add(sensor_list, &mpu_mag_y_reading);
+  list_add(sensor_list, &mpu_mag_z_reading);
 
   SENSORS_ACTIVATE(reed_relay_sensor);
 #endif
