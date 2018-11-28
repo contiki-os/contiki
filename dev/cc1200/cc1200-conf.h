@@ -137,7 +137,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /*
- * The default channel to use. 
+ * The default channel to use.
  *
  * Permitted values depending on the data rate + band used are defined
  * in the appropriate rf configuration file. Make sure the default value
@@ -168,8 +168,8 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /*
- * If CC1200_AUTOCAL is not set, we use this parameter to defer 
- * calibration until a certain amount of time has expired. 
+ * If CC1200_AUTOCAL is not set, we use this parameter to defer
+ * calibration until a certain amount of time has expired.
  *
  * This is what happens in detail:
  *
@@ -178,8 +178,8 @@
  * - We (manually) calibrate when the radio is turned on() only if
  *   the timeout has expired
  * - We (manually) calibrate when transmitting only of the timeout has expired
- * 
- * Set this parameter to 0 when this feature is not used. In this case we 
+ *
+ * Set this parameter to 0 when this feature is not used. In this case we
  * (manually) calibrate in all situations mentioned above.
  */
 #ifdef CC1200_CONF_CAL_TIMEOUT_SECONDS
@@ -206,7 +206,7 @@
  * The LEDs are turned on as soon as the first byte is read out from
  * the RX FIFO
  */
-#ifdef CC1200_CONF_RX_LED
+#ifdef CC1200_CONF_RX_LEDS
 #define CC1200_RX_LEDS                  CC1200_CONF_RX_LEDS
 #endif
 /*---------------------------------------------------------------------------*/

@@ -593,20 +593,16 @@ PROCESS_THREAD(cc1200_process, ev, data)
           rx_rx();
         }
         RELEASE_SPI();
-
       }
-
     } else {
       PROCESS_YIELD();
     }
-
   }
 #endif /* #if CC1200_USE_RX_WATCHDOG */
 
   PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_EXIT);
 
   PROCESS_END();
-
 }
 /*---------------------------------------------------------------------------*/
 /* Handle tasks left over from rx interrupt or because SPI was locked */
@@ -641,9 +637,7 @@ pollhandler(void)
       packetbuf_set_datalen(len);
       NETSTACK_RDC.input();
     }
-
   }
-
 }
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
@@ -705,7 +699,6 @@ init(void)
   }
 
   return 1;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Prepare the radio with a packet to be sent. */
@@ -725,7 +718,6 @@ prepare(const void *payload, unsigned short payload_len)
   memcpy(tx_pkt, payload, tx_pkt_len);
 
   return RADIO_TX_OK;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Send the packet that has previously been prepared. */
@@ -802,10 +794,9 @@ transmit(unsigned short transmit_len)
      */
 
     BUSYWAIT_UNTIL_STATE(STATE_RX,
-        CC1200_RF_CFG.tx_rx_turnaround);
+                         CC1200_RF_CFG.tx_rx_turnaround);
 
     ENABLE_GPIO_INTERRUPTS();
-
   } else {
 
     /*
@@ -834,7 +825,6 @@ transmit(unsigned short transmit_len)
   rf_flags &= ~RF_TX_ACTIVE;
 
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Prepare & transmit a packet. */
@@ -852,7 +842,6 @@ send(const void *payload, unsigned short payload_len)
   }
 
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Read a received packet into a buffer. */
@@ -873,7 +862,6 @@ read(void *buf, unsigned short buf_len)
     if(len > buf_len) {
 
       ERROR("RF: Failed to read packet (too big)!\n");
-
     } else {
 
       INFO("RF: Read (%d bytes, %d dBm)\n", len, rssi);
@@ -890,11 +878,9 @@ read(void *buf, unsigned short buf_len)
 
       RIMESTATS_ADD(llrx);
     }
-
   }
 
   return len;
-
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -957,7 +943,6 @@ channel_clear(void)
       INFO("RF: CCA (1)\n");
       cca = 1;
     }
-
   }
 
   RELEASE_SPI();
@@ -967,7 +952,6 @@ channel_clear(void)
   }
 
   return cca;
-
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -1001,13 +985,11 @@ receiving_packet(void)
        */
 
       ret = 1;
-
     }
   }
 
   INFO("RF: Receiving (%d)\n", ret);
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Check if the radio driver has just received a packet. */
@@ -1017,7 +999,6 @@ pending_packet(void)
 
   INFO("RF: Pending (%d)\n", ((rx_pkt_len != 0) ? 1 : 0));
   return (rx_pkt_len != 0) ? 1 : 0;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Turn the radio on. */
@@ -1058,13 +1039,11 @@ on(void)
     etimer_set(&et, CLOCK_SECOND);
     PROCESS_CONTEXT_END(&cc1200_process);
 #endif /* #if CC1200_USE_RX_WATCHDOG */
-
   } else {
     INFO("RF: Already on\n");
   }
 
   return 1;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Turn the radio off. */
@@ -1102,13 +1081,11 @@ off(void)
 #if CC1200_USE_RX_WATCHDOG
     etimer_stop(&et);
 #endif /* #if CC1200_USE_RX_WATCHDOG */
-
   } else {
     INFO("RF: Already off\n");
   }
 
   return 1;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Get a radio parameter value. */
@@ -1188,9 +1165,7 @@ get_value(radio_param_t param, radio_value_t *value)
   default:
 
     return RADIO_RESULT_NOT_SUPPORTED;
-
   }
-
 }
 /*---------------------------------------------------------------------------*/
 /* Set a radio parameter value. */
@@ -1278,9 +1253,7 @@ set_value(radio_param_t param, radio_value_t value)
   default:
 
     return RADIO_RESULT_NOT_SUPPORTED;
-
   }
-
 }
 /*---------------------------------------------------------------------------*/
 /* Get a radio parameter object. */
@@ -1289,7 +1262,6 @@ get_object(radio_param_t param, void *dest, size_t size)
 {
 
   return RADIO_RESULT_NOT_SUPPORTED;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Set a radio parameter object. */
@@ -1298,7 +1270,6 @@ set_object(radio_param_t param, const void *src, size_t size)
 {
 
   return RADIO_RESULT_NOT_SUPPORTED;
-
 }
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
@@ -1320,7 +1291,6 @@ strobe(uint8_t strobe)
   cc1200_arch_spi_deselect();
 
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Reset CC1200. */
@@ -1336,7 +1306,6 @@ reset(void)
    */
   clock_delay(100);
   cc1200_arch_spi_deselect();
-
 }
 /*---------------------------------------------------------------------------*/
 /* Write a single byte to the specified address. */
@@ -1357,7 +1326,6 @@ single_write(uint16_t addr, uint8_t val)
   cc1200_arch_spi_deselect();
 
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Read a single byte from the specified address. */
@@ -1378,7 +1346,6 @@ single_read(uint16_t addr)
   cc1200_arch_spi_deselect();
 
   return ret;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Write a burst of bytes starting at the specified address. */
@@ -1395,7 +1362,6 @@ burst_write(uint16_t addr, const uint8_t *data, uint8_t data_len)
   }
   cc1200_arch_spi_rw(NULL, data, data_len);
   cc1200_arch_spi_deselect();
-
 }
 /*---------------------------------------------------------------------------*/
 /* Read a burst of bytes starting at the specified address. */
@@ -1412,7 +1378,6 @@ burst_read(uint16_t addr, uint8_t *data, uint8_t data_len)
   }
   cc1200_arch_spi_rw(data, NULL, data_len);
   cc1200_arch_spi_deselect();
-
 }
 /*---------------------------------------------------------------------------*/
 /* Write a list of register settings. */
@@ -1430,7 +1395,6 @@ write_reg_settings(const registerSetting_t *reg_settings,
       reg_settings++;
     }
   }
-
 }
 /*---------------------------------------------------------------------------*/
 /* Configure the radio (write basic configuration). */
@@ -1480,9 +1444,9 @@ configure(void)
   single_write(CC1200_FREQ1, ((uint8_t *)&freq)[1]);
   single_write(CC1200_FREQ2, ((uint8_t *)&freq)[2]);
 
-  printf("RF: Freq0 0x%02x\n",  ((uint8_t *)&freq)[0]);
-  printf("RF: Freq1 0x%02x\n",  ((uint8_t *)&freq)[1]);
-  printf("RF: Freq2 0x%02x\n",  ((uint8_t *)&freq)[2]);
+  printf("RF: Freq0 0x%02x\n", ((uint8_t *)&freq)[0]);
+  printf("RF: Freq1 0x%02x\n", ((uint8_t *)&freq)[1]);
+  printf("RF: Freq2 0x%02x\n", ((uint8_t *)&freq)[2]);
 
 #if (CC1200_RF_TESTMODE == 1)
   single_write(CC1200_SYNC_CFG1, 0xE8);
@@ -1562,7 +1526,6 @@ configure(void)
     } else {
       leds_off(LEDS_RED);
     }
-
   }
 
 #endif /* #if CC1200_RF_TESTMODE == ... */
@@ -1638,7 +1601,6 @@ configure(void)
   /* FIFO threshold */
   single_write(CC1200_FIFO_CFG, FIFO_THRESHOLD);
 #endif
-
 }
 /*---------------------------------------------------------------------------*/
 /* Return the radio's state. */
@@ -1651,7 +1613,6 @@ state(void)
 #else
   return strobe(CC1200_SNOP) & 0x70;
 #endif
-
 }
 /*---------------------------------------------------------------------------*/
 #if !CC1200_AUTOCAL
@@ -1661,8 +1622,8 @@ calibrate(void)
 {
 
 #ifdef RF_FORCE_CALIBRATION
-  if (!(rf_flags & RF_FORCE_CALIBRATION) 
-      && ((clock_seconds() - cal_timer) < CC1200_CAL_TIMEOUT_SECONDS)) {
+  if(!(rf_flags & RF_FORCE_CALIBRATION)
+     && ((clock_seconds() - cal_timer) < CC1200_CAL_TIMEOUT_SECONDS)) {
     /* Timeout not reached, defer calibration... */
     return;
   }
@@ -1678,7 +1639,6 @@ calibrate(void)
 #if CC1200_CAL_TIMEOUT_SECONDS
   cal_timer = clock_seconds();
 #endif
-
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -1711,7 +1671,6 @@ idle(void)
 
   strobe(CC1200_SIDLE);
   BUSYWAIT_UNTIL_STATE(STATE_IDLE, RTIMER_SECOND / 100);
-
 } /* idle(), 21.05.2015 */
 /*---------------------------------------------------------------------------*/
 /* Enter RX state. */
@@ -1733,7 +1692,6 @@ idle_calibrate_rx(void)
   ENABLE_GPIO_INTERRUPTS();
 
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-
 }
 /*---------------------------------------------------------------------------*/
 /* Restart RX from within RX interrupt. */
@@ -1766,7 +1724,6 @@ rx_rx(void)
   strobe(CC1200_SFRX);
   strobe(CC1200_SRX);
   BUSYWAIT_UNTIL_STATE(STATE_RX, RTIMER_SECOND / 100);
-
 }
 /*---------------------------------------------------------------------------*/
 /* Fill TX FIFO, start TX and wait for TX to complete (blocking!). */
@@ -1890,7 +1847,6 @@ idle_tx_rx(const uint8_t *payload, uint16_t payload_len)
     single_write(CC1200_IOCFG0, GPIO0_IOCFG);
 
     return RADIO_TX_ERR;
-
   }
 
 #if (CC1200_MAX_PAYLOAD_LEN > (CC1200_FIFO_SIZE - PHR_LEN))
@@ -1936,9 +1892,7 @@ idle_tx_rx(const uint8_t *payload, uint16_t payload_len)
       single_write(CC1200_IOCFG0, GPIO0_IOCFG);
 
       return RADIO_TX_ERR;
-
     }
-
   } else {
     /* Wait for TX to complete */
     BUSYWAIT_UNTIL((cc1200_arch_gpio0_read_pin() == 0),
@@ -1963,7 +1917,6 @@ idle_tx_rx(const uint8_t *payload, uint16_t payload_len)
     single_write(CC1200_IOCFG0, GPIO0_IOCFG);
 
     return RADIO_TX_ERR;
-
   }
 
 #if (CC1200_MAX_PAYLOAD_LEN > (CC1200_FIFO_SIZE - PHR_LEN))
@@ -1980,7 +1933,6 @@ idle_tx_rx(const uint8_t *payload, uint16_t payload_len)
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
   return RADIO_TX_OK;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Update TX power */
@@ -1996,7 +1948,6 @@ update_txpower(int8_t txpower_dbm)
   single_write(CC1200_PA_CFG1, reg);
 
   txpower = txpower_dbm;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Update CCA threshold */
@@ -2006,7 +1957,6 @@ update_cca_threshold(int8_t threshold_dbm)
 
   single_write(CC1200_AGC_CS_THR, (uint8_t)threshold_dbm);
   cca_threshold = threshold_dbm;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Calculate FREQ register from channel */
@@ -2021,7 +1971,6 @@ calculate_freq(uint8_t channel)
   freq /= FREQ_DIVIDER;
 
   return freq;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Update rf channel if possible, else postpone it (->pollhandler) */
@@ -2058,7 +2007,6 @@ set_channel(uint8_t channel)
     INFO("RF: Channel update postponed\n");
 
     return CHANNEL_UPDATE_POSTPONED;
-
   }
   rf_flags &= ~RF_UPDATE_CHANNEL;
 
@@ -2095,7 +2043,6 @@ set_channel(uint8_t channel)
   }
 
   return CHANNEL_UPDATE_SUCCEEDED;
-
 }
 /*---------------------------------------------------------------------------*/
 /* Check broadcast address. */
@@ -2112,7 +2059,6 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
   }
 
   return 1;
-
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -2132,8 +2078,8 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
        linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
                     &linkaddr_node_addr)) {
 
-      /* 
-       * Address check succeeded or address filter disabled. 
+      /*
+       * Address check succeeded or address filter disabled.
        * We send an ACK in case a corresponding data frame
        * is received even in promiscuous mode (if auto-ack is
        * enabled)!
@@ -2142,11 +2088,11 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
       if((rx_mode_value & RADIO_RX_MODE_AUTOACK) &&
          info154.fcf.frame_type == FRAME802154_DATAFRAME &&
          info154.fcf.ack_required != 0 &&
-         (!(rx_mode_value & RADIO_RX_MODE_ADDRESS_FILTER) || 
+         (!(rx_mode_value & RADIO_RX_MODE_ADDRESS_FILTER) ||
           linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
                        &linkaddr_node_addr))) {
 
-        /* 
+        /*
          * Data frame destined for us & ACK request bit set -> send ACK.
          * Make sure the preamble length is configured accordingly as
          * MAC timing parameters rely on this!
@@ -2161,27 +2107,22 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
          */
         idle();
 #endif
-        
+
         idle_tx_rx((const uint8_t *)ack, ACK_LEN);
-        
+
         /* rx_rx() will follow */
-        
+
         return ADDR_CHECK_OK_ACK_SEND;
-        
       }
 
       return ADDR_CHECK_OK;
-      
     } else {
 
       return ADDR_CHECK_FAILED;
-
     }
-
   }
-  
-  return INVALID_FRAME;
 
+  return INVALID_FRAME;
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -2221,7 +2162,6 @@ cc1200_rx_interrupt(void)
     rf_flags |= RF_POLL_RX_INTERRUPT;
     process_poll(&cc1200_process);
     return 1;
-
   }
   rf_flags &= ~RF_POLL_RX_INTERRUPT;
 
@@ -2240,7 +2180,6 @@ cc1200_rx_interrupt(void)
     rx_rx();
     RELEASE_SPI();
     return 0;
-
   }
 
   num_rxbytes = single_read(CC1200_NUM_RXBYTES);
@@ -2256,7 +2195,6 @@ cc1200_rx_interrupt(void)
     INFO("RF: RX FIFO empty!\n");
     RELEASE_SPI();
     return 0;
-
   }
 
   if(!(rf_flags & RF_RX_PROCESSING_PKT)) {
@@ -2274,11 +2212,10 @@ cc1200_rx_interrupt(void)
       rx_rx();
       RELEASE_SPI();
       return 0;
-
     }
 
     burst_read(CC1200_RXFIFO,
-               &phr,
+               (void *)&phr,
                PHR_LEN);
     payload_len = (phr.phra & 0x07);
     payload_len <<= 8;
@@ -2323,7 +2260,6 @@ cc1200_rx_interrupt(void)
     rf_flags |= RF_RX_PROCESSING_PKT;
 
     /* Fall through... */
-
   }
 
   if(rf_flags & RF_RX_PROCESSING_PKT) {
@@ -2347,7 +2283,6 @@ cc1200_rx_interrupt(void)
       rx_rx();
       RELEASE_SPI();
       return 0;
-
     }
 
     burst_read(CC1200_RXFIFO,
@@ -2397,24 +2332,19 @@ cc1200_rx_interrupt(void)
           process_poll(&cc1200_process);
           RELEASE_SPI();
           return 1;
-
         } else {
           /* Invalid address. Drop the packet */
         }
-
       }
 
       /* Buffer full, address or CRC check failed */
       rx_rx();
       RELEASE_SPI();
       return 0;
-
     } /* if (bytes_read == payload_len) */
-
   }
 
   RELEASE_SPI();
   return 0;
-
 }
 /*---------------------------------------------------------------------------*/
