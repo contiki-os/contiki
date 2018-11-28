@@ -49,6 +49,10 @@
 /*---------------------------------------------------------------------------*/
 #define RTIMER_ARCH_SECOND 65536
 /*---------------------------------------------------------------------------*/
+/* Need 4 ticks to syncronize with AON, 2 ticks to account for 2 tick RTC read
+   precision and 2 more ticks to put the value in the future. */
+#define RTIMER_CONF_MINIMAL_SAFE_SCHEDULE 8u
+/*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void);
 
 /* HW oscillator frequency is 32 kHz, not 64 kHz and RTIMER_NOW() never returns
