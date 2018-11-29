@@ -55,52 +55,56 @@
 
 #include "net/linkaddr.h"
 #include "net/rime/collect-link-estimate.h"
-#include "lib/list.h"
+#include "net/nbr-table.h"
 
-struct collect_neighbor_list {
-  LIST_STRUCT(list);
-  struct ctimer periodic;
-};
+/* NBR Table for RIME Collect Neighbors */
+NBR_TABLE_DECLARE(collect_nbr_table);
 
-struct collect_neighbor {
-  struct collect_neighbor *next;
-  linkaddr_t addr;
+/* An entry in the RIME Collect NBR cache */
+typedef struct collect_nbr {
   uint16_t rtmetric;
   uint16_t age;
   uint16_t le_age;
   struct collect_link_estimate le;
   struct timer congested_timer;
-};
+} collect_nbr_t;
 
-void collect_neighbor_init(void);
+/* Init Collect NBR Table */
+void collect_nbr_init(void);
 
-list_t collect_neighbor_list(struct collect_neighbor_list *neighbor_list);
+/* Add a neighbor to the Collect NBR Table */
+int collect_nbr_add(const linkaddr_t *addr, uint16_t rtmetric);
 
-void collect_neighbor_list_new(struct collect_neighbor_list *neighbor_list);
+/* Remove a neighbor from the Collect NBR Table */
+void collect_nbr_rm(collect_nbr_t *n);
 
-int collect_neighbor_list_add(struct collect_neighbor_list *neighbor_list,
-                              const linkaddr_t *addr, uint16_t rtmetric);
-void collect_neighbor_list_remove(struct collect_neighbor_list *neighbor_list,
-                                  const linkaddr_t *addr);
-struct collect_neighbor *collect_neighbor_list_find(struct collect_neighbor_list *neighbor_list,
-                                               const linkaddr_t *addr);
-struct collect_neighbor *collect_neighbor_list_best(struct collect_neighbor_list *neighbor_list);
-int collect_neighbor_list_num(struct collect_neighbor_list *neighbor_list);
-struct collect_neighbor *collect_neighbor_list_get(struct collect_neighbor_list *neighbor_list, int num);
-void collect_neighbor_list_purge(struct collect_neighbor_list *neighbor_list);
+/* Get a neighbor from the Collect NBR Table with a specific LLADDR */
+collect_nbr_t *collect_nbr_find(const linkaddr_t *addr);
 
-void collect_neighbor_update_rtmetric(struct collect_neighbor *n,
-                                      uint16_t rtmetric);
-void collect_neighbor_tx(struct collect_neighbor *n, uint16_t num_tx);
-void collect_neighbor_rx(struct collect_neighbor *n);
-void collect_neighbor_tx_fail(struct collect_neighbor *n, uint16_t num_tx);
-void collect_neighbor_set_congested(struct collect_neighbor *n);
-int collect_neighbor_is_congested(struct collect_neighbor *n);
+/* Get the best neighbor in the Collect NBR Table */
+collect_nbr_t *collect_nbr_best(void);
 
-uint16_t collect_neighbor_link_estimate(struct collect_neighbor *n);
-uint16_t collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n);
-uint16_t collect_neighbor_rtmetric(struct collect_neighbor *n);
+/* Get the worst neighbor in the Collect NBR Table */
+collect_nbr_t *collect_nbr_worst(void);
 
+/* Get number of neighbors in the Collect NBR Table */
+int collect_nbr_num(void);
+
+/* Get neighbor in the Collect NBR Table from index number */
+collect_nbr_t *collect_nbr_get(int num);
+
+/* Purge the Collect NBR Table - TO DO */
+void collect_nbr_purge(void);
+
+void collect_nbr_update_rtmetric(collect_nbr_t *n, uint16_t rtmetric);
+void collect_nbr_tx(collect_nbr_t *n, uint16_t num_tx);
+void collect_nbr_rx(collect_nbr_t *n);
+void collect_nbr_tx_fail(collect_nbr_t *n, uint16_t num_tx);
+void collect_nbr_set_congested(collect_nbr_t *n);
+int collect_nbr_is_congested(collect_nbr_t *n);
+uint16_t collect_nbr_link_estimate(collect_nbr_t *n);
+uint16_t collect_nbr_rtmetric_link_estimate(collect_nbr_t *n);
+uint16_t collect_nbr_rtmetric(const collect_nbr_t *n);
 
 #endif /* COLLECT_NEIGHBOR_H_ */
 /** @} */

@@ -52,21 +52,20 @@ SHELL_COMMAND(collect_view_data_command,
 PROCESS_THREAD(collect_view_data_process, ev, data)
 {
   struct collect_view_data_msg msg;
-  struct collect_neighbor *n;
+  collect_nbr_t *n;
   uint16_t parent_etx;
   uint16_t num_neighbors;
   uint16_t beacon_interval;
   
   PROCESS_BEGIN();
 
-  n = collect_neighbor_list_find(&shell_collect_conn.neighbor_list,
-                                 &shell_collect_conn.parent);
+  n = collect_nbr_find(&shell_collect_conn.parent);
   if(n != NULL) {
-    parent_etx = collect_neighbor_link_estimate(n);
+    parent_etx = collect_nbr_link_estimate(n);
   } else {
     parent_etx = 0;
   }
-  num_neighbors = collect_neighbor_list_num(&shell_collect_conn.neighbor_list);
+  num_neighbors = collect_nbr_num();
   beacon_interval = broadcast_announcement_beacon_interval() / CLOCK_SECOND;
 
   collect_view_construct_message(&msg, &shell_collect_conn.parent,

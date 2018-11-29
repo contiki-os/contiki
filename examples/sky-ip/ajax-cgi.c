@@ -45,6 +45,8 @@
 #include <string.h>
 
 #include "contiki-net.h"
+#include "net/linkaddr.h"
+#include "net/nbr-table.h"
 #include "net/rime/collect-neighbor.h"
 #include "httpd.h"
 #include "httpd-cgi.h"
@@ -53,7 +55,6 @@
 #include "lib/petsciiconv.h"
 
 static struct httpd_cgi_call *calls = NULL;
-static struct collect_neighbor_list neighbor_list;
 
 /*---------------------------------------------------------------------------*/
 static
@@ -168,17 +169,17 @@ static unsigned short
 make_neighbor(void *arg)
 {
   struct httpd_state *s = (struct httpd_state *)arg;
-  struct collect_neighbor *n = collect_neighbor_list_get(&neighbor_list, s->u.count);
-
+  collect_nbr_t *n = collect_nbr_get(s->u.count);
+  linkaddr_t *addr;
   if(n == NULL) {
     return 0;
   }
 
+  addr = nbr_table_get_lladdr(collect_nbr_table, n);
   return snprintf((char *)uip_appdata, uip_mss(),
 		  "<li><a href=\"http://172.16.%d.%d/\">%d.%d</a>\r\n",
-
-		  n->addr.u8[0], n->addr.u8[1],
-		  n->addr.u8[0], n->addr.u8[1]);
+		  addr->u8[0], addr->u8[1],
+		  addr->u8[0], addr->u8[1]);
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -188,11 +189,11 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 
   announcement_listen(1);
   
-  /*  printf("neighbor_num %d\n", collect_neighbor_list_num(&neighbor_list)); */
+  /*  printf("neighbor_num %d\n", collect_nbr_num()); */
   
-  for(s->u.count = 0; s->u.count < collect_neighbor_list_num(&neighbor_list); s->u.count++) {
+  for(s->u.count = 0; s->u.count < collect_nbr_num(); s->u.count++) {
     /*  printf("count %d\n", s->u.count); */
-    if(collect_neighbor_list_get(&neighbor_list, s->u.count) != NULL) {
+    if(collect_nbr_get(s->u.count) != NULL) {
       /*  printf("!= NULL\n"); */
       PSOCK_GENERATOR_SEND(&s->sout, make_neighbor, s);
     }
@@ -206,16 +207,16 @@ static void
 received_announcement(struct announcement *a, const linkaddr_t *from,
 	     uint16_t id, uint16_t value)
 {
-  struct collect_neighbor *n;
+  collect_nbr_t *n;
 
   /*  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]); */
   
-  n = collect_neighbor_list_find(&neighbor_list, from);
+  n = collect_nbr_find(from);
   
   if(n == NULL) {
-    collect_neighbor_list_add(&neighbor_list, from, value);
+    collect_nbr_add(from, value);
   } else {
-    collect_neighbor_update_rtmetric(n, value);
+    collect_nbr_update_rtmetric(n, value);
   }
 }
 
@@ -244,8 +245,7 @@ httpd_cgi_init(void)
   announcement_set_value(&announcement, 0);
   announcement_listen(2);
 
-  collect_neighbor_list_new(&neighbor_list);
-  collect_neighbor_init();
+  collect_nbr_init();
   /*  neighbor_discovery_open(&conn, 31,
 			  CLOCK_SECOND * 4,
 			  CLOCK_SECOND * 20,

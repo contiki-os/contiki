@@ -215,8 +215,8 @@ PROCESS_THREAD(test_collect_process, ev, data)
 
     if(etimer_expired(&et)) {
       struct sky_collect_msg *msg;
-      struct collect_neighbor *n;
-      /*      leds_toggle(LEDS_BLUE);*/
+      collect_nbr_t *n;
+      /* leds_toggle(LEDS_BLUE); */
 
       SENSORS_ACTIVATE(light_sensor);
       SENSORS_ACTIVATE(sht11_sensor);
@@ -238,11 +238,13 @@ PROCESS_THREAD(test_collect_process, ev, data)
       linkaddr_copy(&msg->best_neighbor, &linkaddr_null);
       msg->best_neighbor_etx =
 	msg->best_neighbor_rtmetric = 0;
-      n = collect_neighbor_list_best(&tc.neighbor_list);
+      n = collect_nbr_best();
       if(n != NULL) {
-	linkaddr_copy(&msg->best_neighbor, &n->addr);
-	msg->best_neighbor_etx = collect_neighbor_link_estimate(n);
-	msg->best_neighbor_rtmetric = n->rtmetric;
+        linkaddr_t *addr;
+        addr = nbr_table_get_lladdr(collect_nbr_table, n);
+        linkaddr_copy(&msg->best_neighbor, addr);
+        msg->best_neighbor_etx = collect_nbr_link_estimate(n);
+        msg->best_neighbor_rtmetric = n->rtmetric;
       }
 
       msg->tx = RIMESTATS_GET(tx);

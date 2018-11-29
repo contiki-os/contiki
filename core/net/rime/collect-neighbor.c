@@ -46,9 +46,6 @@
 #include <stdio.h>
 
 #include "contiki.h"
-#include "lib/memb.h"
-#include "lib/list.h"
-
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/collect.h"
 
@@ -59,8 +56,6 @@
 #endif /* COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS */
 
 #define RTMETRIC_MAX COLLECT_MAX_DEPTH
-
-MEMB(collect_neighbors_mem, struct collect_neighbor, MAX_COLLECT_NEIGHBORS);
 
 #define MAX_AGE                      180
 #define MAX_LE_AGE                   10
@@ -76,241 +71,187 @@ MEMB(collect_neighbors_mem, struct collect_neighbor, MAX_COLLECT_NEIGHBORS);
 #else
 #define PRINTF(...)
 #endif
-
+/*---------------------------------------------------------------------------*/
+static struct ctimer collect_periodic_timer;
+/*---------------------------------------------------------------------------*/
+NBR_TABLE_GLOBAL(collect_nbr_t, collect_nbr_table);
 /*---------------------------------------------------------------------------*/
 static void
 periodic(void *ptr)
 {
-  struct collect_neighbor_list *neighbor_list;
-  struct collect_neighbor *n;
-
-  neighbor_list = ptr;
+  collect_nbr_t *n;
 
   /* Go through all collect_neighbors and increase their age. */
-  for(n = list_head(neighbor_list->list); n != NULL; n = list_item_next(n)) {
+  for(n = nbr_table_head(collect_nbr_table);
+      n != NULL;
+      n = nbr_table_next(collect_nbr_table, n)) {
     n->age++;
     n->le_age++;
   }
-  for(n = list_head(neighbor_list->list); n != NULL; n = list_item_next(n)) {
+  
+  n = nbr_table_head(collect_nbr_table);
+  while(n != NULL) {
     if(n->le_age == MAX_LE_AGE) {
       collect_link_estimate_new(&n->le);
       n->le_age = 0;
     }
     if(n->age == MAX_AGE) {
-      memb_free(&collect_neighbors_mem, n);
-      list_remove(neighbor_list->list, n);
-      n = list_head(neighbor_list->list);
+      collect_nbr_rm(n);
     }
+    n = nbr_table_next(collect_nbr_table, n);
   }
-  ctimer_set(&neighbor_list->periodic, PERIODIC_INTERVAL,
-             periodic, neighbor_list);
+
+  ctimer_set(&collect_periodic_timer, PERIODIC_INTERVAL,
+             periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_init(void)
+collect_nbr_init(void)
 {
-  static uint8_t initialized = 0;
-  if(initialized == 0) {
-    initialized = 1;
-    memb_init(&collect_neighbors_mem);
-  }
+  nbr_table_register(collect_nbr_table, (nbr_table_callback *)collect_nbr_rm);
+  ctimer_set(&collect_periodic_timer, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
-void
-collect_neighbor_list_new(struct collect_neighbor_list *neighbors_list)
+collect_nbr_t *
+collect_nbr_find(const linkaddr_t *addr)
 {
-  LIST_STRUCT_INIT(neighbors_list, list);
-  list_init(neighbors_list->list);
-  ctimer_set(&neighbors_list->periodic, CLOCK_SECOND, periodic, neighbors_list);
-}
-/*---------------------------------------------------------------------------*/
-struct collect_neighbor *
-collect_neighbor_list_find(struct collect_neighbor_list *neighbors_list,
-                           const linkaddr_t *addr)
-{
-  struct collect_neighbor *n;
-  if(neighbors_list == NULL) {
-    return NULL;
-  }
-  for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
-    if(linkaddr_cmp(&n->addr, addr)) {
-      return n;
-    }
-  }
-  return NULL;
+  return nbr_table_get_from_lladdr(collect_nbr_table, addr);
 }
 /*---------------------------------------------------------------------------*/
 int
-collect_neighbor_list_add(struct collect_neighbor_list *neighbors_list,
-                          const linkaddr_t *addr, uint16_t nrtmetric)
+collect_nbr_add(const linkaddr_t *addr, uint16_t nrtmetric)
 {
-  struct collect_neighbor *n;
+  collect_nbr_t *n = NULL;
 
   if(addr == NULL) {
-    PRINTF("collect_neighbor_list_add: attempt to add NULL addr\n");
+    PRINTF("collect_nbr_add: attempt to add NULL addr\n");
     return 0;
   }
 
-  if(neighbors_list == NULL) {
-    return 0;
-  }
-
-  PRINTF("collect_neighbor_add: adding %d.%d\n", addr->u8[0], addr->u8[1]);
-
-  /* Check if the collect_neighbor is already on the list. */
-  for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
-    if(linkaddr_cmp(&n->addr, addr)) {
-      PRINTF("collect_neighbor_add: already on list %d.%d\n",
-             addr->u8[0], addr->u8[1]);
-      break;
-    }
-  }
-
-  /* If the collect_neighbor was not on the list, we try to allocate memory
-     for it. */
-  if(n == NULL) {
-    PRINTF("collect_neighbor_add: not on list, allocating %d.%d\n",
-           addr->u8[0], addr->u8[1]);
-    n = memb_alloc(&collect_neighbors_mem);
-    if(n != NULL) {
-      list_add(neighbors_list->list, n);
-    }
-  }
-
-  /* If we could not allocate memory, we try to recycle an old
-     neighbor. XXX Should also look for the one with the worst
-     rtmetric (not link esimate). XXX Also make sure that we don't
-     replace a neighbor with a neighbor that has a worse metric. */
-  if(n == NULL) {
-    uint16_t worst_rtmetric;
-    struct collect_neighbor *worst_neighbor;
-
-    /* Find the neighbor that has the highest rtmetric. This is the
-       neighbor that we are least likely to be using in the
-       future. But we also need to make sure that the neighbor we are
-       currently adding is not worst than the one we would be
-       replacing. If so, we don't put the new neighbor on the list. */
-    worst_rtmetric = 0;
-    worst_neighbor = NULL;
-
-    for(n = list_head(neighbors_list->list);
-        n != NULL; n = list_item_next(n)) {
-      if(n->rtmetric > worst_rtmetric) {
-        worst_neighbor = n;
-        worst_rtmetric = n->rtmetric;
+  /* Check if the neighbor is already in the table */
+  if(collect_nbr_find(addr) == NULL) {
+    /* The neighbor is not already in the table.
+     * Before we add a new neighbor we check if the table is full. If that is 
+     * true we check if the routing metric of the new neighbor is better than 
+     * the worst neighbor. If this occurs, we replace the worst neighbor with 
+     * the new one. Otherwise, we do not add this new neighbor.
+     *
+     * This mechanism avoids using the default neighbor policy.
+     */
+    if(collect_nbr_num() >= MAX_COLLECT_NEIGHBORS) {
+      collect_nbr_t *worst;
+      worst = collect_nbr_worst();
+      if(worst->rtmetric > nrtmetric) {
+        /* The new neighbor is better than the worst one. We remove the worst
+         * neighbor to make space for the new one.
+         */
+        collect_nbr_rm(worst);
+      } else {
+        /* The worst neighbor is better or equal to the new one in terms of 
+         * the routing metric. We do not replace the neighbor and neither add 
+         * the new one.
+         */
+        return 0;
       }
     }
 
-    /* Only add this new neighbor if its rtmetric is lower than the
-       one it would replace. */
-    if(nrtmetric < worst_rtmetric) {
-      n = worst_neighbor;
-    }
-    if(n != NULL) {
-      PRINTF("collect_neighbor_add: not on list, not allocated, recycling %d.%d\n",
-             n->addr.u8[0], n->addr.u8[1]);
-    }
-  }
+    /* Now, we should have space to add the new neighbor */
+    n = nbr_table_add_lladdr(
+      collect_nbr_table,
+      addr,
+      NBR_TABLE_REASON_UNDEFINED,
+      NULL);
 
-  if(n != NULL) {
-    n->age = 0;
-    linkaddr_copy(&n->addr, addr);
-    n->rtmetric = nrtmetric;
-    collect_link_estimate_new(&n->le);
-    n->le_age = 0;
-    return 1;
+    if(n != NULL) {
+      n->age = 0;
+      n->rtmetric = nrtmetric;
+      collect_link_estimate_new(&n->le);
+      n->le_age = 0;
+      return 1;
+    }
   }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-list_t
-collect_neighbor_list(struct collect_neighbor_list *neighbors_list)
-{
-  if(neighbors_list == NULL) {
-    return NULL;
-  }
-
-  return neighbors_list->list;
-}
-/*---------------------------------------------------------------------------*/
 void
-collect_neighbor_list_remove(struct collect_neighbor_list *neighbors_list,
-                             const linkaddr_t *addr)
+collect_nbr_rm(collect_nbr_t *n)
 {
-  struct collect_neighbor *n;
-
-  if(neighbors_list == NULL) {
-    return;
-  }
-
-  n = collect_neighbor_list_find(neighbors_list, addr);
-
-  if(n != NULL) {
-    list_remove(neighbors_list->list, n);
-    memb_free(&collect_neighbors_mem, n);
-  }
+  nbr_table_remove(collect_nbr_table, n);
 }
 /*---------------------------------------------------------------------------*/
-struct collect_neighbor *
-collect_neighbor_list_best(struct collect_neighbor_list *neighbors_list)
+collect_nbr_t *
+collect_nbr_best(void)
 {
-  struct collect_neighbor *n, *best;
-  uint16_t rtmetric;
+  collect_nbr_t *n;
+  collect_nbr_t *best_nbr = NULL;
+  uint16_t best_rtmetric = RTMETRIC_MAX;
 
-  rtmetric = RTMETRIC_MAX;
-  best = NULL;
-
-  if(neighbors_list == NULL) {
-    return NULL;
-  }
-
-  /*  PRINTF("%d: ", node_id);*/
-  PRINTF("collect_neighbor_best: ");
-
-  /* Find the neighbor with the lowest rtmetric + linkt estimate. */
-  for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
-    PRINTF("%d.%d %d+%d=%d, ",
-           n->addr.u8[0], n->addr.u8[1],
-           n->rtmetric, collect_neighbor_link_estimate(n),
-           collect_neighbor_rtmetric(n));
-    if(collect_neighbor_rtmetric_link_estimate(n) < rtmetric) {
-      rtmetric = collect_neighbor_rtmetric_link_estimate(n);
-      best = n;
+  for(n = nbr_table_head(collect_nbr_table);
+      n != NULL;
+      n = nbr_table_next(collect_nbr_table, n)) {
+    if(n->rtmetric < best_rtmetric) {
+      best_nbr = n;
+      best_rtmetric = n->rtmetric;
     }
   }
-  PRINTF("\n");
 
-  return best;
+  return best_nbr;
+}
+/*---------------------------------------------------------------------------*/
+collect_nbr_t *
+collect_nbr_worst(void)
+{
+  collect_nbr_t *n;
+  collect_nbr_t *worst_nbr = NULL;
+  uint16_t worst_rtmetric = 0;
+
+  for(n = nbr_table_head(collect_nbr_table);
+      n != NULL;
+      n = nbr_table_next(collect_nbr_table, n)) {
+    if(n->rtmetric > worst_rtmetric) {
+      worst_nbr = n;
+      worst_rtmetric = n->rtmetric;
+    }
+  }
+  
+  return worst_nbr;
 }
 /*---------------------------------------------------------------------------*/
 int
-collect_neighbor_list_num(struct collect_neighbor_list *neighbors_list)
+collect_nbr_num(void)
 {
-  if(neighbors_list == NULL) {
-    return 0;
-  }
+  collect_nbr_t *n;
+  int num;
 
-  PRINTF("collect_neighbor_num %d\n", list_length(neighbors_list->list));
-  return list_length(neighbors_list->list);
+  num = 0;
+  for(n = nbr_table_head(collect_nbr_table);
+      n != NULL;
+      n = nbr_table_next(collect_nbr_table, n)) {
+    num++;
+  }
+  PRINTF("collect_nbr_num %d\n", num);
+  return num;
 }
 /*---------------------------------------------------------------------------*/
-struct collect_neighbor *
-collect_neighbor_list_get(struct collect_neighbor_list *neighbors_list, int num)
+collect_nbr_t *
+collect_nbr_get(int num)
 {
+  collect_nbr_t *n;
   int i;
-  struct collect_neighbor *n;
-
-  if(neighbors_list == NULL) {
-    return NULL;
-  }
-
-  PRINTF("collect_neighbor_get %d\n", num);
 
   i = 0;
-  for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
+  PRINTF("collect_nbr_get %d\n", num);
+  for(n = nbr_table_head(collect_nbr_table);
+      n != NULL;
+      n = nbr_table_next(collect_nbr_table, n)) {
     if(i == num) {
-      PRINTF("collect_neighbor_get found %d.%d\n",
-             n->addr.u8[0], n->addr.u8[1]);
+#if DEBUG
+      linkaddr_t *addr;
+      addr = nbr_table_get_lladdr(collect_nbr_table, n);
+      PRINTF("collect_nbr_get found %d.%d\n",
+        addr->u8[0],
+        addr->u8[1]);
+#endif
       return n;
     }
     i++;
@@ -319,31 +260,32 @@ collect_neighbor_list_get(struct collect_neighbor_list *neighbors_list, int num)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_list_purge(struct collect_neighbor_list *neighbors_list)
+collect_nbr_purge(void)
 {
-  if(neighbors_list == NULL) {
-    return;
-  }
-
-  while(list_head(neighbors_list->list) != NULL) {
-    memb_free(&collect_neighbors_mem, list_pop(neighbors_list->list));
-  }
+  /* TO DO 
+   * This function is only called from collect_purge, but collect_purge is 
+   * not called from anywhere. 
+   */
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_update_rtmetric(struct collect_neighbor *n, uint16_t rtmetric)
+collect_nbr_update_rtmetric(collect_nbr_t *n, uint16_t rtmetric)
 {
   if(n != NULL) {
-    PRINTF("%d.%d: collect_neighbor_update %d.%d rtmetric %d\n",
+#if DEBUG
+  	linkaddr_t *addr;
+    addr = nbr_table_get_lladdr(collect_nbr_table, n);
+    PRINTF("%d.%d: collect_nbr_update_rtmetric %d.%d rtmetric %d\n",
            linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
-           n->addr.u8[0], n->addr.u8[1], rtmetric);
+           addr->u8[0], addr->u8[1], rtmetric);
+#endif
     n->rtmetric = rtmetric;
     n->age = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_tx_fail(struct collect_neighbor *n, uint16_t num_tx)
+collect_nbr_tx_fail(collect_nbr_t *n, uint16_t num_tx)
 {
   if(n == NULL) {
     return;
@@ -354,7 +296,7 @@ collect_neighbor_tx_fail(struct collect_neighbor *n, uint16_t num_tx)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_tx(struct collect_neighbor *n, uint16_t num_tx)
+collect_nbr_tx(collect_nbr_t *n, uint16_t num_tx)
 {
   if(n == NULL) {
     return;
@@ -365,7 +307,7 @@ collect_neighbor_tx(struct collect_neighbor *n, uint16_t num_tx)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_rx(struct collect_neighbor *n)
+collect_nbr_rx(collect_nbr_t *n)
 {
   if(n == NULL) {
     return;
@@ -375,16 +317,20 @@ collect_neighbor_rx(struct collect_neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-collect_neighbor_link_estimate(struct collect_neighbor *n)
+collect_nbr_link_estimate(collect_nbr_t *n)
 {
   if(n == NULL) {
     return 0;
   }
-  if(collect_neighbor_is_congested(n)) {
-    /*    printf("Congested %d.%d, sould return %d, returning %d\n",
-           n->addr.u8[0], n->addr.u8[1],
+  if(collect_nbr_is_congested(n)) {
+    /*
+    linkaddr_t *addr;
+    addr = nbr_table_get_lladdr(collect_nbr_table, n);
+    printf("Congested %d.%d, sould return %d, returning %d\n",
+           addr->u8[0], addr->u8[1],
            collect_link_estimate(&n->le),
-           collect_link_estimate(&n->le) + CONGESTION_PENALTY);*/
+           collect_link_estimate(&n->le) + CONGESTION_PENALTY);
+    */
     return collect_link_estimate(&n->le) + CONGESTION_PENALTY;
   } else {
     return collect_link_estimate(&n->le);
@@ -392,7 +338,7 @@ collect_neighbor_link_estimate(struct collect_neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n)
+collect_nbr_rtmetric_link_estimate(collect_nbr_t *n)
 {
   if(n == NULL) {
     return 0;
@@ -401,17 +347,16 @@ collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-collect_neighbor_rtmetric(struct collect_neighbor *n)
+collect_nbr_rtmetric(const collect_nbr_t *n)
 {
   if(n == NULL) {
     return 0;
   }
-
   return n->rtmetric;
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_set_congested(struct collect_neighbor *n)
+collect_nbr_set_congested(collect_nbr_t *n)
 {
   if(n == NULL) {
     return;
@@ -420,7 +365,7 @@ collect_neighbor_set_congested(struct collect_neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 int
-collect_neighbor_is_congested(struct collect_neighbor *n)
+collect_nbr_is_congested(collect_nbr_t *n)
 {
   if(n == NULL) {
     return 0;

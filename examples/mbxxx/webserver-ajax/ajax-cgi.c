@@ -158,40 +158,42 @@ static unsigned short
 make_neighbor(void *arg)
 {
   struct httpd_state *s = (struct httpd_state *)arg;
-  struct collect_neighbor *n = collect_neighbor_get(s->u.count);
+  collect_nbr_t *n = collect_nbr_get(s->u.count);
 
   if(n == NULL) {
     return 0;
   }
 
 #if !NETSTACK_CONF_WITH_IPV6
+  linkaddr_t *addr;
+  addr = nbr_table_get_lladdr(collect_nbr_table, n);
   return snprintf((char *)uip_appdata, uip_mss(),
 		  "<li><a href=\"http://172.16.%d.%d/\">%d.%d</a>\r\n",
-		  n->addr.u8[0], n->addr.u8[1],
-		  n->addr.u8[0], n->addr.u8[1]);
+		  addr->u8[0], addr->u8[1],
+		  addr->u8[0], addr->u8[1]);
 #else
 #if 0
   uip_ipaddr_t ipaddr;
   char ipaddr_str[41];
   
   uip_ip6addr(&ipaddr, NET_ADDR_A, NET_ADDR_B, NET_ADDR_C, NET_ADDR_D,
-              (uint16_t)(((uint16_t)(n->addr.u8[0]^0x02))<<8 | (uint16_t)n->addr.u8[1]),
-              ((uint16_t)(n->addr.u8[2]))<<8 | (uint16_t)n->addr.u8[3],
-              (uint16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
-              (uint16_t)(n->addr.u8[6])<<8 | n->addr.u8[7]);
+              (uint16_t)(((uint16_t)(addr->u8[0]^0x02))<<8 | (uint16_t)addr->u8[1]),
+              ((uint16_t)(addr->u8[2]))<<8 | (uint16_t)addr->u8[3],
+              (uint16_t)(addr->u8[4])<<8 | addr->u8[5],
+              (uint16_t)(addr->u8[6])<<8 | addr->u8[7]);
   httpd_sprint_ip6(ipaddr, ipaddr_str);
   
   return snprintf((char *)uip_appdata, uip_mss(),
 		  "<li><a href=\"http://%s/\">%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X</a>\r\n",
 		  ipaddr_str,
-          n->addr.u8[0],
-          n->addr.u8[1],
-          n->addr.u8[2],
-          n->addr.u8[3],
-          n->addr.u8[4],
-          n->addr.u8[5],
-          n->addr.u8[6],
-          n->addr.u8[7]);
+          addr->u8[0],
+          addr->u8[1],
+          addr->u8[2],
+          addr->u8[3],
+          addr->u8[4],
+          addr->u8[5],
+          addr->u8[6],
+          addr->u8[7]);
 #endif
   /* Automatic generation of node address. Javascript funcion required.
    * Client-side generation is simpler than server-side, as parsing http header
@@ -199,18 +201,18 @@ make_neighbor(void *arg)
    */
   return snprintf((char *)uip_appdata, uip_mss(),
                   "<li><a id=node name='%x:%x:%x:%x'>%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X</a>\r\n",
-                  (uint16_t)(((uint16_t)(n->addr.u8[0]^0x02))<<8 | (uint16_t)n->addr.u8[1]),
-                  ((uint16_t)(n->addr.u8[2]))<<8 | (uint16_t)n->addr.u8[3],
-                  (uint16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
-                  (uint16_t)(n->addr.u8[6])<<8 | n->addr.u8[7],
-                  n->addr.u8[0],
-                  n->addr.u8[1],
-                  n->addr.u8[2],
-                  n->addr.u8[3],
-                  n->addr.u8[4],
-                  n->addr.u8[5],
-                  n->addr.u8[6],
-                  n->addr.u8[7]);
+                  (uint16_t)(((uint16_t)(addr->u8[0]^0x02))<<8 | (uint16_t)addr->u8[1]),
+                  ((uint16_t)(addr->u8[2]))<<8 | (uint16_t)addr->u8[3],
+                  (uint16_t)(addr->u8[4])<<8 | addr->u8[5],
+                  (uint16_t)(addr->u8[6])<<8 | addr->u8[7],
+                  addr->u8[0],
+                  addr->u8[1],
+                  addr->u8[2],
+                  addr->u8[3],
+                  addr->u8[4],
+                  addr->u8[5],
+                  addr->u8[6],
+                  addr->u8[7]);
   
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 }
@@ -224,9 +226,9 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
   
   /*  printf("neighbor_num %d\n", neighbor_num());*/
   
-  for(s->u.count = 0; s->u.count < collect_neighbor_num(); s->u.count++) {
+  for(s->u.count = 0; s->u.count < collect_nbr_num(); s->u.count++) {
     /*    printf("count %d\n", s->u.count);*/
-    if(collect_neighbor_get(s->u.count) != NULL) {
+    if(collect_nbr_get(s->u.count) != NULL) {
       /*      printf("!= NULL\n");*/
       PSOCK_GENERATOR_SEND(&s->sout, make_neighbor, s);
     }
@@ -240,16 +242,16 @@ static void
 received_announcement(struct announcement *a, const linkaddr_t *from,
 	     uint16_t id, uint16_t value)
 {
-  struct collect_neighbor *n;
+  collect_nbr_t *n;
 
   /*  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]);*/
   
-  n = collect_neighbor_find(from);
+  n = collect_nbr_find(from);
   
   if(n == NULL) {
-    collect_neighbor_add(from, value, 1);
+    collect_nbr_add(from, value, 1);
   } else {
-    collect_neighbor_update(n, value);
+    collect_nbr_update_rtmetric(n, value);
   }
 }
 #endif
