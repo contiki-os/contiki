@@ -54,6 +54,13 @@
 #define PRINTLLADDR(addr)
 #endif
 
+
+char *pyld;
+
+char *get_payload(){
+  return pyld;
+}
+
 PROCESS(coap_engine, "CoAP Engine");
 
 /*---------------------------------------------------------------------------*/

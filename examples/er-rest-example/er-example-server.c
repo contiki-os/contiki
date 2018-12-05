@@ -42,7 +42,8 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "rest-engine.h"
-
+#include "event-trace.h"
+#include "powertrace.h"
 #if PLATFORM_HAS_BUTTON
 #include "dev/button-sensor.h"
 #endif
@@ -107,6 +108,9 @@ PROCESS_THREAD(er_example_server, ev, data)
 {
   PROCESS_BEGIN();
 
+  printf("Setting harvesting OFF\n");
+  setHarvestingOff();
+
   PROCESS_PAUSE();
 
   PRINTF("Starting Erbium Example Server\n");
@@ -125,6 +129,16 @@ PROCESS_THREAD(er_example_server, ev, data)
 
   /* Initialize the REST engine. */
   rest_init_engine();
+
+  unsigned seconds_event=60;
+  unsigned seconds=60*5;// warning: if this variable is changed, then the kinect variable the count the minutes should be changed
+  double fixed_perc_energy = 0.2;// 0 - 1
+  unsigned variation = 2;//0 - 99
+
+  powertrace_start(CLOCK_SECOND * seconds, seconds, fixed_perc_energy, variation);
+  event_trace_start(seconds_event, CLOCK_SECOND * seconds_event);
+
+
 
   /*
    * Bind the resources to their Uri-Path.

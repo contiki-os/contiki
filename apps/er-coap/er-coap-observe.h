@@ -45,6 +45,8 @@
 
 #define COAP_OBSERVER_URL_LEN 20
 
+#define COAP_OBSERVING_REFRESH_INTERVAL  30 
+
 typedef struct coap_observable {
   uint32_t observe_clock;
   struct stimer orphan_timer;
