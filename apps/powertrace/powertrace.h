@@ -42,7 +42,7 @@
 
 #include "sys/clock.h"
 
-void powertrace_start(clock_time_t perioc);
+void powertrace_start(clock_time_t period, unsigned seconds, double fixed_perc_energy, unsigned variation);
 void powertrace_stop(void);
 
 typedef enum {
@@ -51,7 +51,26 @@ typedef enum {
 } powertrace_onoff_t;
 
 void powertrace_sniff(powertrace_onoff_t onoff);
-
 void powertrace_print(char *str);
+
+
+
+// ------------ STRUCTS --------------
+struct battery;
+
+struct stats;
+
+struct energy_states;
+
+// ----------- FUNCTIONS -------------
+void update_battery();
+
+void update_time_stats();
+
+void battery_start(clock_time_t perioc, unsigned, double, unsigned);
+
+void kinetic_model();
+
+void setHarvestingOff();
 
 #endif /* POWERTRACE_H */

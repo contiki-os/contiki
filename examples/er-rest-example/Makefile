@@ -5,6 +5,11 @@ CONTIKI=../..
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
+
+CFLAGS+= -lm
+LDFLAGS += -lm
+TARGET_LIBFILES+=-lm
+
 # automatically build RESTful resources
 REST_RESOURCES_DIR = ./resources
 ifndef TARGET
@@ -25,7 +30,10 @@ SMALL=1
 
 # REST Engine shall use Erbium CoAP implementation
 APPS += er-coap
+APPS+= powertrace
 APPS += rest-engine
+APPS+=event-trace
+
 
 # optional rules to get assembly
 #CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
