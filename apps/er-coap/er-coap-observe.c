@@ -347,6 +347,9 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
           coap_set_header_observe(coap_res, (obs->obs_counter)++);
           /* mask out to keep the CoAP observe option length <= 3 bytes */
           obs->obs_counter &= 0xffffff;
+
+          coap_set_payload(coap_res, "1", 16);
+
           /*
            * Following payload is for demonstration purposes only.
            * A subscription should return the same representation as a normal GET.

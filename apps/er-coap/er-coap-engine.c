@@ -181,6 +181,9 @@ coap_receive(void)
                                        response->payload + block_offset,
                                        MIN(response->payload_len -
                                            block_offset, block_size));
+
+                      printf("Set payload: %s\n", response->payload);
+
                     } /* if(valid offset) */
 
                     /* resource provides chunk-wise data */
