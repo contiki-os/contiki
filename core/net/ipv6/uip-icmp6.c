@@ -47,16 +47,8 @@
 #include "net/ipv6/uip-icmp6.h"
 #include "contiki-default-conf.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#endif
+#define DEBUG DEBUG_NONE
+#include "net/ip/uip-debug.h"
 
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -361,11 +353,44 @@ uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n)
 {
   list_remove(echo_reply_callback_list, n);
 }
+
+/*---------------------------------------------------------------------------*/
+static void
+destination_unreachable_input(void)
+{
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF(": destination unreachable (");
+  switch(UIP_ICMP_BUF->icode) {
+    case ICMP6_DST_UNREACH_NOROUTE:
+      PRINTF("no route to destination");
+      break;
+    case ICMP6_DST_UNREACH_ADMIN:
+      PRINTF("communication with destination administratively prohibited");
+      break;
+    case ICMP6_DST_UNREACH_BEYONDSCOPE:
+      PRINTF("beyond scope of source address");
+      break;
+    case ICMP6_DST_UNREACH_ADDR:
+      PRINTF("address unreachable");
+      break;
+    case ICMP6_DST_UNREACH_NOPORT:
+      PRINTF("port unreachable");
+      break;
+    default:
+      printf("unknown reason code");
+  }
+  PRINTF(")\n");
+
+  return;
+}
+
 /*---------------------------------------------------------------------------*/
 UIP_ICMP6_HANDLER(echo_request_handler, ICMP6_ECHO_REQUEST,
                   UIP_ICMP6_HANDLER_CODE_ANY, echo_request_input);
 UIP_ICMP6_HANDLER(echo_reply_handler, ICMP6_ECHO_REPLY,
                   UIP_ICMP6_HANDLER_CODE_ANY, echo_reply_input);
+UIP_ICMP6_HANDLER(destination_unreachable_handler, ICMP6_DST_UNREACH,
+                  UIP_ICMP6_HANDLER_CODE_ANY, destination_unreachable_input);
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_init()
@@ -373,6 +398,7 @@ uip_icmp6_init()
   /* Register Echo Request and Reply handlers */
   uip_icmp6_register_input_handler(&echo_request_handler);
   uip_icmp6_register_input_handler(&echo_reply_handler);
+  uip_icmp6_register_input_handler(&destination_unreachable_handler);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
