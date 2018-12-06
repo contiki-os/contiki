@@ -1,0 +1,9 @@
+rm -rf testeOK.tmp
+
+sh ./rpl.sh & PIDRPL=$!
+sleep 4
+sh ./obs.sh modified_output20 19 & PIDOBS=$!
+
+
+
+

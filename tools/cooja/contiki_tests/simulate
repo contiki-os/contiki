@@ -1,0 +1,44 @@
+n=4
+
+rm -rf testeOK.tmp
+while true
+do
+#	echo "aaaaaaaaaaaaaaaaaaaaa"
+	rm -rf 20.cooja_log
+	rm -rf 20.log
+	rm -rf COOJA.log
+	rm -rf COOJA.testlog
+	pkill -f obs.sh
+	pkill -f 'java -jar'
+	killall java
+	rm -rf nodes.txt	
+	sh ./obs.sh modified_output20_$1_$((n+1)) 20 & PIDOBS=$!
+	sleep 2
+	nice -n -20 sh ./RUN_TEST.sh 20 -y >/dev/null & PIDRUN=$!
+	sleep 15
+	sh ./rpl.sh & PIDRPL=$!
+	sleep 5
+	echo $PIDRUN
+	sleep 5
+#	sleep 4500
+#	wait $PIDRUN
+	rm -rf testeOK.tmp
+	while [ ! -f "testeOK.tmp" ]
+	do
+		sleep 2	
+	done
+	echo "Test Over."
+	rm -rf testeOK.tmp
+#	kill -9 $PIDRPL
+#	pkill -9 -p $PIDOBS
+#	pkill -f obs.sh
+	let "n++"
+	mv 20.log vinte_nivel_$2/logs/20_$n.log
+	mv modified_output20_$1_$n vinte_nivel_$2/logs/modified_output20_$1_$n.txt
+	if [ $n -gt 31 ]
+	then
+		exit 0
+	fi
+done
+
+

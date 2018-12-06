@@ -1,0 +1,5 @@
+
+rm -rf testeOK.tmp
+
+sh ./obs.sh modified_output20_$1_$((n+1)) 20 & PIDOBS=$!
+sh ./rpl.sh & PIDRPL=$!

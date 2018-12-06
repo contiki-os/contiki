@@ -1,0 +1,87 @@
+[System]
+Name='obs6-7'
+Type='mamdani'
+Version=2.0
+NumInputs=4
+NumOutputs=3
+NumRules=15
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='#nodes'
+Range=[0 1]
+NumMFs=4
+MF1='low':'trimf',[-0.4 0 0.3]
+MF2='high-mid':'trimf',[0.4 0.65 0.9]
+MF3='high':'trimf',[0.7 1 1.4]
+MF4='low-mid':'trimf',[0.1 0.35 0.6]
+
+[Input2]
+Name='loss'
+Range=[0 1]
+NumMFs=3
+MF1='low':'trimf',[-0.398 0.002008 0.2]
+MF2='high':'trapmf',[0.5 0.6 1.04 1.36]
+MF3='medium':'trapmf',[0.1 0.2 0.5 0.6]
+
+[Input3]
+Name='event_class'
+Range=[0 3]
+NumMFs=3
+MF1='low':'trimf',[-1.2 0 1.2]
+MF2='medium':'trimf',[0.3 1.5 2.7]
+MF3='high':'trimf',[1.8 3 4.2]
+
+[Input4]
+Name='harvesting'
+Range=[0 1]
+NumMFs=3
+MF1='medium':'trapmf',[0.1 0.2 0.3 0.4]
+MF2='low':'trapmf',[0 0 0.1 0.18]
+MF3='high':'trapmf',[0.3 0.4 1 1]
+
+[Output1]
+Name='Frequency'
+Range=[5 30]
+NumMFs=4
+MF1='high':'trimf',[-8328 9.167 14.17]
+MF2='high-mid':'trimf',[10.83 15 19.17]
+MF3='low-mid':'trimf',[15.83 20 24.17]
+MF4='low':'trimf',[20.83 25.83 8338]
+
+[Output2]
+Name='Eliminate'
+Range=[0 2]
+NumMFs=2
+MF1='no':'trapmf',[0 0 1 1]
+MF2='yes':'trapmf',[1 1 2 2]
+
+[Output3]
+Name='CON'
+Range=[0 1]
+NumMFs=4
+MF1='low':'trimf',[-9999 0.15 0.3]
+MF2='low-mid':'trimf',[0.2 0.315 0.45]
+MF3='high':'trimf',[0.5 0.65 9999]
+MF4='high-md':'trimf',[0.35 0.475 0.6]
+
+[Rules]
+3 0 0 2, 0 2 0 (1) : 1
+3 2 0 0, 4 0 0 (1) : 1
+4 3 0 0, 3 0 0 (1) : 1
+2 3 0 0, 2 0 0 (1) : 1
+0 0 1 0, 4 0 1 (1) : 1
+0 0 2 0, 3 0 2 (1) : 1
+0 0 3 0, 1 0 3 (1) : 1
+-3 2 0 0, 0 0 3 (1) : 1
+-4 3 0 0, 0 0 2 (1) : 1
+-2 3 0 0, 0 0 4 (1) : 1
+-3 0 0 -2, 0 1 4 (1) : 1
+3 2 -3 0, 0 2 0 (1) : 1
+2 1 0 0, 2 0 0 (1) : 1
+1 0 0 0, 0 1 0 (1) : 1
+3 0 -3 0, 0 2 0 (1) : 1

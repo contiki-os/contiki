@@ -296,7 +296,7 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
       //}
 
         if(getInstructions(get_payload())){
-        coap_remove_observer(obs);
+        //coap_remove_observer(obs);
         printf("Removed node\n");
       }
 
