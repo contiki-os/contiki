@@ -117,6 +117,20 @@ $(OBJECTDIR):
 
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
+### Include target makefile (TODO Unsafe?)
+
+target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
+
+# Check if the target makefile exists, and create the object directory if necessary.
+ifeq ($(strip $(target_makefile)),)
+  ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
+else
+  ifneq (1, ${words $(target_makefile)})
+    ${error More than one TARGET Makefile found: $(target_makefile)}
+  endif
+  include $(target_makefile)
+endif
+
 ### Include application makefiles
 
 ifdef APPS
@@ -131,19 +145,6 @@ ifdef APPS
   CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
 endif
 
-### Include target makefile (TODO Unsafe?)
-
-target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
-
-# Check if the target makefile exists, and create the object directory if necessary.
-ifeq ($(strip $(target_makefile)),)
-  ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
-else
-  ifneq (1, ${words $(target_makefile)})
-    ${error More than one TARGET Makefile found: $(target_makefile)}
-  endif
-  include $(target_makefile)
-endif
 
 ifdef MODULES
   UNIQUEMODULES = $(call uniq,$(MODULES))
