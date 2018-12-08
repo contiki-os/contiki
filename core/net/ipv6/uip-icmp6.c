@@ -205,8 +205,8 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
 
   uip_len += UIP_IPICMPH_LEN + UIP_ICMP6_ERROR_LEN;
 
-  if(uip_len > UIP_LINK_MTU) {
-    uip_len = UIP_LINK_MTU;
+  if(uip_len > MIN(UIP_LINK_MTU, UIP_BUFSIZE)) {
+    uip_len = MIN(UIP_LINK_MTU, UIP_BUFSIZE);
   }
 
   memmove((uint8_t *)UIP_ICMP6_ERROR_BUF + uip_ext_len + UIP_ICMP6_ERROR_LEN,
