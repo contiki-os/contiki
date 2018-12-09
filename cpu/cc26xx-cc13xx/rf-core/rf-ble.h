@@ -53,9 +53,15 @@
 #else
 #define RF_BLE_ENABLED 1
 #endif
+#ifdef EDDYSTONE_CONF_ENABLED
+#define EDDYSTONE_ENABLED EDDYSTONE_CONF_ENABLED
+#else
+#define EDDYSTONE_ENABLED 0
+#endif
 /*---------------------------------------------------------------------------*/
 #define RF_BLE_IDLE   0
 #define RF_BLE_ACTIVE 1
+#define EDDYSTONE_INSTANCE_LEN  6
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Set the device name to use with the BLE advertisement/beacon daemon
@@ -66,8 +72,11 @@
  * this function can be used to configure a single parameter at a time if so
  * desired.
  */
+#ifndef EDDYSTONE_ENABLED
 void rf_ble_beacond_config(clock_time_t interval, const char *name);
-
+#else
+void rf_ble_beacond_config(clock_time_t interval, uint8_t *instance);
+#endif
 /**
  * \brief Start the BLE advertisement/beacon daemon
  * \return RF_CORE_CMD_OK: Success, RF_CORE_CMD_ERROR: Failure
