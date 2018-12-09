@@ -74,6 +74,8 @@ CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
 CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
 CONTIKI_CPU_SOURCEFILES += rf-core.c rf-ble.c ieee-mode.c
 CONTIKI_CPU_SOURCEFILES += random.c soc-trng.c
+CONTIKI_CPU_SOURCEFILES += cc26xx-crypto.c aes.c cc26xx-aes-128.c
+CONTIKI_CPU_SOURCEFILES += cc26xx-ccm.c cc26xx-ccm-star.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
