@@ -96,6 +96,10 @@ enum {
      fatal error. The upper layer does not need to try again, as the
      error will be fatal then as well. */
   MAC_TX_ERR_FATAL,
+
+  /**< This error provided by TSCH slot operation to note security
+   *   encription error. */
+  MAC_TX_ERR_SEC
 };
 
 #endif /* MAC_H_ */

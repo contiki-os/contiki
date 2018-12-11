@@ -358,6 +358,19 @@ tsch_rx_process_pending()
       packetbuf_copyfrom(current_input->payload, current_input->len);
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, current_input->rssi);
       packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, current_input->channel);
+#if LLSEC802154_USES_AUX_HEADER
+      // this for app can check wich security of received frame was used
+      if (frame.fcf.security_enabled){
+          packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL
+                             , frame.aux_hdr.security_control.security_level );
+#if LLSEC802154_USES_EXPLICIT_KEYS
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE
+                             , frame.aux_hdr.security_control.key_id_mode );
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX
+                             , frame.aux_hdr.key_index );
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+      }//if (frame.fcf.security_enabled)
+#endif
     }
 
     /* Remove input from ringbuf */
@@ -902,9 +915,11 @@ send_packet(mac_callback_t sent, void *ptr)
 #if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
     /* Set security level, key id and index */
+    if (packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) == 0) {
     packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
+  }
   }
 #endif /* LLSEC802154_ENABLED */
 
@@ -919,7 +934,8 @@ send_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 #endif
 
-  if((hdr_len = NETSTACK_FRAMER.create()) < 0) {
+  hdr_len = NETSTACK_FRAMER.create();
+  if(hdr_len < 0) {
     PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   } else {

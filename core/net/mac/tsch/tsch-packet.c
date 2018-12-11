@@ -66,7 +66,8 @@
 /* Construct enhanced ACK packet and return ACK length */
 int
 tsch_packet_create_eack(uint8_t *buf, int buf_size,
-                        const linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
+                        const linkaddr_t *dest_addr, const frame802154_t *frame
+                        , int16_t drift, int nack)
 {
   int ret;
   uint8_t curr_len = 0;
@@ -82,7 +83,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
    * - if at least one address is present: include exactly one PAN ID (dest by default) */
   p.fcf.panid_compression = 0;
   p.dest_pid = IEEE802154_PANID;
-  p.seq = seqno;
+  p.seq = frame->seq;
 #if TSCH_PACKET_EACK_WITH_DEST_ADDR
   if(dest_addr != NULL) {
     p.fcf.dest_addr_mode = LINKADDR_SIZE > 2 ? FRAME802154_LONGADDRMODE : FRAME802154_SHORTADDRMODE;;
@@ -95,13 +96,19 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
 #endif
 #if LLSEC802154_ENABLED
-  if(tsch_is_pan_secured) {
+  if(frame->fcf.security_enabled) {
     p.fcf.security_enabled = 1;
     p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
     p.aux_hdr.security_control.key_id_mode = FRAME802154_1_BYTE_KEY_ID_MODE;
     p.aux_hdr.security_control.frame_counter_suppression = 1;
     p.aux_hdr.security_control.frame_counter_size = 1;
+#if (TSCH_SECURITY_STRICT & TSCH_SECURITY_RELAX_KEYID)
+    // when declared that net keyid free for user specify, use same keyid for ack
+    // as source packet
+    p.aux_hdr.key_index = frame->aux_hdr.key_index;
+#else
     p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+#endif
   }
 #endif /* LLSEC802154_ENABLED */
 
