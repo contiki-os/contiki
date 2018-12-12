@@ -75,12 +75,18 @@ static void
 tsch_security_init_nonce(uint8_t *nonce,
                          const linkaddr_t *sender, struct tsch_asn_t *asn)
 {
-  memcpy(nonce, sender, 8);
+#if LINKADDR_SIZE < 8
+  memset(nonce, 0, 8);
+#endif
+  memcpy(nonce, sender, LINKADDR_SIZE);
   nonce[8] = asn->ms1b;
   nonce[9] = (asn->ls4b >> 24) & 0xff;
   nonce[10] = (asn->ls4b >> 16) & 0xff;
   nonce[11] = (asn->ls4b >> 8) & 0xff;
   nonce[12] = (asn->ls4b) & 0xff;
+  nonce[13] = 0;
+  nonce[14] = 0;
+  nonce[15] = 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -88,6 +94,7 @@ tsch_security_check_level(const frame802154_t *frame)
 {
   uint8_t required_security_level;
   uint8_t required_key_index;
+  (void)required_key_index;
 
   /* Sanity check */
   if(frame == NULL) {
