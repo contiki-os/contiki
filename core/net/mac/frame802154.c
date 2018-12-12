@@ -244,43 +244,39 @@ frame802154_extract_linkaddr(frame802154_t *frame,
   if(frame == NULL) {
     return 0;
   }
+  if(source_address != NULL) {
   /* Check and extract source address */
   src_addr_len = frame->fcf.src_addr_mode ?
     ((frame->fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) ? 2 : 8) : 0;
   if(src_addr_len == 0 || frame802154_is_broadcast_addr(frame->fcf.src_addr_mode, frame->src_addr)) {
     /* Broadcast address */
-    if(source_address != NULL) {
       linkaddr_copy(source_address, &linkaddr_null);
-    }
   } else {
     /* Unicast address */
-    if(src_addr_len != LINKADDR_SIZE) {
+    if(src_addr_len >= LINKADDR_SIZE)
+        linkaddr_copy(source_address, (linkaddr_t *)frame->src_addr);
+    else
       /* Destination address has a size we can not handle */
       return 0;
     }
-    if(source_address != NULL) {
-      linkaddr_copy(source_address, (linkaddr_t *)frame->src_addr);
-    }
-  }
+  }//if(source_address != NULL)
 
   /* Check and extract destination address */
+  if(dest_address != NULL) {
   dest_addr_len = frame->fcf.dest_addr_mode ?
     ((frame->fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) ? 2 : 8) : 0;
   if(dest_addr_len == 0 || frame802154_is_broadcast_addr(frame->fcf.dest_addr_mode, frame->dest_addr)) {
     /* Broadcast address */
-    if(dest_address != NULL) {
       linkaddr_copy(dest_address, &linkaddr_null);
-    }
   } else {
     /* Unicast address */
-    if(dest_addr_len != LINKADDR_SIZE) {
+    if(dest_addr_len >= LINKADDR_SIZE)
+        linkaddr_copy(dest_address, (linkaddr_t *)frame->dest_addr);
+    else
       /* Destination address has a size we can not handle */
       return 0;
     }
-    if(dest_address != NULL) {
-      linkaddr_copy(dest_address, (linkaddr_t *)frame->dest_addr);
-    }
-  }
+  }//if(dest_address != NULL)
 
   return 1;
 }
