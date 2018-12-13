@@ -58,6 +58,7 @@
 #include "rf-core/rf-core.h"
 #include "rf-core/rf-switch.h"
 #include "rf-core/rf-ble.h"
+#include "rf-core/rf-rat.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
 #include "hw_rfc_dbell.h"
@@ -212,24 +213,9 @@ const output_config_t *tx_power_current = &output_power[0];
 static volatile int8_t last_rssi = 0;
 static volatile uint8_t last_corr_lqi = 0;
 
-extern int32_t rat_offset;
-
 /*---------------------------------------------------------------------------*/
 /* SFD timestamp in RTIMER ticks */
 static volatile uint32_t last_packet_timestamp = 0;
-/* SFD timestamp in RAT ticks (but 64 bits) */
-static uint64_t last_rat_timestamp64 = 0;
-
-/* For RAT overflow handling */
-static struct ctimer rat_overflow_timer;
-static volatile uint32_t rat_overflow_counter = 0;
-static rtimer_clock_t last_rat_overflow = 0;
-
-/* RAT has 32-bit register, overflows once 18 minutes */
-#define RAT_RANGE  4294967296ull
-/* approximate value */
-#define RAT_OVERFLOW_PERIOD_SECONDS (60 * 18)
-
 /* XXX: don't know what exactly is this, looks like the time to Tx 3 octets */
 #define TIMESTAMP_OFFSET  -(USEC_TO_RADIO(32 * 3) - 1) /* -95.75 usec */
 /*---------------------------------------------------------------------------*/
@@ -776,69 +762,9 @@ static const rf_core_primary_mode_t mode_ieee = {
   soft_off,
   soft_on,
 };
-/*---------------------------------------------------------------------------*/
-static uint8_t
-check_rat_overflow(bool first_time)
-{
-  static uint32_t last_value;
-  uint32_t current_value;
-  uint8_t interrupts_disabled;
-
-  /* Bail out if the RF is not on */
-  if(!rf_is_on()) {
-    return 0;
-  }
-
-  interrupts_disabled = ti_lib_int_master_disable();
-  if(first_time) {
-    last_value = HWREG(RFC_RAT_BASE + RATCNT);
-  } else {
-    current_value = HWREG(RFC_RAT_BASE + RATCNT);
-    if(current_value + RAT_RANGE / 4 < last_value) {
-      /* Overflow detected */
-      last_rat_overflow = RTIMER_NOW();
-      rat_overflow_counter++;
-    }
-    last_value = current_value;
-  }
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static void
-handle_rat_overflow(void *unused)
-{
-  uint8_t success;
-  uint8_t was_off = 0;
-
-  if(!rf_is_on()) {
-    was_off = 1;
-    if(on() != RF_CORE_CMD_OK) {
-      PRINTF("overflow: on() failed\n");
-      ctimer_set(&rat_overflow_timer, CLOCK_SECOND,
-                 handle_rat_overflow, NULL);
-      return;
-    }
-  }
-
-  success = check_rat_overflow(false);
-
-  if(was_off) {
-    off();
-  }
-
-  if(success) {
-    /* Retry after half of the interval */
-    ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
-               handle_rat_overflow, NULL);
-  } else {
-    /* Retry sooner */
-    ctimer_set(&rat_overflow_timer, CLOCK_SECOND,
-               handle_rat_overflow, NULL);
-  }
-}
+const struct rf_rat_controler rfrat_ieee_mode = {
+    &(rf_is_on), &(on), &(off)
+};
 /*---------------------------------------------------------------------------*/
 static int
 init(void)
@@ -873,10 +799,7 @@ init(void)
 
   rf_core_primary_mode_register(&mode_ieee);
 
-  check_rat_overflow(true);
-  ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
-             handle_rat_overflow, NULL);
-
+  rf_rat_monitor_init(&rfrat_ieee_mode);
   process_start(&rf_core_process, NULL);
   return 1;
 }
@@ -1023,46 +946,6 @@ release_data_entry(void)
   rx_read_entry = entry->pNextEntry;
 }
 /*---------------------------------------------------------------------------*/
-static uint32_t
-calc_last_packet_timestamp(uint32_t rat_timestamp)
-{
-  uint64_t rat_timestamp64;
-  uint32_t adjusted_overflow_counter;
-  uint8_t was_off = 0;
-
-  if(!rf_is_on()) {
-    was_off = 1;
-    on();
-  }
-
-  if(rf_is_on()) {
-    check_rat_overflow(false);
-    if(was_off) {
-      off();
-    }
-  }
-
-  adjusted_overflow_counter = rat_overflow_counter;
-
-  /* if the timestamp is large and the last oveflow was recently,
-     assume that the timestamp refers to the time before the overflow */
-  if(rat_timestamp > (uint32_t)(RAT_RANGE * 3 / 4)) {
-    if(RTIMER_CLOCK_LT(RTIMER_NOW(),
-                       last_rat_overflow + RAT_OVERFLOW_PERIOD_SECONDS * RTIMER_SECOND / 4)) {
-      adjusted_overflow_counter--;
-    }
-  }
-
-  /* add the overflowed time to the timestamp */
-  rat_timestamp64 = rat_timestamp + RAT_RANGE * adjusted_overflow_counter;
-  /* correct timestamp so that it refers to the end of the SFD */
-  rat_timestamp64 += TIMESTAMP_OFFSET;
-
-  last_rat_timestamp64 = rat_timestamp64 - rat_offset;
-
-  return RADIO_TO_RTIMER(rat_timestamp64 - rat_offset);
-}
-/*---------------------------------------------------------------------------*/
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
@@ -1106,7 +989,10 @@ read_frame(void *buf, unsigned short buf_len)
   /* get the timestamp */
   memcpy(&rat_timestamp, (char *)rx_read_entry + 9 + len + 4, 4);
 
-  last_packet_timestamp = calc_last_packet_timestamp(rat_timestamp);
+  /* correct timestamp so that it refers to the end of the SFD */
+  rat_timestamp += TIMESTAMP_OFFSET;
+  rf_rat_last_timestamp(rat_timestamp);
+  last_packet_timestamp = rf_rat_calc_last_rttime();
 
   if(!poll_mode) {
     /* Not in poll mode: packetbuf should not be accessed in interrupt context.
@@ -1542,7 +1428,7 @@ set_value(radio_param_t param, radio_value_t value)
   /* Restart the radio timer (RAT).
      This causes resynchronization between RAT and RTC: useful for TSCH. */
   if(rf_core_restart_rat() == RF_CORE_CMD_OK) {
-    check_rat_overflow(false);
+      rf_rat_check_overflow(false);
   }
 
   if(rx_on() != RF_CORE_CMD_OK) {

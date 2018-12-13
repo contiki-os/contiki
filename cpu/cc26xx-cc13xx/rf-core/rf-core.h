@@ -103,6 +103,47 @@
 #define RF_CORE_PROP_BIAS_MODE RF_CORE_BIAS_MODE_EXTERNAL
 #endif
 /*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End IRQ polling mode setup
+ * Not Defined : polling mode enabled by driver.set_value(RADIO_PARAM_RX_MODE)
+ * 0 :           only ISR mode use.
+ * 1 :           only Poling mode use.
+ */
+#ifdef RF_CORE_CONF_POLL_MODE
+#define RF_CORE_POLL_MODE RF_CORE_CONF_POLL_MODE
+#endif
+/*---------------------------------------------------------------------------*/
+/*
+ * RF Front-End pending() api style
+ * 0 :  old behaviour - pending() return count of received packets in que.
+ * 1 :  pending() return count of packets ready for read.
+ * 2 :  read_frame(..) - scan packets que for any finished packet. This helps when
+ *          for some reason RFcore skip some slot, leave it in PENDING state.
+ */
+#define RF_CORE_PENDING_RECEIVED    0
+#define RF_CORE_PENDING_READS       1
+#define RF_CORE_PENDING_READSANY    2
+#ifdef RF_CORE_CONF_PENDING
+#define RF_CORE_PENDING RF_CORE_CONF_PENDING
+#else
+#define RF_CORE_PENDING     RF_CORE_PENDING_RECEIVED
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+/* RF-Front End RAT resyncing strategy provides mechanisms for RAT sync monitoring
+ *  and resyncing
+ *  0 :    resync only on rf-core propety setup
+ *  1 :    validate RF-timestamp in window of current operation, and resync if violate
+ * */
+#define RF_CORE_RAT_SYNC_PROP      0
+#define RF_CORE_RAT_SYNC_AGRESSIVE 1
+#ifdef RF_CORE_CONF_RAT_SYNC_STYLE
+#define PROP_MODE_RAT_SYNC_STYLE    RF_CORE_CONF_RAT_SYNC_STYLE
+#else
+#define PROP_MODE_RAT_SYNC_STYLE    RF_CORE_RAT_SYNC_PROP
+#endif
+/*---------------------------------------------------------------------------*/
 #define RF_CORE_CMD_ERROR                     0
 #define RF_CORE_CMD_OK                        1
 /*---------------------------------------------------------------------------*/
