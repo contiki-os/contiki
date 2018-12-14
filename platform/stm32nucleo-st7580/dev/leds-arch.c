@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Swedish Institute of Computer Science.
+ * Copyright (c) 2017, STMicroelectronics.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,60 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ *
  */
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-st7580-peripherals
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-st7580 LEDs
+ */
+/*---------------------------------------------------------------------------*/
+#include "contiki-conf.h"
+#include "dev/leds.h"
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+extern st_lib_gpio_typedef *st_lib_gpio_port[];
+extern const uint16_t st_lib_gpio_pin[];
+/*---------------------------------------------------------------------------*/
+void
+leds_arch_init(void)
+{
+  st_lib_bsp_led_init(LED1);
+  st_lib_bsp_led_off(LED1);
+  st_lib_bsp_led_init(LED2);
+  st_lib_bsp_led_off(LED2);
+}
+/*---------------------------------------------------------------------------*/
+unsigned char
+leds_arch_get(void)
+{
+  unsigned char ret = 0;
+  if(st_lib_hal_gpio_read_pin(st_lib_gpio_port[LED2], st_lib_gpio_pin[LED2])) {
+    ret |= LEDS_GREEN;
+  }
 
-#ifndef WITH_NON_STORING
-#define WITH_NON_STORING 0 /* Set this to run with non-storing mode */
-#endif /* WITH_NON_STORING */
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+void
+leds_arch_set(unsigned char leds)
+{
+  if(leds & LEDS_GREEN) {
+    st_lib_bsp_led_on(LED1);
+  } else {
+    st_lib_bsp_led_off(LED1);
+  }
 
-#undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#undef UIP_CONF_MAX_ROUTES
-
-#ifdef TEST_MORE_ROUTES
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   30
-#else
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   10
-#endif /* TEST_MORE_ROUTES */
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
-
-/* Define as minutes */
-#define RPL_CONF_DEFAULT_LIFETIME_UNIT   60
-
-/* 10 minutes lifetime of routes */
-#define RPL_CONF_DEFAULT_LIFETIME        10
-
-#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
-
-#if WITH_NON_STORING
-#undef RPL_NS_CONF_LINK_NUM
-#define RPL_NS_CONF_LINK_NUM 40 /* Number of links maintained at the root. Can be set to 0 at non-root nodes. */
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES 0 /* No need for routes */
-#undef RPL_CONF_MOP
-#define RPL_CONF_MOP RPL_MOP_NON_STORING /* Mode of operation*/
-#endif /* WITH_NON_STORING */
-
-#endif
+  if(leds & LEDS_RED) {
+    st_lib_bsp_led_on(LED2);
+  } else {
+    st_lib_bsp_led_off(LED2);
+  }
+}
+/*---------------------------------------------------------------------------*/
+/** @} */
