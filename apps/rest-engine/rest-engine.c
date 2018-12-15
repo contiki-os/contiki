@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "rest-engine.h"
+#include "er-coap-engine.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -229,6 +230,7 @@ PROCESS_THREAD(rest_engine_process, ev, data)
           (periodic_resource->periodic_handler)();
 
           etimer_reset(&periodic_resource->periodic_timer);
+          etimer_set(&periodic_resource->periodic_timer, frequency*CLOCK_SECOND);
         }
       }
     }

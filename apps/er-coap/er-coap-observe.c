@@ -295,8 +295,9 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
         }
       //}
 
+        
         if(getInstructions(get_payload())){
-        //coap_remove_observer(obs);
+        coap_remove_observer(obs);
         printf("Removed node\n");
       }
 
@@ -348,7 +349,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
           /* mask out to keep the CoAP observe option length <= 3 bytes */
           obs->obs_counter &= 0xffffff;
 
-          coap_set_payload(coap_res, "1", 16);
+          coap_set_payload(coap_res, "02", 16);
 
           /*
            * Following payload is for demonstration purposes only.
