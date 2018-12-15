@@ -70,8 +70,12 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
   PROCESS_BEGIN();
 
 
-  /* Start powertracing, once every two seconds. */
-  powertrace_start(CLOCK_SECOND * 2);
+  unsigned seconds_event=60;
+  unsigned seconds=60*5;// warning: if this variable is changed, then the kinect variable the count the minutes should be changed
+  double fixed_perc_energy = 0.2;// 0 - 1
+  unsigned variation = 2;//0 - 99
+
+  powertrace_start(CLOCK_SECOND * seconds, seconds, fixed_perc_energy, variation);
   
   broadcast_open(&broadcast, 129, &broadcast_call);
 

@@ -101,7 +101,10 @@ coap_receive(void)
       PRINTF("  Parsed: v %u, t %u, tkl %u, c %u, mid %u\n", message->version,
              message->type, message->token_len, message->code, message->mid);
       PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
-      PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
+      //PRINTF
+      printf("  Payload: %.*s\n", message->payload_len, message->payload);
+      pyld = message->payload;
+
 
       /* handle requests */
       if(message->code >= COAP_GET && message->code <= COAP_DELETE) {
@@ -425,7 +428,8 @@ PT_THREAD(coap_blocking_request
 
       coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
 
-      PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "",
+      //PRINTF
+      printf("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "",
              state->response->payload_len);
 
       if(res_block == state->block_num) {
