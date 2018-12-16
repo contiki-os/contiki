@@ -337,6 +337,9 @@
 /* Platform-specific define to signify sensor reading failure */
 #define CC26XX_SENSOR_READING_ERROR        0x80000000
 /*---------------------------------------------------------------------------*/
+/* Platform-specific define for the end of the stack region */
+#define STACK_CONF_ORIGIN        ((void *)0x20005000)
+/*---------------------------------------------------------------------------*/
 /**
  * \name Compiler configuration and platform-specific type definitions
  *

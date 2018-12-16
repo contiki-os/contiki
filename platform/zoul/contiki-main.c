@@ -58,6 +58,7 @@
 #include "dev/udma.h"
 #include "dev/crypto.h"
 #include "dev/rtcc.h"
+#include "sys/stack-check.h"
 #include "usb/usb-serial.h"
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -237,6 +238,8 @@ main(void)
 #endif
 
   serial_line_init();
+
+  stack_check_init();
 
   INTERRUPTS_ENABLE();
   fade(LEDS_BLUE);

@@ -52,6 +52,7 @@
 
 #include "sys/node-id.h"
 #include "sys/autostart.h"
+#include "sys/stack-check.h"
 
 #if UIP_CONF_ROUTER
 
@@ -228,6 +229,8 @@ main(int argc, char **argv)
   /*
    * Hardware initialization done!
    */
+
+  stack_check_init();
 
   /* Restore node id if such has been stored in external mem */
   node_id_restore();

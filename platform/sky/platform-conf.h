@@ -219,4 +219,7 @@ typedef long off_t;
 #define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |=  BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
 
+/* Platform-specific define for the end of the stack region */
+#define STACK_CONF_ORIGIN     ((void *)0x3900)
+
 #endif /* PLATFORM_CONF_H_ */

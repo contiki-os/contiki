@@ -199,4 +199,7 @@ typedef unsigned long off_t;
 #define CC2520_SPI_DISABLE()    do{clock_delay(5);UCB0CTL1 |= UCSWRST;clock_delay(1); P3OUT |= BIT0;clock_delay(5);}while(0)
 #define CC2520_SPI_IS_ENABLED() ((CC2520_CSN_PORT(OUT) & BV(CC2520_CSN_PIN)) != BV(CC2520_CSN_PIN))
 
+/* Platform-specific define for the end of the stack region */
+#define STACK_CONF_ORIGIN     ((void *)0x5C00)
+
 #endif /* PLATFORM_CONF_H_ */

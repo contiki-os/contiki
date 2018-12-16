@@ -58,6 +58,7 @@
 #include "dev/crypto.h"
 #include "usb/usb-serial.h"
 #include "lib/random.h"
+#include "sys/stack-check.h"
 #include "net/netstack.h"
 #include "net/queuebuf.h"
 #include "net/ip/tcpip.h"
@@ -179,6 +180,8 @@ main(void)
 #endif
 
   serial_line_init();
+
+  stack_check_init();
 
   INTERRUPTS_ENABLE();
   fade(LEDS_GREEN);
