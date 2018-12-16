@@ -193,7 +193,9 @@
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
 #define NETSTACK_CONF_WITH_IPV6         1
+#ifndef UIP_CONF_IPV6_QUEUE_PKT
 #define UIP_CONF_IPV6_QUEUE_PKT         0
+#endif
 #define UIP_CONF_IPV6_CHECKS            1
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
