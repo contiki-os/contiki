@@ -89,13 +89,14 @@ public class DGRMConfigurator extends VisPlugin {
 
   private final static int IDX_SRC = 0;
   private final static int IDX_DST = 1;
-  private final static int IDX_RATIO = 2;
-  private final static int IDX_SIGNAL = 3;
-  private final static int IDX_LQI = 4;
-  private final static int IDX_DELAY = 5;
+  private final static int IDX_CHANNEL = 2;
+  private final static int IDX_RATIO = 3;
+  private final static int IDX_SIGNAL = 4;
+  private final static int IDX_LQI = 5;
+  private final static int IDX_DELAY = 6;
 
   private final static String[] COLUMN_NAMES = new String[] {
-    "Source", "Destination", "RX Ratio", "RSSI","LQI", "Delay"
+    "Source", "Destination", "Channel", "RX Ratio", "RSSI","LQI", "Delay"
   };
 
   private Cooja gui = null;
@@ -122,7 +123,11 @@ public class DGRMConfigurator extends VisPlugin {
 			private static final long serialVersionUID = -4680013510092815210L;
 			public TableCellEditor getCellEditor(int row, int column) {
 				combo.removeAllItems();
-        if (column == IDX_RATIO) {
+				if (column == IDX_CHANNEL) {
+           for (int d = -1; d < 27; d++) {
+             combo.addItem((int) d);
+           }
+				} else if (column == IDX_RATIO) {
           for (double d=1.0; d >= 0.0; d -= 0.1) {
             combo.addItem(d);
           }
@@ -144,7 +149,19 @@ public class DGRMConfigurator extends VisPlugin {
     };
     graphTable.setFillsViewportHeight(true);
     combo.setEditable(true);
-
+    
+    graphTable.getColumnModel().getColumn(IDX_CHANNEL).setCellRenderer(new DefaultTableCellRenderer() {
+		private static final long serialVersionUID = -1669890264928372233L;
+		public void setValue(Object value) {
+	    if (!(value instanceof Integer)) {
+	      setText(value.toString());
+	      return;
+	    }
+    	int v = ((Integer) value).intValue();
+    	setText(String.valueOf(v));
+		}
+    });
+    
     graphTable.getColumnModel().getColumn(IDX_RATIO).setCellRenderer(new DefaultTableCellRenderer() {
 			private static final long serialVersionUID = 4470088575039698508L;
 			public void setValue(Object value) {
@@ -189,6 +206,7 @@ public class DGRMConfigurator extends VisPlugin {
         setText(v + " ms");
       }
     });
+    graphTable.getColumnModel().getColumn(IDX_CHANNEL).setCellEditor(new DefaultCellEditor(combo));
     graphTable.getColumnModel().getColumn(IDX_RATIO).setCellEditor(new DefaultCellEditor(combo));
     graphTable.getColumnModel().getColumn(IDX_SIGNAL).setCellEditor(new DefaultCellEditor(combo));
     graphTable.getColumnModel().getColumn(IDX_LQI).setCellEditor(new DefaultCellEditor(combo));
@@ -423,6 +441,9 @@ public class DGRMConfigurator extends VisPlugin {
       if (column == IDX_DST) {
         return edge.superDest.radio.getMote();
       }
+      if (column == IDX_CHANNEL) {
+        return ((DGRMDestinationRadio)edge.superDest).channel;
+      }
       if (column == IDX_RATIO) {
         return ((DGRMDestinationRadio)edge.superDest).ratio;
       }
@@ -447,7 +468,9 @@ public class DGRMConfigurator extends VisPlugin {
 
       DirectedGraphMedium.Edge edge = radioMedium.getEdges()[row];
       try {
-      	if (column == IDX_RATIO) {
+        if (column == IDX_CHANNEL) {
+    			((DGRMDestinationRadio)edge.superDest).channel = ((Number)value).intValue();
+        } else if (column == IDX_RATIO) {
       		((DGRMDestinationRadio)edge.superDest).ratio = ((Number)value).doubleValue();
       	} else if (column == IDX_SIGNAL) {
       		((DGRMDestinationRadio)edge.superDest).signal = ((Number)value).doubleValue();
@@ -455,7 +478,7 @@ public class DGRMConfigurator extends VisPlugin {
       		((DGRMDestinationRadio)edge.superDest).delay =
       			((Number)value).longValue() * Simulation.MILLISECOND;
       	} else if (column == IDX_LQI) {
-  			((DGRMDestinationRadio)edge.superDest).lqi = ((Number)value).intValue();
+      		((DGRMDestinationRadio)edge.superDest).lqi = ((Number)value).intValue();
       	} 
       	else {
           super.setValueAt(value, row, column);
@@ -478,6 +501,9 @@ public class DGRMConfigurator extends VisPlugin {
       if (column == IDX_DST) {
       	gui.signalMoteHighlight(radioMedium.getEdges()[row].superDest.radio.getMote());
         return false;
+      }
+      if (column == IDX_CHANNEL) {
+        return true;
       }
       if (column == IDX_RATIO) {
         return true;
