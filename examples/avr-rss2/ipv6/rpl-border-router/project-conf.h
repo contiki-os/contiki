@@ -54,4 +54,10 @@
 #define WEBSERVER_CONF_CFS_CONNS 2
 #endif
 
+/* cli config */
+#define CLI_CONF_COMMAND_PROMPT  "KTH-IP64BR> "
+#define CLI_CONF_PROJECT  "GreenIoT V1.0 2017-03-13"
+
+#define RPL_CONF_STATS 1
+
 #endif /* PROJECT_ROUTER_CONF_H_ */

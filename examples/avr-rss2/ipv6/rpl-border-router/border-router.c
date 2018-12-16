@@ -56,15 +56,19 @@
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
+#include "dev/serial-line.h"
+
+extern void handle_serial_input(const char *line);
 
 static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
+PROCESS(serial_in, "cli input process");
 
 #if WEBSERVER==0
 /* No webserver */
-AUTOSTART_PROCESSES(&border_router_process);
+AUTOSTART_PROCESSES(&border_router_process, &serial_in);
 #elif WEBSERVER>1
 /* Use an external webserver application */
 #include "webserver-nogui.h"
@@ -381,8 +385,23 @@ PROCESS_THREAD(border_router_process, ev, data)
       PRINTF("Initiating global repair\n");
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
     }
+    if (ev == serial_line_event_message && data != NULL) {
+      handle_serial_input((const char *) data);
+    }
   }
 
   PROCESS_END();
 }
+
+PROCESS_THREAD(serial_in, ev, data)
+{
+  PROCESS_BEGIN();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
+    handle_serial_input((const char *) data);
+  }
+  PROCESS_END();
+}
+
 /*---------------------------------------------------------------------------*/

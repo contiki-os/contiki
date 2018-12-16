@@ -12,6 +12,7 @@ PROJECT_SOURCEFILES += eth-bridge.c
 PROJECT_SOURCEFILES += enc28j60-ip64-driver.c
 
 APPS += ping6
+APPS += cli
 
 MODULES += dev/enc28j60 core/net/ip64
 
