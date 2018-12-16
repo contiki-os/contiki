@@ -49,6 +49,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
+import java.util.Map;
 import java.util.HashMap;
 
 import javax.swing.Box;
@@ -144,7 +145,7 @@ public class ConfigurationWizard extends JDialog {
   private static File cLibraryFile;
   private static String javaLibraryName;
   private static CoreComm javaLibrary;
-  private static HashMap<String, Symbol> addresses;
+  private static Map<String, Symbol> addresses;
   private static int relDataSectionAddr;
   private static int dataSectionSize;
   private static int relBssSectionAddr;
@@ -850,7 +851,6 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Parsing command output for addresses");
-    addresses = new HashMap<String, Symbol>();
 //    boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
 //    if (!parseOK) {
 //      testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
@@ -861,20 +861,22 @@ public class ConfigurationWizard extends JDialog {
     SectionParser dataSecParser = new ContikiMoteType.CommandSectionParser(
             commandData,
             Cooja.getExternalToolsSetting("COMMAND_DATA_START"),
-            Cooja.getExternalToolsSetting("COMMAND_DATA_SIZE"),
+            Cooja.getExternalToolsSetting("COMMAND_DATA_END"),
             Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_DATA"));
     SectionParser bssSecParser = new ContikiMoteType.CommandSectionParser(
             commandData,
             Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
-            Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"),
+            Cooja.getExternalToolsSetting("COMMAND_BSS_END"),
             Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_BSS"));
 
     dataSecParser.parse(0);
     bssSecParser.parse(0);
     relDataSectionAddr = dataSecParser.getStartAddr();
     dataSectionSize = dataSecParser.getSize();
+    addresses = dataSecParser.getVariables();
     relBssSectionAddr = bssSecParser.getStartAddr();
     bssSectionSize = bssSecParser.getSize();
+    addresses.putAll(bssSecParser.getVariables());
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
