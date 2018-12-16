@@ -137,30 +137,53 @@ typedef enum {
   COAP_OPTION_SIZE1 = 60,       /* 0-4 B */
 } coap_option_t;
 
-/* CoAP Content-Formats */
-typedef enum {
-  TEXT_PLAIN = 0,
-  TEXT_XML = 1,
-  TEXT_CSV = 2,
-  TEXT_HTML = 3,
-  IMAGE_GIF = 21,
-  IMAGE_JPEG = 22,
-  IMAGE_PNG = 23,
-  IMAGE_TIFF = 24,
-  AUDIO_RAW = 25,
-  VIDEO_RAW = 26,
-  APPLICATION_LINK_FORMAT = 40,
-  APPLICATION_XML = 41,
-  APPLICATION_OCTET_STREAM = 42,
-  APPLICATION_RDF_XML = 43,
-  APPLICATION_SOAP_XML = 44,
-  APPLICATION_ATOM_XML = 45,
-  APPLICATION_XMPP_XML = 46,
-  APPLICATION_EXI = 47,
-  APPLICATION_FASTINFOSET = 48,
-  APPLICATION_SOAP_FASTINFOSET = 49,
-  APPLICATION_JSON = 50,
-  APPLICATION_X_OBIX_BINARY = 51
-} coap_content_format_t;
+/* CoAP Content-Types */
+typedef enum { // https://www.iana.org/assignments/core-parameters/core-parameters.xhtml#content-formats
+  /* 0-255  Expert Review */
+  TEXT_PLAIN                   = 0    ,  //  text/plain; charset=utf-8                    /* Ref: [RFC2046][RFC3676][RFC5147] */
+  TEXT_XML                     = 1    ,  //                                               /* Ref: ??? */
+  TEXT_CSV                     = 2    ,  //                                               /* Ref: ??? */
+  TEXT_HTML                    = 3    ,  //                                               /* Ref: ??? */
+  APPLICATION_COSE_ENCRYPT0    = 16   ,  //  application/cose; cose-type="cose-encrypt0"  /* Ref: [RFC8152] */
+  APPLICATION_COSE_MAC0        = 17   ,  //  application/cose; cose-type="cose-mac0"      /* Ref: [RFC8152] */
+  APPLICATION_COSE_SIGN1       = 18   ,  //  application/cose; cose-type="cose-sign1"     /* Ref: [RFC8152] */
+  IMAGE_GIF                    = 21   ,  //                                               /* Ref: ??? */
+  IMAGE_JPEG                   = 22   ,  //                                               /* Ref: ??? */
+  IMAGE_PNG                    = 23   ,  //                                               /* Ref: ??? */
+  IMAGE_TIFF                   = 24   ,  //                                               /* Ref: ??? */
+  AUDIO_RAW                    = 25   ,  //                                               /* Ref: ??? */
+  VIDEO_RAW                    = 26   ,  //                                               /* Ref: ??? */
+  APPLICATION_LINK_FORMAT      = 40   ,  //  application/link-format                      /* Ref: [RFC6690] */
+  APPLICATION_XML              = 41   ,  //  application/xml                              /* Ref: [RFC3023] */
+  APPLICATION_OCTET_STREAM     = 42   ,  //  application/octet-stream                     /* Ref: [RFC2045][RFC2046] */
+  APPLICATION_RDF_XML          = 43   ,  //                                               /* Ref: ??? */
+  APPLICATION_SOAP_XML         = 44   ,  //                                               /* Ref: ??? */
+  APPLICATION_ATOM_XML         = 45   ,  //                                               /* Ref: ??? */
+  APPLICATION_XMPP_XML         = 46   ,  //                                               /* Ref: ??? */
+  APPLICATION_EXI              = 47   ,  //  application/exi                              /* Ref: ["Efficient XML Interchange (EXI) Format 1.0 (Second Edition)" ,February 2014] */
+  APPLICATION_FASTINFOSET      = 48   ,  //                                               /* Ref: ??? */
+  APPLICATION_SOAP_FASTINFOSET = 49   ,  //                                               /* Ref: ??? */
+  APPLICATION_JSON             = 50   ,  //  application/json                             /* Ref: [RFC4627] */
+  APPLICATION_X_OBIX_BINARY    = 51   ,  //  note: Conflicts with application/json-patch+json /* Ref: ??? */
+  APPLICATION_JSON_PATCH_JSON  = 51   ,  //  application/json-patch+json                  /* Ref: [RFC6902] */
+  APPLICATION_MERGE_PATCH_JSON = 52   ,  //  application/merge-patch+json                 /* Ref: [RFC7396] */
+  APPLICATION_CBOR             = 60   ,  //  application/cbor                             /* Ref: [RFC7049] */
+  APPLICATION_CWT              = 61   ,  //  application/cwt                              /* Ref: [RFC8392] */
+  APPLICATION_COSE_ENCRYPT     = 96   ,  //  application/cose; cose-type="cose-encrypt"   /* Ref: [RFC8152] */
+  APPLICATION_COSE_MAC         = 97   ,  //  application/cose; cose-type="cose-mac"       /* Ref: [RFC8152] */
+  APPLICATION_COSE_SIGN        = 98   ,  //  application/cose; cose-type="cose-sign"      /* Ref: [RFC8152] */
+  APPLICATION_COSE_KEY         = 101  ,  //  application/cose-key                         /* Ref: [RFC8152] */
+  APPLICATION_COSE_KEY_SET     = 102  ,  //  application/cose-key-set                     /* Ref: [RFC8152] */
+  APPLICATION_COAP_GROUP_JSON  = 256  ,  //  application/coap-group+json                  /* Ref: [RFC7390] */
+  /* 256-9999  IETF Review or IESG Approval */
+  APPLICATION_OMA_TLV_OLD      = 1542 ,  //  Keep old value for backward-compatibility    /* Ref: [OMA-TS-LightweightM2M-V1_0] */
+  APPLICATION_OMA_JSON_OLD     = 1543 ,  //  Keep old value for backward-compatibility    /* Ref: [OMA-TS-LightweightM2M-V1_0] */
+  /* 10000-64999  First Come First Served */
+  APPLICATION_VND_OCF_CBOR     = 10000,  //  application/vnd.ocf+cbor                     /* Ref: [Michael_Koster] */
+  APPLICATION_OMA_TLV          = 11542,  //  application/vnd.oma.lwm2m+tlv                /* Ref: [OMA-TS-LightweightM2M-V1_0] */
+  APPLICATION_OMA_JSON         = 11543,   //  application/vnd.oma.lwm2m+json               /* Ref: [OMA-TS-LightweightM2M-V1_0] */
+  /* 65000-65535  Experimental use (no operational use) */
+  COAP_CONTENT_TYPE_MAX_VALUE = 0xFFFF
+} coap_content_type_t;
 
 #endif /* ER_COAP_CONSTANTS_H_ */
