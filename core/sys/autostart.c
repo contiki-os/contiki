@@ -39,6 +39,7 @@
 
 #include "sys/autostart.h"
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

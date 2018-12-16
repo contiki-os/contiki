@@ -81,6 +81,7 @@ enum {
 #define FLAG_LAST_RECEIVED 0x02
 #define FLAG_IS_STOPPED    0x04
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

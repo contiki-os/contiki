@@ -242,6 +242,7 @@ static volatile uint8_t contikimac_keep_radio_on = 0;
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

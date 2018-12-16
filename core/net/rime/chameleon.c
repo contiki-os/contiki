@@ -54,6 +54,7 @@
 
 extern const struct chameleon_module CHAMELEON_MODULE;
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

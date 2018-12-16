@@ -77,6 +77,7 @@ struct phase_queueitem {
 MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 NBR_TABLE(struct phase, nbr_phase);
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

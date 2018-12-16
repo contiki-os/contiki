@@ -40,6 +40,7 @@
 #include "lib/list.h"
 #include "net/nbr-table.h"
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

@@ -78,6 +78,7 @@ static struct ctimer t;
 
 static int max_time = DEFAULT_LIFETIME;
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

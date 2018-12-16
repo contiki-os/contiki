@@ -43,6 +43,7 @@
 #include "lib/random.h"
 #include <string.h>
 
+#undef DEBUG
 #define DEBUG 0
 
 #if DEBUG

@@ -210,6 +210,7 @@ struct {
 
 /* Debug definition: draw routing tree in Cooja. */
 #define DRAW_TREE 0
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>

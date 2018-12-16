@@ -53,6 +53,7 @@
 #define CHAMELEON_WITH_MAC_LINK_ADDRESSES 0
 #endif /* !CHAMELEON_CONF_WITH_MAC_LINK_ADDRESSES */
 
+#undef DEBUG
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
