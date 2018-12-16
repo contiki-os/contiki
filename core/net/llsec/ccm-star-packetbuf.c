@@ -39,12 +39,13 @@
  */
 
 #include "llsec/ccm-star-packetbuf.h"
+#include "net/llsec/anti-replay.h"
 #include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include "net/llsec/llsec802154.h"
 #include <string.h>
 
-#if LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_FRAME_COUNTER
+#if LLSEC802154_USES_FRAME_COUNTER
 
 /*---------------------------------------------------------------------------*/
 static const uint8_t *
@@ -76,7 +77,11 @@ ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
   nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
   nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
   nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
+#if LLSEC802154_USES_AUX_HEADER
   nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+#else /* LLSEC802154_USES_AUX_HEADER */
+  nonce[12] = packetbuf_holds_broadcast() ? 0xFF : packetbuf_attr(PACKETBUF_ATTR_NEIGHBOR_INDEX);
+#endif /* LLSEC802154_USES_AUX_HEADER */
 }
 /*---------------------------------------------------------------------------*/
-#endif /* LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_FRAME_COUNTER */
+#endif /* LLSEC802154_USES_FRAME_COUNTER */

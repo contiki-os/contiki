@@ -166,16 +166,6 @@ encrypt(uint8_t *state)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
-aes_128_set_padded_key(uint8_t *key, uint8_t key_len)
-{
-  uint8_t block[AES_128_BLOCK_SIZE];
-  
-  memset(block, 0, AES_128_BLOCK_SIZE);
-  memcpy(block, key, key_len);
-  AES_128.set_key(block);
-}
-/*---------------------------------------------------------------------------*/
 const struct aes_128_driver aes_128_driver = {
   set_key,
   encrypt

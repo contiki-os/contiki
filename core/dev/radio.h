@@ -149,6 +149,9 @@ enum {
 
   /* Received signal strength indicator in dBm. */
   RADIO_PARAM_RSSI,
+  
+  /* Reads current I/Q LSBs */
+  RADIO_PARAM_IQ_LSBS,
 
   /* RSSI of the last received packet */
   RADIO_PARAM_LAST_RSSI,

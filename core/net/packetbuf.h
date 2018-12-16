@@ -56,6 +56,7 @@
 #include "net/linkaddr.h"
 #include "net/llsec/llsec802154.h"
 #include "net/mac/tsch/tsch-conf.h"
+#include "net/llsec/anti-replay.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -71,6 +72,12 @@
 #else
 #define PACKETBUF_WITH_PACKET_TYPE NETSTACK_CONF_WITH_RIME
 #endif
+
+#ifdef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#define PACKETBUF_WITH_UNENCRYPTED_BYTES PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#else /* PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES */
+#define PACKETBUF_WITH_UNENCRYPTED_BYTES 0
+#endif /* PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES */
 
 /**
  * \brief      Clear and reset the packetbuf
@@ -262,6 +269,10 @@ enum {
 #endif /* NETSTACK_CONF_WITH_RIME */
   PACKETBUF_ATTR_PENDING,
   PACKETBUF_ATTR_FRAME_TYPE,
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  PACKETBUF_ATTR_IE_LIST_PRESENT,
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  PACKETBUF_ATTR_SOURCE_PANID,
 #if LLSEC802154_USES_AUX_HEADER
   PACKETBUF_ATTR_SECURITY_LEVEL,
 #endif /* LLSEC802154_USES_AUX_HEADER */
@@ -269,11 +280,16 @@ enum {
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3,
 #endif /* LLSEC802154_USES_FRAME_COUNTER */
+#if ANTI_REPLAY_WITH_SUPPRESSION
+  PACKETBUF_ATTR_NEIGHBOR_INDEX,
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
 #if LLSEC802154_USES_EXPLICIT_KEYS
   PACKETBUF_ATTR_KEY_ID_MODE,
   PACKETBUF_ATTR_KEY_INDEX,
-  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#if PACKETBUF_WITH_UNENCRYPTED_BYTES
+  PACKETBUF_ATTR_UNENCRYPTED_BYTES,
+#endif /* PACKETBUF_WITH_UNENCRYPTED_BYTES */
 
   /* Scope 2 attributes: used between end-to-end nodes. */
 #if NETSTACK_CONF_WITH_RIME
@@ -305,34 +321,51 @@ enum {
 
 #define PACKETBUF_IS_ADDR(type) ((type) >= PACKETBUF_ADDR_FIRST)
 
+struct packetbuf {
+  struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+  struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+
+  union {
+    /**
+     * The declarations below ensure that the packet buffer is aligned on
+     * an even 32-bit boundary. On some platforms (most notably the
+     * msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
+     * problems when accessing words.
+     */
+    uint32_t aligned[(PACKETBUF_SIZE + 3) / 4];
+    uint8_t data[PACKETBUF_SIZE];
+  };
+
+  uint16_t datalen;
+  uint8_t hdrlen;
+  uint16_t bufptr;
+};
+extern struct packetbuf *packetbuf;
+
 #if PACKETBUF_CONF_ATTRS_INLINE
-
-extern struct packetbuf_attr packetbuf_attrs[];
-extern struct packetbuf_addr packetbuf_addrs[];
-
 static inline int
 packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
 {
-  packetbuf_attrs[type].val = val;
+  packetbuf->attrs[type].val = val;
   return 1;
 }
 static inline packetbuf_attr_t
 packetbuf_attr(uint8_t type)
 {
-  return packetbuf_attrs[type].val;
+  return packetbuf->attrs[type].val;
 }
 
 static inline int
 packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)
 {
-  linkaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
+  linkaddr_copy(&packetbuf->addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 
 static inline const linkaddr_t *
 packetbuf_addr(uint8_t type)
 {
-  return &packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr;
+  return &packetbuf->addrs[type - PACKETBUF_ADDR_FIRST].addr;
 }
 #else /* PACKETBUF_CONF_ATTRS_INLINE */
 int               packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val);

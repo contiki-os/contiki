@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,33 +32,20 @@
 
 /**
  * \file
- *         802.15.4 security implementation, which uses a network-wide key
+ *         Uses pairwise session keys for securing frames.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-/**
- * \addtogroup llsec
- * @{
- */
+#ifndef CORESEC_STRATEGY_H_
+#define CORESEC_STRATEGY_H_
 
-/**
- * \defgroup noncoresec LLSEC driver using a network-wide key (NONCORESEC)
- * 
- * Noncompromise-resilient 802.15.4 security
- * 
- * @{
- */
+#include "net/llsec/adaptivesec/adaptivesec.h"
 
-#ifndef NONCORESEC_H_
-#define NONCORESEC_H_
+#define CORESEC_STRATEGY_ANNOUNCE_IDENTIFIER 0x0D
 
-#include "net/llsec/llsec.h"
+#if AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES
+extern const struct adaptivesec_strategy coresec_strategy;
+#endif /* AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES */
 
-extern const struct llsec_driver noncoresec_driver;
-extern const struct framer noncoresec_framer;
-
-#endif /* NONCORESEC_H_ */
-
-/** @} */
-/** @} */
+#endif /* CORESEC_STRATEGY_H_ */

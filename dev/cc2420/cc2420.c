@@ -168,6 +168,8 @@ static void set_poll_mode(uint8_t enable);
 static void set_send_on_cca(uint8_t enable);
 static void set_auto_ack(uint8_t enable);
 
+static radio_value_t get_iq_lsbs(void);
+
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
 
@@ -237,6 +239,8 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_LAST_LINK_QUALITY:
     /* LQI of the last packet received */
     *value = cc2420_last_correlation;
+  case RADIO_PARAM_IQ_LSBS:
+    *value = get_iq_lsbs();
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = 11;
@@ -1058,6 +1062,43 @@ cc2420_rssi(void)
   }
   RELEASE_LOCK();
   return rssi;
+}
+/*---------------------------------------------------------------------------*/
+static void
+get_iq(uint8_t *i, uint8_t *q)
+{
+  uint16_t adctst;
+  int radio_was_off;
+
+  GET_LOCK();
+
+  radio_was_off = 0;
+  if(!receive_on) {
+    radio_was_off = 1;
+    cc2420_on();
+  }
+
+  wait_for_status(BV(CC2420_RSSI_VALID));
+  adctst = getreg(CC2420_ADCTST);
+  *q = adctst & 0x007F;
+  *i = (adctst >> 8) & 0x007F;
+
+  if(radio_was_off) {
+    cc2420_off();
+  }
+
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+static radio_value_t
+get_iq_lsbs(void)
+{
+  uint8_t i;
+  uint8_t q;
+
+  get_iq(&i, &q);
+
+  return ((i & 1) << 1) | (q & 1);
 }
 /*---------------------------------------------------------------------------*/
 static int

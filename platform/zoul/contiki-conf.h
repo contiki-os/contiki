@@ -322,7 +322,9 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 /* Configure NullRDC for when it's selected */
+#ifndef NULLRDC_CONF_802154_AUTOACK
 #define NULLRDC_CONF_802154_AUTOACK             1
+#endif /* NULLRDC_CONF_802154_AUTOACK */
 #define NULLRDC_CONF_802154_AUTOACK_HW			    1
 
 /* Configure ContikiMAC for when it's selected */
@@ -500,7 +502,9 @@ typedef uint32_t rtimer_clock_t;
 #ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS                    64
 #endif
+#ifndef UIP_CONF_UDP
 #define UIP_CONF_UDP                         1
+#endif
 #define UIP_CONF_UDP_CHECKSUMS               1
 #define UIP_CONF_ICMP6                       1
 

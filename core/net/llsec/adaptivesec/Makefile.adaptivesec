@@ -1,0 +1,1 @@
+CONTIKI_SOURCEFILES += adaptivesec.c akes.c akes-delete.c akes-nbr.c akes-single.c akes-trickle.c coresec-strategy.c noncoresec-strategy.c

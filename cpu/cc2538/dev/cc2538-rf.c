@@ -258,6 +258,32 @@ get_rssi(void)
   return rssi;
 }
 /*---------------------------------------------------------------------------*/
+static radio_value_t
+get_iq_lsbs(void)
+{
+  radio_value_t result;
+  uint8_t was_off = 0;
+
+  /* If we are off, turn on first */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+    was_off = 1;
+    on();
+  }
+
+  /* Wait on RSSI_VALID */
+  while((REG(RFCORE_XREG_RSSISTAT) & RFCORE_XREG_RSSISTAT_RSSI_VALID) == 0);
+
+  /* Read I/Q LSBs */
+  result = REG(RFCORE_XREG_RFRND);
+
+  /* If we were off, turn back off */
+  if(was_off) {
+    off();
+  }
+
+  return result;
+}
+/*---------------------------------------------------------------------------*/
 /* Returns the current CCA threshold in dBm */
 static radio_value_t
 get_cca_threshold(void)
@@ -861,6 +887,8 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_LAST_LINK_QUALITY:
     *value = crc_corr & LQI_BIT_MASK;
+  case RADIO_PARAM_IQ_LSBS:
+    *value = get_iq_lsbs();
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = CC2538_RF_CHANNEL_MIN;

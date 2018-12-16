@@ -135,8 +135,6 @@ struct tsch_asn_t tsch_current_asn;
 /* Device rank or join priority:
  * For PAN coordinator: 0 -- lower is better */
 uint8_t tsch_join_priority;
-/* The current TSCH sequence number, used for unicast data frames only */
-static uint8_t tsch_packet_seqno = 0;
 /* Current period for EB output */
 static clock_time_t tsch_current_eb_period;
 /* Current period for keepalive output */
@@ -883,12 +881,6 @@ send_packet(mac_callback_t sent, void *ptr)
 
   /* Ask for ACK if we are sending anything other than broadcast */
   if(!linkaddr_cmp(addr, &linkaddr_null)) {
-    /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
-           in framer-802154.c. */
-    if(++tsch_packet_seqno == 0) {
-      tsch_packet_seqno++;
-    }
-    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
   } else {
     /* Broadcast packets shall be added to broadcast queue
@@ -928,14 +920,16 @@ send_packet(mac_callback_t sent, void *ptr)
     p = tsch_queue_add_packet(addr, sent, ptr);
     if(p == NULL) {
       PRINTF("TSCH:! can't send packet to %u with seqno %u, queue %u %u\n",
-          TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+          TSCH_LOG_ID_FROM_LINKADDR(addr),
+          packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO),
           packet_count_before,
           tsch_queue_packet_count(addr));
       ret = MAC_TX_ERR;
     } else {
       p->header_len = hdr_len;
       PRINTF("TSCH: send packet to %u with seqno %u, queue %u %u, len %u %u\n",
-             TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+             TSCH_LOG_ID_FROM_LINKADDR(addr),
+             packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO),
              packet_count_before,
              tsch_queue_packet_count(addr),
              p->header_len,
