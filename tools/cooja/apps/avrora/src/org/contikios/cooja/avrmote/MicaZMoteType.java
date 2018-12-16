@@ -316,7 +316,7 @@ public class MicaZMoteType implements MoteType {
 
     setMoteInterfaceClasses(intfClasses);
 
-    if (fileFirmware == null || fileSource == null) {
+    if (fileFirmware == null && fileSource == null) {
       throw new MoteTypeCreationException("Either source or firmware not specified");
     }
 
