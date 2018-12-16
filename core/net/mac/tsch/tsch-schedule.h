@@ -148,6 +148,10 @@ struct tsch_slotframe *tsch_schedule_slotframes_next(struct tsch_slotframe *sf);
 struct tsch_link *tsch_schedule_add_link(struct tsch_slotframe *slotframe,
                                          uint8_t link_options, enum link_type link_type, const linkaddr_t *address,
                                          uint16_t timeslot, uint16_t channel_offset);
+/* Changes adress on a link*/
+void tsch_schedule_link_change_addr(struct tsch_link *l, const linkaddr_t *address);
+/* Changes adress on a link*/
+void tsch_schedule_link_change_option(struct tsch_link *l, uint8_t link_options);
 /* Looks for a link from a handle */
 struct tsch_link *tsch_schedule_get_link_by_handle(uint16_t handle);
 /* Looks within a slotframe for a link with a given timeslot */

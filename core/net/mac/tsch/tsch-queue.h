@@ -169,6 +169,10 @@ struct tsch_packet *tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
 void tsch_queue_free_packet(struct tsch_packet *p);
 /* Reset neighbor queues */
 void tsch_queue_reset(void);
+/* Flush a neighbor queue */
+void tsch_queue_flush_nbr_queue(struct tsch_neighbor *n);
+/* Remove TSCH neighbor queue */
+void tsch_queue_remove_nbr(struct tsch_neighbor *n);
 /* Deallocate neighbors with empty queue */
 void tsch_queue_free_unused_neighbors(void);
 /* Is the neighbor queue empty? */

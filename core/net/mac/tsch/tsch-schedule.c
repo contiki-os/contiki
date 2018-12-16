@@ -173,6 +173,9 @@ tsch_schedule_get_link_by_handle(uint16_t handle)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
+void tsch_schedule_link_addr_aqure(struct tsch_link *l);
+void tsch_schedule_link_addr_release(uint8_t link_options, const linkaddr_t* addr);
+
 /* Adds a link to a slotframe, return a pointer to it (NULL if failure) */
 struct tsch_link *
 tsch_schedule_add_link(struct tsch_slotframe *slotframe,
@@ -194,7 +197,6 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         tsch_release_lock();
       } else {
         static int current_link_handle = 0;
-        struct tsch_neighbor *n;
         /* Add the link to the slotframe */
         list_add(slotframe->links_list, l);
         /* Initialize link */
@@ -215,22 +217,38 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
 
         /* Release the lock before we update the neighbor (will take the lock) */
         tsch_release_lock();
-
-        if(l->link_options & LINK_OPTION_TX) {
-          n = tsch_queue_add_nbr(&l->addr);
-          /* We have a tx link to this neighbor, update counters */
-          if(n != NULL) {
-            n->tx_links_count++;
-            if(!(l->link_options & LINK_OPTION_SHARED)) {
-              n->dedicated_tx_links_count++;
-            }
-          }
-        }
+        tsch_schedule_link_addr_aqure(l);
       }
     }
   }
   return l;
 }
+
+/*---------------------------------------------------------------------------*/
+/* Changes adress on a link*/
+void tsch_schedule_link_change_addr(struct tsch_link *l, const linkaddr_t *address)
+{
+    if(address == NULL) {
+      address = &linkaddr_null;
+    }
+    if (linkaddr_cmp(address, &l->addr))
+        return;
+    linkaddr_copy(&l->addr, address);
+    tsch_schedule_link_addr_release(l->link_options, &l->addr);
+    tsch_schedule_link_addr_aqure(l);
+}
+
+/*---------------------------------------------------------------------------*/
+/* Changes adress on a link*/
+void tsch_schedule_link_change_option(struct tsch_link *l, uint8_t link_options)
+{
+    if (l->link_options == link_options)
+        return;
+    tsch_schedule_link_addr_release(l->link_options, &l->addr);
+    l->link_options = link_options;
+    tsch_schedule_link_addr_aqure(l);
+}
+
 /*---------------------------------------------------------------------------*/
 /* Removes a link from slotframe. Return 1 if success, 0 if failure */
 int
@@ -261,16 +279,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
       /* Release the lock before we update the neighbor (will take the lock) */
       tsch_release_lock();
 
-      /* This was a tx link to this neighbor, update counters */
-      if(link_options & LINK_OPTION_TX) {
-        struct tsch_neighbor *n = tsch_queue_add_nbr(&addr);
-        if(n != NULL) {
-          n->tx_links_count--;
-          if(!(link_options & LINK_OPTION_SHARED)) {
-            n->dedicated_tx_links_count--;
-          }
-        }
-      }
+      tsch_schedule_link_addr_release(link_options, &addr);
 
       return 1;
     } else {
@@ -279,6 +288,36 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
   }
   return 0;
 }
+
+/*---------------------------------------------------------------------------*/
+void tsch_schedule_link_addr_aqure(struct tsch_link *l){
+    struct tsch_neighbor *n;
+    if(l->link_options & LINK_OPTION_TX) {
+      n = tsch_queue_add_nbr(&l->addr);
+      /* We have a tx link to this neighbor, update counters */
+      if(n != NULL) {
+        n->tx_links_count++;
+        if(!(l->link_options & LINK_OPTION_SHARED)) {
+          n->dedicated_tx_links_count++;
+        }
+      }
+    }
+}
+
+void tsch_schedule_link_addr_release(uint8_t link_options, const linkaddr_t* addr){
+    /* This was a tx link to this neighbor, update counters */
+    if(link_options & LINK_OPTION_TX) {
+      struct tsch_neighbor *n = tsch_queue_add_nbr(addr);
+      if(n != NULL) {
+        n->tx_links_count--;
+        if(!(link_options & LINK_OPTION_SHARED)) {
+          n->dedicated_tx_links_count--;
+        }
+      }
+    }
+}
+
+
 /*---------------------------------------------------------------------------*/
 /* Removes a link from slotframe and timeslot. Return a 1 if success, 0 if failure */
 int
