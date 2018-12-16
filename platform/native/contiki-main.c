@@ -248,8 +248,10 @@ main(int argc, char **argv)
 
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
+  if (isatty(STDIN_FILENO)) {
+    select_set_callback(STDIN_FILENO, &stdin_fd);
+  }
 
-  select_set_callback(STDIN_FILENO, &stdin_fd);
   while(1) {
     fd_set fdr;
     fd_set fdw;
