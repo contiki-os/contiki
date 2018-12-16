@@ -206,6 +206,9 @@ ifneq ($(MAKECMDGOALS),clean)
                                    $(PROJECT_SOURCEFILES:.c=.d)}
 endif
 
+# prevent delete project objects that have deps but not included in contiki lib  
+.SECONDARY : $(PROJECT_OBJECTFILES) $(TARGET_STARTFILES)
+
 ### See http://make.paulandlesley.org/autodep.html#advanced
 
 define FINALIZE_DEPENDENCY
