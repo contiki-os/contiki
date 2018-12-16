@@ -35,8 +35,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#define MAX_PATHLEN 80
-#define MAX_HOSTLEN 40
 PROCESS(http_socket_process, "HTTP socket process");
 LIST(socketlist);
 
