@@ -923,21 +923,28 @@ send_packet(mac_callback_t sent, void *ptr)
     PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   } else {
+#if TSCH_WITH_PHANTOM_NBR
+    const linkaddr_t *nbr_addr = packetbuf_addr(PACKETBUF_ADDR_TSCH_RECEIVER);
+    if (linkaddr_cmp(nbr_addr, &linkaddr_null))
+        nbr_addr = addr;
+#else
+    const linkaddr_t *nbr_addr = addr;
+#endif /* TSCH_WITH_LINK_SELECTOR */
     struct tsch_packet *p;
     /* Enqueue packet */
-    p = tsch_queue_add_packet(addr, sent, ptr);
+    p = tsch_queue_add_packet(nbr_addr, sent, ptr);
     if(p == NULL) {
       PRINTF("TSCH:! can't send packet to %u with seqno %u, queue %u %u\n",
-          TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+          TSCH_LOG_ID_FROM_LINKADDR(nbr_addr), tsch_packet_seqno,
           packet_count_before,
-          tsch_queue_packet_count(addr));
+          tsch_queue_packet_count(nbr_addr));
       ret = MAC_TX_ERR;
     } else {
       p->header_len = hdr_len;
       PRINTF("TSCH: send packet to %u with seqno %u, queue %u %u, len %u %u\n",
-             TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
+             TSCH_LOG_ID_FROM_LINKADDR(nbr_addr), tsch_packet_seqno,
              packet_count_before,
-             tsch_queue_packet_count(addr),
+             tsch_queue_packet_count(nbr_addr),
              p->header_len,
              queuebuf_datalen(p->qb));
       (void)packet_count_before; /* Discard "variable set but unused" warning in case of TSCH_LOG_LEVEL of 0 */

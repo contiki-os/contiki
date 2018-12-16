@@ -198,4 +198,14 @@
 #define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
 #endif
 
+/* phantom TSCH adress, if != eb_adress, binds width adress declared in links
+ * this allows use different queues on same receiver adress,
+ * denoted to different links
+ * */
+#ifdef TSCH_CONF_WITH_PHANTOM_NBR
+#define TSCH_WITH_PHANTOM_NBR TSCH_CONF_WITH_PHANTOM_NBR
+#else
+#define TSCH_WITH_PHANTOM_NBR  0
+#endif /* TSCH_CONF_EB_AUTOSELECT */
+
 #endif /* __TSCH_CONF_H__ */
