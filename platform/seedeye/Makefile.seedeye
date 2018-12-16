@@ -2,6 +2,8 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
+PIC32_MODEL = 32MX795F512L
+
 ifdef SEEDEYE_ID
 CFLAGS += -DSEEDEYE_ID=${SEEDEYE_ID}
 endif

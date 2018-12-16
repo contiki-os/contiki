@@ -5,7 +5,10 @@
 # $Id: Makefile.pic32,v 1.0 2012/12/03 09:00:00 evilaliv3 Exp $
 #
 
-PIC32_MODEL=32MX795F512L
+ifndef PIC32_MODEL
+$(error PIC32_MODEL not defined for the platform)
+endif
+
 CFLAGS += -O1 -fno-strict-aliasing -G7 -Wall -I /opt/microchip/xc32/v1.11/pic32mx/include/ $(CONTIKI_PLAT_DEFS)
 CFLAGS += -ffunction-sections
 
