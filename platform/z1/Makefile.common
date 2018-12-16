@@ -43,7 +43,7 @@ LDFLAGSNO += -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk
 LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
 

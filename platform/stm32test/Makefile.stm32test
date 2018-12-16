@@ -18,7 +18,7 @@ CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(STEPPER_ROBOT) \
 
 include $(CONTIKI)/cpu/arm/stm32f103/Makefile.stm32f103
 
-#contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+#$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}
 
 ifndef BASE_IP
 BASE_IP := 172.16.1.1

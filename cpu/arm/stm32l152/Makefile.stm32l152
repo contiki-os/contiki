@@ -93,7 +93,7 @@ endef
 $(OBJECTDIR)/%.o: %.s
 	$(AS) $(ASFLAGS) $< -o $@
 
-%.ce: %.o
+$(BUILDDIR)/%.ce: %.o | $(BUILDDIR)
 	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@ $(LDLIBS)
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
 
@@ -108,12 +108,12 @@ $(OBJECTDIR)/%.o: %.s
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 
 ifdef IAR
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUPFOLDER) # $(OBJECTDIR)/empty-symbols.o
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB) $(STARTUPFOLDER) # $(OBJECTDIR)/empty-symbols.o
 	$(LD) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
 else
 #CONTIKI_CPU_OBJS=$(CONTIKI_CPU_PORT:%.c=obj_stm32nucleo-spirit1/%.o)
 CONTIKI_CPU_OBJS=$(CONTIKI_CPU_PORT:%.c=$(OBJECTDIR)/%.o)
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_LIB) $(OBJECTDIR)/symbols.o
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) $(CONTIKI_CPU_OBJS) -o $@
 	@echo >> contiki-$(TARGET).map

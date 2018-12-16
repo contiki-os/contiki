@@ -77,7 +77,7 @@ ifeq ($(HOST_OS),Windows)
 	@$(FINALIZE_CYGWIN_DEPENDENCY)
 endif
 
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 
 

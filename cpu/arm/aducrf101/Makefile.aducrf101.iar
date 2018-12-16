@@ -81,12 +81,12 @@ $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.d) -o $@
 
 CUSTOM_RULE_C_TO_O = 1
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) $< -o $@
 
 CUSTOM_RULE_C_TO_CO = 1
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 

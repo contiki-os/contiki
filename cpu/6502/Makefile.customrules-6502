@@ -4,12 +4,12 @@ $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(Q)$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_C_TO_CO = 1
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE $<
 
 CUSTOM_RULE_LINK = 1
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_LIB)
 	$(TRACE_LD)
 	$(Q)$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
 

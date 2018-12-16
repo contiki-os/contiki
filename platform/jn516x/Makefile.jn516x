@@ -235,7 +235,7 @@ ABS_APPLIBS = $(addsuffix _$(JENNIC_CHIP_FAMILY).a,$(addprefix $(COMPONENTS_BASE
 
 ifneq ($(wildcard $(SDK_BASE_DIR)/Components/Library/*),)
 # The SDK is fully installed, proceed to linking and objcopy to ready-to-upload .jn516x.bin file
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(ABS_APPLIBS)
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_LIB) $(ABS_APPLIBS)
 	echo  ${filter %.a,$^}
 	$(Q)$(CC) -Wl,--gc-sections $(LDFLAGS) -T$(LINKCMD) -o $@ -Wl,--start-group \
 	  $(patsubst /cygdrive/c/%,c:/%,${filter-out %.a,$^}) \
@@ -244,7 +244,7 @@ ifneq ($(wildcard $(SDK_BASE_DIR)/Components/Library/*),)
 	$(OBJCOPY) -S -O binary $@ $@.bin
 else
 # The SDK does not include libraries, only build objects and libraries, skip linking
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_LIB)
 	echo Creating empty $@
 	touch $@
 endif
