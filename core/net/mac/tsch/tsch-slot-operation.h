@@ -84,15 +84,6 @@ int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *d
 
 /************ Types ***********/
 
-/* Stores data about an incoming packet */
-struct input_packet {
-  uint8_t payload[TSCH_PACKET_MAX_LEN]; /* Packet payload */
-  struct tsch_asn_t rx_asn; /* ASN when the packet was received */
-  int len; /* Packet len */
-  int16_t rssi; /* RSSI for this packet */
-  uint8_t channel; /* Channel we received the packet on */
-};
-
 /***** External Variables *****/
 
 /* A ringbuf storing outgoing packets after they were dequeued.
