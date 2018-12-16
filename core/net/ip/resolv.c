@@ -36,6 +36,8 @@
  *         DNS host name to IP address resolver.
  * \author Adam Dunkels <adam@dunkels.com>
  * \author Robert Quattlebaum <darco@deepdarc.com>
+ * \author Ronny Klauck <rklauck@informatik.tu-cottbus.de>
+ * \author Brad Campbell <bradjc@umich.edu>
  *
  *         This file implements a DNS host name to IP address resolver,
  *         as well as an MDNS responder and resolver.
@@ -118,6 +120,13 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 
 #define UIP_UDP_BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
+/* If RESOLV_CONF_SUPPORTS_DNS_SD is set, then queries
+ * for services in the local TLD will use DNS-SD.
+ */
+#ifndef RESOLV_CONF_SUPPORTS_DNS_SD
+#define RESOLV_CONF_SUPPORTS_DNS_SD 1
+#endif
+
 /* If RESOLV_CONF_SUPPORTS_MDNS is set, then queries
  * for domain names in the local TLD will use mDNS as
  * described by draft-cheshire-dnsext-multicastdns.
@@ -141,6 +150,16 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 
 #ifndef RESOLV_CONF_MAX_DOMAIN_NAME_SIZE
 #define RESOLV_CONF_MAX_DOMAIN_NAME_SIZE 32
+#endif
+
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+#ifndef RESOLV_CONF_MAX_TXT_SIZE
+#define RESOLV_CONF_MAX_TXT_SIZE 48
+#endif
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+
+#ifndef RESOLV_CONF_TIMEOUT_SECONDS
+#define RESOLV_CONF_TIMEOUT_SECONDS 120
 #endif
 
 #ifdef RESOLV_CONF_AUTO_REMOVE_TRAILING_DOTS
@@ -239,12 +258,29 @@ struct dns_answer {
   uint16_t class;
   uint16_t ttl[2];
   uint16_t len;
+};
+
+struct dns_answer_native {
 #if NETSTACK_CONF_WITH_IPV6
   uint8_t ipaddr[16];
 #else
   uint8_t ipaddr[4];
 #endif
 };
+
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+struct dns_answer_srv {
+  uint16_t priority;
+  uint16_t weight;
+  uint16_t port;
+};
+#endif
+
+#ifndef UIP_CONF_RESOLV_ENTRIES
+#define RESOLV_ENTRIES 4
+#else /* UIP_CONF_RESOLV_ENTRIES */
+#define RESOLV_ENTRIES UIP_CONF_RESOLV_ENTRIES
+#endif /* UIP_CONF_RESOLV_ENTRIES */
 
 struct namemap {
 #define STATE_UNUSED 0
@@ -266,16 +302,64 @@ struct namemap {
 #if RESOLV_CONF_SUPPORTS_MDNS
   int is_mdns:1, is_probe:1;
 #endif
+  /* This stores the hostname for mDNS. */
   char name[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
 };
 
-#ifndef UIP_CONF_RESOLV_ENTRIES
-#define RESOLV_ENTRIES 4
-#else /* UIP_CONF_RESOLV_ENTRIES */
-#define RESOLV_ENTRIES UIP_CONF_RESOLV_ENTRIES
-#endif /* UIP_CONF_RESOLV_ENTRIES */
-
+/*
+ * Array of cached hostnames (and service names if using DNS-SD) for other
+ * devices.
+ */
 static struct namemap names[RESOLV_ENTRIES];
+
+#if RESOLV_CONF_SUPPORTS_MDNS
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+/* This keeps track of what services we are trying to discover. */
+struct servicelookupmap {
+  uint8_t state;
+  char service[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
+};
+
+static struct servicelookupmap services_looking[RESOLV_ENTRIES];
+
+/* This keeps track of what services on other devices we know about. */
+struct servicemap {
+  uint8_t state;   /* The states for this service map are as follows:
+                    * STATE_UNUSED : empty slot in array
+                    * STATE_NEW :    got PTR, have not gotten SRV. fullhostname
+                    *                contains the full service domain name,
+                    *                e.g.: ubuntu._server._udp.local
+                    * STATE_ASKING : got PTR and SRV, have not gotten TXT.
+                    *                hostname contains the correct domain,
+                    *                e.g.: ubuntu.local
+                    * STATE_DONE   : got all needed packets. */
+  char hostname[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];     /* ubuntu.local */
+  char fullhostname[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1]; /* ubuntu._server._udp.local */
+  char service[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];      /* _server._udp.local */
+  char txt[RESOLV_CONF_MAX_TXT_SIZE + 1];
+  int port;
+#if RESOLV_SUPPORTS_RECORD_EXPIRATION
+  unsigned long expiration;
+#endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+};
+
+/* This array needs to be separate from the names array because there is
+ * no longer a 1-to-1 mapping of services -> hostnames. */
+static struct servicemap services[RESOLV_ENTRIES];
+
+/* This keeps track of what services we provide. */
+struct myservicemap {
+  uint8_t state;
+  char service[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
+  char txt[RESOLV_CONF_MAX_TXT_SIZE + 1];
+  int port;
+};
+
+/* Array of services this node provides.
+ */
+static struct myservicemap myservices[RESOLV_ENTRIES];
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
 static uint8_t seqno;
 
@@ -339,7 +423,7 @@ decode_name(const unsigned char *query, char *dest,
   //DEBUG_PRINTF("resolver: decoding name: \"");
 
   while(len && n) {
-    if(n & 0xc0) {
+    if((n & 0xc0) == 0xc0) {
       const uint16_t offset = query[0] + ((n & ~0xC0) << 8);
 
       //DEBUG_PRINTF("<skip-to-%d>",offset);
@@ -387,7 +471,7 @@ dns_name_isequal(const unsigned char *queryptr, const char *name,
     return 0;
 
   while(n) {
-    if(n & 0xc0) {
+    if((n & 0xc0) == 0xc0) {
       queryptr = packet + queryptr[0] + ((n & ~0xC0) << 8);
       n = *queryptr++;
     }
@@ -423,12 +507,12 @@ skip_name(unsigned char *query)
 {
   unsigned char n;
 
-  DEBUG_PRINTF("resolver: skip name: ");
+  // DEBUG_PRINTF("resolver: skip name: ");
 
   do {
     n = *query;
-    if(n & 0xc0) {
-      DEBUG_PRINTF("<skip-to-%d>", query[0] + ((n & ~0xC0) << 8));
+    if((n & 0xc0) == 0xc0) {
+      // DEBUG_PRINTF("<skip-to-%d>", query[0] + ((n & ~0xC0) << 8));
       ++query;
       break;
     }
@@ -436,13 +520,13 @@ skip_name(unsigned char *query)
     ++query;
 
     while(n > 0) {
-      DEBUG_PRINTF("%c", *query);
+      // DEBUG_PRINTF("%c", *query);
       ++query;
       --n;
     };
-    DEBUG_PRINTF(".");
+    // DEBUG_PRINTF(".");
   } while(*query != 0);
-  DEBUG_PRINTF("\n");
+  // DEBUG_PRINTF("\n");
   return query + 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -524,7 +608,7 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
       *queryptr++ = 0;
       *queryptr++ = 0;
       *queryptr++ = 0;
-      *queryptr++ = 120;
+      *queryptr++ = RESOLV_CONF_TIMEOUT_SECONDS;
 
       *queryptr++ = 0;
       *queryptr++ = sizeof(uip_ipaddr_t);
@@ -536,16 +620,19 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
   }
 #else /* NETSTACK_CONF_WITH_IPV6 */
   struct dns_answer *ans;
+  struct dns_answer_native *ans_native;
 
   queryptr = encode_name(queryptr, resolv_hostname);
   ans = (struct dns_answer *)queryptr;
   ans->type = UIP_HTONS(NATIVE_DNS_TYPE);
   ans->class = UIP_HTONS(DNS_CLASS_IN | 0x8000);
   ans->ttl[0] = 0;
-  ans->ttl[1] = UIP_HTONS(120);
+  ans->ttl[1] = UIP_HTONS(RESOLV_CONF_TIMEOUT_SECONDS);
   ans->len = UIP_HTONS(sizeof(uip_ipaddr_t));
-  uip_gethostaddr((uip_ipaddr_t *) ans->ipaddr);
   queryptr = (unsigned char *)ans + sizeof(*ans);
+  ans_native = (struct dns_answer_native *)queryptr;
+  uip_gethostaddr((uip_ipaddr_t *) ans_native->ipaddr);
+  queryptr = (unsigned char *)ans_native + sizeof(*ans_native);
   ++(*count);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
   return queryptr;
@@ -567,12 +654,13 @@ mdns_prep_host_announce_packet(void)
   } nsec_record = {
     UIP_HTONS(DNS_TYPE_NSEC),
     UIP_HTONS(DNS_CLASS_IN | 0x8000),
-    { 0, UIP_HTONS(120) },
+    { 0, UIP_HTONS(RESOLV_CONF_TIMEOUT_SECONDS) },
     UIP_HTONS(8),
 
     {
       0xc0,
-      sizeof(struct dns_hdr), /* Name compression. Re-using the name of first record. */
+      sizeof(struct dns_hdr), /* Name compression. Re-using the name of first
+                               * record. */
       0x00,
       0x04,
 
@@ -629,6 +717,200 @@ mdns_prep_host_announce_packet(void)
 
   return (queryptr - (unsigned char *)uip_appdata);
 }
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+/** \internal
+ * TODO merge with mdns_*_announce_* functions?
+ */
+static unsigned char *
+mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count,
+                                   uint8_t record_type, uint8_t generic,
+                                   struct myservicemap *serviceptr)
+{
+  char hostname_nolocal[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
+
+  memcpy(hostname_nolocal, resolv_hostname, strlen(resolv_hostname) - 6);
+  hostname_nolocal[strlen(resolv_hostname) - 6] = '\0';
+
+  if(record_type == DNS_TYPE_SRV || record_type == DNS_TYPE_TXT) {
+    queryptr = encode_name(queryptr, hostname_nolocal);
+    *queryptr-- = 0;
+    queryptr = encode_name(queryptr, serviceptr->service);
+  } else if(record_type == DNS_TYPE_PTR) {
+    if(generic) {
+      /* Announce the service type "_services._dns-sd._udp.local" with
+       * this service in it. */
+      queryptr = encode_name(queryptr, "_services._dns-sd._udp.local");
+    } else {
+      queryptr = encode_name(queryptr, serviceptr->service);
+    }
+  }
+
+  /* Type, class and TTL: 8 bytes
+   */
+  *queryptr++ = 0x00;
+  *queryptr++ = record_type;
+  if(record_type == DNS_TYPE_PTR) {
+    *queryptr++ = (uint8_t) ((DNS_CLASS_IN | 0x0000) >> 8);
+  } else {
+    *queryptr++ = (uint8_t) ((DNS_CLASS_IN | 0x8000) >> 8);
+  }
+  *queryptr++ = DNS_CLASS_IN;
+
+  *queryptr++ = 0;
+  *queryptr++ = 0;
+  *queryptr++ = 0;
+  *queryptr++ = RESOLV_CONF_TIMEOUT_SECONDS;
+
+  if(record_type == DNS_TYPE_SRV) {
+    /* Resource length: 2 bytes
+     */
+    *queryptr++ = 0;
+    /* Priority (2) + Weight (2) + Port (2) + Length (1) + hostname
+     * - ".local" (6) + end (1) + offset (1) */
+    *queryptr++ = strlen((char *)resolv_hostname) + 3;
+
+    /* Priority and weight: 4 bytes
+     */
+    *queryptr++ = 0;
+    *queryptr++ = 0;
+    *queryptr++ = 0;
+    *queryptr++ = 0;
+
+    /* Port: 2 bytes
+     */
+    *queryptr++ = (uint8_t)(serviceptr->port >> 8);
+    *queryptr++ = (uint8_t)serviceptr->port;
+
+    /* Data
+     */
+    queryptr = encode_name(queryptr, resolv_hostname);
+    queryptr -= 7;
+    /* Use name compression to refer back to the first .local */
+    *queryptr++ = 0xc0;
+    *queryptr++ = sizeof(struct dns_hdr) + 2 +
+                  strlen((char *)hostname_nolocal) +
+                  strlen((char *)serviceptr->service) - 6;
+  } else if(record_type == DNS_TYPE_PTR) {
+    if(generic) {
+      char service_nolocal[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
+      memcpy(service_nolocal, serviceptr->service, strlen(serviceptr->service) - 6);
+      service_nolocal[strlen(serviceptr->service) - 6] = '\0';
+
+      /* Resource length: 2 bytes
+       */
+      *queryptr++ = 0;
+      /* Size of ptr + hostname - len(.local) + offset */
+      *queryptr++ = 2 + strlen((char *)service_nolocal) + 1;
+
+      /* Data
+       */
+      queryptr = encode_name(queryptr, service_nolocal);
+      *queryptr-- = 0;
+      /* Use name compression to refer back to the .local after the
+       * generic name. */
+      *queryptr++ = 0xc0;
+      *queryptr++ = sizeof(struct dns_hdr) + 23;
+    } else {
+      /* Resource length: 2 bytes
+       */
+      *queryptr++ = 0;
+      /* Size of ptr + hostname - len(.local) + offset */
+      *queryptr++ = 2 + strlen((char *)hostname_nolocal) + 1;
+
+      /* Data
+       */
+      queryptr = encode_name(queryptr, hostname_nolocal);
+      *queryptr-- = 0;
+      /* Use name compression to refer back to the first name */
+      *queryptr++ = 0xc0;
+      *queryptr++ = sizeof(struct dns_hdr);
+    }
+  } else if(record_type == DNS_TYPE_TXT) {
+    if(strlen(serviceptr->txt) > 0) {
+      /* Resource length: 2 bytes
+       */
+      *queryptr++ = 0;
+      *queryptr++ = strlen(serviceptr->txt) + 1;
+
+      /* Data
+       */
+      queryptr = encode_name(queryptr, serviceptr->txt);
+    } else {
+      *queryptr++ = 0x00;
+      *queryptr++ = 0x01;
+      *queryptr++ = 0x00;
+    }
+  }
+
+  ++(*count);
+
+  return queryptr;
+}
+/*---------------------------------------------------------------------------*/
+/** \internal
+ * Called to announce the _services._dns-sd._udp.local PTR packet. This
+ * lets the receiver discover available services.
+ */
+static size_t
+mdns_prep_service_discover_packet(struct myservicemap *serviceptr)
+{
+  unsigned char *queryptr;
+
+  uint8_t total_answers = 0;
+
+  /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
+   * writing directly to the uint16_t members of this struct is an error. */
+  struct dns_hdr *hdr = (struct dns_hdr *)uip_appdata;
+
+  /* Zero out the header */
+  memset((void *)hdr, 0, sizeof(*hdr));
+
+  hdr->flags1 |= DNS_FLAG1_RESPONSE | DNS_FLAG1_AUTHORATIVE;
+
+  queryptr = (unsigned char *)uip_appdata + sizeof(*hdr);
+  queryptr = mdns_write_announce_service_record(queryptr, &total_answers,
+                                                DNS_TYPE_PTR, 1, serviceptr);
+
+  /* This platform might be picky about alignment. To avoid the possibility
+   * of doing an unaligned write, we are going to do this manually. */
+  ((uint8_t*)&hdr->numanswers)[1] = total_answers;
+  ((uint8_t*)&hdr->numextrarr)[1] = 0;
+
+  return (queryptr - (unsigned char *)uip_appdata);
+}
+/*---------------------------------------------------------------------------*/
+/** \internal
+ * Called when we need to announce our services (SRV, PTR, TXT)
+ */
+static size_t
+mdns_prep_service_announce_packet(uint8_t record_type,
+                                  struct myservicemap *serviceptr)
+{
+  unsigned char *queryptr;
+
+  uint8_t total_answers = 0;
+
+  /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
+   * writing directly to the uint16_t members of this struct is an error. */
+  struct dns_hdr *hdr = (struct dns_hdr *)uip_appdata;
+
+  /* Zero out the header */
+  memset((void *)hdr, 0, sizeof(*hdr));
+
+  hdr->flags1 |= DNS_FLAG1_RESPONSE | DNS_FLAG1_AUTHORATIVE;
+
+  queryptr = (unsigned char *)uip_appdata + sizeof(*hdr);
+  queryptr = mdns_write_announce_service_record(queryptr, &total_answers,
+                                                record_type, 0, serviceptr);
+
+  /* This platform might be picky about alignment. To avoid the possibility
+   * of doing an unaligned write, we are going to do this manually. */
+  ((uint8_t*)&hdr->numanswers)[1] = total_answers;
+  ((uint8_t*)&hdr->numextrarr)[1] = 0;
+
+  return (queryptr - (unsigned char *)uip_appdata);
+}
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 /*---------------------------------------------------------------------------*/
 static char
@@ -761,7 +1043,7 @@ check_entries(void)
         uip_udp_packet_sendto(resolv_conn, uip_appdata,
                               (query - (uint8_t *) uip_appdata),
                               (const uip_ipaddr_t *)
-                                uip_nameserver_get(namemapptr->server), 
+                                uip_nameserver_get(namemapptr->server),
                               UIP_HTONS(DNS_PORT));
 
         PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
@@ -770,7 +1052,7 @@ check_entries(void)
 #else /* RESOLV_CONF_SUPPORTS_MDNS */
       uip_udp_packet_sendto(resolv_conn, uip_appdata,
                             (query - (uint8_t *) uip_appdata),
-                            uip_nameserver_get(namemapptr->server), 
+                            uip_nameserver_get(namemapptr->server),
                             UIP_HTONS(DNS_PORT));
       PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
              namemapptr->name);
@@ -778,6 +1060,39 @@ check_entries(void)
       break;
     }
   }
+
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
+  /* Iterate all services that we are interested in discovering and send
+   * out requests. */
+  for(i = 0; i < RESOLV_ENTRIES; i++) {
+    struct servicelookupmap *servicemapptr = &services_looking[i];
+
+    if(servicemapptr->state == STATE_NEW || servicemapptr->state == STATE_ASKING) {
+      /* Send a mdns query PTR packet for the service. */
+
+      hdr = (struct dns_hdr *)uip_appdata;
+      memset(hdr, 0, sizeof(struct dns_hdr));
+      /* Flags and id stay set to 0. */
+      hdr->numquestions = UIP_HTONS(1);
+
+      /* Setup the body of the query */
+      query = (unsigned char *)uip_appdata + sizeof(*hdr);
+      query = encode_name(query, servicemapptr->service);
+      /* Need to send a PTR packet. */
+      *query++ = (uint8_t) ((DNS_TYPE_PTR) >> 8);
+      *query++ = (uint8_t) ((DNS_TYPE_PTR));
+      *query++ = (uint8_t) ((DNS_CLASS_IN) >> 8);
+      *query++ = (uint8_t) ((DNS_CLASS_IN));
+
+      uip_udp_packet_sendto(resolv_conn, uip_appdata,
+                            (query - (uint8_t *) uip_appdata),
+                            &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
+
+      PRINTF("resolver: (i=%d) Sent MDNS request for \"%s\".\n", i,
+             servicemapptr->service);
+    }
+  }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD */
 }
 /*---------------------------------------------------------------------------*/
 /** \internal
@@ -800,6 +1115,10 @@ newdata(void)
 
   const uint8_t is_request = ((hdr->flags1 & ~1) == 0) && (hdr->flags2 == 0);
 
+#if VERBOSE_DEBUG
+  static int8_t record_count = 0;
+#endif
+
   /* We only care about the question(s) and the answers. The authrr
    * and the extrarr are simply discarded.
    */
@@ -807,13 +1126,14 @@ newdata(void)
   nanswers = (uint8_t) uip_ntohs(hdr->numanswers);
 
   queryptr = (unsigned char *)hdr + sizeof(*hdr);
-  i = 0;
 
+#if VERBOSE_DEBUG
   DEBUG_PRINTF
     ("resolver: flags1=0x%02X flags2=0x%02X nquestions=%d, nanswers=%d, nauthrr=%d, nextrarr=%d\n",
      hdr->flags1, hdr->flags2, (uint8_t) nquestions, (uint8_t) nanswers,
      (uint8_t) uip_ntohs(hdr->numauthrr),
      (uint8_t) uip_ntohs(hdr->numextrarr));
+#endif
 
   if(is_request && (nquestions == 0)) {
     /* Skip requests with no questions. */
@@ -845,19 +1165,50 @@ newdata(void)
       question = &aligned;
 #endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
-      DEBUG_PRINTF("resolver: Question %d: type=%d class=%d\n", ++i,
-                   uip_htons(question->type), uip_htons(question->class));
+#if VERBOSE_DEBUG
+      {
+        static char debug_name[40];
+        decode_name(queryptr, debug_name, uip_appdata);
+        DEBUG_PRINTF("resolver: Question %d: \"%s\" type=%d class=%d\n",
+                     ++record_count, debug_name, uip_htons(question->type),
+                     uip_htons(question->class));
+      }
+#endif
 
       if(((uip_ntohs(question->class) & 0x7FFF) != DNS_CLASS_IN) ||
-         ((question->type != UIP_HTONS(DNS_TYPE_ANY)) &&
-          (question->type != UIP_HTONS(NATIVE_DNS_TYPE)))) {
+         ((question->type != UIP_HTONS(DNS_TYPE_ANY))
+          && (question->type != UIP_HTONS(NATIVE_DNS_TYPE))
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+          && (question->type != UIP_HTONS(DNS_TYPE_PTR))
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+      )){
         /* Skip unrecognised records. */
         continue;
       }
 
-      if(!dns_name_isequal(queryptr, resolv_hostname, uip_appdata)) {
-        continue;
+      if(question->type == UIP_HTONS(DNS_TYPE_ANY) ||
+         question->type == UIP_HTONS(NATIVE_DNS_TYPE)) {
+        /* Check if something is looking for our hostname.*/
+        if(!dns_name_isequal(queryptr, resolv_hostname, uip_appdata)) {
+          continue;
+        }
       }
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+      else if(question->type == UIP_HTONS(DNS_TYPE_PTR)) {
+        /* Check if we provide the service that is being queried. */
+        uint8_t found = 0;
+        for(i = 0; i < RESOLV_ENTRIES; i++) {
+          struct myservicemap *myserviceptr = &myservices[i];
+          if(dns_name_isequal(queryptr, myserviceptr->service, uip_appdata)) {
+            found = 1;
+            break;
+          }
+        }
+        if(!found) {
+          continue;
+        }
+      }
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
 
       PRINTF("resolver: THIS IS A REQUEST FOR US!!!\n");
 
@@ -910,7 +1261,6 @@ newdata(void)
      * because we can't use the `id` field. We will look up the
      * appropriate request in a later step. */
 
-    i = -1;
     namemapptr = NULL;
   } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
@@ -948,25 +1298,29 @@ newdata(void)
     }
   }
 
-  i = 0;
+#if VERBOSE_DEBUG
+  record_count = 0;
+#endif
 
   /* Answer parsing loop */
   while(nanswers > 0) {
-    ans = (struct dns_answer *)skip_name(queryptr);
+    unsigned char* postqueryptr = skip_name(queryptr);
 
 #if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
     {
       static struct dns_answer aligned;
-      memcpy(&aligned, ans, sizeof(aligned));
+      memcpy(&aligned, postqueryptr, sizeof(aligned));
       ans = &aligned;
     }
+#else
+    ans = (struct dns_answer *)postqueryptr;
 #endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
 #if VERBOSE_DEBUG
     char debug_name[40];
     decode_name(queryptr, debug_name, uip_appdata);
     DEBUG_PRINTF("resolver: Answer %d: \"%s\", type %d, class %d, ttl %d, length %d\n",
-                 ++i, debug_name, uip_ntohs(ans->type),
+                 ++record_count, debug_name, uip_ntohs(ans->type),
                  uip_ntohs(ans->class) & 0x7FFF,
                  (int)((uint32_t) uip_ntohs(ans->ttl[0]) << 16) | (uint32_t)
                  uip_ntohs(ans->ttl[1]), uip_ntohs(ans->len));
@@ -975,89 +1329,240 @@ newdata(void)
     /* Check the class and length of the answer to make sure
      * it matches what we are expecting
      */
-    if(((uip_ntohs(ans->class) & 0x7FFF) != DNS_CLASS_IN) ||
-       (ans->len != UIP_HTONS(sizeof(uip_ipaddr_t)))) {
+    if(((uip_ntohs(ans->class) & 0x7FFF) != DNS_CLASS_IN)
+#if !RESOLV_CONF_SUPPORTS_MDNS && !RESOLV_CONF_SUPPORTS_DNS_SD
+       || (ans->len != UIP_HTONS(sizeof(uip_ipaddr_t)))
+#endif /* !RESOLV_CONF_SUPPORTS_MDNS && !RESOLV_CONF_SUPPORTS_DNS_SD */
+    ) {
       goto skip_to_next_answer;
     }
 
-    if(ans->type != UIP_HTONS(NATIVE_DNS_TYPE)) {
+    /* We are only looking for certain records. These are the ones we
+     * care about. */
+    if(ans->type != UIP_HTONS(NATIVE_DNS_TYPE)
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
+      && ans->type != UIP_HTONS(DNS_TYPE_PTR)
+      && ans->type != UIP_HTONS(DNS_TYPE_SRV)
+      && ans->type != UIP_HTONS(DNS_TYPE_TXT)
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD */
+    ) {
       goto skip_to_next_answer;
     }
+
+    /* If this answer is an A or AAAA record, look for the hostname and
+     * IP address. */
+    if(ans->type == UIP_HTONS(NATIVE_DNS_TYPE)) {
+      struct dns_answer_native* ans_native =
+        (struct dns_answer_native *)(postqueryptr+sizeof(struct dns_answer));
+#if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
+      struct dns_answer_native aligned;
+      memcpy(&aligned, postqueryptr+sizeof(struct dns_answer), sizeof(aligned));
+      ans_native = &aligned;
+#endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
 #if RESOLV_CONF_SUPPORTS_MDNS
-    if(UIP_UDP_BUF->srcport == UIP_HTONS(MDNS_PORT) &&
-       hdr->id == 0) {
-      int8_t available_i = RESOLV_ENTRIES;
-
-      DEBUG_PRINTF("resolver: MDNS query.\n");
-
       /* For MDNS, we need to actually look up the name we
        * are looking for.
        */
-      for(i = 0; i < RESOLV_ENTRIES; ++i) {
-        namemapptr = &names[i];
-        if(dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
-          break;
+      if(UIP_UDP_BUF->srcport == UIP_HTONS(MDNS_PORT) && hdr->id == 0) {
+        int8_t available_i = RESOLV_ENTRIES;
+
+        DEBUG_PRINTF("resolver: MDNS A/AAAA answer.\n");
+
+        for(i = 0; i < RESOLV_ENTRIES; ++i) {
+          namemapptr = &names[i];
+
+          if(dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
+            break;
+          }
+          if((namemapptr->state == STATE_UNUSED)
+  #if RESOLV_SUPPORTS_RECORD_EXPIRATION
+            || (namemapptr->state == STATE_DONE && clock_seconds() > namemapptr->expiration)
+  #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+          ) {
+            available_i = i;
+          }
         }
-        if((namemapptr->state == STATE_UNUSED)
-#if RESOLV_SUPPORTS_RECORD_EXPIRATION
-          || (namemapptr->state == STATE_DONE && clock_seconds() > namemapptr->expiration)
-#endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
-        ) {
-          available_i = i;
+        if(i == RESOLV_ENTRIES) {
+          DEBUG_PRINTF("resolver: Unsolicited MDNS response.\n");
+          i = available_i;
+          namemapptr = &names[i];
+          if(!decode_name(queryptr, namemapptr->name, uip_appdata)) {
+            DEBUG_PRINTF("resolver: MDNS name too big to cache.\n");
+            namemapptr = NULL;
+            goto skip_to_next_answer;
+          }
         }
-      }
-      if(i == RESOLV_ENTRIES) {
-        DEBUG_PRINTF("resolver: Unsolicited MDNS response.\n");
-        i = available_i;
-        namemapptr = &names[i];
-        if(!decode_name(queryptr, namemapptr->name, uip_appdata)) {
-          DEBUG_PRINTF("resolver: MDNS name too big to cache.\n");
+        if(i == RESOLV_ENTRIES) {
+          DEBUG_PRINTF("resolver: No room for unsolicited MDNS answer.\n");
+
+          if(dns_name_isequal(queryptr, resolv_hostname, uip_appdata)) {
+            /* Oh snap, they say they are us! We had better report them... */
+            resolv_found(resolv_hostname, (uip_ipaddr_t *) ans_native->ipaddr);
+          }
           namemapptr = NULL;
           goto skip_to_next_answer;
         }
-      }
-      if(i == RESOLV_ENTRIES) {
-        DEBUG_PRINTF
-          ("resolver: Not enough room to keep track of unsolicited MDNS answer.\n");
+        namemapptr = &names[i];
 
-        if(dns_name_isequal(queryptr, resolv_hostname, uip_appdata)) {
-          /* Oh snap, they say they are us! We had better report them... */
-          resolv_found(resolv_hostname, (uip_ipaddr_t *) ans->ipaddr);
-        }
-        namemapptr = NULL;
-        goto skip_to_next_answer;
       }
-      namemapptr = &names[i];
-
-    } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
-    {
-      /* This will force us to stop even if there are more answers. */
-      nanswers = 1;
-    }
 
 /*  This is disabled for now, so that we don't fail on CNAME records.
 #if RESOLV_VERIFY_ANSWER_NAMES
-    if(namemapptr && !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
-      DEBUG_PRINTF("resolver: Answer name doesn't match question...!\n");
-      goto skip_to_next_answer;
-    }
+      if(namemapptr && !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
+        DEBUG_PRINTF("resolver: Answer name doesn't match question...!\n");
+        goto skip_to_next_answer;
+      }
 #endif
 */
 
-    DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n", namemapptr->name);
+      DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n", namemapptr->name);
 
-    namemapptr->state = STATE_DONE;
+      namemapptr->state = STATE_DONE;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
-    namemapptr->expiration = ans->ttl[1] + (ans->ttl[0] << 8);
-    namemapptr->expiration += clock_seconds();
+      namemapptr->expiration = (int)((uint32_t) uip_ntohs(ans->ttl[0]) << 16) |
+                                     (uint32_t) uip_ntohs(ans->ttl[1]);
+      namemapptr->expiration += clock_seconds();
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
 
-    uip_ipaddr_copy(&namemapptr->ipaddr, (uip_ipaddr_t *) ans->ipaddr);
+      uip_ipaddr_copy(&namemapptr->ipaddr, (uip_ipaddr_t *) ans_native->ipaddr);
 
-    resolv_found(namemapptr->name, &namemapptr->ipaddr);
-    break;
+      resolv_found(namemapptr->name, &namemapptr->ipaddr);
+#if !RESOLV_CONF_SUPPORTS_DNS_SD
+      /* If we don't care about services, then we can stop looking now.
+       * Otherwise we should keep parsing answers in case they contain
+       * information about services we care about. */
+      break;
+#endif /* !RESOLV_CONF_SUPPORTS_DNS_SD */
+
+    }
+
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
+    /* For service discovery, we are interested in more answer types, notably
+     * PTR, SRV, and TXT. PTR records provide the mapping from service name to
+     * hostname, SRV records provide port and other information for a service,
+     * and TXT records provide other parameters for a service. */
+    if(UIP_UDP_BUF->srcport == UIP_HTONS(MDNS_PORT) && hdr->id == 0) {
+      unsigned char* domain;
+      if(ans->type == UIP_HTONS(DNS_TYPE_PTR)) {
+        domain = postqueryptr + sizeof(struct dns_answer);
+        DEBUG_PRINTF("resolver: checking PTR record.\n");
+
+        /* Check to see if the service name in this PTR record is one that we
+         * are looking for. */
+        for(i = 0; i < RESOLV_ENTRIES; i++) {
+          struct servicelookupmap *servicelookmapptr = &services_looking[i];
+          int j;
+
+          if(servicelookmapptr->state != STATE_UNUSED &&
+             dns_name_isequal(queryptr, servicelookmapptr->service, uip_appdata)) {
+            int8_t available_i = -1;
+            uint8_t found = 0;
+            /* Now that we care about this service, see if we already know about
+             * this host or need to add it to our list of known service providing
+             * hosts. */
+            for(j = 0; j < RESOLV_ENTRIES; j++) {
+              struct servicemap *servicemapptr = &services[i];
+              if(servicemapptr->state != STATE_UNUSED &&
+                 dns_name_isequal(queryptr, servicemapptr->service, uip_appdata)) {
+                /* Get a pointer to the domain name. Skip class, type, TTL, length. */
+                if(dns_name_isequal(domain, servicemapptr->fullhostname, uip_appdata)) {
+                  /* We already know this host provides this service. */
+                  found = 1;
+                  break;
+                }
+              } else if(available_i == -1 && servicemapptr->state == STATE_UNUSED) {
+                /* Make a note if we find an empty slot */
+                available_i = j;
+              }
+#if RESOLV_SUPPORTS_RECORD_EXPIRATION
+              else if(available_i == -1 &&
+                      servicemapptr->state == STATE_DONE &&
+                      clock_seconds() > servicemapptr->expiration) {
+                available_i = j;
+              }
+#endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+            }
+            if(!found && available_i > -1) {
+              struct servicemap *servicemapptr = &services[available_i];
+              decode_name(queryptr, servicemapptr->service, uip_appdata);
+              decode_name(domain, servicemapptr->fullhostname, uip_appdata);
+              servicemapptr->state = STATE_NEW;
+#if RESOLV_SUPPORTS_RECORD_EXPIRATION
+              servicemapptr->expiration = (int)((uint32_t) uip_ntohs(ans->ttl[0]) << 16) |
+                                                (uint32_t) uip_ntohs(ans->ttl[1]);
+              servicemapptr->expiration += clock_seconds();
+#endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+              DEBUG_PRINTF("resolver: found host \"%s\" that provides \"%s\"\n",
+                servicemapptr->fullhostname, servicemapptr->service);
+            } else if(!found && available_i == -1) {
+              DEBUG_PRINTF("resolver: found host for %s but ran out of space \
+                to store it.\n", servicelookmapptr->service);
+            }
+
+            break;
+          }
+        }
+
+      } else if(ans->type == UIP_HTONS(DNS_TYPE_SRV)) {
+        struct dns_answer_srv* ans_srv = (struct dns_answer_srv *)(postqueryptr+sizeof(struct dns_answer));
+#if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
+        struct dns_answer_srv aligned;
+        memcpy(&aligned, postqueryptr+sizeof(struct dns_answer), sizeof(aligned));
+        ans_srv = &aligned;
+#endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
+        domain = postqueryptr + sizeof(struct dns_answer) + sizeof(struct dns_answer_srv);
+        PRINTF("resolver: checking SRV record\n");
+
+        /* Check to see if we have received a PTR record for this SRV record
+         * and if we need to store this SRV record. */
+        for (i = 0; i < RESOLV_ENTRIES; i++) {
+          struct servicemap *servicemapptr = &services[i];
+          if(servicemapptr->state == STATE_NEW &&
+             dns_name_isequal(queryptr, servicemapptr->fullhostname, uip_appdata)) {
+            servicemapptr->port = uip_htons(ans_srv->port);
+            decode_name(domain, servicemapptr->hostname, uip_appdata);
+            DEBUG_PRINTF("resolver: found SRV record for %s with port=%u \
+and domain=%s\n", servicemapptr->fullhostname, servicemapptr->port,
+            servicemapptr->hostname);
+            servicemapptr->state = STATE_ASKING;
+
+            /* Need to add this host to our names list so that we can find
+             * out its IP address to actually use it. */
+            resolv_query(servicemapptr->hostname);
+            break;
+          }
+        }
+
+      } else if(ans->type == UIP_HTONS(DNS_TYPE_TXT)) {
+        domain = postqueryptr + sizeof(struct dns_answer);
+        PRINTF("resolver: checking TXT record\n");
+
+        /* Check to see if we have received a PTR and SRV record
+         * and if we need to store this TXT record. */
+        for (i = 0; i < RESOLV_ENTRIES; i++) {
+          struct servicemap *servicemapptr = &services[i];
+          if(servicemapptr->state == STATE_ASKING &&
+             dns_name_isequal(queryptr, servicemapptr->fullhostname, uip_appdata)) {
+            int length;
+            length = uip_htons(ans->len);
+            if(length > RESOLV_CONF_MAX_TXT_SIZE) {
+              length = RESOLV_CONF_MAX_TXT_SIZE;
+            }
+            memcpy(servicemapptr->txt, domain, length);
+            servicemapptr->txt[length] = '\0';
+            DEBUG_PRINTF("resolver: found TXT record for %s with value=%s\n",
+              servicemapptr->fullhostname, servicemapptr->txt);
+            servicemapptr->state = STATE_DONE;
+
+            process_post(PROCESS_BROADCAST, resolv_event_found, servicemapptr->service);
+            break;
+          }
+        }
+      }
+    }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD */
 
   skip_to_next_answer:
     queryptr = (unsigned char *)skip_name(queryptr) + 10 + uip_htons(ans->len);
@@ -1067,11 +1572,11 @@ newdata(void)
   /* Got to this point there's no answer, try next nameserver if available
      since this one doesn't know the answer */
 #if RESOLV_CONF_SUPPORTS_MDNS
-  if(nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT) 
+  if(nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT)
       && hdr->id != 0)
 #else
-  if(nanswers == 0) 
-#endif
+  if(nanswers == 0)
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
   {
     if(try_next_server(namemapptr)) {
       namemapptr->state = STATE_ASKING;
@@ -1162,6 +1667,11 @@ PROCESS_THREAD(resolv_process, ev, data)
   PROCESS_BEGIN();
 
   memset(names, 0, sizeof(names));
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
+  memset(services_looking, 0, sizeof(services_looking));
+  memset(services, 0, sizeof(services));
+  memset(myservices, 0, sizeof(myservices));
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD */
 
   resolv_event_found = process_alloc_event();
 
@@ -1177,7 +1687,7 @@ PROCESS_THREAD(resolv_process, ev, data)
   uip_ds6_maddr_add(&resolv_mdns_addr);
 #else
   /* TODO: Is there anything we need to do here for IPv4 multicast? */
-#endif
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
@@ -1201,6 +1711,33 @@ PROCESS_THREAD(resolv_process, ev, data)
                    resolv_hostname);
 
             memset(uip_appdata, 0, sizeof(struct dns_hdr));
+
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+            {
+              uint8_t i;
+              struct myservicemap *serviceptr;
+              for(i = 0; i < RESOLV_ENTRIES; ++i) {
+                serviceptr = &myservices[i];
+                if(serviceptr->state == STATE_NEW) {
+                  len = mdns_prep_service_discover_packet(serviceptr);
+                  uip_udp_packet_sendto(resolv_conn, uip_appdata, len,
+                                        &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
+
+                  len = mdns_prep_service_announce_packet(DNS_TYPE_PTR, serviceptr);
+                  uip_udp_packet_sendto(resolv_conn, uip_appdata, len,
+                                        &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
+
+                  len = mdns_prep_service_announce_packet(DNS_TYPE_SRV, serviceptr);
+                  uip_udp_packet_sendto(resolv_conn, uip_appdata, len,
+                                        &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
+
+                  len = mdns_prep_service_announce_packet(DNS_TYPE_TXT, serviceptr);
+                  uip_udp_packet_sendto(resolv_conn, uip_appdata, len,
+                                        &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
+                }
+              }
+            }
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
 
             len = mdns_prep_host_announce_packet();
 
@@ -1276,7 +1813,7 @@ resolv_query(const char *name)
   register struct namemap *nameptr = 0;
 
   init();
-  
+
   lseq = lseqi = 0;
 
   /* Remove trailing dots, if present. */
@@ -1301,6 +1838,7 @@ resolv_query(const char *name)
   }
 
   if(i == RESOLV_ENTRIES) {
+    /* Did not find a matching entry. Need to create a new one. */
     i = lseqi;
     nameptr = &names[i];
   }
@@ -1316,6 +1854,7 @@ resolv_query(const char *name)
 
 #if RESOLV_CONF_SUPPORTS_MDNS
   {
+    /* Determine if we should use mDNS or DNS. */
     size_t name_len = strlen(name);
 
     const char local_suffix[] = "local";
@@ -1332,7 +1871,7 @@ resolv_query(const char *name)
                       (0 == strcmp(nameptr->name, resolv_hostname));
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
-  /* Force check_entires() to run on our process. */
+  /* Force check_entries() to run on our process. */
   process_post(&resolv_process, PROCESS_EVENT_TIMER, 0);
 }
 /*---------------------------------------------------------------------------*/
@@ -1452,7 +1991,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
      && !uip_ds6_is_my_addr(ipaddr)
 #else
      && uip_ipaddr_cmp(&uip_hostaddr, ipaddr) != 0
-#endif
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     ) {
     uint8_t i;
 
@@ -1514,6 +2053,189 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
 
   process_post(PROCESS_BROADCAST, resolv_event_found, name);
 }
+
+#if RESOLV_CONF_SUPPORTS_MDNS
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+/*---------------------------------------------------------------------------*/
+/**
+ * Queues a service name so that a question for the name will be sent out.
+ *
+ * \param service The service that is to be queried.
+ */
+void
+resolv_query_service(const char *service)
+{
+  uint8_t i;
+  int8_t open_slot = -1;
+
+  struct servicelookupmap *servicelookupptr = 0;
+
+  init();
+
+  /* Remove trailing dots, if present. */
+  service = remove_trailing_dots(service);
+
+  /* Check to see if we are already looking for this service. */
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    servicelookupptr = &services_looking[i];
+    if(servicelookupptr->state == STATE_UNUSED) {
+      /* Make note of this open space in case we need to insert the new
+       * query into it. */
+      if(open_slot == -1) {
+        open_slot = i;
+      }
+    } else if(strcasecmp(servicelookupptr->service, service) == 0) {
+      DEBUG_PRINTF("resolver: service %s already being looked for\n", service);
+      return;
+    }
+  }
+
+  if(i == RESOLV_ENTRIES) {
+    /* Did not find a matching entry. Need to create a new one. */
+    if(open_slot == -1) {
+      /* All slots are full. For now, just overwrite the first one. */
+      open_slot = 0;
+    }
+    servicelookupptr = &services_looking[open_slot];
+  }
+
+  PRINTF("resolver: Starting query for service \"%s\".\n", service);
+
+  /* Save the service as one to look up. */
+  memset(servicelookupptr, 0, sizeof(*servicelookupptr));
+  strncpy(servicelookupptr->service, service, sizeof(servicelookupptr->service));
+  servicelookupptr->state = STATE_NEW;
+
+  /* Force check_entries() to run on our process. */
+  process_post(&resolv_process, PROCESS_EVENT_TIMER, 0);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Look up a service in the array of known services on other devices.
+ *
+ * \note This function only looks in the internal array of known
+ * hostnames, it does not send out a query for the service if none
+ * was found.
+ *
+ * TODO: provide a mechanism for getting back more than one host that supports
+ *       the service.
+ *
+ */
+resolv_status_t
+resolv_service_lookup(const char *service, uip_ipaddr_t ** ipaddr, int *port)
+{
+  resolv_status_t ret = RESOLV_STATUS_UNCACHED;
+
+  static uint8_t i, j;
+
+  struct servicemap *serviceptr;
+  struct namemap *nameptr;
+
+  /* Remove trailing dots, if present. */
+  service = remove_trailing_dots(service);
+
+  /* Walk through the services list to see if the name is in there. */
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    serviceptr = &services[i];
+
+    if(strcasecmp(service, serviceptr->service) == 0) {
+      switch (serviceptr->state) {
+      case STATE_DONE:
+        ret = RESOLV_STATUS_CACHED;
+#if RESOLV_SUPPORTS_RECORD_EXPIRATION
+        if(clock_seconds() > serviceptr->expiration) {
+          ret = RESOLV_STATUS_EXPIRED;
+        }
+#endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+        break;
+      case STATE_NEW:
+      case STATE_ASKING:
+        ret = RESOLV_STATUS_RESOLVING;
+        break;
+      }
+
+      if (ret == RESOLV_STATUS_CACHED) {
+        uint8_t found = 0;
+        /* We know this hostname matches the service, but we really want
+         * to give the caller back an IP address. Iterate the names list
+         * to find the matching name. */
+        for (j = 0; j < RESOLV_ENTRIES; j++) {
+          nameptr = &names[j];
+          if(strncmp(serviceptr->hostname, nameptr->name, RESOLV_CONF_MAX_DOMAIN_NAME_SIZE) == 0 &&
+             nameptr->state == STATE_DONE) {
+            if(ipaddr) {
+              *ipaddr = &nameptr->ipaddr;
+            }
+            if(port) {
+              *port = serviceptr->port;
+            }
+            found = 1;
+            break;
+          }
+        }
+
+        if (found) {
+          /* Exit the service finding loop as well. */
+          break;
+        }
+      }
+
+      /* If we didn't find a matching service AND host, make sure we don't
+       * return success. */
+      ret = RESOLV_STATUS_UNCACHED;
+    }
+  }
+
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Queues a service that should be announced via DNS-SD.
+ *
+ * \param service The service name (e.g., _presence._tcp) that is to be announced.
+ * \param txt The additional information to the service that is to be announced.
+ * \param port The port of the service that is to be announced.
+ */
+void
+resolv_add_service(const char *service, const char *txt, int port)
+{
+  static uint8_t i;
+  register struct myservicemap *myserviceptr = 0;
+
+  DEBUG_PRINTF("resolver: adding service %s\n", service);
+
+  /* Remove trailing dots, if present. */
+  txt = remove_trailing_dots(txt);
+
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    myserviceptr = &myservices[i];
+    if(myserviceptr->state != STATE_UNUSED &&
+       strcasecmp(myserviceptr->service, service) == 0) {
+      return;
+    }
+  }
+
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    myserviceptr = &myservices[i];
+    if(myserviceptr->state == STATE_UNUSED) {
+      memset(myserviceptr, 0, sizeof(*myserviceptr));
+      strncpy(myserviceptr->service, service, sizeof(myserviceptr->service) - 1);
+
+      /* Add the .local suffix if it isn't already there */
+      if(strlen(myserviceptr->service) < 7 ||
+         strcasecmp(myserviceptr->service + strlen(myserviceptr->service) - 6, ".local") != 0) {
+        strncat(myserviceptr->service, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
+      }
+
+      strncpy(myserviceptr->txt, txt, sizeof(myserviceptr->txt) - 1);
+      myserviceptr->state = STATE_NEW;
+      myserviceptr->port = port;
+      break;
+    }
+  }
+}
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_UDP */
 
