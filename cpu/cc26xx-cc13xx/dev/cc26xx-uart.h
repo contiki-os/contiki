@@ -55,6 +55,28 @@
 void cc26xx_uart_init();
 
 /**
+ * \brief Change default UART configurations to custom one
+ * \param baudrate
+ * \config UART data format
+ * This parameter is the bitwise or of three values
+ *  Number of data bits
+ *  - \ref UART_CONFIG_WLEN_8 : 8 data bits per byte.
+ *  - \ref UART_CONFIG_WLEN_7 : 7 data bits per byte.
+ *  - \ref UART_CONFIG_WLEN_6 : 6 data bits per byte.
+ *  - \ref UART_CONFIG_WLEN_5 : 5 data bits per byte.
+ *  - Number of stop bits
+ *  - \ref UART_CONFIG_STOP_ONE : One stop bit.
+ *  - \ref UART_CONFIG_STOP_TWO : Two stop bits.
+ *  - Parity
+ *  - \ref UART_CONFIG_PAR_NONE
+ *  - \ref UART_CONFIG_PAR_EVEN
+ *  - \ref UART_CONFIG_PAR_ODD
+ *  - \ref UART_CONFIG_PAR_ONE
+ *  - \ref UART_CONFIG_PAR_ZERO
+ */
+void cc26xx_uart_setup(uint32_t baudrate, uint32_t config);
+
+/**
  * \brief Sends a single character down the UART
  * \param b The character to transmit
  */
