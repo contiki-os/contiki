@@ -350,19 +350,21 @@ tsch_queue_free_unused_neighbors(void)
 }
 /*---------------------------------------------------------------------------*/
 /* Is the neighbor queue empty? */
-int
+bool
 tsch_queue_is_empty(const struct tsch_neighbor *n)
 {
-  return !tsch_is_locked() && n != NULL && ringbufindex_empty(&n->tx_ringbuf);
+    if (!tsch_is_locked() && (n != NULL))
+        return  ringbufindex_empty(&n->tx_ringbuf);
+    return false;
 }
 /*---------------------------------------------------------------------------*/
 /* Returns the first packet from a neighbor queue */
 struct tsch_packet *
 tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *link)
 {
+  if(n != NULL) {
   if(!tsch_is_locked()) {
-    int is_shared_link = link != NULL && link->link_options & LINK_OPTION_SHARED;
-    if(n != NULL) {
+      int is_shared_link = (link != NULL) && (link->link_options & LINK_OPTION_SHARED);
       int16_t get_index = ringbufindex_peek_get(&n->tx_ringbuf);
       if(get_index != -1 &&
           !(is_shared_link && !tsch_queue_backoff_expired(n))) {    /* If this is a shared link,

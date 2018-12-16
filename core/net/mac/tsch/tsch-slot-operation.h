@@ -35,6 +35,7 @@
 
 /********** Includes **********/
 
+#include <stdbool.h>
 #include "contiki.h"
 #include "lib/ringbufindex.h"
 #include "net/mac/tsch/tsch-packet.h"
@@ -108,17 +109,39 @@ extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
 /* Returns a 802.15.4 channel from an ASN and channel offset */
 uint8_t tsch_calculate_channel(struct tsch_asn_t *asn, uint8_t channel_offset);
-/* Is TSCH locked? */
-int tsch_is_locked(void);
-/* Lock TSCH (no link operation) */
-int tsch_get_lock(void);
-/* Release TSCH lock */
-void tsch_release_lock(void);
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
 void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
     struct tsch_asn_t *next_slot_asn);
 /* Start actual slot operation */
 void tsch_slot_operation_start(void);
+
+
+
+#ifndef LIB_INLINES
+#if (PACKETBUF_CONF_ATTRS_INLINE) //|| defined(__GNUC__)
+#define LIB_INLINES     1
+#else
+#define LIB_INLINES     0
+#endif
+#endif //LIB_INLINES
+
+#if LIB_INLINES
+extern
+volatile bool tsch_locked;
+static inline
+bool tsch_is_locked(void){return tsch_locked;};
+static inline
+void tsch_release_lock(void){tsch_locked = 0;};
+
+#else
+/* Is TSCH locked? */
+bool tsch_is_locked(void);
+/* Release TSCH lock */
+void tsch_release_lock(void);
+#endif
+/* Lock TSCH (no link operation) */
+bool tsch_get_lock(void);
+
 
 #endif /* __TSCH_SLOT_OPERATION_H__ */
