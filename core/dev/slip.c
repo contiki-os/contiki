@@ -93,6 +93,31 @@ slip_set_input_callback(void (*c)(void))
   input_callback = c;
 }
 /*---------------------------------------------------------------------------*/
+#if SLIP_CRC_ON
+/* Polynomial ^8 + ^5 + ^4 + 1 */
+static uint8_t
+crc8_add(uint8_t acc, uint8_t byte)
+{
+  int i;
+  acc ^= byte;
+  for(i = 0; i < 8; i++) {
+    if(acc & 1) {
+      acc = (acc >> 1) ^ 0x8c;
+    } else {
+      acc >>= 1;
+    }
+  }
+
+  return acc;
+}
+#else
+static uint8_t
+crc8_add(uint8_t acc, uint8_t byte)
+{
+  return 0;
+}
+#endif /* SLIP_CRC_ON */
+/*---------------------------------------------------------------------------*/
 /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
  * was used in slip-bridge.c
  */
@@ -102,12 +127,14 @@ slip_send(void)
   uint16_t i;
   uint8_t *ptr;
   uint8_t c;
+  uint8_t crc = 0;
 
   slip_arch_writeb(SLIP_END);
 
   ptr = &uip_buf[UIP_LLH_LEN];
   for(i = 0; i < uip_len; ++i) {
     c = *ptr++;
+    crc = crc8_add(crc, c);
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);
       c = SLIP_ESC_END;
@@ -117,6 +144,19 @@ slip_send(void)
     }
     slip_arch_writeb(c);
   }
+
+#if SLIP_CRC_ON
+  /* Write the checksum byte */
+  if(crc == SLIP_END) {
+     slip_arch_writeb(SLIP_ESC);
+     crc = SLIP_ESC_END;
+  } else if (crc == SLIP_ESC)  {
+     slip_arch_writeb(SLIP_ESC);
+     crc = SLIP_ESC_ESC;
+  }
+  slip_arch_writeb(crc);
+#endif
+
   slip_arch_writeb(SLIP_END);
 
   return UIP_FW_OK;
@@ -128,11 +168,13 @@ slip_write(const void *_ptr, int len)
   const uint8_t *ptr = _ptr;
   uint16_t i;
   uint8_t c;
+  uint8_t crc = 0;
 
   slip_arch_writeb(SLIP_END);
 
   for(i = 0; i < len; ++i) {
     c = *ptr++;
+    crc = crc8_add(crc, c);
     if(c == SLIP_END) {
       slip_arch_writeb(SLIP_ESC);
       c = SLIP_ESC_END;
@@ -142,6 +184,19 @@ slip_write(const void *_ptr, int len)
     }
     slip_arch_writeb(c);
   }
+
+#if SLIP_CRC_ON
+  /* Write the checksum byte */
+  if(crc == SLIP_END) {
+     slip_arch_writeb(SLIP_ESC);
+     crc = SLIP_ESC_END;
+  } else if (crc == SLIP_ESC)  {
+     slip_arch_writeb(SLIP_ESC);
+     crc = SLIP_ESC_ESC;
+  }
+  slip_arch_writeb(crc);
+#endif
+
   slip_arch_writeb(SLIP_END);
 
   return len;
@@ -314,6 +369,26 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
     } else {
       begin = pkt_end;
     }
+
+#if SLIP_CRC_ON
+    {
+      /* Check if the CRC is as expected */
+      uint8_t crc = 0;
+      unsigned i;
+      for(i = 0; i < len; i++) {
+        crc = crc8_add(crc, outbuf[i]);
+      }
+      if(crc != 0) {
+        /* Set the length to zero to signal a problem */
+        printf("SLIP: bad incoming checksum\n");
+        len = 0;
+      } else {
+        /* Reduce the length by the size of the checksum */
+        len -= 1;
+      }
+    }
+#endif
+
     return len;
   }
 
