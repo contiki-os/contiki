@@ -226,7 +226,8 @@ clean:
 distclean: clean
 	-rm -f ${addsuffix .$(TARGET),$(CONTIKI_PROJECT)}
 
--include $(CONTIKI)/platform/$(TARGET)/Makefile.customrules-$(TARGET)
+target_customrules_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.customrules-$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.customrules-$(TARGET)})
+-include $(target_customrules_makefile)
 
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
