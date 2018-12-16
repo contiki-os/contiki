@@ -43,7 +43,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/rime/rime.h" /* Needed for so-called rime-sniffer */
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 /* A net-layer sniffer for packets sent and received */
