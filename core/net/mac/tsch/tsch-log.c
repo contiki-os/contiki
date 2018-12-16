@@ -95,8 +95,9 @@ tsch_log_process_pending(void)
     }
     switch(log->type) {
       case tsch_log_tx:
-        printf("%s-%u-%u %u tx %d, st %d-%d",
-            log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data, log->tx.sec_level,
+        printf("%s-%u-%u[%u] %u tx %d, st %d-%d",
+            log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data
+            , log->tx.sec_level, log->tx.sec_key,
                 log->tx.datalen,
                 log->tx.dest,
                 log->tx.mac_tx_status, log->tx.num_tx);
@@ -106,8 +107,9 @@ tsch_log_process_pending(void)
         printf("\n");
         break;
       case tsch_log_rx:
-        printf("%s-%u-%u %u rx %d",
-            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->rx.sec_level,
+        printf("%s-%u-%u[%u] %u rx %d",
+            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data
+            , log->rx.sec_level,log->rx.sec_key,
                 log->rx.datalen,
                 log->rx.src);
         if(log->rx.drift_used) {
