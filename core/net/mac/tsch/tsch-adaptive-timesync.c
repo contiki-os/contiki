@@ -141,8 +141,8 @@ compensate_internal(uint32_t time_delta_usec, int32_t drift_ppm, int32_t *remain
   *remainder = (int32_t)(d - amount * TSCH_DRIFT_UNIT);
 
   amount += *tick_conversion_error;
-  amount_ticks = US_TO_RTIMERTICKS(amount);
-  *tick_conversion_error = amount - RTIMERTICKS_TO_US(amount_ticks);
+  amount_ticks = us_to_rtimerticks(amount);
+  *tick_conversion_error = amount - rtimerticks_to_us(amount_ticks);
 
   if(ABS(amount_ticks) > RTIMER_ARCH_SECOND / 128) {
     TSCH_LOG_ADD(tsch_log_message,
