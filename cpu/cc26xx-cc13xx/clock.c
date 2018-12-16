@@ -62,6 +62,7 @@
 #include "contiki.h"
 
 #include "ti-lib.h"
+#include <sys/rtimer.h>
 /*---------------------------------------------------------------------------*/
 static volatile uint64_t count;
 /*---------------------------------------------------------------------------*/
@@ -137,7 +138,13 @@ update_clock_variable(void)
   } while(aon_rtc_secs_now != aon_rtc_secs_now2);
 
   /* Convert AON RTC ticks to clock tick counter */
-  count = (aon_rtc_secs_now * CLOCK_SECOND) + (aon_rtc_ticks_now >> 9);
+#if RTIMER_SECOND == RTIMER_ARCH_SECOND_NORM
+  const unsigned CLK2RT_RATIO = (RTIMER_SECOND/CLOCK_SECOND);
+  count = (aon_rtc_secs_now * CLOCK_SECOND) + (aon_rtc_ticks_now / CLK2RT_RATIO);
+#else
+  uint64_t rtc_now = ((uint64_t)aon_rtc_secs_now<<16)|aon_rtc_ticks_now;
+  count = rtc_now * CLOCK_SECOND / RTIMER_SECOND;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 CCIF clock_time_t
