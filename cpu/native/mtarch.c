@@ -35,8 +35,27 @@
 #include "sys/mt.h"
 
 #ifndef MTARCH_STACKSIZE
-#define MTARCH_STACKSIZE 4096
+
+    #if defined(__linux)
+
+        /*
+              The value SIGSTKSZ is a Linux system default specifying the number of bytes
+              that would be used to cover the usual case when manually allocating an
+              alternate stack area (also see sigstack.h on your system).
+              In computing an alternate stack size, a program should add that amount to its
+              stack requirements to allow for the system implementation overhead.
+        */
+        #include <signal.h>
+        #define MTARCH_STACKSIZE (SIGSTKSZ+4096)
+
+    #else /* other native cpus */
+
+        #define MTARCH_STACKSIZE 4096
+
+    #endif
+
 #endif /* MTARCH_STACKSIZE */
+
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 
