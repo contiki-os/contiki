@@ -35,4 +35,16 @@
 #include "ip64-driver.h"
 extern const struct ip64_driver enc28j60_ip64_driver;
 
+#include "ip64-conf.h"
+#ifdef ENC28J60_MAC_ADDR_PROVIDER
+/**
+ * \brief Set a function that may provide a MAC address
+ *
+ * You can set ENC28J60_MAC_ADDR_PROVIDER to the name of a function with the following signature.
+ * \param eui48 A pointer to a uin8_t array of at least six elements.
+ * \returns 1 if the MAC address could successfully be written to eui48, 0 if not.
+ */
+int ENC28J60_MAC_ADDR_PROVIDER(uint8_t *eui48);
+#endif
+
 #endif /* ENC28J60_IP64_DRIVER_H */
