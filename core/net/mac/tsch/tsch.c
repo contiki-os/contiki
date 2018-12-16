@@ -358,6 +358,10 @@ tsch_rx_process_pending()
       packetbuf_copyfrom(current_input->payload, current_input->len);
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, current_input->rssi);
       packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, current_input->channel);
+#if TSCH_WITH_LINK_SELECTOR > 1
+      packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, current_input->slotframe);
+      packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT, current_input->timeslot);
+#endif
     }
 
     /* Remove input from ringbuf */
