@@ -62,9 +62,9 @@ struct request_state_t {
   coap_transaction_t *transaction;
   coap_packet_t *response;
   uint32_t block_num;
+  uint8_t more;
+  uint8_t block_error_count;
 };
-
-typedef void (*blocking_response_handler)(void *response);
 
 PT_THREAD(coap_blocking_request
             (struct request_state_t *state, process_event_t ev,
