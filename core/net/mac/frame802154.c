@@ -417,8 +417,10 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
   }
 
   /* Destination address */
-  for(c = flen.dest_addr_len; c > 0; c--) {
-    buf[pos++] = p->dest_addr[c - 1];
+  if(p->fcf.dest_addr_mode != FRAME802154_NOADDR) {
+    for(c = flen.dest_addr_len; c > 0; c--) {
+      buf[pos++] = p->dest_addr[c - 1];
+    }
   }
 
   /* Source PAN ID */
@@ -428,8 +430,10 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
   }
 
   /* Source address */
-  for(c = flen.src_addr_len; c > 0; c--) {
-    buf[pos++] = p->src_addr[c - 1];
+  if(p->fcf.src_addr_mode != FRAME802154_NOADDR) {
+    for(c = flen.src_addr_len; c > 0; c--) {
+      buf[pos++] = p->src_addr[c - 1];
+    }
   }
 #if LLSEC802154_USES_AUX_HEADER
   /* Aux header */
