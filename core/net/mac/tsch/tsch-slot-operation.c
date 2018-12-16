@@ -289,7 +289,9 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   int r;
   /* Subtract RTIMER_GUARD before checking for deadline miss
    * because we can not schedule rtimer less than RTIMER_GUARD in the future */
-  int missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
+  int missed = 0;
+  if (RTIMER_CLOCK_LT(ref_time + RTIMER_GUARD, now))
+      missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
 
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
@@ -300,7 +302,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
 
     return 0;
   }
-  ref_time += offset;
+  ref_time += offset - RTIMER_GUARD;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
   if(r != RTIMER_OK) {
     return 0;
@@ -313,7 +315,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
  * ahead of time and then busy wait to exactly hit the target. */
 #define TSCH_SCHEDULE_AND_YIELD(pt, tm, ref_time, offset, str) \
   do { \
-    if(tsch_schedule_slot_operation(tm, ref_time, offset - RTIMER_GUARD, str)) { \
+    if(tsch_schedule_slot_operation(tm, ref_time, offset, str)) { \
       PT_YIELD(pt); \
     } \
     BUSYWAIT_UNTIL_ABS(0, ref_time, offset); \
@@ -759,7 +761,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     current_input = &input_array[input_index];
 
     /* Wait before starting to listen */
-    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start
+                            , tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX
+                            , "RxBeforeListen");
     TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
@@ -1041,6 +1045,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
         current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
+        time_to_next_active_slot -= tsch_timing[tsch_ts_rfon_prepslot_guard];
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 

@@ -106,6 +106,7 @@ static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {
   TSCH_DEFAULT_TS_MAX_ACK,
   TSCH_DEFAULT_TS_MAX_TX,
   TSCH_DEFAULT_TS_TIMESLOT_LENGTH,
+  TSCH_CONF_RFON_GUARD_TIME,
 };
 /* TSCH timeslot timing (in rtimer ticks) */
 rtimer_clock_t tsch_timing[tsch_ts_elements_count];
