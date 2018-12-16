@@ -48,6 +48,9 @@
 /*---------------------------------------------------------------------------*/
 #ifndef OSCILLATORS_H_
 #define OSCILLATORS_H_
+
+#include <stdbool.h>
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Set the LF clock source to be the LF XOSC
@@ -80,6 +83,16 @@ void oscillators_select_lf_rcosc(void);
  * The XOSC is requested as the source for the HF as well as the MF clock.
  */
 void oscillators_request_hf_xosc(void);
+
+/**
+ * \brief waits until timeout for HF clock be ready, after requested the
+ *   HF XOSC as the source for the HF clock.
+ * \sa oscillators_request_hf_xosc
+ *
+ * This checks while an startup HF XOSC in progess
+ *
+ */
+bool oscillators_wait_ready_hf_xosc(rtimer_clock_t timeout);
 
 /**
  * \brief Performs the switch to the XOSC

@@ -111,6 +111,28 @@ oscillators_request_hf_xosc(void)
   /* Release the OSC AUX consumer */
   aux_ctrl_unregister_consumer(&osc);
 }
+
+/*---------------------------------------------------------------------------*/
+bool oscillators_wait_ready_hf_xosc(rtimer_clock_t timeout)
+{
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
+  bool res = true;
+  if (ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != (OSC_XOSC_HF))
+  while (!ti_lib_osc_hf_source_ready()){
+      if (RTIMER_CLOCK_LT( timeout, RTIMER_NOW() )){
+          res = false;
+          break;
+      }
+  }
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
+  return res;
+}
+
 /*---------------------------------------------------------------------------*/
 void
 oscillators_switch_to_hf_xosc(void)
