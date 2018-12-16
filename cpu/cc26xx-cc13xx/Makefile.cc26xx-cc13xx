@@ -8,6 +8,23 @@ NM      = arm-none-eabi-nm
 SIZE    = arm-none-eabi-size
 SREC_CAT = srec_cat
 
+ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+$(info "shell is Windows cmd.exe")
+DEVNUL := NUL
+WHICH := where
+else
+$(info "shell is Bash")
+DEVNUL := /dev/null
+WHICH := which
+endif
+
+ifeq ([$(shell srec_cat --version > ${DEVNUL} && echo 1)],[1])
+CAN_HEX  = %.hex
+else
+$(warning "install srecord to allow hex image generation")
+CAN_HEX  =
+endif
+
 CPU_ABS_PATH       = cpu/cc26xx-cc13xx
 TI_XXWARE = $(CONTIKI_CPU)/$(TI_XXWARE_PATH)
 
@@ -33,6 +50,7 @@ CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -Wall -std=c99
+CFLAGS += -g3
 
 LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
@@ -128,7 +146,7 @@ CUSTOM_RULE_LINK=1
 
 ### We don't really need the .hex and .bin for the .$(TARGET) but let's make
 ### sure they get built
-%.$(TARGET): %.elf %.hex %.bin
+%.$(TARGET): %.elf $(CAN_HEX) %.bin
 	cp $< $@
 
 # a target that gives a user-friendly memory profile, taking into account the RAM
