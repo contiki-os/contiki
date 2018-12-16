@@ -68,7 +68,7 @@
 #if TSCH_LOG_LEVEL < 2 /* For log level 0 or 1, the logging functions do nothing */
 
 #define tsch_log_init()
-#define tsch_log_process_pending()
+#define tsch_log_process_pending()  0
 #define TSCH_LOG_ADD(log_type, init_code)
 
 #else /* TSCH_LOG_LEVEL */
@@ -118,7 +118,8 @@ void tsch_log_commit(void);
 /* Initialize log module */
 void tsch_log_init(void);
 /* Process pending log messages */
-void tsch_log_process_pending(void);
+// \return - 0 if no messages printed
+int tsch_log_process_pending(void);
 
 /************ Macros **********/
 

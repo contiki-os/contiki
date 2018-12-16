@@ -72,8 +72,7 @@ static int log_dropped = 0;
 
 /*---------------------------------------------------------------------------*/
 /* Process pending log messages */
-void
-tsch_log_process_pending(void)
+int tsch_log_process_pending(void)
 {
   static int last_log_dropped = 0;
   int16_t log_index;
@@ -82,7 +81,7 @@ tsch_log_process_pending(void)
     printf("TSCH:! logs dropped %u\n", log_dropped);
     last_log_dropped = log_dropped;
   }
-  while((log_index = ringbufindex_peek_get(&log_ringbuf)) != -1) {
+  if((log_index = ringbufindex_peek_get(&log_ringbuf)) != -1) {
     struct tsch_log_t *log = &log_array[log_index];
     if(log->link == NULL) {
       printf("TSCH: {asn-%x.%lx link-NULL} ", log->asn.ms1b, log->asn.ls4b);
@@ -121,7 +120,9 @@ tsch_log_process_pending(void)
     }
     /* Remove input from ringbuf */
     ringbufindex_get(&log_ringbuf);
+    return 1;
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Prepare addition of a new log.
