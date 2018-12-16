@@ -198,4 +198,12 @@
 #define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
 #endif
 
+//* Initiates sequence no of packets from RTclock at strtup.
+//* this should help to pass though duplicates filter when fast
+//* chip restarts.
+#ifndef TSCH_CONF_SEQ_FROMRT
+#define TSCH_CONF_SEQ_FROMRT 0
+#endif
+
+
 #endif /* __TSCH_CONF_H__ */
