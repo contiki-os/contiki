@@ -36,6 +36,12 @@ CFLAGS += -DUIP_CONF_TCP=1
 CFLAGS += -DWEBSERVER=2
 endif
 
+ifeq ($(PORT),)
+ SIODEV = ''
+else
+ SIODEV = -s $(PORT)
+endif
+
 ifeq ($(PREFIX),)
  PREFIX = fd00::1/64
 endif
@@ -47,7 +53,7 @@ $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
 
 connect-router:	$(CONTIKI)/tools/tunslip6
-	sudo $(CONTIKI)/tools/tunslip6 $(PREFIX)
+	sudo $(CONTIKI)/tools/tunslip6 $(SIODEV) $(PREFIX)
 
 connect-router-cooja:	$(CONTIKI)/tools/tunslip6
-	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 $(PREFIX)
+	sudo $(CONTIKI)/tools/tunslip6 $(SIODEV) -a 127.0.0.1 $(PREFIX)
