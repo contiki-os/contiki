@@ -586,7 +586,7 @@ tcpip_ipv6_output(void)
       if(route == NULL) {
         PRINTF("tcpip_ipv6_output: no route found, using default route\n");
         nexthop = uip_ds6_defrt_choose();
-        if(nexthop == NULL) {
+        if(nexthop == NULL || uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) {
 #ifdef UIP_FALLBACK_INTERFACE
           PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n",
               uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
