@@ -144,6 +144,7 @@ static int8_t rssi_threshold = PROP_MODE_RSSI_THRESHOLD;
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
+static rf_power_style power_style = RADIO_POWER_STYLE_FREE;
 
 static rfc_propRxOutput_t rx_stats;
 /*---------------------------------------------------------------------------*/
@@ -888,6 +889,27 @@ pending_packet(void)
   return rv;
 }
 /*---------------------------------------------------------------------------*/
+#include <pwr_ctrl.h>
+static uint32_t power_style_save;
+static
+int rf_power_up(){
+    if (power_style == RADIO_POWER_STYLE_GLDO){
+        power_style_save = PowerCtrlSourceGet();
+        if (power_style_save != PWRCTRL_PWRSRC_GLDO)
+            PowerCtrlSourceSet(PWRCTRL_PWRSRC_GLDO);
+    }
+    return rf_core_power_up();
+}
+
+static
+void rf_power_down(){
+    rf_core_power_down();
+    if (power_style != RADIO_POWER_STYLE_FREE) {
+        if (PowerCtrlSourceGet() != power_style_save)
+            PowerCtrlSourceSet(power_style_save);
+    }
+}
+
 static int
 on(void)
 {
@@ -904,6 +926,9 @@ on(void)
    * use the FS. This will only request, it will _not_ perform the switch.
    */
   oscillators_request_hf_xosc();
+#if (RF_CORE_HFOSC_STARTUP_TOUS > 0)
+  rtimer_clock_t hf_start_time = RTIMER_NOW();
+#endif
 
   if(rf_is_on()) {
     PRINTF("on: We were on. PD=%u, RX=0x%04x \n", rf_core_is_accessible(),
@@ -912,10 +937,10 @@ on(void)
   }
 
   if(!rf_core_is_accessible()) {
-    if(rf_core_power_up() != RF_CORE_CMD_OK) {
+    if(rf_power_up() != RF_CORE_CMD_OK) {
       PRINTF("on: rf_core_power_up() failed\n");
 
-      rf_core_power_down();
+      rf_power_down();
 
       return RF_CORE_CMD_ERROR;
     }
@@ -947,11 +972,22 @@ on(void)
     if(rf_core_start_rat() != RF_CORE_CMD_OK) {
       PRINTF("on: rf_core_start_rat() failed\n");
 
-      rf_core_power_down();
+      rf_power_down();
 
       return RF_CORE_CMD_ERROR;
     }
   }
+
+#if (RF_CORE_HFOSC_STARTUP_TOUS > 0)
+  const unsigned hf_start_timeout = US_TO_RTIMERTICKS(RF_CORE_HFOSC_STARTUP_TOUS);
+  rtimer_clock_t hf_start_limit = hf_start_time + hf_start_timeout;
+  if( !oscillators_wait_ready_hf_xosc(hf_start_limit) ){
+      PRINTF("on: rf_core_start_rat() failed start HF\n");
+      rf_power_down();
+      trace_rf_on_off();
+      return RF_CORE_CMD_ERROR;
+  }
+#endif
 
   rf_core_setup_interrupts(false);
 
@@ -989,7 +1025,7 @@ off(void)
   }
 
   rx_off_prop();
-  rf_core_power_down();
+  rf_power_down();
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
@@ -1068,6 +1104,14 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_OK;
     }
     return RADIO_RESULT_INVALID_VALUE;
+
+  case RADIO_CC26_POWER_STYLE:
+      if (value < RADIO_POWER_STYLE_TOTAL){
+          power_style = value;
+          return RADIO_RESULT_OK;
+      }
+      return RADIO_RESULT_INVALID_VALUE;
+
   case RADIO_PARAM_CHANNEL:
     if(value < 0 ||
        value > DOT_15_4G_CHANNEL_MAX) {
@@ -1098,6 +1142,9 @@ set_value(radio_param_t param, radio_value_t value)
     }
 
     return RADIO_RESULT_OK;
+  case RADIO_CC26_POWER_STYLE:
+      *value = power_style;
+      return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:

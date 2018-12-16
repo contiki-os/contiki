@@ -52,6 +52,19 @@ typedef struct prop_mode_tx_power_config {
   radio_value_t dbm;
   uint16_t tx_power; /* Value for the PROP_DIV_RADIO_SETUP.txPower field */
 } prop_mode_tx_power_config_t;
+
+#include <dev/radio.h>
+enum rf_power_style {
+    RADIO_POWER_STYLE_FREE
+    , RADIO_POWER_STYLE_GLDO
+    , RADIO_POWER_STYLE_TOTAL
+};
+typedef enum rf_power_style rf_power_style;
+enum {
+      RADIO_CC26_PARAMS = RADIO_PARAM_TOTAL
+    , RADIO_CC26_POWER_STYLE
+};
+
 /*---------------------------------------------------------------------------*/
 #endif /* PROP_MODE_H_ */
 /*---------------------------------------------------------------------------*/
