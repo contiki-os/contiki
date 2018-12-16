@@ -1,0 +1,17 @@
+include $(CONTIKI)/platform/quark-d2000-devboard/Makefile.bsp-quark-d2000-devboard
+include $(CONTIKI)/cpu/x86/Makefile.x86_common
+
+CONTIKIDIRS += $(QMSI_PATH)/sys
+CONTIKIFILES += app_entry.c newlib-syscalls.c
+QMSI_CFLAGS += -DPRINTF_ENABLE
+
+CONTIKI_TARGET_DIRS += . core/sys core/dev
+CONTIKIFILES += contiki-main.c clock.c rtimer-arch.c watchdog.c
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+
+CFLAGS += -m32 -march=lakemont -mtune=lakemont -miamcu -msoft-float
+CFLAGS += $(QMSI_CFLAGS) -I$(LIBQMSI_INCLUDE_DIR)
+LDFLAGS += -m32 -T $(QMSI_PATH)/soc/quark_d2000/quark_d2000.ld -nostdlib
+LDFLAGS += -L$(LIBC_PATH) -L$(LIBGCC_PATH) -L$(LIBQMSI_LIB_DIR)
+
+TARGET_LIBFILES += -lqmsi -lm -lc -lgcc

@@ -1,0 +1,30 @@
+BSP = $(CONTIKI)/platform/quark-d2000-devboard/bsp
+
+TOOLCHAIN ?= i586-intel-elfiamcu
+TOOLCHAIN_PREFIX ?= $(TOOLCHAIN)-
+TOOLCHAIN_PATH ?= $(BSP)/toolchain/iamcu_toolchain_Linux_issm_2016.0.019/tools/compiler
+
+IS_TOOLCHAIN_IN_PATH := $(shell command -v $(TOOLCHAIN_PREFIX)gcc 2>/dev/null)
+ifeq ($(IS_TOOLCHAIN_IN_PATH),)
+  $(info Toolchain binaries are not in PATH)
+  $(info Make sure the toolchain is installed (run "$(shell pwd)/$(BSP)/toolchain/install_toolchain.sh") \
+         and toolchain binaries are in your PATH (run "export PATH=$(shell pwd)/$(TOOLCHAIN_PATH)/bin:$$PATH"))
+  $(error Build failed.)
+endif
+
+LIBGCC_PATH = $(TOOLCHAIN_PATH)/lib/gcc/$(shell $(TOOLCHAIN_PREFIX)gcc -dumpmachine)/$(shell $(TOOLCHAIN_PREFIX)gcc -dumpversion)
+
+LIBC_PATH = $(TOOLCHAIN_PATH)/$(TOOLCHAIN)/lib
+
+QMSI_PATH ?= $(BSP)/qmsi/qmsi-1.0.1
+
+QMSI_IS_BUILT = $(shell [ -d $(QMSI_PATH)/build ] || echo 0)
+ifeq ($(QMSI_IS_BUILT), 0)
+  $(error QMSI is not built. Run "$(shell pwd)/$(BSP)/qmsi/build_qmsi.sh")
+endif
+
+LIBQMSI_INCLUDE_DIR = $(QMSI_PATH)/build/release/quark_d2000/libqmsi/include
+LIBQMSI_LIB_DIR = $(QMSI_PATH)/build/release/quark_d2000/libqmsi/lib
+
+FIRMWARE = $(QMSI_PATH)/build/release/quark_d2000/rom/quark_d2000_rom.bin
+

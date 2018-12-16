@@ -1,0 +1,20 @@
+CUSTOM_RULE_LINK = 1
+ELF = $(CONTIKI_PROJECT).$(TARGET).elf
+
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $(ELF)
+
+	@$(SIZE) $(ELF)
+
+.PHONY: flash flash-firmware debug
+
+flash: $(CONTIKI_PROJECT)
+	$(BSP)/flasher/flasher.sh --flash $(shell pwd)/$(ELF)
+
+flash-firmware: $(FIRMWARE)
+	$(BSP)/flasher/flasher.sh --rom $(shell pwd)/$<
+
+debug: $(ELF)
+	$(BSP)/flasher/flasher.sh --debug $(shell pwd)/$<
