@@ -412,6 +412,10 @@ tsch_start_coordinator(void)
   PRINTF("TSCH: starting as coordinator, PAN ID %x, asn-%x.%lx\n",
       frame802154_get_pan_id(), tsch_current_asn.ms1b, tsch_current_asn.ls4b);
 
+#ifdef TSCH_CALLBACK_JOINING_NETWORK
+      TSCH_CALLBACK_JOINING_NETWORK();
+#endif
+
   /* Start slot operation */
   tsch_slot_operation_sync(RTIMER_NOW(), &tsch_current_asn);
 }
@@ -423,6 +427,9 @@ tsch_disassociate(void)
   if(tsch_is_associated == 1) {
     tsch_is_associated = 0;
     process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
+#ifdef TSCH_CALLBACK_LEAVING_NETWORK
+      TSCH_CALLBACK_LEAVING_NETWORK();
+#endif
     PRINTF("TSCH: leaving the network\n");
   }
 }
