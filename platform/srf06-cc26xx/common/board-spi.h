@@ -53,6 +53,20 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "ti-lib.h"
+
+#define BOARD_SSI_BASE         SSI0_BASE
+
+// requred LPM support style for board SPI defined by BOARD_SPI_LPM
+// supported LPM modes:
+//< no LPM manage - minimum code size
+#define BOARD_SPI_LPM_NONE          0
+//< provides serial power domain on during SPI opened
+#define BOARD_SPI_LPM_BASIC         1
+//< allow deep_sleep mode, when SPI not busy
+//  shutdown SPI to enter deep_sleep, and reconfigures it when wake_up
+#define BOARD_SPI_LPM_DEEPSLEEP_OFF 2
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Initialize the SPI interface
@@ -104,6 +118,19 @@ bool board_spi_read(uint8_t *buf, size_t length);
  * recommended to call board_spi_close() at the end of an operation.
  */
 bool board_spi_write(const uint8_t *buf, size_t length);
+
+bool  board_spi_busy(void);
+
+__STATIC_INLINE
+bool  board_spi_empty(void){
+    return ((ti_lib_ssi_status(BOARD_SSI_BASE) & SSI_TX_EMPTY) != 0);
+}
+
+__STATIC_INLINE
+bool  board_spi_full(void){
+    return ((ti_lib_ssi_status(BOARD_SSI_BASE) & SSI_TX_NOT_FULL) == 0);
+}
+
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_SPI_H_ */
 /*---------------------------------------------------------------------------*/

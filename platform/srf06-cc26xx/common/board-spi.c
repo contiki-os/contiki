@@ -40,8 +40,14 @@
 #include "ti-lib.h"
 #include "board-spi.h"
 #include "board.h"
+#include <lpm.h>
 
 #include <stdbool.h>
+
+#ifndef BOARD_SPI_LPM
+#define BOARD_SPI_LPM BOARD_SPI_LPM_NONE
+#endif
+
 /*---------------------------------------------------------------------------*/
 static bool
 accessible(void)
@@ -59,6 +65,65 @@ accessible(void)
 
   return true;
 }
+
+bool  board_spi_busy(void){
+    return ti_lib_ssi_busy(SSI0_BASE) || !board_spi_empty();
+}
+
+static void board_spi_config(uint32_t bit_rate, uint32_t clk_pin);
+static void board_spi_down();
+
+#if BOARD_SPI_LPM == BOARD_SPI_LPM_BASIC
+
+static
+uint8_t lpm_request(void)
+{
+    return LPM_MODE_SLEEP;
+}
+
+LPM_MODULE(board_spi_module, lpm_request, NULL, NULL, LPM_DOMAIN_SERIAL | LPM_DOMAIN_PERIPH);
+
+#elif BOARD_SPI_LPM == BOARD_SPI_LPM_DEEPSLEEP_OFF
+
+static
+uint8_t lpm_request(void)
+{
+
+  if (accessible() != false) {
+      if (!board_spi_empty())
+          return LPM_MODE_SLEEP;
+      else if (ti_lib_ssi_busy(BOARD_SSI_BASE))
+          // when TX buffer empty, TX IRQ disabled. So, only way to handle
+          //  end of transmition is poling uart BUSY state.
+          return LPM_MODE_AWAKE;
+  }
+
+  return LPM_MODE_MAX_SUPPORTED;
+}
+
+static void lpm_wake(void);
+static void lpm_down(uint8_t mode);
+
+LPM_MODULE(board_spi_module, lpm_request, lpm_down, lpm_wake, LPM_DOMAIN_NONE);
+struct board_spi_lpmsave_t{
+        uint32_t bit_rate;
+        uint32_t clk_pin;
+} board_spi_lpmsave;
+
+static
+void lpm_wake(void){
+    board_spi_config(board_spi_lpmsave.bit_rate, board_spi_lpmsave.clk_pin);
+}
+
+static
+void lpm_down(uint8_t mode){
+    if (mode >= LPM_MODE_DEEP_SLEEP){
+        board_spi_down();
+    }
+}
+
+#endif
+
 /*---------------------------------------------------------------------------*/
 bool
 board_spi_write(const uint8_t *buf, size_t len)
@@ -112,8 +177,9 @@ board_spi_flush()
   while(ti_lib_rom_ssi_data_get_non_blocking(SSI0_BASE, &ul));
 }
 /*---------------------------------------------------------------------------*/
+static
 void
-board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
+board_spi_config(uint32_t bit_rate, uint32_t clk_pin)
 {
   uint32_t buf;
 
@@ -124,8 +190,13 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
 
   /* Enable clock in active mode */
   ti_lib_rom_prcm_peripheral_run_enable(PRCM_PERIPH_SSI0);
+  ti_lib_rom_prcm_peripheral_sleep_enable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+#if BOARD_SPI_LPM > BOARD_SPI_LPM_NONE
+  board_spi_module.domain_lock = LPM_DOMAIN_SERIAL;
+#endif
 
   /* SPI configuration */
   ti_lib_ssi_int_disable(SSI0_BASE, SSI_RXOR | SSI_RXFF | SSI_RXTO | SSI_TXFF);
@@ -140,11 +211,39 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
   /* Get rid of residual data from SSI port */
   while(ti_lib_ssi_data_get_non_blocking(SSI0_BASE, &buf));
 }
+
+void
+board_spi_open(uint32_t bit_rate, uint32_t clk_pin){
+#if BOARD_SPI_LPM == BOARD_SPI_LPM_DEEPSLEEP_OFF
+    board_spi_lpmsave.bit_rate = bit_rate;
+    board_spi_lpmsave.clk_pin  = clk_pin;
+#endif
+    board_spi_config(bit_rate, clk_pin);
+#if BOARD_SPI_LPM > BOARD_SPI_LPM_NONE
+    lpm_register_module(&board_spi_module);
+#endif
+}
+
+
 /*---------------------------------------------------------------------------*/
 void
 board_spi_close()
 {
+#if BOARD_SPI_LPM > BOARD_SPI_LPM_NONE
+  lpm_unregister_module(&board_spi_module);
+#endif
+  board_spi_down();
+}
+
+static
+void board_spi_down(){
+
+#if BOARD_SPI_LPM > BOARD_SPI_LPM_NONE
+  board_spi_module.domain_lock = LPM_DOMAIN_NONE;
+#endif
+
   /* Power down SSI0 */
+  ti_lib_rom_prcm_peripheral_sleep_disable(PRCM_PERIPH_SSI0);
   ti_lib_rom_prcm_peripheral_run_disable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
@@ -160,4 +259,5 @@ board_spi_close()
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_CLK_FLASH, IOC_IOPULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
+
 /** @} */
