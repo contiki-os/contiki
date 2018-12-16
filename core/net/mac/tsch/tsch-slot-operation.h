@@ -107,7 +107,7 @@ extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 /********** Functions *********/
 
 /* Returns a 802.15.4 channel from an ASN and channel offset */
-uint8_t tsch_calculate_channel(struct tsch_asn_t *asn, uint8_t channel_offset);
+uint8_t tsch_calculate_channel(struct tsch_asn_t *asn, int_fast8_t channel_offset);
 /* Is TSCH locked? */
 int tsch_is_locked(void);
 /* Lock TSCH (no link operation) */

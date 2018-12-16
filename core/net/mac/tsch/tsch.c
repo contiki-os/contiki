@@ -68,6 +68,12 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/net-debug.h"
 
+#if TSCH_LOG_LEVEL >= 0
+#define PRINTF_FAIL(...)    printf(__VA_ARGS__)
+#else
+#define PRINTF_FAIL(...)
+#endif
+
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
@@ -124,8 +130,10 @@ const linkaddr_t tsch_eb_address = { { 0, 0 } };
 int tsch_is_started = 0;
 /* Has TSCH initialization failed? */
 int tsch_is_initialized = 0;
+#ifndef TSCH_IS_COORDINATOR
 /* Are we coordinator of the TSCH network? */
 int tsch_is_coordinator = 0;
+#endif
 /* Are we associated to a TSCH network? */
 int tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
@@ -142,9 +150,6 @@ static clock_time_t tsch_current_eb_period;
 /* Current period for keepalive output */
 static clock_time_t tsch_current_ka_timeout;
 
-/* timer for sending keepalive messages */
-static struct ctimer keepalive_timer;
-
 /* TSCH processes and protothreads */
 PT_THREAD(tsch_scan(struct pt *pt));
 PROCESS(tsch_process, "TSCH: main process");
@@ -160,7 +165,15 @@ static void packet_input(void);
 void
 tsch_set_coordinator(int enable)
 {
+#ifndef TSCH_IS_COORDINATOR
   tsch_is_coordinator = enable;
+#else
+  if (tsch_is_coordinator != enable){
+      PRINTF_FAIL("TCSH: missed coordinator request %d vs hardcoded", enable);
+      return;
+  }
+#endif
+  if (tsch_current_eb_period <= 0)
   tsch_set_eb_period(TSCH_EB_PERIOD);
 }
 /*---------------------------------------------------------------------------*/
@@ -191,6 +204,7 @@ tsch_set_eb_period(uint32_t period)
 static void
 tsch_reset(void)
 {
+  ANNOTATE("TSCH:reset");
   int i;
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
@@ -219,6 +233,10 @@ tsch_reset(void)
 }
 
 /* TSCH keep-alive functions */
+#if !TSCH_IS_COORDINATOR && (TSCH_MAX_KEEPALIVE_TIMEOUT > 0)
+
+/* timer for sending keepalive messages */
+static struct ctimer keepalive_timer;
 
 /*---------------------------------------------------------------------------*/
 /* Tx callback for keepalive messages */
@@ -259,6 +277,7 @@ tsch_schedule_keepalive()
     ctimer_set(&keepalive_timer, delay, keepalive_send, NULL);
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 eb_input(struct input_packet *current_input)
@@ -272,6 +291,7 @@ eb_input(struct input_packet *current_input)
   if(tsch_packet_parse_eb(current_input->payload, current_input->len,
                           &frame, &eb_ies, NULL, 1)) {
     /* PAN ID check and authentication done at rx time */
+    ANNOTATE("TSCH: got EB\n");
 
 #if TSCH_AUTOSELECT_TIME_SOURCE
     if(!tsch_is_coordinator) {
@@ -333,7 +353,7 @@ eb_input(struct input_packet *current_input)
 #endif /* TSCH_AUTOSELECT_TIME_SOURCE */
       }
     }
-  }
+  }//if(tsch_packet_parse_eb
 }
 
 /*---------------------------------------------------------------------------*/
@@ -436,7 +456,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
-  if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
+  if(input_eb == NULL){
+      PRINTF("TSCH:! failed EB - looks stack damaged\n");
+      return 0;
+  }
+  if(tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
     PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
     return 0;
@@ -482,6 +506,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 
+#ifndef TSCH_DEBUG_NO_TIMING_FROM_EB
   /* TSCH timeslot timing */
   for(i = 0; i < tsch_ts_elements_count; i++) {
     if(ies.ie_tsch_timeslot_id == 0) {
@@ -490,6 +515,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
     }
   }
+#endif
 
   /* TSCH hopping sequence */
   if(ies.ie_channel_hopping_sequence_id == 0) {
@@ -668,6 +694,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
   }
+  ANNOTATE("TSCH: scanning complete\n");
 
   PT_END(pt);
 }
@@ -721,11 +748,13 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
     etimer_reset(&eb_timer);
   }
 
+#if (TSCH_EB_PERIOD > 0)
   /* Set an initial delay except for coordinator, which should send an EB asap */
   if(!tsch_is_coordinator) {
     etimer_set(&eb_timer, random_rand() % TSCH_EB_PERIOD);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
+#endif
 
   while(1) {
     unsigned long delay;
@@ -770,6 +799,8 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         + random_rand() % (tsch_current_eb_period / 4);
     } else {
       delay = TSCH_EB_PERIOD;
+      if (delay == 0)
+          delay = TSCH_MAX_EB_PERIOD;
     }
     etimer_set(&eb_timer, delay);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
@@ -804,7 +835,7 @@ tsch_init(void)
 
   /* Radio Rx mode */
   if(NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
   }
   /* Disable radio in frame filtering */
@@ -814,34 +845,35 @@ tsch_init(void)
   /* Set radio in poll mode */
   radio_rx_mode |= RADIO_RX_MODE_POLL_MODE;
   if(NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support setting required RADIO_PARAM_RX_MODE. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support setting required RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
   }
 
   /* Radio Tx mode */
   if(NETSTACK_RADIO.get_value(RADIO_PARAM_TX_MODE, &radio_tx_mode) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support getting RADIO_PARAM_TX_MODE. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support getting RADIO_PARAM_TX_MODE. Abort init.\n");
     return;
   }
   /* Unset CCA */
   radio_tx_mode &= ~RADIO_TX_MODE_SEND_ON_CCA;
   if(NETSTACK_RADIO.set_value(RADIO_PARAM_TX_MODE, radio_tx_mode) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support setting required RADIO_PARAM_TX_MODE. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support setting CCA off RADIO_PARAM_TX_MODE. Abort init.\n");
     return;
   }
   /* Test setting channel */
   if(NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, TSCH_DEFAULT_HOPPING_SEQUENCE[0]) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support setting channel. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support setting channel. Abort init.\n");
     return;
   }
   /* Test getting timestamp */
   if(NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t, sizeof(rtimer_clock_t)) != RADIO_RESULT_OK) {
-    printf("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
+    PRINTF_FAIL("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
     return;
   }
   /* Check max hopping sequence length vs default sequence length */
   if(TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)) {
-    printf("TSCH:! TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE). Abort init.\n");
+    PRINTF_FAIL("TSCH:! TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE). Abort init.\n");
+    return;
   }
 
   /* Init TSCH sub-modules */
@@ -990,8 +1022,10 @@ turn_on(void)
     tsch_is_started = 1;
     /* Process tx/rx callback and log messages whenever polled */
     process_start(&tsch_pending_events_process, NULL);
+#if TSCH_EB_PERIOD > 0
     /* periodically send TSCH EBs */
     process_start(&tsch_send_eb_process, NULL);
+#endif
     /* try to associate to a network or start one if setup as coordinator */
     process_start(&tsch_process, NULL);
     PRINTF("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
