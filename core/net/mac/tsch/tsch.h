@@ -64,6 +64,9 @@
 #define TSCH_DESYNC_THRESHOLD (2 * TSCH_MAX_KEEPALIVE_TIMEOUT)
 #endif
 
+// this handle use to get check last synt timeout. it overrides TSCH_DESYNC_THRESHOLD
+//#define TSCH_DESYNC_THRESHOLD_SLOTS()
+
 /* Period between two consecutive EBs */
 #ifdef TSCH_CONF_EB_PERIOD
 #define TSCH_EB_PERIOD TSCH_CONF_EB_PERIOD
