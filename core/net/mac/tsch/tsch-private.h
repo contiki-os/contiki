@@ -108,6 +108,11 @@ void tsch_disassociate(void);
  * One byte = 32us. Add two bytes for CRC and one for len field */
 #define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
 
+/* Delay between the SFD RSSI detects preamble and it is detected in software. */
+#ifndef RADIO_RSSI_DETECT_DELAY
+#define RADIO_RSSI_DETECT_DELAY TSCH_PACKET_DURATION(0)
+#endif
+
 /* Convert rtimer ticks to clock and vice versa */
 #define TSCH_CLOCK_TO_TICKS(c) (((c) * RTIMER_SECOND) / CLOCK_SECOND)
 #define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c) / timeslot_length)

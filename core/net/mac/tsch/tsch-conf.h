@@ -198,4 +198,22 @@
 #define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
 #endif
 
+///* ACK timing styles:
+/*!< old behaviour - where ACK at time position from estimated
+ *              packet trasmition time.
+ *              tx_duration(t) + TSCH_DEFAULT_TS_TX_ACK_DELAY
+ */
+#define TSCH_ACK_TIMING_OLD         0
+/*!< immediate ACK after receive + TSCH_DEFAULT_TS_TX_ACK_DELAY.
+ *          rely on radio_driver behaviour - that blocks receive/transmit operation
+ *          right for operation time
+ */
+#define TSCH_ACK_TIMING_IMMEDIATE   1
+///* ACK timing style configuration
+#ifdef TSCH_CONF_ACK_TIMING_STYLE
+#define TSCH_ACK_TIMING_STYLE TSCH_CONF_ACK_TIMING_STYLE
+#else
+#define TSCH_ACK_TIMING_STYLE TSCH_ACK_TIMING_IMMEDIATE
+#endif
+
 #endif /* __TSCH_CONF_H__ */
