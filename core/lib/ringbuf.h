@@ -83,7 +83,8 @@ struct ringbuf {
  *             buffer is stored in an external array, to which a
  *             pointer must be supplied. The size of the ring buffer
  *             must be a power of two and cannot be larger than 128
- *             bytes.
+ *             bytes. The maximum number of bytes in the buffer can
+ *             be 'size_power_of_two' - 1.
  *
  */
 void    ringbuf_init(struct ringbuf *r, uint8_t *a,
@@ -119,6 +120,10 @@ int     ringbuf_get(struct ringbuf *r);
  * \brief      Get the size of a ring buffer
  * \param r    A pointer to a struct ringbuf to hold the state of the ring buffer
  * \return     The size of the buffer.
+ *
+ *             The size of the buffer will always be 1 more than
+ *             the max the buffer can store.
+ *
  */
 int     ringbuf_size(struct ringbuf *r);
 
