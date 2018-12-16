@@ -124,14 +124,30 @@ On CC2420-based platforms, enable SFD timestamps with:
 ```
 /* Disable DCO calibration (uses timerB) */
 #undef DCOSYNCH_CONF_ENABLED
-#define DCOSYNCH_CONF_ENABLED			 0
+#define DCOSYNCH_CONF_ENABLED           0
 
 /* Enable SFD timestamps (uses timerB) */
 #undef CC2420_CONF_SFD_TIMESTAMPS
-#define CC2420_CONF_SFD_TIMESTAMPS       1
+#define CC2420_CONF_SFD_TIMESTAMPS      1
 ```
 
-To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and redefine your own in your `project-conf.h`.
+On CC2538-based platforms, disable H/W frame filtering and enable crystal
+oscillator as rtimer with:
+
+```
+#define TSCH_CONF_HW_FRAME_FILTERING    0
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL   1
+```
+
+For Cooja mote, disable the simulated turnaround feature with:
+
+```
+#if CONTIKI_TARGET_COOJA
+#define COOJA_CONF_SIMULATE_TURNAROUND  0
+#endif /* CONTIKI_TARGET_COOJA */
+```
+
+To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and redefine your own in your `project-conf.h`. A sample [project-conf.h](./sample-project-conf.h) can be found under the same directory.
 
 ## Using TSCH with Security
 
