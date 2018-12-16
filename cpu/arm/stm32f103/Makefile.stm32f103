@@ -40,14 +40,15 @@ CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 THREADS =
 
+CROSS_COMPILE ?= arm-none-eabi-
 ### Compiler definitions
-CC       = arm-elf-gcc
-LD       = arm-elf-ld
-AS       = arm-elf-as
-AR       = arm-elf-ar
-NM       = arm-elf-nm
-OBJCOPY  = arm-elf-objcopy
-STRIP    = arm-elf-strip
+CC       = $(CROSS_COMPILE)gcc
+LD       = $(CROSS_COMPILE)ld
+AS       = $(CROSS_COMPILE)as
+AR       = $(CROSS_COMPILE)ar
+NM       = $(CROSS_COMPILE)nm
+OBJCOPY  = $(CROSS_COMPILE)objcopy
+STRIP    = $(CROSS_COMPILE)strip
 
 XSLTPROC=xsltproc
 
