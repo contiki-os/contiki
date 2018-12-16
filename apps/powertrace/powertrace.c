@@ -121,17 +121,17 @@ powertrace_print(char *str)
          all_cpu, all_lpm, all_transmit, all_listen, all_idle_transmit, all_idle_listen,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (all_transmit + all_listen)) / all_time),
-         (int)((10000L * (all_transmit + all_listen) / all_time) - (100L * (all_transmit + all_listen) / all_time) * 100),
+         (int)((10000LL * (all_transmit + all_listen) / all_time) - (100LL * (all_transmit + all_listen) / all_time) * 100),
          (int)((100L * (transmit + listen)) / time),
-         (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen) / time) * 100),
+         (int)((10000LL * (transmit + listen) / time) - (100LL * (transmit + listen) / time) * 100),
          (int)((100L * all_transmit) / all_time),
-         (int)((10000L * all_transmit) / all_time - (100L * all_transmit / all_time) * 100),
+         (int)((10000LL * all_transmit) / all_time - (100LL * all_transmit / all_time) * 100),
          (int)((100L * transmit) / time),
-         (int)((10000L * transmit) / time - (100L * transmit / time) * 100),
+         (int)((10000LL * transmit) / time - (100LL * transmit / time) * 100),
          (int)((100L * all_listen) / all_time),
-         (int)((10000L * all_listen) / all_time - (100L * all_listen / all_time) * 100),
+         (int)((10000LL * all_listen) / all_time - (100LL * all_listen / all_time) * 100),
          (int)((100L * listen) / time),
-         (int)((10000L * listen) / time - (100L * listen / time) * 100));
+         (int)((10000LL * listen) / time - (100L * listen / time) * 100));
 
   for(s = list_head(stats_list); s != NULL; s = list_item_next(s)) {
 
@@ -147,13 +147,13 @@ powertrace_print(char *str)
            s->output_rxtime - s->last_output_rxtime,
            s->channel,
            (int)((100L * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
-           (int)((10000L * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
+           (int)((10000LL * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
            (int)((100L * (s->input_rxtime + s->input_txtime +
                           s->output_rxtime + s->output_txtime -
                           (s->last_input_rxtime + s->last_input_txtime +
                            s->last_output_rxtime + s->last_output_txtime))) /
                  radio),
-           (int)((10000L * (s->input_rxtime + s->input_txtime +
+           (int)((10000LL * (s->input_rxtime + s->input_txtime +
                           s->output_rxtime + s->output_txtime -
                           (s->last_input_rxtime + s->last_input_txtime +
                            s->last_output_rxtime + s->last_output_txtime))) /
@@ -170,13 +170,13 @@ powertrace_print(char *str)
            s->output_rxtime - s->last_output_rxtime,
            s->proto, s->channel,
            (int)((100L * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
-           (int)((10000L * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
+           (int)((10000LL * (s->input_rxtime + s->input_txtime + s->output_rxtime + s->output_txtime)) / all_radio),
            (int)((100L * (s->input_rxtime + s->input_txtime +
                           s->output_rxtime + s->output_txtime -
                           (s->last_input_rxtime + s->last_input_txtime +
                            s->last_output_rxtime + s->last_output_txtime))) /
                  radio),
-           (int)((10000L * (s->input_rxtime + s->input_txtime +
+           (int)((10000LL * (s->input_rxtime + s->input_txtime +
                           s->output_rxtime + s->output_txtime -
                           (s->last_input_rxtime + s->last_input_txtime +
                            s->last_output_rxtime + s->last_output_txtime))) /
