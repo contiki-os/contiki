@@ -297,15 +297,15 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
                     "!dl-miss %s %d %d",
                         str, (int)(now-ref_time), (int)offset);
     );
-
-    return 0;
+  } else {
+    r = rtimer_set(tm, ref_time + offset, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
+    if(r == RTIMER_OK) {
+      return 1;
+    }
   }
-  ref_time += offset;
-  r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
-  if(r != RTIMER_OK) {
-    return 0;
-  }
-  return 1;
+  /* block until the time to schedule is there */
+  BUSYWAIT_UNTIL_ABS(0, ref_time, offset);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Schedule slot operation conditionally, and YIELD if success only.
@@ -315,8 +315,8 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   do { \
     if(tsch_schedule_slot_operation(tm, ref_time, offset - RTIMER_GUARD, str)) { \
       PT_YIELD(pt); \
+      BUSYWAIT_UNTIL_ABS(0, ref_time, offset);  \
     } \
-    BUSYWAIT_UNTIL_ABS(0, ref_time, offset); \
   } while(0);
 /*---------------------------------------------------------------------------*/
 /* Get EB, broadcast or unicast packet to be sent, and target neighbor. */
@@ -1039,8 +1039,8 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         is_drift_correction_used = 0;
         /* Update current slot start */
         prev_slot_start = current_slot_start;
+        time_to_next_active_slot += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
         current_slot_start += time_to_next_active_slot;
-        current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
