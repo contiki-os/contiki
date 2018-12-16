@@ -115,7 +115,7 @@ new_dio_interval(rpl_instance_t *instance)
   time = 1UL << instance->dio_intcurrent;
 
   /* Convert from milliseconds to CLOCK_TICKS. */
-  ticks = (time * CLOCK_SECOND) / 1000;
+  ticks = time / ( 1000 / CLOCK_SECOND);
   instance->dio_next_delay = ticks;
 
   /* random number between I/2 and I */
