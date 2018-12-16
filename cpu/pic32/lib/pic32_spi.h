@@ -89,6 +89,7 @@
   int8_t pic32_spi##XX##_init(uint32_t baudrate, uint32_t flags); \
   int8_t pic32_spi##XX##_close();                                 \
   int8_t pic32_spi##XX##_write(const uint8_t *data, uint32_t len);\
+  int8_t pic32_spi##XX##_transfer(const uint8_t *tx_data, uint8_t *rx_data, uint32_t len);\
   int8_t pic32_spi##XX##_read(uint8_t *data, uint32_t len);
 
 #ifdef __USE_SPI_PORT1__

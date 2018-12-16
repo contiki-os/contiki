@@ -144,6 +144,37 @@
   }                                                         \
                                                             \
   int8_t                                                    \
+  pic32_spi##XX##_transfer(const uint8_t *tx_data,          \
+                        uint8_t *rx_data,                   \
+                        uint32_t len)                       \
+  {                                                         \
+    uint32_t i;                                             \
+    uint32_t tmp;                                           \
+                                                            \
+    for(i = 0; i < len; ++i) {                              \
+      SPI##XX##STATCLR = _SPI##XX##STAT_SPIROV_MASK;        \
+      while(!SPI##XX##STATbits.SPITBE) {                    \
+        ;                                                   \
+      }                                                     \
+      ASM_DIS_INT; /* fix errata 44 */                      \
+      if (tx_data != NULL)                                  \
+        SPI##XX##BUF = tx_data[i];                          \
+      else                                                  \
+        SPI##XX##BUF = 0;                                   \
+      ASM_EN_INT;  /* fix errata 44 */                      \
+      while(!SPI##XX##STATbits.SPIRBF) {                    \
+        ;                                                   \
+      }                                                     \
+      SPI##XX##STATCLR = _SPI##XX##STAT_SPIROV_MASK;        \
+      tmp = SPI##XX##BUF;                                   \
+      if (rx_data != NULL)                                  \
+        rx_data[i] = tmp;                                   \
+    }                                                       \
+                                                            \
+    return SPI_NO_ERRORS;                                   \
+  }                                                         \
+                                                            \
+  int8_t                                                    \
   pic32_spi##XX##_read(uint8_t *data, uint32_t len)         \
   {                                                         \
     uint32_t i;                                             \
