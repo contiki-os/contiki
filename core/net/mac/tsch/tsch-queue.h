@@ -148,6 +148,8 @@ struct tsch_neighbor {
 extern struct tsch_neighbor *n_broadcast;
 extern struct tsch_neighbor *n_eb;
 
+//* private variable for xxx_time_source methods. do ton use it directly
+extern struct tsch_neighbor *n_time_source;
 /********** Functions *********/
 
 /* Add a TSCH neighbor */
@@ -155,7 +157,10 @@ struct tsch_neighbor *tsch_queue_add_nbr(const linkaddr_t *addr);
 /* Get a TSCH neighbor */
 struct tsch_neighbor *tsch_queue_get_nbr(const linkaddr_t *addr);
 /* Get a TSCH time source (we currently assume there is only one) */
-struct tsch_neighbor *tsch_queue_get_time_source(void);
+static inline
+struct tsch_neighbor *tsch_queue_get_time_source(void){
+    return n_time_source;
+}
 /* Update TSCH time source */
 int tsch_queue_update_time_source(const linkaddr_t *new_addr);
 /* Add packet to neighbor queue. Use same lockfree implementation as ringbuf.c (put is atomic) */
