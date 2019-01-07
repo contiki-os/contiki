@@ -573,10 +573,13 @@ void update_battery(){
 	}// reset for a new day
 
   //TURNING HARVESTING OFF TO CORRECT MEASUREMENT
+
   if(!harvest)
     solar_charging = 0;
 
   powertrace_print("");// In this fuction time in state is updated
+
+
 //-------- Set the current spend/collect in every state -----------------
 
   current_draw[0] = i_energyStt.active;
@@ -586,7 +589,8 @@ void update_battery(){
   current_draw[4] = solar_charging;//solar charging current. It should be negative
   
 //-------- Set the time spent in every state -----------------
-  time_each_stt[0] = stats_com.cpu;
+  //-------- Set the time spent in every state -----------------
+  powertrace_print("");// In this fuction time in state is updated
   time_each_stt[1] = stats_com.lpm;
   time_each_stt[2] = stats_com.transmit + stats_com.idle_transmit;
   time_each_stt[3] = stats_com.listen + stats_com.idle_listen;
