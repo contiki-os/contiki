@@ -1,0 +1,5 @@
+nice -20 java -jar $1
+PID=pgrep java
+wait $PID
+echo "PROCESS FINISHED"
+touch testeOK.tmp
