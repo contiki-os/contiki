@@ -1,0 +1,1618 @@
+00:00.262	ID:8	Rime started with address 0.0.0.0.0.0.0.8
+00:00.276	ID:8	MAC 00:00:00:00:00:00:00:08 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 8.
+00:00.284	ID:8	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.295	ID:8	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0008
+00:00.300	ID:8	Starting 'Erbium Example Server'
+00:00.303	ID:8	Setting harvesting OFF
+00:00.310	ID:8	-------------------------------------------
+00:00.314	ID:8	KIBAM Battery has been started 
+00:00.322	ID:8	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.331	ID:8	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.337	ID:8	-------------------------------------------
+00:00.380	ID:11	Rime started with address 0.0.0.0.0.0.0.11
+00:00.394	ID:11	MAC 00:00:00:00:00:00:00:0b Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 11.
+00:00.402	ID:11	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.413	ID:11	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000b
+00:00.418	ID:11	Starting 'Erbium Example Server'
+00:00.421	ID:11	Setting harvesting OFF
+00:00.426	ID:2	Rime started with address 0.0.0.0.0.0.0.2
+00:00.427	ID:11	-------------------------------------------
+00:00.432	ID:11	KIBAM Battery has been started 
+00:00.439	ID:2	MAC 00:00:00:00:00:00:00:02 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 2.
+00:00.439	ID:11	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.440	ID:6	Rime started with address 0.0.0.0.0.0.0.6
+00:00.448	ID:2	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.449	ID:11	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.454	ID:6	MAC 00:00:00:00:00:00:00:06 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 6.
+00:00.455	ID:11	-------------------------------------------
+00:00.459	ID:2	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0002
+00:00.462	ID:6	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.463	ID:2	Starting 'Erbium Example Server'
+00:00.467	ID:2	Setting harvesting OFF
+00:00.473	ID:2	-------------------------------------------
+00:00.473	ID:6	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0006
+00:00.477	ID:2	KIBAM Battery has been started 
+00:00.478	ID:6	Starting 'Erbium Example Server'
+00:00.481	ID:6	Setting harvesting OFF
+00:00.485	ID:2	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.487	ID:6	-------------------------------------------
+00:00.492	ID:6	KIBAM Battery has been started 
+00:00.494	ID:2	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.499	ID:6	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.500	ID:2	-------------------------------------------
+00:00.509	ID:6	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.515	ID:6	-------------------------------------------
+00:00.516	ID:18	Rime started with address 0.0.0.0.0.0.0.18
+00:00.527	ID:1	Rime started with address 0.0.0.0.0.0.0.1
+00:00.530	ID:18	MAC 00:00:00:00:00:00:00:12 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 18.
+00:00.538	ID:4	Rime started with address 0.0.0.0.0.0.0.4
+00:00.538	ID:18	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.541	ID:1	MAC 00:00:00:00:00:00:00:01 Contiki-3.x-3345-g32b5b17 started. Node id is set to 1.
+00:00.549	ID:18	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0012
+00:00.550	ID:1	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.551	ID:4	MAC 00:00:00:00:00:00:00:04 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 4.
+00:00.554	ID:18	Starting 'Erbium Example Server'
+00:00.560	ID:4	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.560	ID:18	-------------------------------------------
+00:00.562	ID:1	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0001
+00:00.565	ID:18	KIBAM Battery has been started 
+00:00.569	ID:1	Starting 'Border router process' 'Web server'
+00:00.571	ID:4	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0004
+00:00.572	ID:18	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.576	ID:4	Starting 'Erbium Example Server'
+00:00.579	ID:4	Setting harvesting OFF
+00:00.582	ID:18	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.585	ID:4	-------------------------------------------
+00:00.588	ID:18	-------------------------------------------
+00:00.590	ID:4	KIBAM Battery has been started 
+00:00.591	ID:7	Rime started with address 0.0.0.0.0.0.0.7
+00:00.597	ID:4	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.605	ID:7	MAC 00:00:00:00:00:00:00:07 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 7.
+00:00.607	ID:4	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.613	ID:4	-------------------------------------------
+00:00.613	ID:7	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.624	ID:7	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0007
+00:00.629	ID:7	Starting 'Erbium Example Server'
+00:00.632	ID:7	Setting harvesting OFF
+00:00.638	ID:7	-------------------------------------------
+00:00.640	ID:14	Rime started with address 0.0.0.0.0.0.0.14
+00:00.643	ID:7	KIBAM Battery has been started 
+00:00.650	ID:7	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.652	ID:15	Rime started with address 0.0.0.0.0.0.0.15
+00:00.653	ID:14	MAC 00:00:00:00:00:00:00:0e Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 14.
+00:00.660	ID:7	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.662	ID:14	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.662	ID:20	Rime started with address 0.0.0.0.0.0.0.20
+00:00.662	ID:16	Rime started with address 0.0.0.0.0.0.0.16
+00:00.666	ID:15	MAC 00:00:00:00:00:00:00:0f Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 15.
+00:00.666	ID:7	-------------------------------------------
+00:00.673	ID:14	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000e
+00:00.674	ID:15	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.676	ID:20	MAC 00:00:00:00:00:00:00:14 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 20.
+00:00.676	ID:16	MAC 00:00:00:00:00:00:00:10 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 16.
+00:00.678	ID:14	Starting 'Erbium Example Server'
+00:00.684	ID:14	-------------------------------------------
+00:00.684	ID:20	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.685	ID:16	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.685	ID:15	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000f
+00:00.688	ID:14	KIBAM Battery has been started 
+00:00.690	ID:15	Starting 'Erbium Example Server'
+00:00.695	ID:20	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0014
+00:00.696	ID:16	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0010
+00:00.696	ID:14	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.696	ID:15	-------------------------------------------
+00:00.700	ID:20	Starting 'Erbium Example Server'
+00:00.700	ID:16	Starting 'Erbium Example Server'
+00:00.701	ID:15	KIBAM Battery has been started 
+00:00.705	ID:14	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.706	ID:20	-------------------------------------------
+00:00.707	ID:16	-------------------------------------------
+00:00.708	ID:15	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.711	ID:20	KIBAM Battery has been started 
+00:00.711	ID:16	KIBAM Battery has been started 
+00:00.711	ID:14	-------------------------------------------
+00:00.718	ID:15	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.718	ID:20	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.719	ID:16	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.724	ID:15	-------------------------------------------
+00:00.728	ID:20	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.728	ID:16	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.734	ID:20	-------------------------------------------
+00:00.734	ID:16	-------------------------------------------
+00:00.746	ID:10	Rime started with address 0.0.0.0.0.0.0.10
+00:00.760	ID:10	MAC 00:00:00:00:00:00:00:0a Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 10.
+00:00.768	ID:10	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.779	ID:10	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000a
+00:00.784	ID:12	Rime started with address 0.0.0.0.0.0.0.12
+00:00.784	ID:10	Starting 'Erbium Example Server'
+00:00.787	ID:10	Setting harvesting OFF
+00:00.794	ID:10	-------------------------------------------
+00:00.798	ID:12	MAC 00:00:00:00:00:00:00:0c Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 12.
+00:00.798	ID:10	KIBAM Battery has been started 
+00:00.806	ID:10	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.806	ID:12	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.815	ID:10	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.817	ID:12	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000c
+00:00.821	ID:10	-------------------------------------------
+00:00.822	ID:12	Starting 'Erbium Example Server'
+00:00.828	ID:12	-------------------------------------------
+00:00.833	ID:12	KIBAM Battery has been started 
+00:00.840	ID:12	KIBAM Battery: rand() is 0 and Random variable is 21 
+00:00.850	ID:12	KIBAM Battery: qmax = 1000000 | q1 = 210000 | q2 = 789999 
+00:00.856	ID:12	-------------------------------------------
+00:00.898	ID:9	Rime started with address 0.0.0.0.0.0.0.9
+00:00.905	ID:5	Rime started with address 0.0.0.0.0.0.0.5
+00:00.909	ID:19	Rime started with address 0.0.0.0.0.0.0.19
+00:00.911	ID:9	MAC 00:00:00:00:00:00:00:09 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 9.
+00:00.918	ID:5	MAC 00:00:00:00:00:00:00:05 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 5.
+00:00.920	ID:9	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.922	ID:19	MAC 00:00:00:00:00:00:00:13 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 19.
+00:00.927	ID:5	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.931	ID:19	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:00.931	ID:9	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0009
+00:00.936	ID:9	Starting 'Erbium Example Server'
+00:00.938	ID:5	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0005
+00:00.939	ID:9	Setting harvesting OFF
+00:00.942	ID:19	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0013
+00:00.942	ID:5	Starting 'Erbium Example Server'
+00:00.945	ID:9	-------------------------------------------
+00:00.946	ID:5	Setting harvesting OFF
+00:00.947	ID:19	Starting 'Erbium Example Server'
+00:00.950	ID:9	KIBAM Battery has been started 
+00:00.952	ID:5	-------------------------------------------
+00:00.953	ID:19	-------------------------------------------
+00:00.956	ID:5	KIBAM Battery has been started 
+00:00.957	ID:9	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.957	ID:19	KIBAM Battery has been started 
+00:00.964	ID:5	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.965	ID:19	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:00.967	ID:9	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.973	ID:9	-------------------------------------------
+00:00.973	ID:5	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.974	ID:19	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:00.979	ID:5	-------------------------------------------
+00:00.980	ID:19	-------------------------------------------
+00:00.999	ID:17	Rime started with address 0.0.0.0.0.0.0.17
+00:01.012	ID:17	MAC 00:00:00:00:00:00:00:11 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 17.
+00:01.021	ID:17	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:01.032	ID:17	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0011
+00:01.037	ID:17	Starting 'Erbium Example Server'
+00:01.043	ID:17	-------------------------------------------
+00:01.047	ID:17	KIBAM Battery has been started 
+00:01.055	ID:17	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:01.064	ID:17	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:01.070	ID:17	-------------------------------------------
+00:01.073	ID:13	Rime started with address 0.0.0.0.0.0.0.13
+00:01.087	ID:13	MAC 00:00:00:00:00:00:00:0d Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 13.
+00:01.089	ID:3	Rime started with address 0.0.0.0.0.0.0.3
+00:01.096	ID:13	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:01.096	ID:21	Rime started with address 0.0.0.0.0.0.0.21
+00:01.102	ID:3	MAC 00:00:00:00:00:00:00:03 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 3.
+00:01.107	ID:13	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:000d
+00:01.110	ID:21	MAC 00:00:00:00:00:00:00:15 Contiki-3.x-3351-ga1fd5c2 started. Node id is set to 21.
+00:01.111	ID:3	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:01.111	ID:13	Starting 'Erbium Example Server'
+00:01.118	ID:13	-------------------------------------------
+00:01.118	ID:21	CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+00:01.122	ID:3	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0003
+00:01.122	ID:13	KIBAM Battery has been started 
+00:01.127	ID:3	Starting 'Erbium Example Server'
+00:01.130	ID:21	Tentative link-local IPv6 address fe80:0000:0000:0000:0200:0000:0000:0015
+00:01.130	ID:13	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:01.130	ID:3	Setting harvesting OFF
+00:01.134	ID:21	Starting 'Erbium Example Server'
+00:01.136	ID:3	-------------------------------------------
+00:01.139	ID:13	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:01.140	ID:21	-------------------------------------------
+00:01.140	ID:3	KIBAM Battery has been started 
+00:01.145	ID:21	KIBAM Battery has been started 
+00:01.145	ID:13	-------------------------------------------
+00:01.148	ID:3	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:01.152	ID:21	KIBAM Battery: rand() is 1 and Random variable is 20 
+00:01.157	ID:3	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:01.162	ID:21	KIBAM Battery: qmax = 1000000 | q1 = 200000 | q2 = 800000 
+00:01.164	ID:3	-------------------------------------------
+00:01.168	ID:21	-------------------------------------------
+01:00.337	ID:8	EVENT_TRACE - 0 - 0
+01:00.345	ID:8	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.455	ID:11	EVENT_TRACE - 0 - 0
+01:00.463	ID:11	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.501	ID:2	EVENT_TRACE - 0 - 0
+01:00.508	ID:2	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.515	ID:6	EVENT_TRACE - 0 - 0
+01:00.523	ID:6	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.583	ID:18	EVENT_TRACE - 0 - 0
+01:00.591	ID:18	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.613	ID:4	EVENT_TRACE - 0 - 0
+01:00.621	ID:4	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.666	ID:7	EVENT_TRACE - 0 - 0
+01:00.674	ID:7	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.707	ID:14	EVENT_TRACE - 0 - 0
+01:00.715	ID:14	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.719	ID:15	EVENT_TRACE - 0 - 0
+01:00.727	ID:15	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.729	ID:20	EVENT_TRACE - 0 - 0
+01:00.730	ID:16	EVENT_TRACE - 0 - 0
+01:00.737	ID:20	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.737	ID:16	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.821	ID:10	EVENT_TRACE - 0 - 0
+01:00.829	ID:10	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.851	ID:12	EVENT_TRACE - 0 - 0
+01:00.859	ID:12	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.973	ID:9	EVENT_TRACE - 0 - 0
+01:00.976	ID:19	EVENT_TRACE - 0 - 0
+01:00.980	ID:5	EVENT_TRACE - 0 - 0
+01:00.981	ID:9	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.984	ID:19	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:00.987	ID:5	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:01.066	ID:17	EVENT_TRACE - 0 - 0
+01:01.074	ID:17	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:01.140	ID:13	EVENT_TRACE - 0 - 0
+01:01.148	ID:13	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:01.163	ID:21	EVENT_TRACE - 0 - 0
+01:01.164	ID:3	EVENT_TRACE - 0 - 0
+01:01.171	ID:21	Event at 1 minutes, at [2, 28] position, intensity of 47
+01:01.172	ID:3	Event at 1 minutes, at [2, 28] position, intensity of 47
+02:00.337	ID:8	EVENT_TRACE - 1 - 1
+02:00.455	ID:11	EVENT_TRACE - 1 - 1
+02:00.501	ID:2	EVENT_TRACE - 1 - 1
+02:00.515	ID:6	EVENT_TRACE - 1 - 1
+02:00.583	ID:18	EVENT_TRACE - 1 - 1
+02:00.613	ID:4	EVENT_TRACE - 1 - 1
+02:00.666	ID:7	EVENT_TRACE - 1 - 1
+02:00.707	ID:14	EVENT_TRACE - 1 - 1
+02:00.719	ID:15	EVENT_TRACE - 1 - 1
+02:00.729	ID:20	EVENT_TRACE - 1 - 1
+02:00.730	ID:16	EVENT_TRACE - 1 - 1
+02:00.821	ID:10	EVENT_TRACE - 1 - 1
+02:00.851	ID:12	EVENT_TRACE - 1 - 1
+02:00.973	ID:9	EVENT_TRACE - 1 - 1
+02:00.976	ID:19	EVENT_TRACE - 1 - 1
+02:00.980	ID:5	EVENT_TRACE - 1 - 1
+02:01.066	ID:17	EVENT_TRACE - 1 - 1
+02:01.140	ID:13	EVENT_TRACE - 1 - 1
+02:01.163	ID:21	EVENT_TRACE - 1 - 1
+02:01.164	ID:3	EVENT_TRACE - 1 - 1
+03:00.337	ID:8	EVENT_TRACE - 2 - 1
+03:00.455	ID:11	EVENT_TRACE - 2 - 1
+03:00.501	ID:2	EVENT_TRACE - 2 - 1
+03:00.515	ID:6	EVENT_TRACE - 2 - 1
+03:00.583	ID:18	EVENT_TRACE - 2 - 1
+03:00.613	ID:4	EVENT_TRACE - 2 - 1
+03:00.666	ID:7	EVENT_TRACE - 2 - 1
+03:00.707	ID:14	EVENT_TRACE - 2 - 1
+03:00.719	ID:15	EVENT_TRACE - 2 - 1
+03:00.729	ID:20	EVENT_TRACE - 2 - 1
+03:00.730	ID:16	EVENT_TRACE - 2 - 1
+03:00.821	ID:10	EVENT_TRACE - 2 - 1
+03:00.851	ID:12	EVENT_TRACE - 2 - 1
+03:00.973	ID:9	EVENT_TRACE - 2 - 1
+03:00.976	ID:19	EVENT_TRACE - 2 - 1
+03:00.980	ID:5	EVENT_TRACE - 2 - 1
+03:01.066	ID:17	EVENT_TRACE - 2 - 1
+03:01.140	ID:13	EVENT_TRACE - 2 - 1
+03:01.163	ID:21	EVENT_TRACE - 2 - 1
+03:01.164	ID:3	EVENT_TRACE - 2 - 1
+04:00.337	ID:8	EVENT_TRACE - 3 - 1
+04:00.455	ID:11	EVENT_TRACE - 3 - 1
+04:00.501	ID:2	EVENT_TRACE - 3 - 1
+04:00.515	ID:6	EVENT_TRACE - 3 - 1
+04:00.583	ID:18	EVENT_TRACE - 3 - 1
+04:00.613	ID:4	EVENT_TRACE - 3 - 1
+04:00.666	ID:7	EVENT_TRACE - 3 - 1
+04:00.707	ID:14	EVENT_TRACE - 3 - 1
+04:00.719	ID:15	EVENT_TRACE - 3 - 1
+04:00.729	ID:20	EVENT_TRACE - 3 - 1
+04:00.730	ID:16	EVENT_TRACE - 3 - 1
+04:00.821	ID:10	EVENT_TRACE - 3 - 1
+04:00.851	ID:12	EVENT_TRACE - 3 - 1
+04:00.973	ID:9	EVENT_TRACE - 3 - 1
+04:00.976	ID:19	EVENT_TRACE - 3 - 1
+04:00.980	ID:5	EVENT_TRACE - 3 - 1
+04:01.066	ID:17	EVENT_TRACE - 3 - 1
+04:01.140	ID:13	EVENT_TRACE - 3 - 1
+04:01.163	ID:21	EVENT_TRACE - 3 - 1
+04:01.164	ID:3	EVENT_TRACE - 3 - 1
+04:15.569	ID:1	# [1024 bytes, no line ending]: ?P?P?P?P?P...
+05:00.337	ID:8	EVENT_TRACE - 4 - 1
+05:00.340	ID:8	Battery: Day is 1 
+05:00.346	ID:8	Battery: Timer couter is 5 and Time is 5 
+05:00.358	ID:8	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.367	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.373	ID:8	Battery: Number of CPU ticks in state 0 is 0 
+05:00.388	ID:8	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.397	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.406	ID:8	Battery: Number of CPU ticks in state 1 is 9775649 
+05:00.420	ID:8	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.429	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.436	ID:8	Battery: Number of CPU ticks in state 2 is 13260 
+05:00.450	ID:8	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.455	ID:11	EVENT_TRACE - 4 - 1
+05:00.458	ID:11	Battery: Day is 1 
+05:00.459	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.463	ID:11	Battery: Timer couter is 5 and Time is 5 
+05:00.467	ID:8	Battery: Number of CPU ticks in state 3 is 71071 
+05:00.472	ID:8	Log: Residual (microAh); 209977; 
+05:00.475	ID:11	Battery: Available charge at next time interval is 200000 (microAh) 
+05:00.478	ID:8	Log: Energy Total consumption (microA); 22;  
+05:00.485	ID:11	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.485	ID:8	Log: Energy Periodic consumption (microA); 11;  
+05:00.491	ID:11	Battery: Number of CPU ticks in state 0 is 0 
+05:00.494	ID:8	Energy: CPU ticks 56399, LPM 9775649, Tx 13260, Rx 71071 
+05:00.501	ID:2	EVENT_TRACE - 4 - 1
+05:00.503	ID:2	Battery: Day is 1 
+05:00.505	ID:11	Battery: Available charge at next time interval is 199992 (microAh) 
+05:00.509	ID:2	Battery: Timer couter is 5 and Time is 5 
+05:00.515	ID:11	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.515	ID:6	EVENT_TRACE - 4 - 1
+05:00.518	ID:6	Battery: Day is 1 
+05:00.521	ID:2	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.523	ID:11	Battery: Number of CPU ticks in state 1 is 9775904 
+05:00.524	ID:6	Battery: Timer couter is 5 and Time is 5 
+05:00.530	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.536	ID:6	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.537	ID:2	Battery: Number of CPU ticks in state 0 is 0 
+05:00.537	ID:11	Battery: Available charge at next time interval is 199988 (microAh) 
+05:00.545	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.546	ID:11	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.551	ID:2	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.551	ID:6	Battery: Number of CPU ticks in state 0 is 0 
+05:00.554	ID:11	Battery: Number of CPU ticks in state 2 is 13262 
+05:00.560	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.566	ID:6	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.568	ID:11	Battery: Available charge at next time interval is 199977 (microAh) 
+05:00.569	ID:2	Battery: Number of CPU ticks in state 1 is 9775855 
+05:00.575	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.577	ID:11	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.583	ID:2	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.583	ID:18	EVENT_TRACE - 4 - 1
+05:00.583	ID:6	Battery: Number of CPU ticks in state 1 is 9775204 
+05:00.584	ID:11	Battery: Number of CPU ticks in state 3 is 70189 
+05:00.586	ID:18	Battery: Day is 1 
+05:00.589	ID:11	Log: Residual (microAh); 199977; 
+05:00.592	ID:18	Battery: Timer couter is 5 and Time is 5 
+05:00.592	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.596	ID:11	Log: Energy Total consumption (microA); 22;  
+05:00.597	ID:6	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.599	ID:2	Battery: Number of CPU ticks in state 2 is 13263 
+05:00.602	ID:11	Log: Energy Periodic consumption (microA); 11;  
+05:00.604	ID:18	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.607	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.612	ID:11	Energy: CPU ticks 56135, LPM 9775904, Tx 13262, Rx 70189 
+05:00.613	ID:4	EVENT_TRACE - 4 - 1
+05:00.613	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.613	ID:2	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.614	ID:6	Battery: Number of CPU ticks in state 2 is 13256 
+05:00.615	ID:4	Battery: Day is 1 
+05:00.619	ID:18	Battery: Number of CPU ticks in state 0 is 0 
+05:00.621	ID:4	Battery: Timer couter is 5 and Time is 5 
+05:00.623	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.628	ID:6	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.630	ID:2	Battery: Number of CPU ticks in state 3 is 71509 
+05:00.633	ID:4	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.634	ID:18	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.635	ID:2	Log: Residual (microAh); 209977; 
+05:00.637	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.641	ID:2	Log: Energy Total consumption (microA); 22;  
+05:00.643	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.643	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.644	ID:6	Battery: Number of CPU ticks in state 3 is 71484 
+05:00.648	ID:2	Log: Energy Periodic consumption (microA); 11;  
+05:00.649	ID:4	Battery: Number of CPU ticks in state 0 is 0 
+05:00.649	ID:6	Log: Residual (microAh); 209977; 
+05:00.651	ID:18	Battery: Number of CPU ticks in state 1 is 9775997 
+05:00.656	ID:6	Log: Energy Total consumption (microA); 22;  
+05:00.657	ID:2	Energy: CPU ticks 56193, LPM 9775855, Tx 13263, Rx 71509 
+05:00.663	ID:6	Log: Energy Periodic consumption (microA); 11;  
+05:00.663	ID:4	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.665	ID:18	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.666	ID:7	EVENT_TRACE - 4 - 1
+05:00.669	ID:7	Battery: Day is 1 
+05:00.672	ID:6	Energy: CPU ticks 56844, LPM 9775204, Tx 13256, Rx 71484 
+05:00.673	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.675	ID:7	Battery: Timer couter is 5 and Time is 5 
+05:00.675	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.681	ID:4	Battery: Number of CPU ticks in state 1 is 9775767 
+05:00.682	ID:18	Battery: Number of CPU ticks in state 2 is 13260 
+05:00.687	ID:7	Battery: Available charge at next time interval is 200000 (microAh) 
+05:00.695	ID:4	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.696	ID:18	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.696	ID:7	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.702	ID:7	Battery: Number of CPU ticks in state 0 is 0 
+05:00.704	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.705	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.707	ID:14	EVENT_TRACE - 4 - 1
+05:00.709	ID:14	Battery: Day is 1 
+05:00.712	ID:4	Battery: Number of CPU ticks in state 2 is 13262 
+05:00.712	ID:18	Battery: Number of CPU ticks in state 3 is 71436 
+05:00.715	ID:14	Battery: Timer couter is 5 and Time is 5 
+05:00.717	ID:7	Battery: Available charge at next time interval is 199992 (microAh) 
+05:00.717	ID:18	Log: Residual (microAh); 209977; 
+05:00.719	ID:15	EVENT_TRACE - 4 - 1
+05:00.722	ID:15	Battery: Day is 1 
+05:00.724	ID:18	Log: Energy Total consumption (microA); 22;  
+05:00.726	ID:4	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.726	ID:7	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.727	ID:14	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.728	ID:15	Battery: Timer couter is 5 and Time is 5 
+05:00.729	ID:20	EVENT_TRACE - 4 - 1
+05:00.730	ID:16	EVENT_TRACE - 4 - 1
+05:00.731	ID:18	Log: Energy Periodic consumption (microA); 11;  
+05:00.732	ID:20	Battery: Day is 1 
+05:00.732	ID:16	Battery: Day is 1 
+05:00.734	ID:7	Battery: Number of CPU ticks in state 1 is 9776112 
+05:00.735	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.737	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.738	ID:20	Battery: Timer couter is 5 and Time is 5 
+05:00.738	ID:16	Battery: Timer couter is 5 and Time is 5 
+05:00.740	ID:15	Battery: Available charge at next time interval is 200000 (microAh) 
+05:00.740	ID:18	Energy: CPU ticks 55786, LPM 9775997, Tx 13260, Rx 71436 
+05:00.742	ID:4	Battery: Number of CPU ticks in state 3 is 71414 
+05:00.743	ID:14	Battery: Number of CPU ticks in state 0 is 0 
+05:00.747	ID:4	Log: Residual (microAh); 209977; 
+05:00.748	ID:7	Battery: Available charge at next time interval is 199988 (microAh) 
+05:00.749	ID:15	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.750	ID:20	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.750	ID:16	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.754	ID:4	Log: Energy Total consumption (microA); 22;  
+05:00.755	ID:15	Battery: Number of CPU ticks in state 0 is 0 
+05:00.757	ID:14	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.758	ID:7	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.759	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.759	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.760	ID:4	Log: Energy Periodic consumption (microA); 11;  
+05:00.765	ID:7	Battery: Number of CPU ticks in state 2 is 13264 
+05:00.765	ID:20	Battery: Number of CPU ticks in state 0 is 0 
+05:00.766	ID:16	Battery: Number of CPU ticks in state 0 is 0 
+05:00.767	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.770	ID:4	Energy: CPU ticks 56281, LPM 9775767, Tx 13262, Rx 71414 
+05:00.770	ID:15	Battery: Available charge at next time interval is 199992 (microAh) 
+05:00.774	ID:14	Battery: Number of CPU ticks in state 1 is 9775995 
+05:00.779	ID:7	Battery: Available charge at next time interval is 199977 (microAh) 
+05:00.779	ID:15	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.780	ID:20	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.780	ID:16	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.787	ID:15	Battery: Number of CPU ticks in state 1 is 9775631 
+05:00.788	ID:7	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.789	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.789	ID:14	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.789	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.795	ID:7	Battery: Number of CPU ticks in state 3 is 69973 
+05:00.797	ID:20	Battery: Number of CPU ticks in state 1 is 9775775 
+05:00.797	ID:16	Battery: Number of CPU ticks in state 1 is 9775694 
+05:00.798	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.800	ID:7	Log: Residual (microAh); 199977; 
+05:00.801	ID:15	Battery: Available charge at next time interval is 199988 (microAh) 
+05:00.806	ID:14	Battery: Number of CPU ticks in state 2 is 13263 
+05:00.807	ID:7	Log: Energy Total consumption (microA); 22;  
+05:00.811	ID:15	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.811	ID:20	Battery: Available charge at next time interval is 209989 (microAh) 
+05:00.812	ID:16	Battery: Available charge at next time interval is 209990 (microAh) 
+05:00.814	ID:7	Log: Energy Periodic consumption (microA); 10;  
+05:00.818	ID:15	Battery: Number of CPU ticks in state 2 is 13260 
+05:00.820	ID:14	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.821	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.821	ID:10	EVENT_TRACE - 4 - 1
+05:00.821	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.823	ID:7	Energy: CPU ticks 55936, LPM 9776112, Tx 13264, Rx 69973 
+05:00.824	ID:10	Battery: Day is 1 
+05:00.828	ID:20	Battery: Number of CPU ticks in state 2 is 10265 
+05:00.828	ID:16	Battery: Number of CPU ticks in state 2 is 8097 
+05:00.829	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.829	ID:10	Battery: Timer couter is 5 and Time is 5 
+05:00.832	ID:15	Battery: Available charge at next time interval is 199977 (microAh) 
+05:00.836	ID:14	Battery: Number of CPU ticks in state 3 is 70526 
+05:00.841	ID:14	Log: Residual (microAh); 209977; 
+05:00.841	ID:15	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:00.841	ID:10	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.842	ID:20	Battery: Available charge at next time interval is 209978 (microAh) 
+05:00.842	ID:16	Battery: Available charge at next time interval is 209979 (microAh) 
+05:00.847	ID:14	Log: Energy Total consumption (microA); 22;  
+05:00.848	ID:15	Battery: Number of CPU ticks in state 3 is 71726 
+05:00.851	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.851	ID:12	EVENT_TRACE - 4 - 1
+05:00.851	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.852	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.853	ID:15	Log: Residual (microAh); 199977; 
+05:00.854	ID:12	Battery: Day is 1 
+05:00.854	ID:14	Log: Energy Periodic consumption (microA); 11;  
+05:00.857	ID:10	Battery: Number of CPU ticks in state 0 is 0 
+05:00.858	ID:20	Battery: Number of CPU ticks in state 3 is 70972 
+05:00.859	ID:16	Battery: Number of CPU ticks in state 3 is 71114 
+05:00.859	ID:12	Battery: Timer couter is 5 and Time is 5 
+05:00.860	ID:15	Log: Energy Total consumption (microA); 22;  
+05:00.863	ID:14	Energy: CPU ticks 55788, LPM 9775995, Tx 13263, Rx 70526 
+05:00.863	ID:20	Log: Residual (microAh); 209978; 
+05:00.864	ID:16	Log: Residual (microAh); 209979; 
+05:00.867	ID:15	Log: Energy Periodic consumption (microA); 11;  
+05:00.870	ID:20	Log: Energy Total consumption (microA); 21;  
+05:00.870	ID:16	Log: Energy Total consumption (microA); 20;  
+05:00.871	ID:12	Battery: Available charge at next time interval is 210000 (microAh) 
+05:00.871	ID:10	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.876	ID:15	Energy: CPU ticks 56152, LPM 9775631, Tx 13260, Rx 71726 
+05:00.877	ID:20	Log: Energy Periodic consumption (microA); 11;  
+05:00.877	ID:16	Log: Energy Periodic consumption (microA); 11;  
+05:00.881	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.881	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.886	ID:20	Energy: CPU ticks 56008, LPM 9775775, Tx 10265, Rx 70972 
+05:00.886	ID:16	Energy: CPU ticks 56089, LPM 9775694, Tx 8097, Rx 71114 
+05:00.887	ID:12	Battery: Number of CPU ticks in state 0 is 0 
+05:00.889	ID:10	Battery: Number of CPU ticks in state 1 is 9775482 
+05:00.901	ID:12	Battery: Available charge at next time interval is 209992 (microAh) 
+05:00.903	ID:10	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.911	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.913	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.918	ID:12	Battery: Number of CPU ticks in state 1 is 9775467 
+05:00.920	ID:10	Battery: Number of CPU ticks in state 2 is 13263 
+05:00.933	ID:12	Battery: Available charge at next time interval is 209988 (microAh) 
+05:00.934	ID:10	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.943	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.943	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.950	ID:12	Battery: Number of CPU ticks in state 2 is 13261 
+05:00.950	ID:10	Battery: Number of CPU ticks in state 3 is 69653 
+05:00.955	ID:10	Log: Residual (microAh); 209977; 
+05:00.962	ID:10	Log: Energy Total consumption (microA); 22;  
+05:00.964	ID:12	Battery: Available charge at next time interval is 209977 (microAh) 
+05:00.968	ID:10	Log: Energy Periodic consumption (microA); 10;  
+05:00.973	ID:9	EVENT_TRACE - 4 - 1
+05:00.973	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+05:00.976	ID:9	Battery: Day is 1 
+05:00.976	ID:19	EVENT_TRACE - 4 - 1
+05:00.978	ID:10	Energy: CPU ticks 56557, LPM 9775482, Tx 13263, Rx 69653 
+05:00.978	ID:19	Battery: Day is 1 
+05:00.980	ID:5	EVENT_TRACE - 4 - 1
+05:00.980	ID:12	Battery: Number of CPU ticks in state 3 is 71616 
+05:00.981	ID:9	Battery: Timer couter is 5 and Time is 5 
+05:00.982	ID:5	Battery: Day is 1 
+05:00.984	ID:19	Battery: Timer couter is 5 and Time is 5 
+05:00.985	ID:12	Log: Residual (microAh); 209977; 
+05:00.988	ID:5	Battery: Timer couter is 5 and Time is 5 
+05:00.992	ID:12	Log: Energy Total consumption (microA); 22;  
+05:00.993	ID:9	Battery: Available charge at next time interval is 200000 (microAh) 
+05:00.996	ID:19	Battery: Available charge at next time interval is 200000 (microAh) 
+05:00.999	ID:12	Log: Energy Periodic consumption (microA); 11;  
+05:01.000	ID:5	Battery: Available charge at next time interval is 200000 (microAh) 
+05:01.003	ID:9	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.005	ID:19	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.008	ID:12	Energy: CPU ticks 56316, LPM 9775467, Tx 13261, Rx 71616 
+05:01.009	ID:9	Battery: Number of CPU ticks in state 0 is 0 
+05:01.009	ID:5	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.012	ID:19	Battery: Number of CPU ticks in state 0 is 0 
+05:01.016	ID:5	Battery: Number of CPU ticks in state 0 is 0 
+05:01.023	ID:9	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.026	ID:19	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.030	ID:5	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.033	ID:9	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.035	ID:19	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.039	ID:5	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.041	ID:9	Battery: Number of CPU ticks in state 1 is 9775648 
+05:01.043	ID:19	Battery: Number of CPU ticks in state 1 is 9775771 
+05:01.048	ID:5	Battery: Number of CPU ticks in state 1 is 9775503 
+05:01.055	ID:9	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.058	ID:19	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.062	ID:5	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.064	ID:9	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.066	ID:17	EVENT_TRACE - 4 - 1
+05:01.067	ID:19	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.068	ID:17	Battery: Day is 1 
+05:01.071	ID:5	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.072	ID:9	Battery: Number of CPU ticks in state 2 is 13263 
+05:01.074	ID:17	Battery: Timer couter is 5 and Time is 5 
+05:01.074	ID:19	Battery: Number of CPU ticks in state 2 is 13261 
+05:01.078	ID:5	Battery: Number of CPU ticks in state 2 is 13256 
+05:01.086	ID:9	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.086	ID:17	Battery: Available charge at next time interval is 200000 (microAh) 
+05:01.088	ID:19	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.092	ID:5	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.095	ID:9	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.095	ID:17	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.098	ID:19	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.102	ID:5	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.102	ID:17	Battery: Number of CPU ticks in state 0 is 0 
+05:01.102	ID:9	Battery: Number of CPU ticks in state 3 is 71465 
+05:01.105	ID:19	Battery: Number of CPU ticks in state 3 is 71293 
+05:01.107	ID:9	Log: Residual (microAh); 199977; 
+05:01.109	ID:5	Battery: Number of CPU ticks in state 3 is 70892 
+05:01.110	ID:19	Log: Residual (microAh); 199977; 
+05:01.114	ID:9	Log: Energy Total consumption (microA); 22;  
+05:01.114	ID:5	Log: Residual (microAh); 199977; 
+05:01.116	ID:17	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.116	ID:19	Log: Energy Total consumption (microA); 22;  
+05:01.120	ID:5	Log: Energy Total consumption (microA); 22;  
+05:01.120	ID:9	Log: Energy Periodic consumption (microA); 11;  
+05:01.123	ID:19	Log: Energy Periodic consumption (microA); 11;  
+05:01.125	ID:17	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.127	ID:5	Log: Energy Periodic consumption (microA); 11;  
+05:01.130	ID:9	Energy: CPU ticks 56400, LPM 9775648, Tx 13263, Rx 71465 
+05:01.132	ID:19	Energy: CPU ticks 56012, LPM 9775771, Tx 13261, Rx 71293 
+05:01.133	ID:17	Battery: Number of CPU ticks in state 1 is 9775258 
+05:01.136	ID:5	Energy: CPU ticks 56545, LPM 9775503, Tx 13256, Rx 70892 
+05:01.140	ID:13	EVENT_TRACE - 4 - 1
+05:01.143	ID:13	Battery: Day is 1 
+05:01.148	ID:17	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.149	ID:13	Battery: Timer couter is 5 and Time is 5 
+05:01.157	ID:17	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.161	ID:13	Battery: Available charge at next time interval is 200000 (microAh) 
+05:01.163	ID:21	EVENT_TRACE - 4 - 1
+05:01.164	ID:3	EVENT_TRACE - 4 - 1
+05:01.164	ID:17	Battery: Number of CPU ticks in state 2 is 13258 
+05:01.166	ID:21	Battery: Day is 1 
+05:01.166	ID:3	Battery: Day is 1 
+05:01.170	ID:13	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.172	ID:21	Battery: Timer couter is 5 and Time is 5 
+05:01.172	ID:3	Battery: Timer couter is 5 and Time is 5 
+05:01.177	ID:13	Battery: Number of CPU ticks in state 0 is 0 
+05:01.178	ID:17	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.184	ID:21	Battery: Available charge at next time interval is 200000 (microAh) 
+05:01.184	ID:3	Battery: Available charge at next time interval is 200000 (microAh) 
+05:01.188	ID:17	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.191	ID:13	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.193	ID:21	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.194	ID:3	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.195	ID:17	Battery: Number of CPU ticks in state 3 is 71458 
+05:01.199	ID:21	Battery: Number of CPU ticks in state 0 is 0 
+05:01.200	ID:17	Log: Residual (microAh); 199977; 
+05:01.200	ID:3	Battery: Number of CPU ticks in state 0 is 0 
+05:01.200	ID:13	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.206	ID:17	Log: Energy Total consumption (microA); 22;  
+05:01.208	ID:13	Battery: Number of CPU ticks in state 1 is 9775635 
+05:01.213	ID:17	Log: Energy Periodic consumption (microA); 11;  
+05:01.214	ID:21	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.214	ID:3	Battery: Available charge at next time interval is 199992 (microAh) 
+05:01.222	ID:17	Energy: CPU ticks 56525, LPM 9775258, Tx 13258, Rx 71458 
+05:01.223	ID:13	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.223	ID:21	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.224	ID:3	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.231	ID:21	Battery: Number of CPU ticks in state 1 is 9774713 
+05:01.232	ID:3	Battery: Number of CPU ticks in state 1 is 9775867 
+05:01.232	ID:13	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.239	ID:13	Battery: Number of CPU ticks in state 2 is 13256 
+05:01.246	ID:21	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.246	ID:3	Battery: Available charge at next time interval is 199988 (microAh) 
+05:01.253	ID:13	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.255	ID:21	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.255	ID:3	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.262	ID:21	Battery: Number of CPU ticks in state 2 is 13255 
+05:01.262	ID:3	Battery: Number of CPU ticks in state 2 is 13265 
+05:01.263	ID:13	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.270	ID:13	Battery: Number of CPU ticks in state 3 is 70757 
+05:01.275	ID:13	Log: Residual (microAh); 199977; 
+05:01.276	ID:21	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.276	ID:3	Battery: Available charge at next time interval is 199977 (microAh) 
+05:01.281	ID:13	Log: Energy Total consumption (microA); 22;  
+05:01.285	ID:21	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.286	ID:3	Battery: Bound charge at next time interval is 800000 (microAh) 
+05:01.288	ID:13	Log: Energy Periodic consumption (microA); 11;  
+05:01.293	ID:21	Battery: Number of CPU ticks in state 3 is 71593 
+05:01.293	ID:3	Battery: Number of CPU ticks in state 3 is 70318 
+05:01.297	ID:13	Energy: CPU ticks 56148, LPM 9775635, Tx 13256, Rx 70757 
+05:01.298	ID:21	Log: Residual (microAh); 199977; 
+05:01.298	ID:3	Log: Residual (microAh); 199977; 
+05:01.304	ID:21	Log: Energy Total consumption (microA); 22;  
+05:01.304	ID:3	Log: Energy Total consumption (microA); 22;  
+05:01.311	ID:21	Log: Energy Periodic consumption (microA); 11;  
+05:01.311	ID:3	Log: Energy Periodic consumption (microA); 11;  
+05:01.320	ID:21	Energy: CPU ticks 57070, LPM 9774713, Tx 13255, Rx 71593 
+05:01.320	ID:3	Energy: CPU ticks 56181, LPM 9775867, Tx 13265, Rx 70318 
+06:00.337	ID:8	EVENT_TRACE - 5 - 1
+06:00.455	ID:11	EVENT_TRACE - 5 - 1
+06:00.501	ID:2	EVENT_TRACE - 5 - 1
+06:00.515	ID:6	EVENT_TRACE - 5 - 1
+06:00.583	ID:18	EVENT_TRACE - 5 - 1
+06:00.613	ID:4	EVENT_TRACE - 5 - 1
+06:00.666	ID:7	EVENT_TRACE - 5 - 1
+06:00.707	ID:14	EVENT_TRACE - 5 - 1
+06:00.719	ID:15	EVENT_TRACE - 5 - 1
+06:00.729	ID:20	EVENT_TRACE - 5 - 1
+06:00.730	ID:16	EVENT_TRACE - 5 - 1
+06:00.821	ID:10	EVENT_TRACE - 5 - 1
+06:00.851	ID:12	EVENT_TRACE - 5 - 1
+06:00.973	ID:9	EVENT_TRACE - 5 - 1
+06:00.976	ID:19	EVENT_TRACE - 5 - 1
+06:00.980	ID:5	EVENT_TRACE - 5 - 1
+06:01.066	ID:17	EVENT_TRACE - 5 - 1
+06:01.140	ID:13	EVENT_TRACE - 5 - 1
+06:01.163	ID:21	EVENT_TRACE - 5 - 1
+06:01.164	ID:3	EVENT_TRACE - 5 - 1
+07:00.337	ID:8	EVENT_TRACE - 6 - 1
+07:00.455	ID:11	EVENT_TRACE - 6 - 1
+07:00.501	ID:2	EVENT_TRACE - 6 - 1
+07:00.515	ID:6	EVENT_TRACE - 6 - 1
+07:00.583	ID:18	EVENT_TRACE - 6 - 1
+07:00.613	ID:4	EVENT_TRACE - 6 - 1
+07:00.666	ID:7	EVENT_TRACE - 6 - 1
+07:00.707	ID:14	EVENT_TRACE - 6 - 1
+07:00.719	ID:15	EVENT_TRACE - 6 - 1
+07:00.729	ID:20	EVENT_TRACE - 6 - 1
+07:00.730	ID:16	EVENT_TRACE - 6 - 1
+07:00.821	ID:10	EVENT_TRACE - 6 - 1
+07:00.851	ID:12	EVENT_TRACE - 6 - 1
+07:00.973	ID:9	EVENT_TRACE - 6 - 1
+07:00.976	ID:19	EVENT_TRACE - 6 - 1
+07:00.980	ID:5	EVENT_TRACE - 6 - 1
+07:01.066	ID:17	EVENT_TRACE - 6 - 1
+07:01.140	ID:13	EVENT_TRACE - 6 - 1
+07:01.163	ID:21	EVENT_TRACE - 6 - 1
+07:01.164	ID:3	EVENT_TRACE - 6 - 1
+08:00.337	ID:8	EVENT_TRACE - 7 - 1
+08:00.455	ID:11	EVENT_TRACE - 7 - 1
+08:00.501	ID:2	EVENT_TRACE - 7 - 1
+08:00.515	ID:6	EVENT_TRACE - 7 - 1
+08:00.583	ID:18	EVENT_TRACE - 7 - 1
+08:00.613	ID:4	EVENT_TRACE - 7 - 1
+08:00.666	ID:7	EVENT_TRACE - 7 - 1
+08:00.707	ID:14	EVENT_TRACE - 7 - 1
+08:00.719	ID:15	EVENT_TRACE - 7 - 1
+08:00.729	ID:20	EVENT_TRACE - 7 - 1
+08:00.730	ID:16	EVENT_TRACE - 7 - 1
+08:00.821	ID:10	EVENT_TRACE - 7 - 1
+08:00.851	ID:12	EVENT_TRACE - 7 - 1
+08:00.973	ID:9	EVENT_TRACE - 7 - 1
+08:00.976	ID:19	EVENT_TRACE - 7 - 1
+08:00.980	ID:5	EVENT_TRACE - 7 - 1
+08:01.066	ID:17	EVENT_TRACE - 7 - 1
+08:01.140	ID:13	EVENT_TRACE - 7 - 1
+08:01.163	ID:21	EVENT_TRACE - 7 - 1
+08:01.164	ID:3	EVENT_TRACE - 7 - 1
+08:32.568	ID:1	# [1024 bytes, no line ending]: ?P?P?P?P?P...
+09:00.337	ID:8	EVENT_TRACE - 8 - 1
+09:00.455	ID:11	EVENT_TRACE - 8 - 1
+09:00.501	ID:2	EVENT_TRACE - 8 - 1
+09:00.515	ID:6	EVENT_TRACE - 8 - 1
+09:00.583	ID:18	EVENT_TRACE - 8 - 1
+09:00.613	ID:4	EVENT_TRACE - 8 - 1
+09:00.666	ID:7	EVENT_TRACE - 8 - 1
+09:00.707	ID:14	EVENT_TRACE - 8 - 1
+09:00.719	ID:15	EVENT_TRACE - 8 - 1
+09:00.729	ID:20	EVENT_TRACE - 8 - 1
+09:00.730	ID:16	EVENT_TRACE - 8 - 1
+09:00.821	ID:10	EVENT_TRACE - 8 - 1
+09:00.851	ID:12	EVENT_TRACE - 8 - 1
+09:00.973	ID:9	EVENT_TRACE - 8 - 1
+09:00.976	ID:19	EVENT_TRACE - 8 - 1
+09:00.980	ID:5	EVENT_TRACE - 8 - 1
+09:01.066	ID:17	EVENT_TRACE - 8 - 1
+09:01.140	ID:13	EVENT_TRACE - 8 - 1
+09:01.163	ID:21	EVENT_TRACE - 8 - 1
+09:01.164	ID:3	EVENT_TRACE - 8 - 1
+10:00.337	ID:8	EVENT_TRACE - 9 - 1
+10:00.343	ID:8	Battery: Timer couter is 10 and Time is 10 
+10:00.355	ID:8	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.365	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.371	ID:8	Battery: Number of CPU ticks in state 0 is 0 
+10:00.385	ID:8	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.395	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.403	ID:8	Battery: Number of CPU ticks in state 1 is 9770579 
+10:00.417	ID:8	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.427	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.434	ID:8	Battery: Number of CPU ticks in state 2 is 13261 
+10:00.448	ID:8	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.455	ID:11	EVENT_TRACE - 9 - 1
+10:00.457	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.461	ID:11	Battery: Timer couter is 10 and Time is 10 
+10:00.464	ID:8	Battery: Number of CPU ticks in state 3 is 70584 
+10:00.469	ID:8	Log: Residual (microAh); 209955; 
+10:00.473	ID:11	Battery: Available charge at next time interval is 199977 (microAh) 
+10:00.476	ID:8	Log: Energy Total consumption (microA); 44;  
+10:00.482	ID:11	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:00.482	ID:8	Log: Energy Periodic consumption (microA); 11;  
+10:00.489	ID:11	Battery: Number of CPU ticks in state 0 is 0 
+10:00.492	ID:8	Energy: CPU ticks 59743, LPM 9770579, Tx 13261, Rx 70584 
+10:00.501	ID:2	EVENT_TRACE - 9 - 1
+10:00.503	ID:11	Battery: Available charge at next time interval is 199970 (microAh) 
+10:00.507	ID:2	Battery: Timer couter is 10 and Time is 10 
+10:00.512	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.515	ID:6	EVENT_TRACE - 9 - 1
+10:00.519	ID:2	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.521	ID:11	Battery: Number of CPU ticks in state 1 is 9770722 
+10:00.521	ID:6	Battery: Timer couter is 10 and Time is 10 
+10:00.528	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.533	ID:6	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.534	ID:2	Battery: Number of CPU ticks in state 0 is 0 
+10:00.535	ID:11	Battery: Available charge at next time interval is 199966 (microAh) 
+10:00.543	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.544	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.549	ID:2	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.549	ID:6	Battery: Number of CPU ticks in state 0 is 0 
+10:00.551	ID:11	Battery: Number of CPU ticks in state 2 is 13261 
+10:00.558	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.563	ID:6	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.565	ID:11	Battery: Available charge at next time interval is 199955 (microAh) 
+10:00.567	ID:2	Battery: Number of CPU ticks in state 1 is 9770614 
+10:00.573	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.575	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.581	ID:2	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.581	ID:6	Battery: Number of CPU ticks in state 1 is 9770007 
+10:00.582	ID:11	Battery: Number of CPU ticks in state 3 is 70387 
+10:00.583	ID:18	EVENT_TRACE - 9 - 1
+10:00.587	ID:11	Log: Residual (microAh); 199955; 
+10:00.589	ID:18	Battery: Timer couter is 10 and Time is 10 
+10:00.590	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.593	ID:11	Log: Energy Total consumption (microA); 44;  
+10:00.595	ID:6	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.597	ID:2	Battery: Number of CPU ticks in state 2 is 13264 
+10:00.600	ID:11	Log: Energy Periodic consumption (microA); 11;  
+10:00.601	ID:18	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.604	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.609	ID:11	Energy: CPU ticks 59600, LPM 9770722, Tx 13261, Rx 70387 
+10:00.611	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.611	ID:2	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.612	ID:6	Battery: Number of CPU ticks in state 2 is 13256 
+10:00.613	ID:4	EVENT_TRACE - 9 - 1
+10:00.617	ID:18	Battery: Number of CPU ticks in state 0 is 0 
+10:00.619	ID:4	Battery: Timer couter is 10 and Time is 10 
+10:00.620	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.626	ID:6	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.628	ID:2	Battery: Number of CPU ticks in state 3 is 71522 
+10:00.631	ID:4	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.631	ID:18	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.633	ID:2	Log: Residual (microAh); 209955; 
+10:00.635	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.639	ID:2	Log: Energy Total consumption (microA); 44;  
+10:00.640	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.641	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.642	ID:6	Battery: Number of CPU ticks in state 3 is 71991 
+10:00.646	ID:2	Log: Energy Periodic consumption (microA); 11;  
+10:00.647	ID:4	Battery: Number of CPU ticks in state 0 is 0 
+10:00.647	ID:6	Log: Residual (microAh); 209955; 
+10:00.648	ID:18	Battery: Number of CPU ticks in state 1 is 9770904 
+10:00.654	ID:6	Log: Energy Total consumption (microA); 44;  
+10:00.655	ID:2	Energy: CPU ticks 59708, LPM 9770614, Tx 13264, Rx 71522 
+10:00.660	ID:6	Log: Energy Periodic consumption (microA); 11;  
+10:00.661	ID:4	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.663	ID:18	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.666	ID:7	EVENT_TRACE - 9 - 1
+10:00.670	ID:6	Energy: CPU ticks 60315, LPM 9770007, Tx 13256, Rx 71991 
+10:00.670	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.672	ID:7	Battery: Timer couter is 10 and Time is 10 
+10:00.672	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.679	ID:4	Battery: Number of CPU ticks in state 1 is 9770548 
+10:00.680	ID:18	Battery: Number of CPU ticks in state 2 is 13262 
+10:00.684	ID:7	Battery: Available charge at next time interval is 199977 (microAh) 
+10:00.693	ID:4	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.694	ID:18	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.694	ID:7	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:00.700	ID:7	Battery: Number of CPU ticks in state 0 is 0 
+10:00.702	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.703	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.707	ID:14	EVENT_TRACE - 9 - 1
+10:00.709	ID:4	Battery: Number of CPU ticks in state 2 is 13261 
+10:00.710	ID:18	Battery: Number of CPU ticks in state 3 is 71625 
+10:00.713	ID:14	Battery: Timer couter is 10 and Time is 10 
+10:00.714	ID:7	Battery: Available charge at next time interval is 199970 (microAh) 
+10:00.715	ID:18	Log: Residual (microAh); 209955; 
+10:00.719	ID:15	EVENT_TRACE - 9 - 1
+10:00.722	ID:18	Log: Energy Total consumption (microA); 44;  
+10:00.723	ID:4	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.724	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.725	ID:14	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.725	ID:15	Battery: Timer couter is 10 and Time is 10 
+10:00.728	ID:18	Log: Energy Periodic consumption (microA); 11;  
+10:00.729	ID:20	EVENT_TRACE - 9 - 1
+10:00.730	ID:16	EVENT_TRACE - 9 - 1
+10:00.732	ID:7	Battery: Number of CPU ticks in state 1 is 9770664 
+10:00.733	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.734	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.735	ID:20	Battery: Timer couter is 10 and Time is 10 
+10:00.736	ID:16	Battery: Timer couter is 10 and Time is 10 
+10:00.737	ID:15	Battery: Available charge at next time interval is 199977 (microAh) 
+10:00.738	ID:18	Energy: CPU ticks 59418, LPM 9770904, Tx 13262, Rx 71625 
+10:00.740	ID:4	Battery: Number of CPU ticks in state 3 is 71240 
+10:00.741	ID:14	Battery: Number of CPU ticks in state 0 is 0 
+10:00.745	ID:4	Log: Residual (microAh); 209955; 
+10:00.746	ID:7	Battery: Available charge at next time interval is 199966 (microAh) 
+10:00.747	ID:15	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:00.747	ID:20	Battery: Available charge at next time interval is 209978 (microAh) 
+10:00.748	ID:16	Battery: Available charge at next time interval is 209979 (microAh) 
+10:00.751	ID:4	Log: Energy Total consumption (microA); 44;  
+10:00.753	ID:15	Battery: Number of CPU ticks in state 0 is 0 
+10:00.755	ID:14	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.756	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.757	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.757	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.758	ID:4	Log: Energy Periodic consumption (microA); 11;  
+10:00.763	ID:7	Battery: Number of CPU ticks in state 2 is 13260 
+10:00.763	ID:20	Battery: Number of CPU ticks in state 0 is 0 
+10:00.763	ID:16	Battery: Number of CPU ticks in state 0 is 0 
+10:00.764	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.767	ID:4	Energy: CPU ticks 59774, LPM 9770548, Tx 13261, Rx 71240 
+10:00.767	ID:15	Battery: Available charge at next time interval is 199970 (microAh) 
+10:00.772	ID:14	Battery: Number of CPU ticks in state 1 is 9770798 
+10:00.777	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.777	ID:7	Battery: Available charge at next time interval is 199955 (microAh) 
+10:00.777	ID:20	Battery: Available charge at next time interval is 209971 (microAh) 
+10:00.778	ID:16	Battery: Available charge at next time interval is 209971 (microAh) 
+10:00.784	ID:15	Battery: Number of CPU ticks in state 1 is 9770811 
+10:00.786	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.787	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.787	ID:14	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.787	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.793	ID:7	Battery: Number of CPU ticks in state 3 is 70618 
+10:00.794	ID:20	Battery: Number of CPU ticks in state 1 is 9770753 
+10:00.795	ID:16	Battery: Number of CPU ticks in state 1 is 9770273 
+10:00.796	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.798	ID:7	Log: Residual (microAh); 199955; 
+10:00.799	ID:15	Battery: Available charge at next time interval is 199966 (microAh) 
+10:00.803	ID:14	Battery: Number of CPU ticks in state 2 is 13265 
+10:00.805	ID:7	Log: Energy Total consumption (microA); 44;  
+10:00.808	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.809	ID:20	Battery: Available charge at next time interval is 209968 (microAh) 
+10:00.810	ID:16	Battery: Available charge at next time interval is 209969 (microAh) 
+10:00.812	ID:7	Log: Energy Periodic consumption (microA); 11;  
+10:00.816	ID:15	Battery: Number of CPU ticks in state 2 is 13261 
+10:00.817	ID:14	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.818	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.819	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.821	ID:7	Energy: CPU ticks 59658, LPM 9770664, Tx 13260, Rx 70618 
+10:00.821	ID:10	EVENT_TRACE - 9 - 1
+10:00.826	ID:20	Battery: Number of CPU ticks in state 2 is 10271 
+10:00.826	ID:16	Battery: Number of CPU ticks in state 2 is 8130 
+10:00.827	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.827	ID:10	Battery: Timer couter is 10 and Time is 10 
+10:00.830	ID:15	Battery: Available charge at next time interval is 199955 (microAh) 
+10:00.834	ID:14	Battery: Number of CPU ticks in state 3 is 70378 
+10:00.839	ID:14	Log: Residual (microAh); 209955; 
+10:00.839	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:00.839	ID:10	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.840	ID:20	Battery: Available charge at next time interval is 209957 (microAh) 
+10:00.840	ID:16	Battery: Available charge at next time interval is 209958 (microAh) 
+10:00.845	ID:14	Log: Energy Total consumption (microA); 44;  
+10:00.846	ID:15	Battery: Number of CPU ticks in state 3 is 71949 
+10:00.848	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.849	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.849	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.851	ID:12	EVENT_TRACE - 9 - 1
+10:00.851	ID:15	Log: Residual (microAh); 199955; 
+10:00.852	ID:14	Log: Energy Periodic consumption (microA); 11;  
+10:00.855	ID:10	Battery: Number of CPU ticks in state 0 is 0 
+10:00.856	ID:20	Battery: Number of CPU ticks in state 3 is 70750 
+10:00.856	ID:16	Battery: Number of CPU ticks in state 3 is 71042 
+10:00.857	ID:12	Battery: Timer couter is 10 and Time is 10 
+10:00.858	ID:15	Log: Energy Total consumption (microA); 44;  
+10:00.861	ID:14	Energy: CPU ticks 59524, LPM 9770798, Tx 13265, Rx 70378 
+10:00.861	ID:20	Log: Residual (microAh); 209957; 
+10:00.861	ID:16	Log: Residual (microAh); 209958; 
+10:00.864	ID:15	Log: Energy Periodic consumption (microA); 11;  
+10:00.868	ID:20	Log: Energy Total consumption (microA); 42;  
+10:00.868	ID:16	Log: Energy Total consumption (microA); 41;  
+10:00.869	ID:12	Battery: Available charge at next time interval is 209977 (microAh) 
+10:00.869	ID:10	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.874	ID:15	Energy: CPU ticks 59511, LPM 9770811, Tx 13261, Rx 71949 
+10:00.874	ID:20	Log: Energy Periodic consumption (microA); 11;  
+10:00.875	ID:16	Log: Energy Periodic consumption (microA); 11;  
+10:00.878	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.879	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.883	ID:20	Energy: CPU ticks 59569, LPM 9770753, Tx 10271, Rx 70750 
+10:00.883	ID:16	Energy: CPU ticks 60049, LPM 9770273, Tx 8130, Rx 71042 
+10:00.885	ID:12	Battery: Number of CPU ticks in state 0 is 0 
+10:00.887	ID:10	Battery: Number of CPU ticks in state 1 is 9770563 
+10:00.899	ID:12	Battery: Available charge at next time interval is 209970 (microAh) 
+10:00.901	ID:10	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.908	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.910	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.916	ID:12	Battery: Number of CPU ticks in state 1 is 9770614 
+10:00.917	ID:10	Battery: Number of CPU ticks in state 2 is 13263 
+10:00.931	ID:12	Battery: Available charge at next time interval is 209966 (microAh) 
+10:00.931	ID:10	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.940	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.941	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.947	ID:12	Battery: Number of CPU ticks in state 2 is 13260 
+10:00.948	ID:10	Battery: Number of CPU ticks in state 3 is 70154 
+10:00.953	ID:10	Log: Residual (microAh); 209955; 
+10:00.959	ID:10	Log: Energy Total consumption (microA); 44;  
+10:00.961	ID:12	Battery: Available charge at next time interval is 209955 (microAh) 
+10:00.966	ID:10	Log: Energy Periodic consumption (microA); 11;  
+10:00.971	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+10:00.973	ID:9	EVENT_TRACE - 9 - 1
+10:00.975	ID:10	Energy: CPU ticks 59759, LPM 9770563, Tx 13263, Rx 70154 
+10:00.976	ID:19	EVENT_TRACE - 9 - 1
+10:00.978	ID:12	Battery: Number of CPU ticks in state 3 is 70866 
+10:00.979	ID:9	Battery: Timer couter is 10 and Time is 10 
+10:00.980	ID:5	EVENT_TRACE - 9 - 1
+10:00.982	ID:19	Battery: Timer couter is 10 and Time is 10 
+10:00.983	ID:12	Log: Residual (microAh); 209955; 
+10:00.986	ID:5	Battery: Timer couter is 10 and Time is 10 
+10:00.989	ID:12	Log: Energy Total consumption (microA); 44;  
+10:00.991	ID:9	Battery: Available charge at next time interval is 199977 (microAh) 
+10:00.994	ID:19	Battery: Available charge at next time interval is 199977 (microAh) 
+10:00.996	ID:12	Log: Energy Periodic consumption (microA); 11;  
+10:00.998	ID:5	Battery: Available charge at next time interval is 199977 (microAh) 
+10:01.000	ID:9	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.003	ID:19	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.005	ID:12	Energy: CPU ticks 59708, LPM 9770614, Tx 13260, Rx 70866 
+10:01.007	ID:9	Battery: Number of CPU ticks in state 0 is 0 
+10:01.007	ID:5	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.010	ID:19	Battery: Number of CPU ticks in state 0 is 0 
+10:01.013	ID:5	Battery: Number of CPU ticks in state 0 is 0 
+10:01.021	ID:9	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.024	ID:19	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.028	ID:5	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.030	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.033	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.037	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.039	ID:9	Battery: Number of CPU ticks in state 1 is 9770208 
+10:01.041	ID:19	Battery: Number of CPU ticks in state 1 is 9770600 
+10:01.046	ID:5	Battery: Number of CPU ticks in state 1 is 9770158 
+10:01.053	ID:9	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.056	ID:19	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.060	ID:5	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.062	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.065	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.066	ID:17	EVENT_TRACE - 9 - 1
+10:01.069	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.069	ID:9	Battery: Number of CPU ticks in state 2 is 13263 
+10:01.072	ID:17	Battery: Timer couter is 10 and Time is 10 
+10:01.072	ID:19	Battery: Number of CPU ticks in state 2 is 13265 
+10:01.076	ID:5	Battery: Number of CPU ticks in state 2 is 13259 
+10:01.084	ID:9	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.084	ID:17	Battery: Available charge at next time interval is 199977 (microAh) 
+10:01.086	ID:19	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.090	ID:5	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.093	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.093	ID:17	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.096	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.099	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.099	ID:17	Battery: Number of CPU ticks in state 0 is 0 
+10:01.100	ID:9	Battery: Number of CPU ticks in state 3 is 71836 
+10:01.103	ID:19	Battery: Number of CPU ticks in state 3 is 71382 
+10:01.105	ID:9	Log: Residual (microAh); 199955; 
+10:01.107	ID:5	Battery: Number of CPU ticks in state 3 is 71979 
+10:01.108	ID:19	Log: Residual (microAh); 199955; 
+10:01.111	ID:9	Log: Energy Total consumption (microA); 44;  
+10:01.112	ID:5	Log: Residual (microAh); 199955; 
+10:01.114	ID:17	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.114	ID:19	Log: Energy Total consumption (microA); 44;  
+10:01.118	ID:5	Log: Energy Total consumption (microA); 44;  
+10:01.118	ID:9	Log: Energy Periodic consumption (microA); 11;  
+10:01.121	ID:19	Log: Energy Periodic consumption (microA); 11;  
+10:01.123	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.125	ID:5	Log: Energy Periodic consumption (microA); 11;  
+10:01.127	ID:9	Energy: CPU ticks 60114, LPM 9770208, Tx 13263, Rx 71836 
+10:01.130	ID:19	Energy: CPU ticks 59722, LPM 9770600, Tx 13265, Rx 71382 
+10:01.131	ID:17	Battery: Number of CPU ticks in state 1 is 9770222 
+10:01.134	ID:5	Energy: CPU ticks 60164, LPM 9770158, Tx 13259, Rx 71979 
+10:01.140	ID:13	EVENT_TRACE - 9 - 1
+10:01.146	ID:17	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.147	ID:13	Battery: Timer couter is 10 and Time is 10 
+10:01.155	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.159	ID:13	Battery: Available charge at next time interval is 199977 (microAh) 
+10:01.162	ID:17	Battery: Number of CPU ticks in state 2 is 13257 
+10:01.163	ID:21	EVENT_TRACE - 9 - 1
+10:01.164	ID:3	EVENT_TRACE - 9 - 1
+10:01.168	ID:13	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.169	ID:21	Battery: Timer couter is 10 and Time is 10 
+10:01.170	ID:3	Battery: Timer couter is 10 and Time is 10 
+10:01.174	ID:13	Battery: Number of CPU ticks in state 0 is 0 
+10:01.176	ID:17	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.181	ID:21	Battery: Available charge at next time interval is 199977 (microAh) 
+10:01.182	ID:3	Battery: Available charge at next time interval is 199977 (microAh) 
+10:01.186	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.189	ID:13	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.191	ID:21	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.191	ID:3	Battery: Bound charge at next time interval is 800000 (microAh) 
+10:01.193	ID:17	Battery: Number of CPU ticks in state 3 is 71060 
+10:01.197	ID:21	Battery: Number of CPU ticks in state 0 is 0 
+10:01.198	ID:3	Battery: Number of CPU ticks in state 0 is 0 
+10:01.198	ID:17	Log: Residual (microAh); 199955; 
+10:01.198	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.204	ID:17	Log: Energy Total consumption (microA); 44;  
+10:01.206	ID:13	Battery: Number of CPU ticks in state 1 is 9770571 
+10:01.211	ID:17	Log: Energy Periodic consumption (microA); 11;  
+10:01.211	ID:21	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.212	ID:3	Battery: Available charge at next time interval is 199970 (microAh) 
+10:01.220	ID:17	Energy: CPU ticks 60100, LPM 9770222, Tx 13257, Rx 71060 
+10:01.220	ID:13	Battery: Available charge at next time interval is 199967 (microAh) 
+10:01.221	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.221	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.228	ID:21	Battery: Number of CPU ticks in state 1 is 9770360 
+10:01.230	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.230	ID:3	Battery: Number of CPU ticks in state 1 is 9770625 
+10:01.237	ID:13	Battery: Number of CPU ticks in state 2 is 12082 
+10:01.243	ID:21	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.244	ID:3	Battery: Available charge at next time interval is 199966 (microAh) 
+10:01.251	ID:13	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.253	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.253	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.260	ID:21	Battery: Number of CPU ticks in state 2 is 12443 
+10:01.260	ID:3	Battery: Number of CPU ticks in state 2 is 13263 
+10:01.260	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.268	ID:13	Battery: Number of CPU ticks in state 3 is 70414 
+10:01.273	ID:13	Log: Residual (microAh); 199955; 
+10:01.274	ID:21	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.274	ID:3	Battery: Available charge at next time interval is 199955 (microAh) 
+10:01.279	ID:13	Log: Energy Total consumption (microA); 44;  
+10:01.283	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.284	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+10:01.286	ID:13	Log: Energy Periodic consumption (microA); 11;  
+10:01.290	ID:21	Battery: Number of CPU ticks in state 3 is 71222 
+10:01.291	ID:3	Battery: Number of CPU ticks in state 3 is 70614 
+10:01.295	ID:13	Energy: CPU ticks 59751, LPM 9770571, Tx 12082, Rx 70414 
+10:01.295	ID:21	Log: Residual (microAh); 199955; 
+10:01.296	ID:3	Log: Residual (microAh); 199955; 
+10:01.302	ID:21	Log: Energy Total consumption (microA); 44;  
+10:01.302	ID:3	Log: Energy Total consumption (microA); 44;  
+10:01.309	ID:21	Log: Energy Periodic consumption (microA); 11;  
+10:01.309	ID:3	Log: Energy Periodic consumption (microA); 11;  
+10:01.318	ID:21	Energy: CPU ticks 59962, LPM 9770360, Tx 12443, Rx 71222 
+10:01.318	ID:3	Energy: CPU ticks 59697, LPM 9770625, Tx 13263, Rx 70614 
+11:00.337	ID:8	EVENT_TRACE - 10 - 1
+11:00.455	ID:11	EVENT_TRACE - 10 - 1
+11:00.501	ID:2	EVENT_TRACE - 10 - 1
+11:00.515	ID:6	EVENT_TRACE - 10 - 1
+11:00.583	ID:18	EVENT_TRACE - 10 - 1
+11:00.613	ID:4	EVENT_TRACE - 10 - 1
+11:00.666	ID:7	EVENT_TRACE - 10 - 1
+11:00.707	ID:14	EVENT_TRACE - 10 - 1
+11:00.719	ID:15	EVENT_TRACE - 10 - 1
+11:00.729	ID:20	EVENT_TRACE - 10 - 1
+11:00.730	ID:16	EVENT_TRACE - 10 - 1
+11:00.821	ID:10	EVENT_TRACE - 10 - 1
+11:00.851	ID:12	EVENT_TRACE - 10 - 1
+11:00.973	ID:9	EVENT_TRACE - 10 - 1
+11:00.976	ID:19	EVENT_TRACE - 10 - 1
+11:00.980	ID:5	EVENT_TRACE - 10 - 1
+11:01.066	ID:17	EVENT_TRACE - 10 - 1
+11:01.141	ID:13	EVENT_TRACE - 10 - 1
+11:01.163	ID:21	EVENT_TRACE - 10 - 1
+11:01.164	ID:3	EVENT_TRACE - 10 - 1
+12:00.337	ID:8	EVENT_TRACE - 11 - 1
+12:00.345	ID:8	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.455	ID:11	EVENT_TRACE - 11 - 1
+12:00.463	ID:11	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.501	ID:2	EVENT_TRACE - 11 - 1
+12:00.509	ID:2	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.515	ID:6	EVENT_TRACE - 11 - 1
+12:00.523	ID:6	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.583	ID:18	EVENT_TRACE - 11 - 1
+12:00.591	ID:18	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.613	ID:4	EVENT_TRACE - 11 - 1
+12:00.621	ID:4	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.666	ID:7	EVENT_TRACE - 11 - 1
+12:00.674	ID:7	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.707	ID:14	EVENT_TRACE - 11 - 1
+12:00.715	ID:14	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.719	ID:15	EVENT_TRACE - 11 - 1
+12:00.727	ID:15	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.729	ID:20	EVENT_TRACE - 11 - 1
+12:00.730	ID:16	EVENT_TRACE - 11 - 1
+12:00.737	ID:20	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.738	ID:16	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.821	ID:10	EVENT_TRACE - 11 - 1
+12:00.829	ID:10	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.851	ID:12	EVENT_TRACE - 11 - 1
+12:00.859	ID:12	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.973	ID:9	EVENT_TRACE - 11 - 1
+12:00.976	ID:19	EVENT_TRACE - 11 - 1
+12:00.980	ID:5	EVENT_TRACE - 11 - 1
+12:00.981	ID:9	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.984	ID:19	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:00.988	ID:5	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:01.066	ID:17	EVENT_TRACE - 11 - 1
+12:01.074	ID:17	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:01.141	ID:13	EVENT_TRACE - 11 - 1
+12:01.149	ID:13	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:01.163	ID:21	EVENT_TRACE - 11 - 1
+12:01.164	ID:3	EVENT_TRACE - 11 - 1
+12:01.171	ID:21	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:01.172	ID:3	Event at 12 minutes, at [2, 28] position, intensity of 42
+12:48.568	ID:1	# [1024 bytes, no line ending]: ?P?P?P?P?P...
+13:00.337	ID:8	EVENT_TRACE - 12 - 12
+13:00.455	ID:11	EVENT_TRACE - 12 - 12
+13:00.501	ID:2	EVENT_TRACE - 12 - 12
+13:00.515	ID:6	EVENT_TRACE - 12 - 12
+13:00.583	ID:18	EVENT_TRACE - 12 - 12
+13:00.613	ID:4	EVENT_TRACE - 12 - 12
+13:00.666	ID:7	EVENT_TRACE - 12 - 12
+13:00.707	ID:14	EVENT_TRACE - 12 - 12
+13:00.719	ID:15	EVENT_TRACE - 12 - 12
+13:00.729	ID:20	EVENT_TRACE - 12 - 12
+13:00.730	ID:16	EVENT_TRACE - 12 - 12
+13:00.821	ID:10	EVENT_TRACE - 12 - 12
+13:00.851	ID:12	EVENT_TRACE - 12 - 12
+13:00.973	ID:9	EVENT_TRACE - 12 - 12
+13:00.976	ID:19	EVENT_TRACE - 12 - 12
+13:00.980	ID:5	EVENT_TRACE - 12 - 12
+13:01.066	ID:17	EVENT_TRACE - 12 - 12
+13:01.141	ID:13	EVENT_TRACE - 12 - 12
+13:01.164	ID:21	EVENT_TRACE - 12 - 12
+13:01.164	ID:3	EVENT_TRACE - 12 - 12
+14:00.337	ID:8	EVENT_TRACE - 13 - 12
+14:00.455	ID:11	EVENT_TRACE - 13 - 12
+14:00.501	ID:2	EVENT_TRACE - 13 - 12
+14:00.515	ID:6	EVENT_TRACE - 13 - 12
+14:00.583	ID:18	EVENT_TRACE - 13 - 12
+14:00.613	ID:4	EVENT_TRACE - 13 - 12
+14:00.666	ID:7	EVENT_TRACE - 13 - 12
+14:00.707	ID:14	EVENT_TRACE - 13 - 12
+14:00.719	ID:15	EVENT_TRACE - 13 - 12
+14:00.729	ID:20	EVENT_TRACE - 13 - 12
+14:00.730	ID:16	EVENT_TRACE - 13 - 12
+14:00.821	ID:10	EVENT_TRACE - 13 - 12
+14:00.851	ID:12	EVENT_TRACE - 13 - 12
+14:00.973	ID:9	EVENT_TRACE - 13 - 12
+14:00.976	ID:19	EVENT_TRACE - 13 - 12
+14:00.980	ID:5	EVENT_TRACE - 13 - 12
+14:01.066	ID:17	EVENT_TRACE - 13 - 12
+14:01.141	ID:13	EVENT_TRACE - 13 - 12
+14:01.164	ID:21	EVENT_TRACE - 13 - 12
+14:01.164	ID:3	EVENT_TRACE - 13 - 12
+15:00.337	ID:8	EVENT_TRACE - 14 - 12
+15:00.344	ID:8	Battery: Timer couter is 15 and Time is 15 
+15:00.356	ID:8	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.365	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.371	ID:8	Battery: Number of CPU ticks in state 0 is 0 
+15:00.386	ID:8	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.395	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.404	ID:8	Battery: Number of CPU ticks in state 1 is 9770460 
+15:00.418	ID:8	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.427	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.434	ID:8	Battery: Number of CPU ticks in state 2 is 13262 
+15:00.448	ID:8	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.455	ID:11	EVENT_TRACE - 14 - 12
+15:00.457	ID:8	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.461	ID:11	Battery: Timer couter is 15 and Time is 15 
+15:00.465	ID:8	Battery: Number of CPU ticks in state 3 is 70315 
+15:00.470	ID:8	Log: Residual (microAh); 209933; 
+15:00.473	ID:11	Battery: Available charge at next time interval is 199955 (microAh) 
+15:00.476	ID:8	Log: Energy Total consumption (microA); 66;  
+15:00.483	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.483	ID:8	Log: Energy Periodic consumption (microA); 11;  
+15:00.489	ID:11	Battery: Number of CPU ticks in state 0 is 0 
+15:00.492	ID:8	Energy: CPU ticks 59949, LPM 9770460, Tx 13262, Rx 70315 
+15:00.501	ID:2	EVENT_TRACE - 14 - 12
+15:00.503	ID:11	Battery: Available charge at next time interval is 199948 (microAh) 
+15:00.507	ID:2	Battery: Timer couter is 15 and Time is 15 
+15:00.513	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.515	ID:6	EVENT_TRACE - 14 - 12
+15:00.519	ID:2	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.521	ID:11	Battery: Number of CPU ticks in state 1 is 9770618 
+15:00.522	ID:6	Battery: Timer couter is 15 and Time is 15 
+15:00.528	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.533	ID:6	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.535	ID:2	Battery: Number of CPU ticks in state 0 is 0 
+15:00.535	ID:11	Battery: Available charge at next time interval is 199944 (microAh) 
+15:00.543	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.545	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.549	ID:2	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.549	ID:6	Battery: Number of CPU ticks in state 0 is 0 
+15:00.552	ID:11	Battery: Number of CPU ticks in state 2 is 13263 
+15:00.558	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.564	ID:6	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.566	ID:11	Battery: Available charge at next time interval is 199933 (microAh) 
+15:00.567	ID:2	Battery: Number of CPU ticks in state 1 is 9770448 
+15:00.573	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.575	ID:11	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.581	ID:2	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.581	ID:6	Battery: Number of CPU ticks in state 1 is 9769612 
+15:00.582	ID:11	Battery: Number of CPU ticks in state 3 is 70979 
+15:00.583	ID:18	EVENT_TRACE - 14 - 12
+15:00.587	ID:11	Log: Residual (microAh); 199933; 
+15:00.590	ID:18	Battery: Timer couter is 15 and Time is 15 
+15:00.590	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.594	ID:11	Log: Energy Total consumption (microA); 66;  
+15:00.595	ID:6	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.597	ID:2	Battery: Number of CPU ticks in state 2 is 13262 
+15:00.601	ID:11	Log: Energy Periodic consumption (microA); 11;  
+15:00.602	ID:18	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.605	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.610	ID:11	Energy: CPU ticks 59791, LPM 9770618, Tx 13263, Rx 70979 
+15:00.611	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.611	ID:2	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.612	ID:6	Battery: Number of CPU ticks in state 2 is 13260 
+15:00.613	ID:4	EVENT_TRACE - 14 - 12
+15:00.617	ID:18	Battery: Number of CPU ticks in state 0 is 0 
+15:00.619	ID:4	Battery: Timer couter is 15 and Time is 15 
+15:00.621	ID:2	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.626	ID:6	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.628	ID:2	Battery: Number of CPU ticks in state 3 is 71916 
+15:00.631	ID:4	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.632	ID:18	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.633	ID:2	Log: Residual (microAh); 209933; 
+15:00.635	ID:6	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.639	ID:2	Log: Energy Total consumption (microA); 67;  
+15:00.641	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.641	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.642	ID:6	Battery: Number of CPU ticks in state 3 is 71743 
+15:00.646	ID:2	Log: Energy Periodic consumption (microA); 11;  
+15:00.647	ID:4	Battery: Number of CPU ticks in state 0 is 0 
+15:00.647	ID:6	Log: Residual (microAh); 209933; 
+15:00.649	ID:18	Battery: Number of CPU ticks in state 1 is 9770395 
+15:00.654	ID:6	Log: Energy Total consumption (microA); 67;  
+15:00.655	ID:2	Energy: CPU ticks 59961, LPM 9770448, Tx 13262, Rx 71916 
+15:00.661	ID:6	Log: Energy Periodic consumption (microA); 11;  
+15:00.661	ID:4	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.663	ID:18	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.666	ID:7	EVENT_TRACE - 14 - 12
+15:00.670	ID:6	Energy: CPU ticks 60797, LPM 9769612, Tx 13260, Rx 71743 
+15:00.671	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.673	ID:7	Battery: Timer couter is 15 and Time is 15 
+15:00.673	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.679	ID:4	Battery: Number of CPU ticks in state 1 is 9770350 
+15:00.680	ID:18	Battery: Number of CPU ticks in state 2 is 13264 
+15:00.685	ID:7	Battery: Available charge at next time interval is 199955 (microAh) 
+15:00.693	ID:4	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.694	ID:18	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.694	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.700	ID:7	Battery: Number of CPU ticks in state 0 is 0 
+15:00.702	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.703	ID:18	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.707	ID:14	EVENT_TRACE - 14 - 12
+15:00.710	ID:4	Battery: Number of CPU ticks in state 2 is 13261 
+15:00.710	ID:18	Battery: Number of CPU ticks in state 3 is 71760 
+15:00.713	ID:14	Battery: Timer couter is 15 and Time is 15 
+15:00.715	ID:7	Battery: Available charge at next time interval is 199948 (microAh) 
+15:00.715	ID:18	Log: Residual (microAh); 209933; 
+15:00.719	ID:15	EVENT_TRACE - 14 - 12
+15:00.722	ID:18	Log: Energy Total consumption (microA); 67;  
+15:00.724	ID:4	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.724	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.725	ID:14	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.726	ID:15	Battery: Timer couter is 15 and Time is 15 
+15:00.729	ID:18	Log: Energy Periodic consumption (microA); 11;  
+15:00.729	ID:20	EVENT_TRACE - 14 - 12
+15:00.730	ID:16	EVENT_TRACE - 14 - 12
+15:00.733	ID:7	Battery: Number of CPU ticks in state 1 is 9770484 
+15:00.733	ID:4	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.734	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.736	ID:20	Battery: Timer couter is 15 and Time is 15 
+15:00.736	ID:16	Battery: Timer couter is 15 and Time is 15 
+15:00.738	ID:15	Battery: Available charge at next time interval is 199955 (microAh) 
+15:00.738	ID:18	Energy: CPU ticks 60014, LPM 9770395, Tx 13264, Rx 71760 
+15:00.740	ID:4	Battery: Number of CPU ticks in state 3 is 71354 
+15:00.741	ID:14	Battery: Number of CPU ticks in state 0 is 0 
+15:00.745	ID:4	Log: Residual (microAh); 209933; 
+15:00.747	ID:7	Battery: Available charge at next time interval is 199944 (microAh) 
+15:00.747	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.747	ID:20	Battery: Available charge at next time interval is 209957 (microAh) 
+15:00.748	ID:16	Battery: Available charge at next time interval is 209958 (microAh) 
+15:00.752	ID:4	Log: Energy Total consumption (microA); 67;  
+15:00.753	ID:15	Battery: Number of CPU ticks in state 0 is 0 
+15:00.755	ID:14	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.756	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.757	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.757	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.758	ID:4	Log: Energy Periodic consumption (microA); 11;  
+15:00.763	ID:20	Battery: Number of CPU ticks in state 0 is 0 
+15:00.763	ID:7	Battery: Number of CPU ticks in state 2 is 13260 
+15:00.764	ID:16	Battery: Number of CPU ticks in state 0 is 0 
+15:00.765	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.767	ID:4	Energy: CPU ticks 60059, LPM 9770350, Tx 13261, Rx 71354 
+15:00.768	ID:15	Battery: Available charge at next time interval is 199948 (microAh) 
+15:00.772	ID:14	Battery: Number of CPU ticks in state 1 is 9770542 
+15:00.777	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.777	ID:7	Battery: Available charge at next time interval is 199933 (microAh) 
+15:00.778	ID:20	Battery: Available charge at next time interval is 209950 (microAh) 
+15:00.778	ID:16	Battery: Available charge at next time interval is 209951 (microAh) 
+15:00.785	ID:15	Battery: Number of CPU ticks in state 1 is 9770640 
+15:00.787	ID:7	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.787	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.787	ID:14	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.787	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.794	ID:7	Battery: Number of CPU ticks in state 3 is 70604 
+15:00.795	ID:20	Battery: Number of CPU ticks in state 1 is 9770528 
+15:00.795	ID:16	Battery: Number of CPU ticks in state 1 is 9770290 
+15:00.796	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.799	ID:7	Log: Residual (microAh); 199933; 
+15:00.799	ID:15	Battery: Available charge at next time interval is 199944 (microAh) 
+15:00.803	ID:14	Battery: Number of CPU ticks in state 2 is 13264 
+15:00.805	ID:7	Log: Energy Total consumption (microA); 66;  
+15:00.809	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.809	ID:20	Battery: Available charge at next time interval is 209947 (microAh) 
+15:00.810	ID:16	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.812	ID:7	Log: Energy Periodic consumption (microA); 11;  
+15:00.816	ID:15	Battery: Number of CPU ticks in state 2 is 13262 
+15:00.817	ID:14	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.819	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.819	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.821	ID:7	Energy: CPU ticks 59925, LPM 9770484, Tx 13260, Rx 70604 
+15:00.821	ID:10	EVENT_TRACE - 14 - 12
+15:00.826	ID:20	Battery: Number of CPU ticks in state 2 is 10270 
+15:00.826	ID:16	Battery: Number of CPU ticks in state 2 is 8109 
+15:00.827	ID:14	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.827	ID:10	Battery: Timer couter is 15 and Time is 15 
+15:00.830	ID:15	Battery: Available charge at next time interval is 199933 (microAh) 
+15:00.834	ID:14	Battery: Number of CPU ticks in state 3 is 70879 
+15:00.839	ID:14	Log: Residual (microAh); 209933; 
+15:00.839	ID:15	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:00.839	ID:10	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.840	ID:20	Battery: Available charge at next time interval is 209936 (microAh) 
+15:00.840	ID:16	Battery: Available charge at next time interval is 209937 (microAh) 
+15:00.845	ID:14	Log: Energy Total consumption (microA); 66;  
+15:00.846	ID:15	Battery: Number of CPU ticks in state 3 is 71701 
+15:00.849	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.849	ID:20	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.849	ID:16	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.851	ID:12	EVENT_TRACE - 14 - 12
+15:00.852	ID:15	Log: Residual (microAh); 199933; 
+15:00.852	ID:14	Log: Energy Periodic consumption (microA); 11;  
+15:00.855	ID:10	Battery: Number of CPU ticks in state 0 is 0 
+15:00.856	ID:20	Battery: Number of CPU ticks in state 3 is 71234 
+15:00.857	ID:16	Battery: Number of CPU ticks in state 3 is 70716 
+15:00.857	ID:12	Battery: Timer couter is 15 and Time is 15 
+15:00.858	ID:15	Log: Energy Total consumption (microA); 67;  
+15:00.861	ID:20	Log: Residual (microAh); 209936; 
+15:00.861	ID:14	Energy: CPU ticks 59867, LPM 9770542, Tx 13264, Rx 70879 
+15:00.862	ID:16	Log: Residual (microAh); 209937; 
+15:00.865	ID:15	Log: Energy Periodic consumption (microA); 11;  
+15:00.868	ID:20	Log: Energy Total consumption (microA); 64;  
+15:00.868	ID:16	Log: Energy Total consumption (microA); 62;  
+15:00.869	ID:12	Battery: Available charge at next time interval is 209955 (microAh) 
+15:00.869	ID:10	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.874	ID:15	Energy: CPU ticks 59769, LPM 9770640, Tx 13262, Rx 71701 
+15:00.875	ID:20	Log: Energy Periodic consumption (microA); 11;  
+15:00.875	ID:16	Log: Energy Periodic consumption (microA); 11;  
+15:00.879	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.879	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.884	ID:20	Energy: CPU ticks 59881, LPM 9770528, Tx 10270, Rx 71234 
+15:00.884	ID:16	Energy: CPU ticks 60119, LPM 9770290, Tx 8109, Rx 70716 
+15:00.885	ID:12	Battery: Number of CPU ticks in state 0 is 0 
+15:00.887	ID:10	Battery: Number of CPU ticks in state 1 is 9770384 
+15:00.899	ID:12	Battery: Available charge at next time interval is 209948 (microAh) 
+15:00.901	ID:10	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.909	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.911	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.916	ID:12	Battery: Number of CPU ticks in state 1 is 9770347 
+15:00.918	ID:10	Battery: Number of CPU ticks in state 2 is 13264 
+15:00.931	ID:12	Battery: Available charge at next time interval is 209944 (microAh) 
+15:00.932	ID:10	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.941	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.941	ID:10	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.948	ID:12	Battery: Number of CPU ticks in state 2 is 13260 
+15:00.948	ID:10	Battery: Number of CPU ticks in state 3 is 70164 
+15:00.953	ID:10	Log: Residual (microAh); 209933; 
+15:00.960	ID:10	Log: Energy Total consumption (microA); 66;  
+15:00.962	ID:12	Battery: Available charge at next time interval is 209933 (microAh) 
+15:00.966	ID:10	Log: Energy Periodic consumption (microA); 11;  
+15:00.971	ID:12	Battery: Bound charge at next time interval is 789999 (microAh) 
+15:00.973	ID:9	EVENT_TRACE - 14 - 12
+15:00.976	ID:10	Energy: CPU ticks 60025, LPM 9770384, Tx 13264, Rx 70164 
+15:00.976	ID:19	EVENT_TRACE - 14 - 12
+15:00.978	ID:12	Battery: Number of CPU ticks in state 3 is 71817 
+15:00.979	ID:9	Battery: Timer couter is 15 and Time is 15 
+15:00.980	ID:5	EVENT_TRACE - 14 - 12
+15:00.982	ID:19	Battery: Timer couter is 15 and Time is 15 
+15:00.983	ID:12	Log: Residual (microAh); 209933; 
+15:00.986	ID:5	Battery: Timer couter is 15 and Time is 15 
+15:00.990	ID:12	Log: Energy Total consumption (microA); 67;  
+15:00.991	ID:9	Battery: Available charge at next time interval is 199955 (microAh) 
+15:00.994	ID:19	Battery: Available charge at next time interval is 199955 (microAh) 
+15:00.996	ID:12	Log: Energy Periodic consumption (microA); 11;  
+15:00.998	ID:5	Battery: Available charge at next time interval is 199955 (microAh) 
+15:01.001	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.003	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.006	ID:12	Energy: CPU ticks 60062, LPM 9770347, Tx 13260, Rx 71817 
+15:01.007	ID:9	Battery: Number of CPU ticks in state 0 is 0 
+15:01.007	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.010	ID:19	Battery: Number of CPU ticks in state 0 is 0 
+15:01.014	ID:5	Battery: Number of CPU ticks in state 0 is 0 
+15:01.021	ID:9	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.024	ID:19	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.028	ID:5	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.031	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.033	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.037	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.039	ID:9	Battery: Number of CPU ticks in state 1 is 9770366 
+15:01.041	ID:19	Battery: Number of CPU ticks in state 1 is 9770374 
+15:01.046	ID:5	Battery: Number of CPU ticks in state 1 is 9769796 
+15:01.053	ID:9	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.056	ID:19	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.060	ID:5	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.063	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.065	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.066	ID:17	EVENT_TRACE - 14 - 12
+15:01.069	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.070	ID:9	Battery: Number of CPU ticks in state 2 is 13262 
+15:01.072	ID:17	Battery: Timer couter is 15 and Time is 15 
+15:01.072	ID:19	Battery: Number of CPU ticks in state 2 is 13265 
+15:01.076	ID:5	Battery: Number of CPU ticks in state 2 is 13260 
+15:01.084	ID:9	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.084	ID:17	Battery: Available charge at next time interval is 199955 (microAh) 
+15:01.086	ID:19	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.090	ID:5	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.093	ID:9	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.093	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.096	ID:19	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.100	ID:5	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.100	ID:17	Battery: Number of CPU ticks in state 0 is 0 
+15:01.100	ID:9	Battery: Number of CPU ticks in state 3 is 71385 
+15:01.103	ID:19	Battery: Number of CPU ticks in state 3 is 71782 
+15:01.105	ID:9	Log: Residual (microAh); 199933; 
+15:01.107	ID:5	Battery: Number of CPU ticks in state 3 is 71243 
+15:01.108	ID:19	Log: Residual (microAh); 199933; 
+15:01.112	ID:9	Log: Energy Total consumption (microA); 67;  
+15:01.112	ID:5	Log: Residual (microAh); 199933; 
+15:01.114	ID:17	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.114	ID:19	Log: Energy Total consumption (microA); 67;  
+15:01.118	ID:5	Log: Energy Total consumption (microA); 67;  
+15:01.119	ID:9	Log: Energy Periodic consumption (microA); 11;  
+15:01.121	ID:19	Log: Energy Periodic consumption (microA); 11;  
+15:01.124	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.125	ID:5	Log: Energy Periodic consumption (microA); 11;  
+15:01.128	ID:9	Energy: CPU ticks 60043, LPM 9770366, Tx 13262, Rx 71385 
+15:01.130	ID:19	Energy: CPU ticks 60035, LPM 9770374, Tx 13265, Rx 71782 
+15:01.131	ID:17	Battery: Number of CPU ticks in state 1 is 9769945 
+15:01.134	ID:5	Energy: CPU ticks 60613, LPM 9769796, Tx 13260, Rx 71243 
+15:01.141	ID:13	EVENT_TRACE - 14 - 12
+15:01.146	ID:17	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.147	ID:13	Battery: Timer couter is 15 and Time is 15 
+15:01.155	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.159	ID:13	Battery: Available charge at next time interval is 199955 (microAh) 
+15:01.162	ID:17	Battery: Number of CPU ticks in state 2 is 13259 
+15:01.164	ID:21	EVENT_TRACE - 14 - 12
+15:01.164	ID:3	EVENT_TRACE - 14 - 12
+15:01.168	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.170	ID:21	Battery: Timer couter is 15 and Time is 15 
+15:01.170	ID:3	Battery: Timer couter is 15 and Time is 15 
+15:01.175	ID:13	Battery: Number of CPU ticks in state 0 is 0 
+15:01.176	ID:17	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.182	ID:21	Battery: Available charge at next time interval is 199955 (microAh) 
+15:01.182	ID:3	Battery: Available charge at next time interval is 199955 (microAh) 
+15:01.186	ID:17	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.189	ID:13	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.191	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.192	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.193	ID:17	Battery: Number of CPU ticks in state 3 is 70838 
+15:01.197	ID:21	Battery: Number of CPU ticks in state 0 is 0 
+15:01.198	ID:3	Battery: Number of CPU ticks in state 0 is 0 
+15:01.198	ID:17	Log: Residual (microAh); 199933; 
+15:01.198	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.204	ID:17	Log: Energy Total consumption (microA); 67;  
+15:01.206	ID:13	Battery: Number of CPU ticks in state 1 is 9770358 
+15:01.211	ID:17	Log: Energy Periodic consumption (microA); 11;  
+15:01.212	ID:21	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.212	ID:3	Battery: Available charge at next time interval is 199948 (microAh) 
+15:01.220	ID:17	Energy: CPU ticks 60464, LPM 9769945, Tx 13259, Rx 70838 
+15:01.221	ID:13	Battery: Available charge at next time interval is 199945 (microAh) 
+15:01.221	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.222	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.229	ID:21	Battery: Number of CPU ticks in state 1 is 9769959 
+15:01.230	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.230	ID:3	Battery: Number of CPU ticks in state 1 is 9770434 
+15:01.237	ID:13	Battery: Number of CPU ticks in state 2 is 13258 
+15:01.244	ID:21	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.244	ID:3	Battery: Available charge at next time interval is 199944 (microAh) 
+15:01.251	ID:13	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.253	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.254	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.260	ID:21	Battery: Number of CPU ticks in state 2 is 13256 
+15:01.261	ID:13	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.261	ID:3	Battery: Number of CPU ticks in state 2 is 13265 
+15:01.268	ID:13	Battery: Number of CPU ticks in state 3 is 70567 
+15:01.273	ID:13	Log: Residual (microAh); 199933; 
+15:01.274	ID:21	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.275	ID:3	Battery: Available charge at next time interval is 199933 (microAh) 
+15:01.279	ID:13	Log: Energy Total consumption (microA); 66;  
+15:01.283	ID:21	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.284	ID:3	Battery: Bound charge at next time interval is 799999 (microAh) 
+15:01.286	ID:13	Log: Energy Periodic consumption (microA); 11;  
+15:01.291	ID:21	Battery: Number of CPU ticks in state 3 is 70879 
+15:01.291	ID:3	Battery: Number of CPU ticks in state 3 is 70761 
+15:01.295	ID:13	Energy: CPU ticks 60051, LPM 9770358, Tx 13258, Rx 70567 
+15:01.296	ID:21	Log: Residual (microAh); 199933; 
+15:01.296	ID:3	Log: Residual (microAh); 199933; 
+15:01.302	ID:21	Log: Energy Total consumption (microA); 66;  
+15:01.303	ID:3	Log: Energy Total consumption (microA); 66;  
+15:01.309	ID:21	Log: Energy Periodic consumption (microA); 11;  
+15:01.310	ID:3	Log: Energy Periodic consumption (microA); 11;  
+15:01.318	ID:21	Energy: CPU ticks 60450, LPM 9769959, Tx 13256, Rx 70879 
+15:01.319	ID:3	Energy: CPU ticks 59975, LPM 9770434, Tx 13265, Rx 70761 
+16:00.337	ID:8	EVENT_TRACE - 15 - 12
+16:00.455	ID:11	EVENT_TRACE - 15 - 12
+16:00.501	ID:2	EVENT_TRACE - 15 - 12
+16:00.515	ID:6	EVENT_TRACE - 15 - 12
+16:00.583	ID:18	EVENT_TRACE - 15 - 12
+16:00.613	ID:4	EVENT_TRACE - 15 - 12
+16:00.666	ID:7	EVENT_TRACE - 15 - 12
+16:00.707	ID:14	EVENT_TRACE - 15 - 12
+16:00.719	ID:15	EVENT_TRACE - 15 - 12
+16:00.729	ID:20	EVENT_TRACE - 15 - 12
+16:00.730	ID:16	EVENT_TRACE - 15 - 12
+16:00.821	ID:10	EVENT_TRACE - 15 - 12
+16:00.851	ID:12	EVENT_TRACE - 15 - 12
+16:00.973	ID:9	EVENT_TRACE - 15 - 12
+16:00.976	ID:19	EVENT_TRACE - 15 - 12
+16:00.980	ID:5	EVENT_TRACE - 15 - 12
+16:01.066	ID:17	EVENT_TRACE - 15 - 12
+16:01.141	ID:13	EVENT_TRACE - 15 - 12
+16:01.164	ID:21	EVENT_TRACE - 15 - 12
+16:01.164	ID:3	EVENT_TRACE - 15 - 12
