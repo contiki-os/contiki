@@ -4,12 +4,12 @@ while true
 do
 	wget "http://[aaaa::200:0:0:1]" -O nodes.txt
 	n=$(wc -l < nodes.txt)
-	lines=$(($2*2 -2))
+	lines=$(($2*2 -1))
 	echo $n
 	
 	if [ $n -gt $lines ]
 	then
-		java -jar observe_v8.jar $2 3600000 | tee -a $1
+		java -jar observe_v0.jar $2 3600000 | tee -a $1
 		exit 0
 	fi
 

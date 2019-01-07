@@ -193,6 +193,7 @@ powertrace_print(char *str)
 
 // ARIKER> KIBAM VARIALBES
   stats_com.cpu=cpu;
+  printf("Defining CPU %lu\n", cpu);
   stats_com.lpm=lpm;
   stats_com.transmit=transmit;
   stats_com.listen=listen;
@@ -204,7 +205,7 @@ powertrace_print(char *str)
   all_time = all_cpu + all_lpm;
   all_radio = energest_type_time(ENERGEST_TYPE_LISTEN) + energest_type_time(ENERGEST_TYPE_TRANSMIT);
 
-/*printf("Printing POWERTRACE stats: \n %s clock_time: %lu P %d.%d seqno %lu all_cpu %lu all_lpm %lu all_transmit %lu all_listen %lu all_idle_transmit %lu all_idle_listen %lu cpu %lu lpm %lu transmit %lu listen %lu idle_transmit %lu idle_listen %lu \n (radio %d.%02d%% / %d.%02d%% tx %d.%02d%% / %d.%02d%% listen %d.%02d%% / %d.%02d%%)\n\n",
+/*zprintf("Printing POWERTRACE stats: \n %s clock_time: %lu P %d.%d seqno %lu all_cpu %lu all_lpm %lu all_transmit %lu all_listen %lu all_idle_transmit %lu all_idle_listen %lu cpu %lu lpm %lu transmit %lu listen %lu idle_transmit %lu idle_listen %lu \n (radio %d.%02d%% / %d.%02d%% tx %d.%02d%% / %d.%02d%% listen %d.%02d%% / %d.%02d%%)\n\n",
          str,
          clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
          all_cpu, all_lpm, all_transmit, all_listen, all_idle_transmit, all_idle_listen,
@@ -574,7 +575,10 @@ void update_battery(){
   //TURNING HARVESTING OFF TO CORRECT MEASUREMENT
   if(!harvest)
     solar_charging = 0;
+
+  powertrace_print("");// In this fuction time in state is updated
 //-------- Set the current spend/collect in every state -----------------
+
   current_draw[0] = i_energyStt.active;
   current_draw[1] = i_energyStt.low_power;
   current_draw[2] = i_energyStt.tx;
@@ -588,6 +592,9 @@ void update_battery(){
   time_each_stt[3] = stats_com.listen + stats_com.idle_listen;
   time_each_stt[4] = stats_com.cpu + stats_com.lpm; // solar charging time (in ticks) 
   
+
+  printf("TESTE AQUI  Ó %lu", stats_com.cpu);
+
 //-------- call the Kinetic model -----------------
   for(stt_couter=0;stt_couter<num_states;stt_couter++){
 	// --------------------------------------- Variable Battery parameters ------------------------------
