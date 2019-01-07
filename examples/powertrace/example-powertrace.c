@@ -76,7 +76,7 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
   unsigned variation = 2;//0 - 99
 
   powertrace_start(CLOCK_SECOND * seconds, seconds, fixed_perc_energy, variation);
-  
+  //powertrace_start(CLOCK_SECOND * seconds);
   broadcast_open(&broadcast, 129, &broadcast_call);
 
   while(1) {
