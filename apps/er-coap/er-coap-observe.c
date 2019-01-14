@@ -287,18 +287,22 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
         }      
       */
         double percentage = 100/(double)conInterval;
+        printf("Current CON percentage %d\n", (int)(percentage*100));
         if(modulus((double)obs->last_mid, percentage) < 1){
           printf("Complete %d cycle on MID: %d\n", conInterval, obs->last_mid);
           printf("           Refreshing with CON\n");
           notification->type = COAP_TYPE_CON;
           //stimer_restart(&obs->refresh_timer);
+        }else{
+          printf("Defining message type NON\n");
+          notification->type = COAP_TYPE_NON;
         }
       //}
 
         
         if(getInstructions(get_payload())){
-        coap_remove_observer(obs);
-        printf("Removed node\n");
+          coap_remove_observer(obs);
+          printf("Removed node\n");
       }
 
         PRINTF("           Observer ");
@@ -349,7 +353,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
           /* mask out to keep the CoAP observe option length <= 3 bytes */
           obs->obs_counter &= 0xffffff;
 
-          coap_set_payload(coap_res, "02", 16);
+          coap_set_payload(coap_res, "", 16);
 
           /*
            * Following payload is for demonstration purposes only.
@@ -366,6 +370,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
 #endif
         } else {
           coap_res->code = SERVICE_UNAVAILABLE_5_03;
+          printf("TOOMANYOBSERVERS\n");
           coap_set_payload(coap_res, "TooManyObservers", 16);
         }
       } else if(coap_req->observe == 1) {

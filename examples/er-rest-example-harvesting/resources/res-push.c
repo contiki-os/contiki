@@ -67,7 +67,7 @@ res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferr
    */
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_header_max_age(response, res_push.periodic->period / CLOCK_SECOND);
-  REST.set_response_payload(response, buffer, snprintf((char *)buffer, preferred_size, "%.2d", 12));
+  REST.set_response_payload(response, buffer, snprintf((char *)buffer, preferred_size, "%.2d", 11));
 
   /* The REST.subscription_handler() will be called for observable resources by the REST framework. */
 }
@@ -82,7 +82,8 @@ res_periodic_handler()
   ++event_counter;
 
   /* Usually a condition is defined under with subscribers are notified, e.g., large enough delta in sensor reading. */
-  if(1) {
+  if(get_event()) {
+    printf("Notifying subs\n");
     /* Notify the registered observers which will trigger the res_get_handler to create the response. */
     REST.notify_subscribers(&res_push);
   }
