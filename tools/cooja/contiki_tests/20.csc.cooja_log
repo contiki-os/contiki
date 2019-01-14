@@ -1,0 +1,15 @@
+[13:55:26 - main] [Cooja.java:3172] [WARN] - JAVA_HOME environment variable not set, Cooja motes may not compile
+[13:55:26 - main] [Cooja.java:1315] [INFO] - > Starting Cooja
+[13:55:26 - main] [Cooja.java:2856] [INFO] - External tools default settings: /external_tools_linux_64.config
+[13:55:26 - main] [Cooja.java:2888] [WARN] - Error when reading user settings from: /root/.cooja.user.properties
+[13:55:26 - main] [Cooja.java:1337] [FATAL] - Exception when loading simulation: 
+org.contikios.cooja.Cooja$SimulationCreationException: Load simulation error
+	at org.contikios.cooja.Cooja.loadSimulationConfig(Cooja.java:3365)
+	at org.contikios.cooja.Cooja.quickStartSimulationConfig(Cooja.java:1330)
+	at org.contikios.cooja.Cooja.main(Cooja.java:3239)
+Caused by: java.io.FileNotFoundException: 20.csc.csc (No such file or directory)
+	at java.io.FileInputStream.open0(Native Method)
+	at java.io.FileInputStream.open(FileInputStream.java:195)
+	at java.io.FileInputStream.<init>(FileInputStream.java:138)
+	at org.contikios.cooja.Cooja.loadSimulationConfig(Cooja.java:3353)
+	... 2 more
