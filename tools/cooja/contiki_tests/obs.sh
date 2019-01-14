@@ -1,13 +1,10 @@
-n=0
-lines=0
+routes.py=0
 while true
 do
 	wget "http://[aaaa::200:0:0:1]" -O nodes.txt
-	n=$(wc -l < nodes.txt)
-	lines=$(($2*2 -1))
-	echo $n
-	
-	if [ $n -gt $lines ]
+  routes=$(python routes.py 2>&1)
+	echo $routes
+	if [ $routes -ge $2 ]
 	then
 		java -jar observe_v0.jar $2 3600000 | tee -a $1
 		exit 0
