@@ -291,7 +291,9 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
         if(modulus((double)obs->last_mid, percentage) < 1){
           printf("Complete %d cycle on MID: %d\n", conInterval, obs->last_mid);
           printf("           Refreshing with CON\n");
-          notification->type = COAP_TYPE_CON;
+          //Testing confirmability ------- was CON;
+          //notification->type = COAP_TYPE_CON;
+          notification->type = COAP_TYPE_NON;
           //stimer_restart(&obs->refresh_timer);
         }else{
           printf("Defining message type NON\n");
@@ -301,7 +303,7 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
 
         
         if(getInstructions(get_payload())){
-          coap_remove_observer(obs);
+          //coap_remove_observer(obs); // Commented for testing.
           printf("Removed node\n");
       }
 
