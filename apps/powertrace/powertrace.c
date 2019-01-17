@@ -590,7 +590,7 @@ void update_battery(){
   
 //-------- Set the time spent in every state -----------------
   //-------- Set the time spent in every state -----------------
-  powertrace_print("");// In this fuction time in state is updated
+  //powertrace_print("");// In this fuction time in state is updated
   time_each_stt[1] = stats_com.lpm;
   time_each_stt[2] = stats_com.transmit + stats_com.idle_transmit;
   time_each_stt[3] = stats_com.listen + stats_com.idle_listen;
