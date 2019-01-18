@@ -1,5 +1,0 @@
-all: print-version hello-world
-CONTIKI = ../../..
-include $(CONTIKI)/Makefile.include
-print-version:
-	@$(CC) --version

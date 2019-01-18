@@ -1,3 +1,0 @@
-email_src = email.c smtp-socket.c smtp-strings.c ctk-textentry-multiline.c \
-            psock.c memb.c
-email_dsc = email-dsc.c

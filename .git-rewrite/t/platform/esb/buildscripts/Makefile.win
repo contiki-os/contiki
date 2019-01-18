@@ -1,7 +1,0 @@
-%.u:	%.ihex
-	msp430-jtag -eI $^
-
-#CW=cw23
-
-#%.u:	%.ihex
-#	$(CW) -d f430p $^

@@ -1,7 +1,0 @@
-CONTIKI_SOURCEFILES += rimebuf.c queuebuf.c rimeaddr.c ctimer.c rime.c timesynch.c \
-               rimestats.c ibc.c uc.c suc.c ruc.c sibc.c sabc.c abc.c nf.c \
-               mh.c rmh.c rucb.c polite.c ipolite.c neighbor-discovery.c \
-               mesh.c route.c route-discovery.c \
-               collect.c neighbor.c \
-               trickle.c \
-               rudolph0.c rudolph1.c rudolph2.c

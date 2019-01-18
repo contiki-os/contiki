@@ -1,1 +1,0 @@
-CONTIKI_SOURCEFILES += xmac.c nullmac.c

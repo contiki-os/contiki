@@ -1,2 +1,0 @@
-vnc_src = vnc.c vnc-viewer.c vnc-draw.c
-vnc_dsc = vnc-dsc.c
