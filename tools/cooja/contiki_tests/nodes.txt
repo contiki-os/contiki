@@ -1,4 +1,5 @@
 <html><head><title>ContikiRPL</title></head><body>
+<<<<<<< HEAD
 Neighbors<pre>fe80::200:0:0:6
 fe80::200:0:0:3
 fe80::200:0:0:2
@@ -26,4 +27,5 @@ aaaa::200:0:0:10/128 (via fe80::200:0:0:11) 1664s
 aaaa::200:0:0:5/128 (via fe80::200:0:0:11) 1626s
 aaaa::200:0:0:7/128 (via fe80::200:0:0:11) 1611s
 aaaa::200:0:0:11/128 (via fe80::200:0:0:11) 1606s
+
 </pre></body></html>
