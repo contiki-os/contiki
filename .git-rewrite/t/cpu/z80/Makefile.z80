@@ -1,0 +1,81 @@
+#
+# Makefile for z80/SDCC
+# @author Takahide Matsutsuka <markn@markn.org>
+#
+# $Id: Makefile.z80,v 1.11 2007/12/21 00:49:57 oliverschmidt Exp $
+#
+
+### Compiler definitions
+CC       = sdcc
+LD       = link-z80
+AS       = as-z80
+AR	 = sdcclib
+OBJCOPY  = objcopy
+STRIP    = strip
+
+### Custom rules
+CUSTOM_RULE_C_TO_OBJECTDIR_D=1
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+CUSTOM_RULE_LINK=1
+
+### Default flags
+CFLAGS  += --std-c99 --vc -mz80
+# --peep-file $(CONTIKI_CPU)/z80peephole.def
+ASFLAGS +=
+LDFLAGS += -mz80 --out-fmt-ihx --no-std-crt0
+AROPTS   = -a
+
+### CPU-dependent cleanup files
+CLEAN += *.lnk *.sym *.lib contiki.ihx
+
+### CPU-dependent directories
+CONTIKI_CPU_DIRS = . dev lib loader
+
+### CPU-dependent source files
+CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
+	libconio_z80.c log-conio.c rs232.c \
+	mef.c
+CONTIKI_ASMFILES += uip_arch-asm.S crt0.S 
+#crt-prg.S
+
+CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
+
+CONTIKI_CASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_CASMFILES:.cS=.o)}
+
+CONTIKI_PLATFORM_DIRS = $(PLATFORM_APPDIRS) \
+	 ${addprefix $(CONTIKI)/platform/$(TARGET)/, $(CONTIKI_TARGET_DIRS)}
+
+#".cS" suffix means assembler file with #include directive
+#so that a developer can use definitions of C-style include file
+#in assembler file.  Make sure the header file contains only compiler
+#directives. (i.e. #define, etc.)
+vpath %.cS $(CONTIKI_PLATFORM_DIRS)
+
+ifndef CUSTOM_RULE_CS_TO_OBJECTDIR_O
+$(OBJECTDIR)/%.o: %.cS
+	cp $< $(OBJECTDIR)/$*.c
+	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
+	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
+	$(AS) $(ASFLAGS) -o $@ $(OBJECTDIR)/$*.S
+	rm -f $(OBJECTDIR)/tmp
+endif
+
+#CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+	rm -f $@
+	for target in $^; do echo $$target >> $@; done
+
+#CUSTOM_RULE_LINK
+contiki.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/crt0.o
+	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -lcontiki-$(TARGET).lib
+	$(LD) -nf contiki
+
+LDPFLAGS = -mz80 --out-fmt-ihx --no-std-crt0 --code-loc 0 --data-loc 0
+
+test.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/crt-prg.o
+	$(CC) $(LDPFLAGS)  -o $@ $(OBJECTDIR)/crt-prg.o -lcontiki-$(TARGET).lib
+	$(LD) -nf test
+
+%.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/%*.o
+	$(CC) $(LDPFLAGS)  -o $@ $(OBJECTDIR)/$*.o -lcontiki-$(TARGET).lib
+	$(LD) -nf $*

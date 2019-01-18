@@ -1,0 +1,182 @@
+# Adapted from Makefile.msp430
+
+### Defin the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/at91sam7s
+
+### Define the source files we have in the AT91SAM7S port
+
+CONTIKI_CPU_DIRS = . dbg-io loader usb
+
+AT91SAM7S     = clock.c debug-uart.c interrupt-utils.c newlib-syscalls.c sys-interrupt.c rtimer-arch.c rtimer-arch-interrupt.c uip-log.c
+
+SYSAPPS = codeprop-otf.c
+APPDIRS += $(CONTIKI)/cpu/at91sam7s/loader
+
+ELFLOADER = elfloader-otf.c elfloader-arm.c symtab.c cfs-ram.c
+
+USB = usb-proto.c usb-handler.c usb-interrupt.c cdc-acm.c descriptors.c string-descriptors.c 
+
+TARGETLIBS = random.c dbg-printf.c dbg-puts.c dbg-putchar.c dbg-sprintf.c strformat.c
+
+CONTIKI_TARGET_SOURCEFILES += $(AT91SAM7S) $(SYSAPPS) $(ELFLOADER) \
+			$(TARGETLIBS) $(UIPDRIVERS) $(USB)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+THREADS =
+
+### Compiler definitions
+CC       = arm-elf-gcc
+LD       = arm-elf-ld
+AS       = arm-elf-as
+AR       = arm-elf-ar
+NM       = arm-elf-nm
+OBJCOPY  = arm-elf-objcopy
+STRIP    = arm-elf-strip
+
+XSLTPROC=xsltproc
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+LINKERSCRIPT = $(CONTIKI_CPU)/AT91SAM7S64-ROM.ld
+
+STARTUP=${addprefix $(OBJECTDIR)/,startup-SAM7S.o}
+
+# JTAG program upload
+OPENOCD	 = openocd
+OPENOCD_FLASH_CFG = arm7_wig_flash.cfg
+OPENOCD_RESET = arm7_wig_reset.cfg
+
+# USB program upload
+SAMIAM=Sam_I_Am
+SAMIAM_TTY=/dev/ttyACM0
+
+ARCH_FLAGS= -mcpu=arm7tdmi -mthumb-interwork
+THUMB_FLAGS=-mthumb
+ARM_FLAGS=
+
+
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
+	   -I$(CONTIKI_CPU)/dbg-io \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
+           -Wall -Werror $(ARCH_FLAGS) -g 
+
+CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles
+
+CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
+
+
+
+
+### Setup directory search path for source files
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+CUSTOM_RULE_C_TO_O=yes
+
+%-interrupt.o: %-interrupt.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+$(OBJECTDIR)/%-interrupt.o: %-interrupt.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
+
+%-arm.o: %-arm.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+$(OBJECTDIR)/%-arm.o: %-arm.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
+
+$(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
+
+CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
+%.o: %.S
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.S
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c  -o $@
+
+
+CUSTOM_RULE_C_TO_CO=yes
+
+%.co: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c -o $@
+
+CUSTOM_RULE_C_TO_CE=yes
+
+%.ce: %.o
+	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+CUSTOM_RULE_LINK=yes
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/empty-symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+
+%.ihex: %.$(TARGET)
+	$(OBJCOPY) $^ -O ihex $@
+
+%.bin: %.$(TARGET)
+	$(OBJCOPY) -O binary $< $@
+ 
+.PHONY: symbols.c
+ifdef CORE
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+symbols.c: $(CORE)
+	$(NM) $< | awk -f $(CONTIKI_CPU)/builtins.awk -f ../../tools/mknmlist > symbols.c
+
+else
+%.$(TARGET): %-nosyms.$(TARGET)
+	ln -sf $< $@
+endif
+
+empty-symbols.c:
+	@${CONTIKI}/tools/make-empty-symbols
+
+$(CONTIKI_CPU)/usb/string-descriptors.c: \
+		$(CONTIKI_CPU)/usb/string-descriptors.xml
+	$(XSLTPROC) $(CONTIKI_CPU)/usb/string-descriptors.xslt $^ >$@
+
+upload_ocd_%: %.bin
+	cp $< /tmp/openocd_write.bin 
+	# Clear lock bits
+	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_FLASH_CFG)
+	-rm  /tmp/openocd_write.bin
+
+
+upload_%: %.ihex
+	# Clear lock bits
+	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a000004"
+	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a002004"
+	$(SAMIAM) "open $(SAMIAM_TTY) , flash $< , go"
+
+ocd_reset:
+	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_RESET)
+
+# Don't use core/loader/elfloader.c, use elfloader-otf.c instead
+$(OBJECTDIR)/elfloader.o: 
+	echo -n >$@
+
+.PRECIOUS: %-nosyms.$(TARGET)

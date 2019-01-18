@@ -1,0 +1,4 @@
+poll
+reset run
+sleep 500
+shutdown

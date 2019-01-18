@@ -1,0 +1,53 @@
+function sort(V, N, 	                        tmp, i, j) {
+  V[-1] = ""; # Used as a sentinel before V[0].
+  for (i = 1; i < N; i++)
+    for (j = i; V[j - 1] > V[j]; j--) {
+      tmp = V[j];
+      V[j] = V[j - 1];
+      V[j - 1] = tmp;
+    }
+  return;
+}
+
+BEGIN {
+ nname = 0;
+ builtin["printf"] =	"int printf(const char *, ...)";
+ builtin["sprintf"] =	"int sprintf(char *, const char *, ...)";
+ builtin["malloc"] =	"void *malloc()";
+ builtin["calloc"] =	"void *calloc()";
+ builtin["memcpy"] =	"void *memcpy()";
+ builtin["memset"] =	"void *memset()";
+ builtin["memmove"] =	"void *memmove()";
+ builtin["strcpy"] =	"char *strcpy()";
+ builtin["strchr"] =	"char *strchr()";
+ builtin[""] = 	"";
+}
+
+/^[0123456789abcdef]+ [ABCDGRSTUVW] / {
+  if ($3 != "symbols" && $3 != "symbols_nelts") {
+    name[nname] = $3;
+    nname++;
+  }
+}
+
+END {
+  sort(name, nname);
+
+  print "#include \"loader/symbols.h\"\n";
+
+  # Must deal with compiler builtins etc.
+  for (x = 0; x < nname; x++) {
+    if (builtin[name[x]] != "")
+      print builtin[name[x]] ";";
+    else
+      print "extern int " name[x]"();";
+  }
+  print "\n";
+
+  # nname++: An { 0, 0 } entry is added at the end of the vector.
+  print "const int symbols_nelts = " nname+1 ";";
+  print "const struct symbols symbols[" nname+1 "] = {";
+  for (x = 0; x < nname; x++)
+    print "{ \"" name[x] "\", (void *)&"name[x]" },";
+  print "{ (const char *)0, (void *)0} };";
+}

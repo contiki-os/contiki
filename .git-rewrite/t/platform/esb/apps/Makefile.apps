@@ -1,0 +1,4 @@
+burn-nodeid: burn-nodeid.c
+helloworld: helloworld.c
+radio-test: radio-test.c
+radio-sniffer: radio-sniffer.c

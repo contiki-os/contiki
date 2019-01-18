@@ -1,0 +1,131 @@
+#
+# Makefile for PC-6001 using z80/SDCC
+# @author Takahide Matsutsuka <markn@markn.org>
+#
+# $Id: Makefile.pc-6001,v 1.7 2007/11/28 10:11:55 matsutsuka Exp $
+#
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+# Default values
+ARCH=PC6001
+MEMORY=32K
+PLATFORM_APPS=$(PLATFORM_APPS_DESKTOP)
+CONTIKI_TARGET_MAIN = contiki-main.c
+CTKCONF = NORMAL
+LOADER = 0
+
+# Target dependent options
+ifeq ($(MAKECMDGOALS),p62)
+  ARCH=PC6001MK2
+else ifeq ($(MAKECMDGOALS),p6A)
+  ARCH=PC6001A
+else ifeq ($(MAKECMDGOALS),minimal)
+  MEMORY=16K
+  CONTIKI_TARGET_MAIN=contiki-minimal-main.c
+else ifeq ($(MAKECMDGOALS),serial)
+  CONTIKI_TARGET_MAIN=contiki-serial-main.c
+else ifeq ($(MAKECMDGOALS),rom)
+  CTKCONF=NOICON
+  MEMORY=ROM
+  LOADER = 1
+  CONTIKI_TARGET_MAIN=contiki-loader-main.c
+else ifeq ($(MAKECMDGOALS),load)
+  CTKCONF=NOICON
+  LOADER = 1
+  CONTIKI_TARGET_MAIN=contiki-loader-main.c
+else ifeq ($(MAKECMDGOALS),server)
+  CTKCONF=SERVER
+  PLATFORM_APPS = $(PLATFORM_APPS_NETWORK)
+  CONTIKI_TARGET_MAIN=contiki-server-main.c
+else ifeq ($(MAKECMDGOALS),client)
+  CTKCONF=CLIENT
+  PLATFORM_APPS = $(PLATFORM_APPS_NETWORK)
+  CONTIKI_TARGET_MAIN=contiki-client-main.c
+endif
+
+### setup default values
+ifndef HEX2BIN
+  HEX2BIN = hex2cas
+endif
+
+### setup flags to be used in compiler, assembler, and HEX2BIN
+PLATFORM = $(CONTIKI)/platform/$(TARGET)
+CONTIKI_TARGET_DIRS = . ctk dev loader
+CFLAGS  += -DMEMORY_$(MEMORY) -DARCH_$(ARCH) -DCTK_$(CTKCONF) 
+#-Wp-includecontiki-conf.h
+
+ifeq ($(MEMORY),16K)
+  LDFLAGS      += --code-loc 0xc40f --data-loc 0
+  HEX2BINFLAGS  = -1 -n contki -o contiki.p6
+else ifeq ($(MEMORY),ROM)
+  LDFLAGS      += --code-loc 0x4004 --data-loc 0xf000
+  HEX2BINFLAGS  = -r -o contiki.rom
+else ifeq ($(ARCH),PC6001MK2)
+  LDFLAGS      += --code-loc 0x800f --data-loc 0
+  HEX2BINFLAGS  = -5 -o contiki2.p6
+else
+  LDFLAGS      += --code-loc 0x840f --data-loc 0
+  HEX2BINFLAGS  = -2 -n contki -o contiki.p6
+endif
+
+ifeq ($(LOADER),1)
+  CFLAGS       += -DWITH_LOADER_ARCH=1
+endif
+
+### Include platform-depend application makefiles
+
+ifdef PLATFORM_APPS
+  PLATFORM_APPDIRS += ${addprefix $(PLATFORM)/apps/, $(PLATFORM_APPS)}
+  PLATFORM_APPINCLUDES = ${foreach APP, $(PLATFORM_APPS), $(PLATFORM)/apps/$(APP)/Makefile.$(APP)}
+  -include $(PLATFORM_APPINCLUDES)
+  PLATFORM_APP_SOURCES = ${foreach APP, $(PLATFORM_APPS), $($(APP)_src)}
+  PLATFORM_DSC_SOURCES = ${foreach APP, $(PLATFORM_APPS), $($(APP)_dsc)}
+  CONTIKI_SOURCEFILES += $(PLATFORM_APP_SOURCES) $(PLATFORM_DSC_SOURCES)
+endif
+
+CONTIKI_TARGET_SOURCEFILES = \
+	$(CTK) cfs-ram.c serial.c slip.c \
+	resolv.c loader_arch.c \
+	ctk-conio_arch.c $(CONTIKI_TARGET_MAIN)
+
+#you can use the below instead of ctk-conio_arch.c, ctk-conio_arch-asm.cS,
+# and libconio_arch-asm.cS
+#ctk-conio_arch-source.c
+
+CONTIKI_ASMFILES  += getkey.S isprint_arch.S clock.S rs232-asm.S
+CONTIKI_CASMFILES += ctk-conio_arch-asm.cS libconio_arch-asm.cS\
+	libconio_arch-small.cS
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.rom *.p6 *.asm
+
+contiki: contiki.p6
+
+.SUFFIXES:
+
+%.p6:	%.ihx
+	$(HEX2BIN) $(HEX2BINFLAGS) $<
+%.rom:	%.ihx
+	$(HEX2BIN) $(HEX2BINFLAGS) $<
+
+remove-ctk:
+	rm -f obj_$(TARGET)/ctk*;
+	rm -f contiki.ihex
+remove-net:
+	rm -f ${addprefix obj_$(TARGET)/,uip*.o hc.o psock.o rawpacket-udp.o resolv.o slip*.o tcp*.o uaod*.o rime*.o http*.o web*.o};
+	rm -f contiki.ihex
+remove-mt:
+	rm -f obj_$(TARGET)/mt*.o
+	rm -f contiki.ihex
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/z80
+include $(CONTIKI_CPU)/Makefile.z80
+
+### Setup directory search path for source files
+PROJECTDIRS += $(PLATFORM_APPDIRS)
+

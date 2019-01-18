@@ -1,0 +1,25 @@
+set terminal postscript eps monochrome font "Helvetica" 16
+set output "plot-power.eps"
+set title "Average power consumption per node"
+set xlabel "Node number"
+set ylabel "Power (mW)"
+set boxwidth 0.5
+set style fill pattern
+#set key top left Left width -5
+
+plot [:] [0:] \
+'total-power' using \
+2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5 + 17.7 * $6 + 4.6 * $7) / 4096) * 3 / $1 \
+with boxes title "Red LED", \
+'total-power' using \
+2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5 + 17.7 * $6) / 4096) * 3 / $1 \
+with boxes title "Radio transmit", \
+'total-power' using \
+2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5) / 4096) * 3 / $1 \
+with boxes title "CPU low-power mode", \
+'total-power' using \
+2:((1.8 * $4 + 20.0 * $5) / 4096) * 3 / $1 \
+with boxes title "CPU active mode", \
+'total-power' using \
+2:((20.0 * $5) / 4096) * 3 / $1 \
+with boxes title "Radio reception"

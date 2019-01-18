@@ -1,0 +1,2 @@
+ftp_src = ftp.c ftpc.c memb.c
+ftp_dsc = ftp-dsc.c

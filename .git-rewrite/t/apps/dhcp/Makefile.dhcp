@@ -1,0 +1,2 @@
+dhcp_src = dhcp.c dhcpc.c
+dhcp_dsc = dhcp-dsc.c

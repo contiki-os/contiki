@@ -1,0 +1,2 @@
+netconf_src = netconf.c
+netconf_dsc = netconf-dsc.c

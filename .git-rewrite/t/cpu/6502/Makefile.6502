@@ -1,0 +1,103 @@
+#
+# Copyright (c) 2007, Adam Dunkels.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote
+#    products derived from this software without specific prior
+#    written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This file is part of the Contiki operating system.
+#
+# Author: Oliver Schmidt <ol.sc@web.de>
+#
+# $Id: Makefile.6502,v 1.25 2007/12/23 15:29:19 oliverschmidt Exp $
+#
+
+ifndef CONTIKI
+  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
+endif
+
+ifndef CC65_INC
+  ${error CC65_INC not defined! You must specify where the cc65 headers reside!}
+endif
+
+ifndef LD65_LIB
+  ${error LD65_LIB not defined! You must specify where the cc65 libraries reside!}
+endif
+
+ifndef LD65_OBJ
+  ${error LD65_OBJ not defined! You must specify where the cc65 objects reside!}
+endif
+
+all: cs8900a.eth lan91c96.eth
+
+CONTIKI_TARGET_DIRS = . lib sys
+CONTIKI_CPU_DIRS    = . lib sys ctk net
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c
+CONTIKI_CPU_SOURCEFILES    = log.c error.c config.c clock.c ctk-mouse.c \
+                             mtarch.c mtarch-asm.S lc-asm.S \
+                             uip_arch.c ethernet-drv.c ethernet.c
+
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
+                       $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
+                       
+TARGET_STARTFILES = $(TARGET).o --start-group
+TARGET_LIBFILES   = $(TARGET).lib --end-group
+
+### Compiler definitions
+
+AS = ca65
+CC = cc65
+LD = ld65
+AR = ar65
+
+ASFLAGS = -t $(TARGET)
+CFLAGS += -t $(TARGET) -Or
+LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
+AROPTS  = a
+
+### Compilation rules
+
+.SUFFIXES:
+
+CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
+# No explicit dependency file generation necessary since it is done 
+# as compilation side effect using the --create-dep compiler option
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
+	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
+	@sed 's!.s:!.o:!' < $(@:.o=.u) > $(@:.o=.d)
+	@rm -f $(@:.o=.s) $(@:.o=.u)
+
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $(@:.co=.s)
+	@$(AS) $(ASFLAGS) $(@:.co=.s) -o $@
+	@rm -f $(@:.co=.s)
+
+%.eth: $(OBJECTDIR)/%.o
+	$(LD) -t module -m $@.map $< -o $@

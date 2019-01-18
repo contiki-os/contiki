@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<project name="Energy Assessment Demo" default="help" basedir=".">
+  <property name="java" location="src"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="dist" location="dist"/>
+  <property name="args" value=""/>
+
+	<target name="init">
+    <tstamp/>
+  </target>
+
+	<target name="help">
+		<echo>
+Examples:
+
+> ant run -Dargs="com1"
+Starts demo application listening on COM1 and tracking the first node.
+
+</echo>
+	</target>
+
+	<target name="compile" depends="init">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${java}" destdir="${build}" debug="on">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement path="${lib}/jfreechart-1.0.6.jar"/>
+        <pathelement path="${lib}/jcommon-1.0.10.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+  <target name="run" depends="init, compile">
+    <java fork="yes" dir="${build}" classname="Demo">
+      <arg line="${args}"/>
+      <classpath>
+        <pathelement path="${build}"/>
+        <pathelement path="${lib}/jfreechart-1.0.6.jar"/>
+        <pathelement path="${lib}/jcommon-1.0.10.jar"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <mkdir dir="${dist}"/>
+    <jar destfile="${dist}/energest.jar" basedir="${build}">
+      <fileset dir="${build}"/>
+      <manifest>
+        <attribute name="Main-Class" value="Demo"/>
+        <attribute name="Class-Path" value=". jcommon-1.0.10.jar jfreechart-1.0.6.jar"/>
+      </manifest>
+    </jar>
+    <mkdir dir="${dist}"/>
+    <copy todir="${dist}">
+      <fileset dir="${lib}"/>
+    </copy>
+  </target>
+
+</project>

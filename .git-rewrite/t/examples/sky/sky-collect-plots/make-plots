@@ -1,0 +1,27 @@
+#!/bin/sh
+
+rm -f data-*
+rm -f *.eps
+
+./extract < $1
+
+echo "Drawing graphs. Don't worry about messages about 'no valid points'."
+
+for f in `echo data-*`
+  do
+  echo $f
+  cp $f data
+  cp lost-$f lost
+  cp dup-$f dup
+  cp parent-$f parent
+  cp power-$f power
+  gnuplot plot-all
+  for p in `echo plot-*.eps`
+    do
+    mv $p $f-$p
+  done
+done
+
+gnuplot plot-power
+
+./stats < $1

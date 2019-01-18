@@ -1,0 +1,6 @@
+tree e4e9df85a9d4b98ef6074d8730fc246798571c1d
+parent 68523814c5610dc5e961d5fa13ecfd72e88915df
+author adamdunkels <adamdunkels> 1201122385 +0000
+committer adamdunkels <adamdunkels> 1201122385 +0000
+
+Removed remaining debug code

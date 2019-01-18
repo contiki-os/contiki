@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+
+while(<>) {
+	if(/^(\d+) (\d+) (\d+) (\d+)/) {
+	    $time = $1;
+
+	    if($last_time{$2} != 0 &&
+	       $time - $last_time{$2} > $max_timediff{$2}) {
+		$max_timediff{$2} = $time - $last_time{$2};
+		$max_timediff_time{$2} = $time;
+	    }
+	    $last_time{$2} = $time;
+	    $seqno = $3;
+
+	    if(! defined $first_seqno{$2}) {
+		$first_seqno{$2} = $seqno;
+	    }
+
+	    if($seqno < $last_seqno{$2}) {
+		$seqno_add{$2} += $last_seqno{$2} + 1;
+	    }
+	    if($last_seqno{$2} == $seqno) {
+		$dup{$2}++;
+	    }
+	    $last_seqno{$2} = $seqno;
+	    $hops{$2} += $4;
+	    $num{$2}++;
+	}
+}
+
+
+foreach $n (sort {$a <=> $b} keys %hops) {
+    print "Node $n packets " . ($num{$n} - $dup{$n}) .
+	" duplicates $dup{$n} dropped " .
+	((1 + $last_seqno{$n} + $seqno_add{$n} - $first_seqno{$n}) - ($num{$n} - $dup{$n}));
+    print " ratio ";
+    printf "%.2f", ($num{$n} - $dup{$n}) / (1 + $last_seqno{$n} + $seqno_add{$n}  - $first_seqno{$n});
+#    print " max timediff " . $max_timediff{$n}/20;
+    print "\n";
+}
+

@@ -1,0 +1,123 @@
+# $Id: Makefile.avr,v 1.9 2007/11/29 02:44:05 fros4943 Exp $
+
+### Check if we are running under Windows
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/avr
+
+### Define the source files we have in the AVR port
+
+AVR        = leds-arch.c leds.c clock.c random.c
+ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
+TARGETLIBS = clock.c flash.c mtarch.c
+
+CONTIKI_TARGET_SOURCEFILES += ${AVR} $(SENSORS) \
+                              $(SYSAPPS) $(ELFLOADER) \
+                              $(TARGETLIBS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+### Compiler definitions
+CC       = avr-gcc
+LD       = avr-gcc
+AS       = avr-as
+AR       = avr-ar
+OBJCOPY  = avr-objcopy
+STRIP    = avr-strip
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -Wall -mmcu=$(MCU) -gstabs
+CFLAGS   = $(CFLAGSNO) -Os
+BOOTLOADER_START = 0x1e000
+LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
+		-Wl,--section-start=.bootloader=$(BOOTLOADER_START)
+
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+
+vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU)
+
+### Compilation rules
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.ko: %.o
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
+
+%.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
+
+%.hex: %.out
+	$(OBJCOPY) $^ -O ihex $@
+
+# Add a namelist to the kernel
+%.out: %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+	$(CONTIKI)/tools/make-empty-symbols
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
+ifdef SYMBOLS
+	$(CONTIKI)/tools/avr-make-symbols $@ 
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
+	$(CONTIKI)/tools/avr-make-symbols $@
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
+endif
+
+#%.hex: %.elf
+#	$(OBJCOPY) -R .eeprom $^ -O ihex $@
+
+%.eep: %.out
+	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
+	--change-section-lma .eeprom=0 -O ihex $^ $@
+
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+#%.ce: %.c
+#	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+#	$(STRIP) --strip-unneeded -g -x $@
+
+#%.ce: 	%.co
+#	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mavr5 -o $@ $^
+#	$(STRIP) --strip-unneeded -g -x $@
+
+%.co: %.c
+	$(CONTIKI)/tools/make-empty-symbols
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%.srec: %.$(TARGET)
+	$(OBJCOPY) -O srec $< $@
+
+### Upload image
+%.u: %.hex
+	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U flash:w:$<
+
+symbols.c:
+	@${CONTIKI}/tools/make-empty-symbols

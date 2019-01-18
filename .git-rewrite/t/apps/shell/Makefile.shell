@@ -1,0 +1,2 @@
+shell_src = shell-gui.c shell.c ctk-textentry-cmdline.c
+shell_dsc = shell-dsc.c

@@ -1,0 +1,3 @@
+telnetd_src = telnetd.c memb.c shell.c
+telnetd_dsc = telnetd-dsc.c
+APPDIRS += $(CONTIKI)/apps/shell

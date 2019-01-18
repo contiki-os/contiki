@@ -1,0 +1,2 @@
+about_src = about.c
+about_dsc = about-dsc.c

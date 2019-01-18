@@ -1,0 +1,26 @@
+Contiki network I/O on Microsoft Windows (including the Cygwin environment) is
+implemented based on the quite popular WinPcap library that is available at
+http://www.winpcap.org/install/default.htm.
+
+Developing Contiki network applications most likely involves working with a
+network protocol analyzer. Wireshark (formerly known as Ethereal) is a very
+popular one that on Windows uses - and actually comes with - the WinPcap
+libary. Wireshark is available at http://www.wireshark.org/download.html.
+
+So with Wireshark installed Contiki network I/O doesn't need any additional
+components.
+
+On Windows every Contiki application has one obligatory comand line argument
+that identifies the Windows network interface to be used by Contiki. While on
+Unix those network interfaces are called i.e. '/dev/tap0' they have on Windows
+names like '\Device\NPF_{F76B480A-1D31-4B3D-8002-C0EF49185737}'. In order to
+avoid the necessity to enter such names on the command line instead the IP
+address used by Windows is entered to identify the network interface to be
+used by Contiki. Please note that this IP address is _NOT_ the IP address to
+be used by Contiki !
+
+Contiki network I/O on Windows uses the same MAC address used by Windows. This
+approach often described as IP-Aliasing was primarily choosen because it avoids
+putting the network interface into promiscuous mode. The major benefit of this
+is the compatibility with WLAN interfaces - which mostly come with Windows
+device drivers incapable of promiscuous mode.

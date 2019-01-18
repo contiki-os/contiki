@@ -1,0 +1,6 @@
+webserver_src = webserver-nogui.c httpd.c http-strings.c psock.c memb.c \
+                httpd-fs.c httpd-cgi.c
+webserver_dsc = webserver-dsc.c
+
+#$(CONTIKI)/apps/webserver/http-strings.c: $(CONTIKI)/apps/webserver/http-strings
+#	cd $(CONTIKI)/apps/webserver/; $(CONTIKI)/tools/makestrings $<

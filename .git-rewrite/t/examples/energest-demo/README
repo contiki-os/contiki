@@ -1,0 +1,95 @@
+This directory contains the compiled code for the Contiki energy
+estimation demonstration for ACM SenSys 2007. More information is
+available in the handouts/ directory and at the Contiki website:
+
+		     http://www.sics.se/contiki/
+
+* INSTALLATION INSTRUCTIONS
+
+Cygwin and Java (JRE) needs to be installed. The demo has been tested
+on Microsoft Windows, but probably works under Linux too.
+
+You need between two and eight Tmote Sky boards to run the demo: one
+sink and between one and seven nodes. The nodes are numbered from 42
+to 48, and 41 is the sink node.
+
+Step 1: Unpack the zip file
+
+     unzip contiki-energest-demo.zip
+
+Step 2: Change directory to the demo directory
+
+     cd contiki-energest-demo
+
+Step 3: Connect the sink node to the PC. Remove all other Tmote Sky
+        nodes from the PC.
+
+Step 4: Upload Contiki to the sink:
+
+     make upload-sink
+
+Step 5: Remove the sink node from the PC.
+     
+Step 6: Connect one of the non-sink nodes to the PC
+
+Step 7: Upload Contiki to the node:
+
+     make upload-node-42
+
+        This takes some time. The red LED should be lit when the
+        uploading is finished. We have found that in some cases brand
+        new Tmote Sky boards seem to cause a problem with Contiki and
+        the red LED does not light up. If so, try to wait a few
+        minutes (~10 minutes) with the Tmote Sky either inserted in
+        the PC, or powered with batteries. If the red LED goes on
+        after these minutes, repeat the "make upload-node-XX" to
+        upload Contiki again.
+     
+Step 8: Remove the Tmote Sky from the PC.
+
+Step 9: Insert batteries into the Tmote Sky. The red LED should light
+        up.
+
+Step 10: Repeat step 6 to step 9 for all non-sink nodes. Replace "make
+        upload-node-42" with "make upload-node-43", "make
+        upload-node-44", and so on.
+
+Step 11: Insert the sink node to the PC again.
+
+Step 12: Run the Java program:
+
+     make rundemo
+
+     NOTE: this uses the first Tmote Sky it finds as a
+     sink. Therefore, make sure that only one Tmote Sky (the sink) is
+     inserted.
+
+Step 13: Push the "user" button on the Tmote Skys and watch their
+         power consumption go up and down.
+
+
+* DEMO DESCRIPTION
+
+Contiki continuously estimates the energy consumption of the
+system. In this demonstration, seven Tmote Sky nodes, running Contiki,
+estimates their energy consumption and send their power to a sink
+node. The sink node is connected to the PC, and reports the nodes'
+power to a Java program. The Java program shows the nodes' power
+consumption for the last second.
+
+When pushing the button on the nodes, they cycle through seven states
+as below. This is reflected by their power consumption, as shown in
+the Java program. The different states are:
+
+* Red LED: sending one packet per second
+* Green LED: radio listen 1% duty cycle
+* Green, red LEDs: radio listen 10% duty cycle
+* Blue LED: radio listen 100%
+* Blue, red LEDs: radio listen 10%, CPU low-power mode disabled
+* Blue, green LEDs: sending data 1.2 kilobytes/second
+* Blue, green, red LEDs: sending data 12 kilobytes/second
+
+When sending data, the radio is turned on for a while before the
+transmission to check if it is possible to send the packet. This is
+the reason why energy is spent on radio listening even when the nodes
+are only sending data.

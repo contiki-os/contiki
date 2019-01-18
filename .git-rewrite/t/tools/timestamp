@@ -1,0 +1,3 @@
+#!/bin/sh
+# We run perl through a shell to avoid having to hard-code the path to perl
+perl -e '$|=1; while(<>) {print time . " $_";}'

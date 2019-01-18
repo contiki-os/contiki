@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# A small script for setting up SLIP under FreeBSD
+killall slattach
+#stty -f /dev/cuaa0 19200
+slattach -l -s 57600 /dev/cuad0
+sleep 1
+ifconfig sl0 172.16.0.1 172.16.0.2
+route delete 172.16.0.0/16
+route add -net 172.16.0.0/16 172.16.0.2 

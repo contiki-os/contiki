@@ -1,0 +1,3 @@
+irc_src = irc.c ircc.c psock.c ircc-strings.c \
+          ctk-textentry-cmdline.c
+irc_dsc = irc-dsc.c

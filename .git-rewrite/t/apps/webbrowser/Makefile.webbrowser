@@ -1,0 +1,3 @@
+webbrowser_src = www.c webclient.c http-strings.c http-user-agent-string.c \
+                 htmlparser.c html-strings.c arg.c
+webbrowser_dsc = www-dsc.c

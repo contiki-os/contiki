@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+
+while(<>) {
+	if(/^(\d+) (\d+) (\d+) \d+ \d+ \d+ \d+ \d+ \d+ (\d+) \d+ \d+ (\d+) (\d+) (\d+) (\d+) (\d+) \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ \d+ (\d+)/) {
+	    $t = $1 - $10 / 4096;
+	    
+	    $node{$2}{$t} = $_;
+	    $lpm{$2}{$t} = $5;
+	    $cpu{$2}{$t} = $6;
+	    $rx{$2}{$t} = $7;
+	    $tx{$2}{$t} = $8;
+	    $rled{$2}{$t} = $9;
+
+	    $totallpm{$2} = $5;
+	    $totalcpu{$2} = $6;
+	    $totalrx{$2} = $7;
+	    $totaltx{$2} = $8;
+	    $totalrled{$2} = $9;
+
+	    $div = $t - $lasttime{$2};
+	    if($lasttime{$2} > 0 && $div != 0 && $lastseqno{$2} != $3) {
+		$lpmpower{$2}{$t} = ($lpm{$2}{$t} - $lpm{$2}{$lasttime{$2}}) / $div;
+		$cpupower{$2}{$t} = ($cpu{$2}{$t} - $cpu{$2}{$lasttime{$2}}) / $div;
+		$rxpower{$2}{$t} = ($rx{$2}{$t} - $rx{$2}{$lasttime{$2}}) / $div;
+		$txpower{$2}{$t} = ($tx{$2}{$t} - $tx{$2}{$lasttime{$2}}) / $div;
+		$rledpower{$2}{$t} = ($rled{$2}{$t} - $rled{$2}{$lasttime{$2}}) / $div;
+	    }
+	    
+	    $lasttime{$2} = $t;
+	    
+	    if($lastparent{$2} != $4) {
+		$parent{$2}{$t} = $4;
+	    }
+	    $lastparent{$2} = $4;
+
+	    if($lastseqno{$2} == $3) {
+		$dup{$2}{$t} = 1;
+	    }
+	    if($lastseqno{$2} > $3 && $lastseqno{$2} > $3 + 256) {
+		print "Reordering at seqno $3 for node $2\n";
+	    }
+
+	    if(defined $lastseqno{$2} &&
+	       $3 != ($lastseqno{$2} + 1 % 256)) {
+		$lost{$2}{$t} = 1;
+	    }
+	    $lastseqno{$2} = $3;
+	    if($firsttime{$2} == 0) {
+		$firsttime{$2} = $t;
+	    }
+	}
+}
+
+open(F, "> power");
+close(F);
+
+foreach $n (sort {$a <=> $b} keys %node) {
+#    print "$n ";
+    open(F, "> data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	print F $node{$n}{$k};
+    }
+    close(F);
+    open(F, "> dup-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($dup{$n}{$k} == 1) {
+	    print F "$k $dup{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, "> lost-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($lost{$n}{$k} == 1) {
+	    print F "$k $lost{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, "> parent-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($parent{$n}{$k} != 0) {
+	    print F "$k $parent{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, "> power-data-$n");
+    foreach $k (sort keys %{$lpmpower{$n}}) {
+	print F "$k $lpmpower{$n}{$k} $cpupower{$n}{$k} $rxpower{$n}{$k} $txpower{$n}{$k} $rledpower{$n}{$k}\n";
+    }
+    close(F);
+    open(F, ">> total-power");
+    print F ($lasttime{$n} - $firsttime{$n}) . " $n $totallpm{$n} $totalcpu{$n} $totalrx{$n} $totaltx{$n} $totalrled{$n}\n";
+    close(F);
+    print "\n";
+}
+

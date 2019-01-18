@@ -1,0 +1,241 @@
+set terminal postscript eps color font "Helvetica" 10
+set xlabel "Time"
+set xdata time
+set timefmt "%s"
+#set datafile separator " "
+#set boxwidth 0.15
+#set style fill pattern 1
+set style data lines
+set key top left Left #width -3
+
+set output "plot-rssi.eps"
+set ylabel "Radio noise level"
+plot [:] [0:] \
+'data' using 1:9 notitle
+
+
+#set output "plot-energy.eps"
+#set ylabel "Energy (mJ)"
+#plot 'data' using 1:\
+#(3*(0.0545 * $13 + 1.8 * $14 + 20.0 * $15 + 17.7 * $16 + 4.6 * $17) / 4096) \
+#title "Red LED" with filledcurves x1, \
+#'data' using 1:\
+#(3*(0.0545 * $13 + 1.8 * $14 + 20.0 * $15 + 17.7 * $16) / 4096) \
+#title "Radio TX" with filledcurves x1, \
+#'data' using 1:\
+#(3*(0.0545 * $13 + 1.8 * $14 + 20.0 * $15) / 4096) \
+#title "Radio listen" with filledcurves x1, \
+#'data' using 1:\
+#(3*(0.0545 * $13 + 1.8 * $14) / 4096) \
+#title "CPU active" with filledcurves x1, \
+#'data' using 1:\
+#(3*(0.0545 * $13) / 4096) \
+#title "CPU LPM" with filledcurves x1
+
+
+set output "plot-power.eps"
+set ylabel "Power (mW)"
+plot 'power' using 1:\
+(3*(0.0545 * $2 + 1.8 * $3 + 20.0 * $4 + 17.7 * $5 + 4.6 * $6) / 4096) \
+title "Radio listen" with filledcurve x1, \
+'power' using 1:\
+(3*(0.0545 * $2 + 1.8 * $3 + 4.6 * $6 + 17.7 * $5) / 4096) \
+title "Radio TX" with filledcurve x1, \
+'power' using 1:\
+(3*(0.0545 * $2 + 1.8 * $3 + 4.6 * $6) / 4096) \
+title "Red LED" with filledcurve x1, \
+'power' using 1:\
+(3*(0.0545 * $2 + 1.8 * $3) / 4096) \
+title "CPU active" with filledcurve x1, \
+'power' using 1:\
+(3*(0.0545 * $2) / 4096) \
+title "CPU LPM" with filledcurve x1
+
+#set output "plot-temperature.eps"
+#set ylabel "Temperature\n(degrees Celcius)"
+#plot [:] [-10:30] \
+#'data' using 1:(-39.60 + 0.01*$7) title "Temperature"
+
+#set output "plot-humidity.eps"
+#set ylabel "Humidity"
+#plot [:] [0:100] \
+#'data' using 1:(-4 + 0.0405*$8 - 2.8e-6*($8*$8)) title "Humidity"
+
+set output "plot-sensors.eps"
+set multiplot
+set size 1, 0.25
+set origin 0, 0.75
+unset xlabel
+set ylabel "Light sensor 1"
+plot [:] [0:] \
+'data' using ($1 - $36/4096):(0.625 * 1000000 * 0.5 * $5/4096 / 100000 * 1000) notitle
+set origin 0, 0.5
+set ylabel "Light sensor 2"
+plot [:] [0:] \
+'data' using ($1 - $36/4096):(0.769 * 100000 * 2.5 * $6/4096 / 100000 * 1000) notitle
+set origin 0, 0.25
+set ylabel "Temperature (degrees C)"
+plot [:] [0:] \
+'data' using ($1 - $36/4096):(-39.60 + 0.01*$7) notitle
+set origin 0, 0.
+set ylabel "Relative humidity"
+set xlabel "Time"
+plot [:] [0:100] \
+'data' using ($1 - $36/4096):(-4 + 0.0405*$8 - 2.8e-6*($8*$8)) notitle
+unset multiplot
+set size 1,1
+set origin 0,0
+
+#set output "plot-light.eps"
+#set ylabel "Light"
+#plot [:] [0:] \
+#'data' using 1:(0.625 * 1000000 * 0.5 * $5/4096 / 100000 * 1000) title "Light 1", \
+#'data' using 1:(0.769 * 100000 * 2.5 * $6/4096 / 100000 * 1000) title "Light 2"
+
+set output "plot-ll-errors.eps"
+set multiplot
+set size 1, 0.17
+set origin 0, 0.0
+set ylabel "contentiondrop"
+plot [:] [0:] \
+'data' using 1:($31) with steps notitle
+set origin 0, 0.17
+set ylabel "sendingdrop"
+unset xlabel
+plot [:] [0:] \
+'data' using 1:($32) with steps notitle
+set origin 0, 0.34
+set ylabel "toolong"
+plot [:] [0:] \
+'data' using 1:($27) with steps notitle
+set origin 0, 0.50
+set ylabel "tooshort"
+plot [:] [0:] \
+'data' using 1:($28) with steps notitle
+set origin 0, 0.67
+set ylabel "badsynch"
+plot [:] [0:] \
+'data' using 1:($29) with steps notitle
+set origin 0, 0.84
+set ylabel "badcrc"
+plot [:] [0:] \
+'data' using 1:($30) with steps notitle
+unset multiplot
+set size 1,1
+set origin 0,0
+set xlabel "Time"
+
+set output "plot-parent.eps"
+set ylabel "Node ID"
+plot [:] [0:100] \
+'data' using 1:10 title "Best parent" with points
+
+set output "plot-rtmetric.eps"
+set multiplot
+unset xlabel
+set size 1, 0.2
+set origin 0, 0.8
+set ylabel "Routing metric"
+plot [:] [0:8] \
+'data' using 1:(($11 + $12) / 16) notitle with steps
+set origin 0, 0.2
+set ylabel "ETX to\nbest neighbor"
+plot [:] [0:8] \
+'data' using 1:(($11) / 16) notitle  with steps
+set ylabel "Rtmetric for\nbest neighbor"
+set origin 0, 0.4
+plot [:] [0:8] \
+'data' using 1:(($12) / 16) notitle with steps
+set ylabel "Lost packet"
+set origin 0, 0.0
+set xlabel "Time"
+plot [:] [0:1] \
+'lost' using 1:($2 * 0.5) notitle with points
+set ylabel "Hops"
+unset xlabel
+set origin 0, 0.6
+plot [:] [0:8] \
+'data' using 1:4 notitle with steps
+unset multiplot
+set size 1,1
+set origin 0,0
+set xlabel "Time"
+
+set output "plot-rtx-stats.eps"
+set multiplot
+unset xlabel
+set size 1, 0.17
+set origin 0, 0.84
+set ylabel "reliabletx"
+plot [:] [0:] \
+'data' using 1:($20) notitle
+set origin 0, 0.67
+set ylabel "reliablerx"
+plot [:] [0:] \
+'data' using 1:($21) notitle
+set origin 0, 0.50
+set ylabel "rexmit"
+plot [:] [0:] \
+'data' using 1:($22) notitle
+set origin 0, 0.34
+set ylabel "acktx"
+plot [:] [0:] \
+'data' using 1:($23) notitle
+set origin 0, 0.17
+set ylabel "timedout"
+plot [:] [0:] \
+'data' using 1:($25) notitle
+set origin 0, 0.0
+set xlabel "Time"
+set ylabel "badackrx"
+plot [:] [0:] \
+'data' using 1:($26) notitle
+unset multiplot
+set size 1,1
+set origin 0,0
+set xlabel "Time"
+
+set output "plot-tx-stats.eps"
+set multiplot
+unset xlabel
+set size 1, 0.25
+set origin 0, 0.75
+set ylabel "tx"
+plot [:] [0:] \
+'data' using 1:($18) notitle
+set origin 0, 0.50
+set ylabel "reliabletx"
+plot [:] [0:] \
+'data' using 1:($20) notitle
+set origin 0, 0.25
+set ylabel "rx"
+plot [:] [0:] \
+'data' using 1:($19) notitle
+set origin 0, 0.0
+set xlabel "Time"
+set ylabel "reliablerx"
+plot [:] [0:] \
+'data' using 1:($21) notitle
+unset multiplot
+set size 1,1
+set origin 0,0
+set xlabel "Time"
+
+set output "plot-seqno.eps"
+set ylabel "Sequence number"
+plot [:] [0:256] \
+'data' using 1:3 title "Sequence number" with steps, \
+'lost' using 1:($2 * 128) title "Lost" with points, \
+'dup' using 1:($2 * 64) title "Duplicate" with points, \
+'parent' using 1:2 title "Best parent" with points
+
+#set output "plot-hops.eps"
+#set ylabel "Hops"
+#plot [:] [-1:5] \
+#'data' using 1:4 title "Hops" with steps
+
+set output "plot-latency.eps"
+set ylabel "Latency (s)"
+plot [:] [:] \
+'data' using 1:($36 / 4096) title "Latency" with steps, \
+'data' using 1:($36 / ($4 * 4096)) title "Latency per hop" with steps

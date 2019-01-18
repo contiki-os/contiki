@@ -1,0 +1,2 @@
+telnet_src = simpletelnet.c telnet.c
+telnet_dsc = telnet-dsc.c

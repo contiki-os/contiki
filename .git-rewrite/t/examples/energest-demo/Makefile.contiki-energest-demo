@@ -1,0 +1,13 @@
+CONTIKI=.
+-include tools/sky/Makefile
+
+upload-node-%:
+	$(MAKE) sky-reset burn-nodeid-$*.upload
+	$(MAKE) sky-reset
+	sleep 10
+	$(MAKE) sky-reset energest-demo.upload
+
+upload-sink: upload-node-41
+
+rundemo:
+	java -jar energest.jar /dev/com${firstword $(CMOTES)}
