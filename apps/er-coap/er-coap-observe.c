@@ -286,9 +286,18 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
           notification->type = COAP_TYPE_CON;
         }      
       */
+
+
+        printf("URL: %s\n", resource->url);
+        //printf("coap_res mid: %d\n", coap_res->mid);
+        printf("Notification MID %d\n", notification->mid);
+        printf("obs_last_mid: %d\n", obs->last_mid);
+        printf("transaction mid %d\n", transaction->mid);
+
         double percentage = 100/(double)conInterval;
         printf("Current CON percentage %d\n", (int)(percentage*100));
-        if(modulus((double)obs->last_mid, percentage) < 1 && obs->last_mid != 0){
+        double mod = modulus((double)transaction->mid, percentage);
+        if(mod < 1 &&  mod > -1 && transaction->mid != 0){
           printf("Complete %d cycle on MID: %d\n", conInterval, obs->last_mid);
           printf("           Refreshing with CON\n");
           //Testing confirmability ------- was CON;
