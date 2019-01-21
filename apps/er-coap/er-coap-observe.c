@@ -286,8 +286,6 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
           notification->type = COAP_TYPE_CON;
         }      
       */
-
-
         printf("URL: %s\n", resource->url);
         //printf("coap_res mid: %d\n", coap_res->mid);
         printf("Notification MID %d\n", notification->mid);
@@ -312,7 +310,7 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
 
         
         if(getInstructions(get_payload())){
-          //coap_remove_observer(obs); // Commented for testing.  
+          coap_remove_observer(obs); // Commented for testing.  
           printf("Removed node\n");
       }
 

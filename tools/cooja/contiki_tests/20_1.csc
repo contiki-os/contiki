@@ -462,7 +462,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>0</z>
+    <z>1</z>
     <height>160</height>
     <location_x>400</location_x>
     <location_y>0</location_y>
@@ -477,7 +477,7 @@
       <viewport>1.190851895134288 0.0 0.0 1.190851895134288 196.42145526725267 147.92882882402577</viewport>
     </plugin_config>
     <width>400</width>
-    <z>1</z>
+    <z>2</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -487,13 +487,44 @@
     <mote_arg>0</mote_arg>
     <plugin_config>
       <port>60001</port>
-      <bound>true</bound>
+      <bound>false</bound>
     </plugin_config>
     <width>362</width>
-    <z>2</z>
+    <z>3</z>
     <height>116</height>
     <location_x>710</location_x>
     <location_y>30</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>/*
+ * Example Contiki test script (JavaScript).
+ * A Contiki test script acts on mote output, such as via printf()'s.
+ * The script may operate on the following variables:
+ *  Mote mote, int id, String msg
+ */
+
+/* Make test automatically fail (timeout) after 100 simulated seconds */
+//TIMEOUT(100000); /* milliseconds. no action at timeout */
+TIMEOUT(20000000, log.log("last msg: " + msg + "\n")); /* milliseconds. print last msg at timeout */
+
+while(sim.getSimulationTimeMillis() &lt;= 3600000){
+
+log.log((sim.getSimulationTimeMillis()/1000) + " : " + id + " mote output: '" + msg + "'\n");
+
+YIELD(); /* wait for another mote output */
+
+}
+log.testOK(); /* Report test success and quit */
+//log.testFailed(); /* Report test failure and quit */</script>
+      <active>true</active>
+    </plugin_config>
+    <width>600</width>
+    <z>0</z>
+    <height>700</height>
+    <location_x>416</location_x>
+    <location_y>203</location_y>
   </plugin>
 </simconf>
 

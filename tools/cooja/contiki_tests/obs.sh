@@ -6,7 +6,7 @@ do
 	echo $routes
 	if [ $routes -ge $2 ]
 	then
-		java -jar observeNovo2.jar $2 3600000 | tee -a $1
+		java -jar observeNovo1.jar $2 3600000 | tee -a $1
 		exit 0
 	fi
 

@@ -320,6 +320,8 @@ powertrace_start(clock_time_t period, unsigned seconds, double fixed_perc_energy
 	double random_variable;
 	random_variable = fixed_perc_energy + ((rand() % variation)*0.01);
 
+  printf("Code 1\n");
+
 	printf("-------------------------------------------\n");
 	printf("KIBAM Battery has been started \n");
 	

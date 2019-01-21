@@ -5,12 +5,12 @@ rm -rf COOJA*
 killall java
 rm -rf nodes.txt
 
+
+nice -n -20 bash run_test 20_11.jar -y >/dev/null & PIDRUN=$!
+sleep 4
+sh ./rpl.sh & PIDRPL=$!
+sleep 4
 sh ./obs.sh modified_output20_$1_$((n+1)) 20 & PIDOBS=$!
 sleep 2
-nice -n -20 bash run_test 20.jar -y >/dev/null & PIDRUN=$!
-sleep 15
-sh ./rpl.sh & PIDRPL=$!
-sleep 5
-
 PID=pgrep java
 wait $PID
