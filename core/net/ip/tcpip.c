@@ -42,6 +42,19 @@
 #include "net/ip/uip-split.h"
 #include "net/ip/uip-packetqueue.h"
 
+#include "sys/node-id.h"
+
+
+#include "lib/random.h"
+#include <stdlib.h>
+
+//Global variables for Gilber Elliott state managing
+//short int gilbert_p = 0.02;
+//short int gilbert_r = 0.2;
+short int good = 1;
+
+
+
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
@@ -567,6 +580,30 @@ tcpip_ipv6_output(void)
       nexthop = &ipaddr;
     }
 #endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
+
+
+//============================================================================================================================================================
+// Code added by Renato Mota to simulate packet loss. It has been done using the Gilbert Elliott model and contiki's random library as random number generator.
+//============================================================================================================================================================
+
+//Checks ID=1; usually, this must be the border router's id. The loss model is intedented to only be used by the border router.
+if(node_id == 1){  
+  float random = random_rand()/(float)(RANDOM_RAND_MAX);
+  if(good){
+    good = (random > 0.02) ? 1:0; // Sends the message and checks if it should go to the bad state.
+    //printf("MENSAGEM ENCAMINHADA!\n");
+  }else{
+    uip_clear_buf();
+    good = (random > (1-0.2)) ? 1:0; // Deletes the message and checks uf it should return to the good state. 
+    //printf("MENSAGEM DELETADA\n");
+    return;
+  }
+}
+//============================================================================================================================================================
+//============================================================================================================================================================
+//============================================================================================================================================================
+
+
 
     nbr = NULL;
 

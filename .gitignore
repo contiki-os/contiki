@@ -37,10 +37,7 @@ summary
 *.faillog
 *.orig
 *~
-<<<<<<< HEAD
 *.txt
-=======
->>>>>>> 3fb5a7b62c4156c2f476636ec7a133cbdd3b6612
 .DS_Store
 obj_*
 symbols.*
