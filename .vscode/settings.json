@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "uip-packetqueue.h": "c",
+        "uip-split.h": "c"
+    }
+}
