@@ -39,7 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "er-coap-observe.h"
-
+#include "event-trace.h"
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -91,7 +91,7 @@ int getInstructions(char *payload){
     }
     if(payload[0] == 'k'){
       conInterval = 1;
-      frequency = 99;
+      frequency = 99999;
       return 1;
     }
     else{ 
@@ -310,7 +310,8 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
 
         
         if(getInstructions(get_payload())){
-          coap_remove_observer(obs); // Commented for testing.  
+          coap_remove_observer(obs); // Commented for testing.
+          node_removed = 1;  
           printf("Removed node\n");
       }
 

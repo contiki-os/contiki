@@ -103,8 +103,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>68.49528456786584</x>
-        <y>130.1373961630464</y>
+        <x>57.31825639201174</x>
+        <y>29.54414258035949</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -229,8 +229,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>5.968993875742342</x>
-        <y>125.33604538861876</y>
+        <x>63.31200799534164</x>
+        <y>34.46194674145714</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -463,7 +463,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>1</z>
+    <z>0</z>
     <height>160</height>
     <location_x>400</location_x>
     <location_y>0</location_y>
@@ -475,10 +475,10 @@
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>2.9632205877005506 0.0 0.0 2.9632205877005506 75.83478191373749 52.35705463427731</viewport>
+      <viewport>2.057792074792049 0.0 0.0 2.057792074792049 142.49637632898438 40.99795460713701</viewport>
     </plugin_config>
     <width>400</width>
-    <z>2</z>
+    <z>3</z>
     <height>400</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -522,10 +522,23 @@ log.testOK(); /* Report test success and quit */
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>3</z>
+    <z>2</z>
     <height>700</height>
     <location_x>416</location_x>
     <location_y>203</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.LogListener
+    <plugin_config>
+      <filter>ID:5</filter>
+      <formatted_time />
+      <coloring />
+    </plugin_config>
+    <width>674</width>
+    <z>1</z>
+    <height>609</height>
+    <location_x>1033</location_x>
+    <location_y>145</location_y>
   </plugin>
 </simconf>
 

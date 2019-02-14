@@ -6,9 +6,9 @@ do
 	echo $routes
 	if [ $routes -ge $2 ]
 	then
-		java -jar observe_v1.jar $2 3600000 $3 | tee -a $1
+		java -jar empada2.jar $2 3600000 $3 | tee -a $1
 		exit 0
 	fi
 
-	sleep 60
+	sleep 20
 done

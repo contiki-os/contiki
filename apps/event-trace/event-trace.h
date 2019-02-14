@@ -8,6 +8,7 @@ PROCESS_NAME(event_trace_process);
 
 extern int event_now;
 extern int intensity;
+extern int node_removed;
 extern coap_packet_t teste[1];
 void event_trace_start(unsigned seconds, clock_time_t period);
 int detect();

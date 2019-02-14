@@ -12,6 +12,7 @@ int isEVent(int time);
 //VARIABLES
 unsigned timer, interval_min = 1, interval_sec;
 int event_now = 0, last_event = 0, current_event = 0, intensity;
+int node_removed = 0;
 
 
 
@@ -32,7 +33,7 @@ PROCESS_THREAD(event_trace_process, ev, data){
 
 	while(1){
 		PROCESS_WAIT_UNTIL(etimer_expired(&periodic));
-		printf("EVENT_TRACE - %d - %d\n", timer, last_event);
+		printf("EVENT_TRACE - %d - %d ||| %d\n", timer, last_event, node_removed);
 		etimer_reset(&periodic);
 
 		//SYNC THE EVENT TIMERS WITH SIMULATION TIMER
@@ -86,5 +87,7 @@ int detect(){
 }
 
 int get_event() {
-	return event_now;
+	if(node_removed == 0)
+		return event_now;
+	return 0;
 }
