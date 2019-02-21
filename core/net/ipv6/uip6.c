@@ -2322,12 +2322,12 @@ uip_process(uint8_t flag)
 // Code added by Renato Mota to simulate packet loss. It has been done using the Gilbert Elliott model and contiki's random library as random number generator.
 //===========================================================================================================================================================
   float random = random_rand()/(float)(RANDOM_RAND_MAX);
-  printf("MENSAGEM %lu\n", (long unsigned)(random*100));
+  //printf("MENSAGEM %lu\n", (long unsigned)(random*100));
   if(good){
     good = (random > 0.05) ? 1:0; // Sends the message and checks if it should go to the bad state.
-    printf("MENSAGEM ENCAMINHADA!\n");
+    //printf("MENSAGEM ENCAMINHADA!\n");
   }else{
-    printf("MENSAGEM DELETADA\n");
+    //printf("MENSAGEM DELETADA\n");
     good = (random > (1-0.2)) ? 0:1; // Deletes the message and checks uf it should return to the good state. 
     goto drop;
     return;

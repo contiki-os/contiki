@@ -632,7 +632,7 @@ void update_battery(){
 	printf("Log: Residual (microAh); %lu; \n",(unsigned long) (batt.q1_0));
 	//PRINTF("Battery: Bound charge at next time interval is %lu (microAh) \n",(unsigned long) (batt.q2_0));
 	printf("Log: Energy Total consumption (microA); %lu;  \n",(unsigned long) (total_consumption));
-	printf("Log: Energy Periodic consumption (microA); %d;  \n",(int) (periodic_consumption));
+	printf("Log: Energy Periodic consumption (microA); %d; harvesting; %d\n",(int) (periodic_consumption), (int) harvest);
 	printf("Energy: CPU ticks %lu, LPM %lu, Tx %lu, Rx %lu \n", stats_com.cpu, stats_com.lpm, stats_com.transmit, stats_com.listen);
 
 }

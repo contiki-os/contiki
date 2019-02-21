@@ -10,10 +10,12 @@ do
 
 	killall java
 	rm -rf nodes.txt
+  
+  let "n++"
 
-	sh ./obs.sh modified_output20_$1_$((n+1)) 20 & PIDOBS=$!
+	sh ./obs.sh modified_output20_$1_$n 20 output$n.txt & PIDOBS=$!
 	sleep 2
-	nice -n -20 bash run_test 20.jar -y >/dev/null & PIDRUN=$!
+	nice -n -20 bash run_test 20c$1.jar -y >/dev/null & PIDRUN=$!
 	sleep 15
 	sh ./rpl.sh & PIDRPL=$!
 	sleep 5
@@ -23,14 +25,20 @@ do
 	do
 		sleep 2
 	done
+  
+  while [ ! -f "output$n.txt" ]
+  do
+    sleep 2
+  done
 
-	echo "Test over."
+  echo "Test over."
 	rm -rf testeOK.tmp
+	
+  mv output$n.txt vinte_nivel_$2/logs/output$n.txt
 
-	let "n++"
-	mv 20.log vinte_nivel_$2/logs/20_$n.log
+	mv COOJA.testlog vinte_nivel_$2/logs/20_$n.log
 	mv modified_output20_$1_$n vinte_nivel_$2/logs/modified_output20_$1_$n.txt
-	if [ $n -gt 31 ]
+  if [ $n -gt 31 ]
 	then
 		exit 0
 	fi

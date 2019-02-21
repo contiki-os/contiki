@@ -6,7 +6,7 @@ do
 	echo $routes
 	if [ $routes -ge $2 ]
 	then
-		java -jar empada2.jar $2 3600000 $3 | tee -a $1
+		java -jar empada2.jar $2 1800000 $3 | tee -a $1
 		exit 0
 	fi
 
