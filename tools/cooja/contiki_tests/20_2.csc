@@ -463,7 +463,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>280</width>
-    <z>0</z>
+    <z>1</z>
     <height>160</height>
     <location_x>400</location_x>
     <location_y>0</location_y>
@@ -488,7 +488,7 @@
     <mote_arg>0</mote_arg>
     <plugin_config>
       <port>60001</port>
-      <bound>true</bound>
+      <bound>false</bound>
     </plugin_config>
     <width>362</width>
     <z>4</z>
@@ -509,7 +509,7 @@
 /* Make test automatically fail (timeout) after 100 simulated seconds */
 //TIMEOUT(100000); /* milliseconds. no action at timeout */
 TIMEOUT(20000000, log.log("last msg: " + msg + "\n")); /* milliseconds. print last msg at timeout */
-
+sim.setSpeedLimit(1.0);
 while(sim.getSimulationTimeMillis() &lt;= 3600000){
 
 log.log((sim.getSimulationTimeMillis()/1000) + " : " + id + " mote output: '" + msg + "'\n");
@@ -522,7 +522,7 @@ log.testOK(); /* Report test success and quit */
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>2</z>
+    <z>0</z>
     <height>700</height>
     <location_x>416</location_x>
     <location_y>203</location_y>
@@ -535,7 +535,7 @@ log.testOK(); /* Report test success and quit */
       <coloring />
     </plugin_config>
     <width>674</width>
-    <z>1</z>
+    <z>2</z>
     <height>609</height>
     <location_x>1033</location_x>
     <location_y>145</location_y>
