@@ -61,7 +61,7 @@ LIST(observers_list);
 
 int frequency = 10;
 int conInterval = COAP_OBSERVING_REFRESH_INTERVAL;
-int remove = 0;
+int remove_node = 0;
 
 
 double modulus(double a, double b)
@@ -84,8 +84,8 @@ int getInstructions(char *payload){
       conInterval = ((payload[3] - '0')*10 + (payload[4] - '0'));
       printf("Confirmable Interval: %d\n", conInterval);
 
-      remove = (payload[5] - '0');
-      printf("Remove: %d\n", remove);
+      remove_node = (payload[5] - '0');
+      printf("Remove: %d\n", remove_node);
 
 
     }

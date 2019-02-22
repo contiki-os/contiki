@@ -48,6 +48,8 @@
 #include "dev/button-sensor.h"
 #endif
 
+#define PLATFORM_HAS_LIGHT 0
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
