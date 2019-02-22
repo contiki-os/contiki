@@ -44,9 +44,11 @@
 #include "rest-engine.h"
 #include "dev/light-sensor.h"
 
+
+/*
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-/* A simple getter example. Returns the reading from light sensor with a simple etag */
+// A simple getter example. Returns the reading from light sensor with a simple etag 
 RESOURCE(res_light,
          "title=\"Photosynthetic and solar light (supports JSON)\";rt=\"LightSensor\"",
          res_get_handler,
@@ -84,4 +86,5 @@ res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferr
     REST.set_response_payload(response, msg, strlen(msg));
   }
 }
+*/
 #endif /* PLATFORM_HAS_LIGHT */

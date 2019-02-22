@@ -47,13 +47,16 @@
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /* A simple getter example. Returns the reading from light sensor with a simple etag */
+
+/*
 RESOURCE(res_light,
          "title=\"Photosynthetic and solar light (supports JSON)\";rt=\"LightSensor\"",
          res_get_handler,
          NULL,
          NULL,
          NULL);
-
+*/
+/*
 static void
 res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
@@ -84,4 +87,5 @@ res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferr
     REST.set_response_payload(response, msg, strlen(msg));
   }
 }
+*/
 #endif /* PLATFORM_HAS_LIGHT */
