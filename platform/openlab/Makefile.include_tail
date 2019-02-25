@@ -1,0 +1,68 @@
+# Include at the end as it depends on all previous variables
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN += openlab-main.c
+endif
+CONTIKI_TARGET_DIRS += $(OPENLAB_TARGET_DIRS)
+
+CONTIKI_TARGET_SOURCEFILES +=  			\
+	$(OPENLAB_SRC)		 		\
+	$(OPENLAB_CONTIKI_WRAPPERS)		\
+	$(CONTIKI_SRC)                          \
+	$(CONTIKI_TARGET_MAIN)
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+##
+## We need to redefine the default compilation target so
+## that the build process is not confused
+##
+
+
+#
+## Create openlab subdirectory in $(OBJECTDIR)
+#
+OPENLAB_SRC_SUBDIR      = $(sort $(dir $(OPENLAB_SRC)))
+OPENLAB_PLATFORM_SUBDIR = $(addprefix $(OBJECTDIR)/, $(OPENLAB_SRC_SUBDIR))
+$(OPENLAB_PLATFORM_SUBDIR): %: $(OBJECTDIR)
+	mkdir -p $@
+# Directly depending of the directories produces some
+#     make: *** No rule to make target `obj_iotlab-m3/cortex-m3', needed by
+#     `obj_iotlab-m3/hello-world.o'.  Stop.
+# For a not found reason
+.PHONY: obj_subdirs
+obj_subdirs: | $(OPENLAB_PLATFORM_SUBDIR)
+
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = "defined"
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR) obj_subdirs
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $(OPENLAB_INCLUDE_PATH) -MMD -c $< -o $@
+	@$(FINALIZE_DEPENDENCY)
+
+
+CUSTOM_RULE_C_TO_CE = "defined"
+%.ce: %.c
+	@# Requires '-DAUTOSTART_ENABLE' to be loaded
+	$(CC) $(CFLAGS) $(OPENLAB_INCLUDE_PATH) -DAUTOSTART_ENABLE -c $< -o $*.o
+	$(GCCPREFIX)-ld -r -T $(OPENLAB)/merge-segments.ld $*.o -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+
+##
+## Elf Loader Symbols generation
+##
+
+ifdef ELF_LOADER
+contiki-$(TARGET).a: $(OBJECTDIR)/symbols.o
+endif
+
+ifdef CORE
+.PHONY: symbols.c symbols.h
+symbols.c:
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
+else
+symbols.c symbols.h:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+endif

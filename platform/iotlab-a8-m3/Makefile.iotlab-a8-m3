@@ -1,0 +1,64 @@
+# -*-makefile-*-
+#
+# This file is part of HiKoB Openlab.
+#
+# HiKoB Openlab is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation, version 3.
+#
+# HiKoB Openlab is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with HiKoB Openlab. If not, see
+# <http://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011,2012,2013 HiKoB.
+#
+
+OPENLAB = $(CONTIKI)/platform/openlab
+OPENLAB_REL = ../openlab
+OPENLAB_TARGET_DIRS  += ../iotlab/
+
+
+DEBUG            = 1
+CFLAGS          += -DIOTLAB_A8_M3 -DKEEP_UART=1
+LINKERSCRIPT     = $(OPENLAB_GIT)/platform/scripts/stm32f103rey6.ld
+
+OOCD_TARGET      = stm32f1x
+OOCD_ITF         = $(OPENLAB_GIT)/platform/scripts/iotlab-a8-m3.cfg
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec
+
+include $(OPENLAB)/Makefile.include
+
+## Openlab sources
+# Platform config
+OPENLAB_SRC += iotlab-a8-m3/iotlab-a8-m3.c
+OPENLAB_SRC += iotlab-a8-m3/iotlab-a8-m3_drivers.c
+OPENLAB_SRC += iotlab-a8-m3/iotlab-a8-m3_lib.c
+OPENLAB_SRC += iotlab-a8-m3/iotlab-a8-m3_periph.c
+
+# Drivers
+OPENLAB_SRC += lsm303dlhc/lsm303dlhc.c
+OPENLAB_SRC += l3g4200d/l3g4200d.c
+
+## Contiki sources
+# Wrappers from Openlab to Contiki API
+OPENLAB_CONTIKI_WRAPPERS += platform-addr.c
+
+OPENLAB_CONTIKI_WRAPPERS += acc-mag-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += fake-button-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += gyr-sensor.c
+
+
+# Contiki apps and drivers
+# CONTIKI_SRC +=
+
+
+include $(OPENLAB)/Makefile.include_tail
+
