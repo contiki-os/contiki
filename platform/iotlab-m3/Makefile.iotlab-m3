@@ -1,0 +1,84 @@
+# -*-makefile-*-
+#
+# This file is part of HiKoB Openlab.
+#
+# HiKoB Openlab is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation, version 3.
+#
+# HiKoB Openlab is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with HiKoB Openlab. If not, see
+# <http://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011,2012,2013 HiKoB.
+#
+
+OPENLAB = $(CONTIKI)/platform/openlab
+OPENLAB_REL = ../openlab
+OPENLAB_TARGET_DIRS  += ../iotlab/
+
+
+DEBUG            = 1
+CFLAGS          += -DIOTLAB_M3 -DKEEP_UART=1
+LINKERSCRIPT     = $(OPENLAB_GIT)/platform/scripts/stm32f103rey6.ld
+
+OOCD_TARGET      = stm32f1x
+OOCD_ITF         = $(OPENLAB_GIT)/platform/scripts/iotlab-m3.cfg
+
+CLEAN += symbols.c symbols.h
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec
+
+
+#
+# Global 'openlab' platforms sources
+#
+include $(OPENLAB)/Makefile.include
+
+
+##
+## Target specific sources
+##
+
+## Openlab sources
+# Platform config
+OPENLAB_SRC += iotlab-m3/iotlab-m3.c
+OPENLAB_SRC += iotlab-m3/iotlab-m3_drivers.c
+OPENLAB_SRC += iotlab-m3/iotlab-m3_lib.c
+OPENLAB_SRC += iotlab-m3/iotlab-m3_periph.c
+
+# Drivers
+OPENLAB_SRC += lsm303dlhc/lsm303dlhc.c
+OPENLAB_SRC += lps331ap/lps331ap.c
+OPENLAB_SRC += l3g4200d/l3g4200d.c
+OPENLAB_SRC += isl29020/isl29020.c
+OPENLAB_SRC += n25xxx/n25xxx.c
+
+## Contiki sources
+# Wrappers from Openlab to Contiki API
+OPENLAB_CONTIKI_WRAPPERS += platform-addr.c
+
+OPENLAB_CONTIKI_WRAPPERS += acc-mag-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += fake-button-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += gyr-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += light-sensor.c
+OPENLAB_CONTIKI_WRAPPERS += pressure-sensor.c
+ifdef ELF_LOADER
+OPENLAB_CONTIKI_WRAPPERS += elfloader-arch.c
+endif
+
+# Contiki apps and drivers
+CONTIKI_SRC += xmem.c
+CONTIKI_SRC += cfs-coffee.c
+ifdef ELF_LOADER
+CONTIKI_SRC += symtab.c elfloader.c
+endif
+
+include $(OPENLAB)/Makefile.include_tail

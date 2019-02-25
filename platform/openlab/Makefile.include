@@ -1,0 +1,219 @@
+# -*-makefile-*-
+#
+# This file is part of HiKoB Openlab.
+#
+# HiKoB Openlab is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation, version 3.
+#
+# HiKoB Openlab is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with HiKoB Openlab. If not, see
+# <http://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2011,2012 HiKoB.
+#
+
+ifneq ($(wildcard $(CONTIKI)/../openlab/),)
+	# Use directly openlab if available (from iot-lab repository)
+	OPENLAB_GIT = $(CONTIKI)/../openlab
+	OPENLAB_GIT_REL = ../../../openlab
+
+else
+	ifneq ($(wildcard $(OPENLAB)/git),)
+		# use symbolic link 'git -> openlab directory'
+		OPENLAB_GIT = $(OPENLAB)/git
+		OPENLAB_GIT_REL = $(OPENLAB_REL)/git
+	else
+
+$(warning $(OPENLAB)/git should be a symbolic link to the 'openlab' repository)
+$(warning     cd contiki/platform/openlab)
+$(warning  	  ln -s path_to_openlab_repository git)
+$(error Could not find openlab repository)
+	endif
+endif
+
+
+GCCPREFIX = arm-none-eabi
+CC        = ${GCCPREFIX}-gcc
+LD        = ${GCCPREFIX}-gcc
+AS        = ${GCCPREFIX}-as
+AR        = ${GCCPREFIX}-ar
+NM        = ${GCCPREFIX}-nm
+OBJCOPY   = ${GCCPREFIX}-objcopy
+STRIP     = ${GCCPREFIX}-strip
+OBJDUMP   = ${GCCPREFIX}-objdump
+
+CFLAGS   += -DPLATFORM_OS=CONTIKI
+
+CFLAGS   += -Os
+CFLAGS   += -Wall
+CFLAGS   += -Wimplicit -Wpointer-arith
+
+CFLAGS   += -DGCC_ARMCM3 -DENABLE_DEBUG=${DEBUG}
+CFLAGS   += -gdwarf-2 -fno-builtin -fsingle-precision-constant
+CFLAGS   += -mcpu=cortex-m3 -mthumb -mthumb-interwork -mfix-cortex-m3-ldrd -msoft-float
+CFLAGS   += -mno-unaligned-access
+
+ifndef ELF_LOADER
+CFLAGS   += -ffunction-sections -fdata-sections -Wl,--gc-sections
+endif
+
+
+#
+# Disable problematic warnings with contiki code
+#
+
+# Incompatible with the 'generic' way of managing radio layers I think
+# CFLAGS   += -Wredundant-decls
+# Invalid "casts"
+# CFLAGS   += -Wcast-align
+# Cast const to non const
+# CFLAGS   += -Wcast-qual
+
+# Silent warnings for the moment. Clean them on contiki later.
+CFLAGS   += -Wno-shadow
+CFLAGS   += -Wno-unused-but-set-variable
+CFLAGS   += -Wno-unused-variable
+CFLAGS   += -Wno-char-subscripts
+CFLAGS   += -Wno-implicit-function-declaration
+CFLAGS   += -Wno-maybe-uninitialized
+CFLAGS   += -fno-strict-aliasing
+
+
+
+# escape characters conflicts with SLIP
+CFLAGS   += -DNO_DEBUG_COLOR
+
+
+LDFLAGS  += -nostartfiles
+LDFLAGS  += -nodefaultlibs
+LDFLAGS  += -T${LINKERSCRIPT}
+LDFLAGS  += -mcpu=cortex-m3 -mthumb -mthumb-interwork
+ifndef ELF_LOADER
+LDFLAGS  += -ffunction-sections -fdata-sections -Wl,--gc-sections
+endif
+
+OOCD_PORT   = 123
+GDB_PORT    = 3${OOCD_PORT}
+TELNET_PORT = 4${OOCD_PORT}
+TCL_PORT    = 5${OOCD_PORT}
+
+OOCD        = openocd
+
+%.od: %.$(TARGET)
+	$(OBJDUMP) -S $< > $@
+
+%.flash: %.$(TARGET)
+	$(OOCD) \
+	-f "${OOCD_ITF}" \
+	-f "target/${OOCD_TARGET}.cfg" \
+	-c "gdb_port ${GDB_PORT}" \
+	-c "telnet_port ${TELNET_PORT}" \
+	-c "tcl_port ${TCL_PORT}" \
+	-c "init" \
+	-c "targets" \
+	-c "reset halt"	\
+	-c "reset init"	\
+	-c "flash write_image erase $<" \
+	-c "verify_image $<" \
+	-c "reset run" \
+	-c "shutdown"
+
+%.upload: %.flash;
+
+##
+## make debug will start a GDB SRP socket on port 3333
+##
+
+debug:
+	$(OOCD) \
+	-f "${OOCD_ITF}" \
+	-f "target/${OOCD_TARGET}.cfg" \
+	-c "tcl_port ${TCL_PORT}" \
+	-c "telnet_port ${TELNET_PORT}" \
+	-c "init" \
+	-c "targets" \
+
+reset:
+	$(OOCD) \
+	-f "${OOCD_ITF}" \
+	-f "target/${OOCD_TARGET}.cfg" \
+	-c "gdb_port ${GDB_PORT}" \
+	-c "tcl_port ${TCL_PORT}" \
+	-c "telnet_port ${TELNET_PORT}" \
+	-c "init" \
+	-c "targets" \
+	-c "reset run" \
+	-c "shutdown"
+
+
+OPENLAB_INCLUDE_PATH += \
+	-I$(OPENLAB)				\
+	-I$(OPENLAB_GIT)	                \
+	-I$(OPENLAB_GIT)/drivers/cortex-m3	\
+	-I$(OPENLAB_GIT)/drivers/stm32		\
+	-I$(OPENLAB_GIT)/drivers/stm32f1xx
+
+OPENLAB_TARGET_DIRS  += . 			\
+	$(OPENLAB_REL)				\
+	$(OPENLAB_REL)/dev				\
+	$(OPENLAB_GIT_REL)/drivers		\
+	$(OPENLAB_GIT_REL)/lib	 		\
+	$(OPENLAB_GIT_REL)/net	 		\
+	$(OPENLAB_GIT_REL)/periph 		\
+	$(OPENLAB_GIT_REL)/platform
+
+
+OPENLAB_SRC += 					\
+	\
+	cortex-m3/boot.c			\
+	cortex-m3/nvic.c			\
+	\
+	stm32/dma.c				\
+	stm32/i2c.c				\
+	stm32/spi.c				\
+	stm32/timer.c				\
+	stm32/uart.c				\
+	stm32/unique_id.c			\
+	stm32/usb.c				\
+	stm32/watchdog.c			\
+	\
+	stm32f1xx/adc.c				\
+	stm32f1xx/afio.c			\
+	stm32f1xx/boot.c			\
+	stm32f1xx/exti.c			\
+	stm32f1xx/flash.c			\
+	stm32f1xx/gpio.c			\
+	stm32f1xx/rcc.c				\
+	stm32f1xx/rcc_clock.c		\
+	stm32f1xx/rcc_sysclk.c		\
+	stm32f1xx/rtc.c				\
+	stm32f1xx/sdio.c			\
+	stm32f1xx/stm32f1xx.c		\
+	\
+	softtimer/soft_timer_delay.c\
+	rf2xx/rf2xx.c
+
+
+OPENLAB_CONTIKI_WRAPPERS +=			\
+	clock-systick.c				\
+	watchdog.c				\
+	radio-rf2xx.c				\
+	uart1.c					\
+	slip-arch.c				\
+	\
+	openlab-port.c		\
+	rtimer-arch.c			\
+	leds-arch.c			\
+	platform-sensors.c
+
+
+CONTIKI_SRC += 					\
+	leds.c 					\
+	sensors.c				\
+	slip.c
