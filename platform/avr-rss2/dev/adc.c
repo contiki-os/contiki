@@ -16,7 +16,7 @@
 uint16_t
 adc_read(uint8_t pin)
 {
-	uint16_t volt = 0;
+	uint16_t volt = 0 ;
 	int i;
 
 	ADMUX = pin; /* ADC pin PA0-PA7 ->  0-7 */
@@ -37,7 +37,7 @@ adc_read(uint8_t pin)
 	while(ADCSRA & _BV(ADSC)) {
 	}
 
-	ADCW = 0;
+	ADCW = 0 ;
 #define RES 4
 
 	for(i = 0; i < RES; i++) {
@@ -53,7 +53,7 @@ adc_read(uint8_t pin)
 	}
 	ADMUX = 0;                /* turn off internal vref */
 	volt = volt / RES;
-
+        //ADMUX = 0;
 	/* Disable the ADC to save power */
 	ADCSRA &= ~_BV(ADEN);
 
@@ -81,10 +81,10 @@ adc_read_v_mcu(void)
 double
 adc_read_a1(void)
 {
-	return ((double)adc_read(A1)) * V_IN_FACTOR;
+	return ((double)adc_read(A1))*V_IN_FACTOR;
 }
 double
 adc_read_a2(void)
 {
-	return ((double)adc_read(A2)) * V_IN_FACTOR;
+	return ((double)adc_read(A2))* V_IN_FACTOR;
 }

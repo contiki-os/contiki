@@ -199,7 +199,9 @@ uint8_t missing_rh_value();
 #define SHT25_ERROR           -1
 /* -------------------------------------------------------------------------- */
 #define SHT25_SENSOR "SHT25 Sensor"
+
 /* -------------------------------------------------------------------------- */
 extern const struct sensors_sensor sht25_sensor;
 /* -------------------------------------------------------------------------- */
+//static float value1(int type);
 #endif /* ifndef SHT25_H_ */

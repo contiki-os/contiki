@@ -258,32 +258,32 @@ i2c_probe(void)
   if(!i2c_start(I2C_AT24MAC_ADDR)) {
     i2c_stop();
     probed |= I2C_AT24MAC;
-    print_delim(p++, "AT24MAC", del);
+    //print_delim(p++, "AT24MAC", del);
   }
   watchdog_periodic();
   if(!i2c_start(I2C_SHT25_ADDR)) {
     i2c_stop();
     probed |= I2C_SHT25;
-    print_delim(p++, "SHT25 (T & RH)", del);
+   // print_delim(p++, "SHT25 (T & RH)", del);
   }
  if(!i2c_start(I2C_MS5611_ADDR)) {
     i2c_stop();
     probed |= I2C_MS5611;
-    print_delim(p++, "MS5611 (PRESSURE)", del);
+    //print_delim(p++, "MS5611 (PRESSURE)", del);
   }
   
   watchdog_periodic();
   if(!i2c_start(I2C_DS1307_ADDR)) {
 	i2c_stop();
     probed |= I2C_DS1307;
-    print_delim(p++, "DS1307 (RTC)", del);
+    //print_delim(p++, "DS1307 (RTC)", del);
   }
 
    watchdog_periodic();
   if(!i2c_start(I2C_MCP3424_ADDR)) {
 	i2c_stop();
     probed |= I2C_MCP3424;
-    print_delim(p++, "MCP3424 (ADC)", del);
+   // print_delim(p++, "MCP3424 (ADC)", del);
   }
   return probed;
 }

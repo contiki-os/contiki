@@ -126,8 +126,9 @@ typedef unsigned long off_t;
 /* It has less overhead than ENERGEST */
 #define RADIOSTATS                1
 
+#define ENERGEST_CONF_ADDITIONS ENERGEST_TYPE_COMPONENT3,ENERGEST_TYPE_COMPONENT4
 /* More extensive stats, via main loop printfs or webserver status pages */
-#define ENERGEST_CONF_ON          0
+#define ENERGEST_CONF_ON          1
 
 /* Packet statistics */
 typedef unsigned short uip_stats_t;
@@ -266,6 +267,7 @@ typedef unsigned short uip_stats_t;
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define CONTIKIMAC_CONF_COMPOWER               1
 #define RIMESTATS_CONF_ENABLED                 0
+
 
 /* A 0 here means non-extended mode; 1 means extended mode with no retry, >1 for retrys */
 /* Contikimac strobes on its own, but hardware retries are faster */

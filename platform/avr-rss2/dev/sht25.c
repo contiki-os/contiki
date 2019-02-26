@@ -59,19 +59,19 @@ static uint8_t enabled;
 static uint8_t missing_t_value_flag = 1;
 static uint8_t missing_rh_value_flag = 1;
 /*---------------------------------------------------------------------------*/
-static float
+static int
 status(int type)
 {
 	return enabled;
 }
 
 
-static uint16_t value(int type){
- uint8_t data_low;
+static int value(int type){
+uint8_t data_low;
  uint16_t data_high;
  uint16_t command;
  unsigned int ret;
- float data;
+ double data;
 
  if(type==0)
       command = SHT25_TEMP_HOLD;
@@ -95,14 +95,14 @@ else{
 	if(type==0){
 		float temp = (data_high<<8) +(data_low);
 		// increase to cater for single decimal point	
-		data =    (((temp/65536)* 175.72)-46.85) * 10;
+		data =  (double) ((((temp/65536)* 175.72)-46.85) * 10);
                 missing_t_value_flag = 0;
 		return data;
          }
 
 	if(type==1){
 		float temp = (data_high<<8) +(data_low);
-		data = (((temp/(65536)) * 125)-6)* 10;
+		data = (double) ((((temp/(65536)) * 125)-6)* 10);
                 missing_rh_value_flag = 0;
 		return data;
  	}
@@ -111,6 +111,7 @@ missing_t_value_flag = 1;
 missing_rh_value_flag = 1;
 return 0;
 }
+ 
 
 
 /*---------------------------------------------------------------------------*/
