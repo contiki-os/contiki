@@ -54,7 +54,7 @@ include $(CONTIKIAVR)/radio/Makefile.radio
 
 #MODULES += core/net/mac core/net core/net/mac/sicslowmac core/net/mac/contikimac core/net/llsec core/net/rime
 
-MODULES += core/net/mac core/net core/net/mac/sicslowmac core/net/mac/contikimac core/net/llsec lib/fs/fat
+MODULES += core/net/mac core/net core/net/mac/sicslowmac core/net/mac/contikimac core/net/llsec lib/fs/fat 
 
 
 

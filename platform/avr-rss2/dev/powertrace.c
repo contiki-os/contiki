@@ -119,11 +119,10 @@ powertrace_print1(char *str,int interval,float v_in)
   float energy_cpu = cal_power_consumption(cpu, cpu_on, interval, v_in);
   float energy_lpm = cal_power_consumption(lpm, cpu_sleep,interval, v_in);
   float energy_transmit = cal_power_consumption(transmit, transmit_power,interval, v_in);
-   float energy_listen = cal_power_consumption(listen, r,interval, v_in);
+  float energy_listen = cal_power_consumption(listen, r,interval, v_in);
 printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA %.3f\n",energy_cpu,energy_lpm,energy_transmit,energy_listen,v_in);
   seqno++;
 }
-/
 
 /*---------------------------------------------------------------------------*/
 float
