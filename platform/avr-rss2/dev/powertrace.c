@@ -60,12 +60,11 @@ RTIMER_SECOND
  */
 
 /*---------------------------------------------------------------------------*/
-void
-powertrace_print1(char *str,int interval,float v_in)
+float *powertrace_print1(char *str,int interval,float v_in)
 {
   static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
   static unsigned long last_idle_transmit, last_idle_listen;
-
+  static float array[4];
   unsigned long cpu, lpm, transmit, listen;
   unsigned long all_cpu, all_lpm, all_transmit, all_listen;
   unsigned long idle_transmit, idle_listen;
@@ -109,19 +108,25 @@ powertrace_print1(char *str,int interval,float v_in)
   all_radio = energest_type_time(ENERGEST_TYPE_LISTEN) +
     energest_type_time(ENERGEST_TYPE_TRANSMIT);
 
-  printf("%s %lu P %d.%d %lu all_cpu %lu all_lpm %lu all_transmit %lu all_listen %lu all_idle_transmit %lu all_idle_listen %lu cpu %lu lpm %lu transmit %lu listen %lu  idle_transmit %lu idle_listen %lu  s\n",
+ /* printf("%s %lu P %d.%d %lu all_cpu %lu all_lpm %lu all_transmit %lu all_listen %lu all_idle_transmit %lu all_idle_listen %lu cpu %lu lpm %lu transmit %lu listen %lu  idle_transmit %lu idle_listen %lu  s\n",
          str,
          clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
          all_cpu, all_lpm, all_transmit, all_listen, all_idle_transmit, all_idle_listen,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen
-        );
+        );*/
         
   float energy_cpu = cal_power_consumption(cpu, cpu_on, interval, v_in);
   float energy_lpm = cal_power_consumption(lpm, cpu_sleep,interval, v_in);
   float energy_transmit = cal_power_consumption(transmit, transmit_power,interval, v_in);
   float energy_listen = cal_power_consumption(listen, r,interval, v_in);
-printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA %.3f\n",energy_cpu,energy_lpm,energy_transmit,energy_listen,v_in);
-  seqno++;
+//printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA %.3f\n",energy_cpu,energy_lpm,energy_transmit,energy_listen,v_in);
+   seqno++;
+   array[0]= energy_cpu;
+   array[1]= energy_lpm;
+   array[2]= energy_transmit;
+   array[3]= energy_listen;
+ // printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA \n",array[0],array[1],array[2],array[3]);
+return array;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -132,32 +137,4 @@ cal_power_consumption(unsigned long task, float current,int runtime,float voltag
  return ((task*current*voltage)/(RTIMER_SECOND*runtime));
     
 } 
-/*---------------------------------------------------------------------------
-PROCESS_THREAD(powertrace_process, ev, data)
-{
-  static struct etimer periodic;
-  clock_time_t *period;
-  PROCESS_BEGIN();
-
-  period = data;
-
-  if(period == NULL) {
-    PROCESS_EXIT();
-  }
-  etimer_set(&periodic, *period);
-
-  while(1) {
-    PROCESS_WAIT_UNTIL(etimer_expired(&periodic));
-    etimer_reset(&periodic);
-    powertrace_print("");
-  }
-
-  PROCESS_END();
-}
----------------------------------------------------------------------------
-void
-powertrace_start(clock_time_t period)
-{
-  process_start(&powertrace_process, (void *)&period);
-}*/
 

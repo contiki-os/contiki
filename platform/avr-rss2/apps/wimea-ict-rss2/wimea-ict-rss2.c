@@ -185,19 +185,61 @@ PROCESS_THREAD(powertrace_process, ev, data)
    
    static struct etimer periodic_timer;
    PROCESS_BEGIN();
+   power_save = 1;
+   char result[TAGMASK_LENGTH];
+    static int t, j;
     
-    power_save = 1;
-    int interval =  60;
-    
+    int interval =  3600;
+    float *array1;
   etimer_set(&periodic_timer, CLOCK_SECOND * interval);
    while(1) {
-      power_save = 0;
-     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-     
-     float voltage = adc_read_v_in();
-     power_save = 1;
-    powertrace_print1("",interval,voltage);
-    etimer_reset(&periodic_timer);
+	uint8_t i = 0;
+      
+         for(t=0; t < 2; t++) {   /* Loop over min and max rpc settings  */
+
+	    NETSTACK_RADIO.off(); /* Radio off for rpc change */
+	    //NETSTACK_RADIO.off();
+	   
+	    if(t == 0){
+	      rf230_set_rpc(0x0); /* Disbable all RPC features */
+            }
+	    else{ 
+	      rf230_set_rpc(0xFF); /* Enable all RPC features. Only XRFR2 radios */
+            }
+	    
+
+	    /*  Loop over the different TX power settings 0-15  */
+	     
+	    for(j=15; j >= 0; j--) {
+	      NETSTACK_RADIO.on();
+	      rf230_set_txpower(j);
+	      
+        }
+             NETSTACK_RADIO.off();
+        if(t==1){
+	power_save = 0;
+	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+
+	float voltage = adc_read_v_in();
+	power_save = 1;
+        etimer_reset(&periodic_timer);
+	array1 =  powertrace_print1("",interval,voltage);
+
+	//printf("%.3f-%.3f-%.3f-%.3f\n",*(array1+0),*(array1+1),*(array1+2),*(array1+3));
+        i += snprintf(result+i, 25, " Energy cosumption(mA) ");
+	i += snprintf(result+i, 13, " CPU = %-4.3f", *(array1+0));
+	// i += snprintf(result+i, 12, " cpu =%.3f", *(array1+1));
+	i += snprintf(result+i, 18, " Transmit = %.3f", *(array1+2));
+	i += snprintf(result+i, 18, " Listen = %.3f", *(array1+3));
+	result[i++]='\0';//null terminate result before sending
+	power_save = 0;
+        NETSTACK_RADIO.on();
+	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
+	NETSTACK_RADIO.off();
+        power_save = 1;
+	
+        
+		}}
   }
   power_save = 0;
   PROCESS_END();

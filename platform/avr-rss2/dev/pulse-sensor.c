@@ -39,7 +39,6 @@
 #include "dev/pulse-sensor.h"
 #include "rss2.h"
 
-const struct sensors_sensor pulse_sensor;
 
 #define NP 2
 
@@ -105,8 +104,12 @@ ISR(INT3_vect)
 static int
 value(int type)
 {
+
+//int pulses = 0;
   if(type == 0) {
-    return (int)pc[0];
+   int pulses = (int)pc[0];
+   pc[0] = 0;
+      return pulses;
   }
   if(type == 1) {
     return (int)pc[1];

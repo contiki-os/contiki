@@ -52,7 +52,8 @@ typedef enum {
 
 void powertrace_sniff(powertrace_onoff_t onoff);
 
-void powertrace_print1(char *str,int interval,float v_in);
+float *
+powertrace_print1(char *str,int interval,float v_in);
 float
 cal_power_consumption(unsigned long task, float current,int runtime,float voltage);
 #endif /* POWERTRACE_H */
