@@ -183,6 +183,7 @@ AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &broadcast_data_pr
 PROCESS_THREAD(powertrace_process, ev, data)
 {
    
+   static struct etimer periodic_timers;
    static struct etimer periodic_timer;
    PROCESS_BEGIN();
    power_save = 1;
@@ -191,12 +192,13 @@ PROCESS_THREAD(powertrace_process, ev, data)
     
     int interval =  3600;
     float *array1;
-  etimer_set(&periodic_timer, CLOCK_SECOND * interval);
+  static int counter=0;
    while(1) {
 	uint8_t i = 0;
-      
+      etimer_set(&periodic_timers, CLOCK_SECOND * 180);
+       
          for(t=0; t < 2; t++) {   /* Loop over min and max rpc settings  */
-
+        // printf("its working \n");
 	    NETSTACK_RADIO.off(); /* Radio off for rpc change */
 	    //NETSTACK_RADIO.off();
 	   
@@ -218,17 +220,18 @@ PROCESS_THREAD(powertrace_process, ev, data)
              NETSTACK_RADIO.off();
         if(t==1){
 	power_save = 0;
-	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-
+          int d ;
+         PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timers));
+         power_save = 1;
+           counter++;
+          
+        
+            if(counter==20){
 	float voltage = adc_read_v_in();
-	power_save = 1;
-        etimer_reset(&periodic_timer);
 	array1 =  powertrace_print1("",interval,voltage);
 
-	//printf("%.3f-%.3f-%.3f-%.3f\n",*(array1+0),*(array1+1),*(array1+2),*(array1+3));
-        i += snprintf(result+i, 25, " Energy cosumption(mA) ");
+	i += snprintf(result+i, 25, " Energy cosumption(mA) ");
 	i += snprintf(result+i, 13, " CPU = %-4.3f", *(array1+0));
-	// i += snprintf(result+i, 12, " cpu =%.3f", *(array1+1));
 	i += snprintf(result+i, 18, " Transmit = %.3f", *(array1+2));
 	i += snprintf(result+i, 18, " Listen = %.3f", *(array1+3));
 	result[i++]='\0';//null terminate result before sending
@@ -236,9 +239,11 @@ PROCESS_THREAD(powertrace_process, ev, data)
         NETSTACK_RADIO.on();
 	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
 	NETSTACK_RADIO.off();
+         counter = 0;
         power_save = 1;
-	
-        
+         etimer_reset(&periodic_timers);
+	}
+        etimer_reset(&periodic_timers);
 		}}
   }
   power_save = 0;
@@ -390,7 +395,7 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
                
             power_save = 1;
               for(i=0; i < 2; i++) {   /* Loop over min and max rpc settings  */
-
+ 
 	    NETSTACK_RADIO.off(); /* Radio off for rpc change */
 	    //NETSTACK_RADIO.off();
 	   
@@ -408,8 +413,6 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	      NETSTACK_RADIO.on();
 	      rf230_set_txpower(j);
 	      
-           
-              //
         }
              NETSTACK_RADIO.off();
         if(i==1){
@@ -466,7 +469,7 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
         
                time_interval_1=eeprom_read_word(&eemem_report_1_transmission_interval);
                 if(time_interval_1 != 0 && adc_read_v_in() < 2.89){
-                time_interval_1 = 1800;
+                time_interval_1 = 1000;
                 }else{
 		time_interval_1=eeprom_read_word(&eemem_report_1_transmission_interval);
                  }
@@ -518,7 +521,7 @@ PROCESS_THREAD(sensor_data_process_report2, ev, data)
 
                 time_interval_2=eeprom_read_word(&eemem_report_2_transmission_interval);  
 		if(time_interval_2 != 0 && adc_read_v_in() < 2.89){
-                time_interval_2 = 1800;
+                time_interval_2 = 1000;
                 }else{
 		time_interval_2=eeprom_read_word(&eemem_report_2_transmission_interval);
                  }
@@ -569,7 +572,7 @@ PROCESS_THREAD(sensor_data_process_report3, ev, data)
 	while(1) {
                 time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
                  if(time_interval_3 != 0 && adc_read_v_in() < 2.89){
-                time_interval_3 = 1800;
+                time_interval_3 = 1000;
                 }else{
 		time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
                  }
