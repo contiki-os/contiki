@@ -50,6 +50,8 @@
 
 #define PLATFORM_HAS_LIGHT 0
 
+#define CHANNEl 11
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
