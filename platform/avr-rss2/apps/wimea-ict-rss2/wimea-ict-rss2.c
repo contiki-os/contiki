@@ -386,8 +386,8 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
-       
-       static uint16_t time_interval_0 =0 ;
+       static uint16_t counter = 0;
+       static uint16_t time_interval_0 = 0;
        static int i, j;
 	while(1) {
                 // strcpy(default_sensors," INTR V_AD1 V_AD2 V_IN V_MCU"); 
@@ -420,9 +420,9 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 		time_interval_0 = eeprom_read_word(&eemem_report_0_transmission_interval);
 		power_save = 0;
                // printf("TX with PWR=%.2f\n",adc_read_v_in());
-                if(time_interval_0 != 0 && adc_read_v_in() < 2.89){
+                if(time_interval_0 != 0 && adc_read_v_in() < 2.95){
                 power_save = 1;
-                time_interval_0 = 5;
+                time_interval_0 = 300;
                 }else{
 		time_interval_0 = eeprom_read_word(&eemem_report_0_transmission_interval);
                  }
@@ -432,11 +432,22 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et0));
                 power_save = 1;
 		if(time_interval_0 != 0){
+                if(time_interval_0 == 300){
+                  counter++;
+                if(counter == 6){
                 check_sensor_connection("0");
-                 power_save = 0;
+                power_save = 0;
 		NETSTACK_RADIO.on();
 		read_sensor_values_report0();
 		NETSTACK_RADIO.off();
+                counter = 0;
+                   }}else{
+                check_sensor_connection("0");
+                power_save = 0;
+		NETSTACK_RADIO.on();
+		read_sensor_values_report0();
+		NETSTACK_RADIO.off();
+                 }
 		}
                 
         }
@@ -468,8 +479,8 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
 	while(1) {
         
                time_interval_1=eeprom_read_word(&eemem_report_1_transmission_interval);
-                if(time_interval_1 != 0 && adc_read_v_in() < 2.89){
-                time_interval_1 = 1000;
+                if(time_interval_1 != 0 && adc_read_v_in() < 2.95){
+                time_interval_1 = 300;
                 }else{
 		time_interval_1=eeprom_read_word(&eemem_report_1_transmission_interval);
                  }
@@ -520,7 +531,7 @@ PROCESS_THREAD(sensor_data_process_report2, ev, data)
 	while(1) {
 
                 time_interval_2=eeprom_read_word(&eemem_report_2_transmission_interval);  
-		if(time_interval_2 != 0 && adc_read_v_in() < 2.89){
+		if(time_interval_2 != 0 && adc_read_v_in() < 2.95){
                 time_interval_2 = 1000;
                 }else{
 		time_interval_2=eeprom_read_word(&eemem_report_2_transmission_interval);
@@ -571,7 +582,7 @@ PROCESS_THREAD(sensor_data_process_report3, ev, data)
        static uint16_t time_interval_3 = 0;
 	while(1) {
                 time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
-                 if(time_interval_3 != 0 && adc_read_v_in() < 2.89){
+                 if(time_interval_3 != 0 && adc_read_v_in() < 2.95){
                 time_interval_3 = 1000;
                 }else{
 		time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
@@ -1090,7 +1101,7 @@ read_sensor_values_report0(void){
 	sensors=strtok ((char*)tagmask0, " ");
 	//i += snprintf(result+i, 5, "R0");
 	while (sensors != NULL){
-                if(adc_read_v_in() < 2.71){
+                if(adc_read_v_in() < 2.75){
                   if (!strncmp(trim(sensors), "T_MCU", 5)) {
 			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {
@@ -1129,14 +1140,14 @@ read_sensor_values_report0(void){
                          if( i2c_probed1 & I2C_SHT25){
                          
                         if(sht25_sensor.value(0) && missing_t_value() == 0){
-			i += snprintf(result+i,9, " T=%.2f",(float) sht25_sensor.value(0)/10.0);
+			i += snprintf(result+i,9, " T=%.2f", (float) sht25_sensor.value(0)/10.0);
                        }else{
                         error_log("#E_mv(sht25)");
                          }}
 		} else if (!strncmp(trim(sensors), "RH", 2)) {//humidity
                         if( i2c_probed1 & I2C_SHT25) {
-			if(sht25_sensor.value(1) && missing_rh_value() == 0){
-			i += snprintf(result+i,10, " RH=%.2f",(float) sht25_sensor.value(1)/10.0);
+			if(sht25_sensor.value(1) && missing_t_value() == 0){
+			i += snprintf(result+i,10, " RH=%.2f", (float) sht25_sensor.value(1)/10.0);
                        }else{
                         error_log("#E_mv(sht25)");
                          }}
@@ -1147,7 +1158,7 @@ read_sensor_values_report0(void){
 		} else if (!strncmp(trim(sensors), "ADC_1", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(0) && missing_adc_value() == 0){
-		i += snprintf(result+i,14, " ADC_1=%.3f",mcp3424_sensor.value(0)/1000.000);
+		i += snprintf(result+i,14, " ADC_1=%.4f ",(float) mcp3424_sensor.value(0)/1000.00000);
                       adc1 =1;
 		}else{
                         adc1 = 0;
@@ -1158,7 +1169,7 @@ read_sensor_values_report0(void){
                  if( i2c_probed1 & I2C_MCP3424 ){
                    if(mcp3424_sensor.value(1) && missing_adc_value() == 0 && adc1 == 0){
                     
-		i += snprintf(result+i,14, " ADC_2=%.3f",mcp3424_sensor.value(1)/1000.000);
+		i += snprintf(result+i,14, " ADC_2=%.4f",(float) mcp3424_sensor.value(1)/1000.000);
                         adc2 = 1;
 		}else{
                          adc2 =0;
@@ -1169,7 +1180,7 @@ read_sensor_values_report0(void){
 		} else if (!strncmp(trim(sensors), "ADC_3", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(2) && missing_adc_value() == 0 && adc1 == 0 && adc2 == 0){
-		i += snprintf(result+i,14, " ADC_3=%.3f",mcp3424_sensor.value(2)/1000.000);
+		i += snprintf(result+i,14, " ADC_3=%.4f",(float) mcp3424_sensor.value(2)/1000.000);
                       adc3 =1;
 		}else{
                      
@@ -1180,7 +1191,7 @@ read_sensor_values_report0(void){
 		} else if (!strncmp(trim(sensors), "ADC_4", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(3) && missing_adc_value() == 0 && adc1 == 0 && adc2 == 0 && adc3 == 0){
-		i += snprintf(result+i,14, " ADC_4=%.3f",mcp3424_sensor.value(3)/1000.000);
+		i += snprintf(result+i,14, " ADC_4=%.4f",(float) mcp3424_sensor.value(3)/1000.000);
 		 adc4 =1;
 		
 		}else{
@@ -1234,7 +1245,7 @@ read_sensor_values_report1(void){
 	sensors=strtok ((char*)tagmask1, " ");
 	//i += snprintf(result+i, 5, "R1");
 while (sensors != NULL){
-                if(adc_read_v_in() < 2.71){
+                if(adc_read_v_in() < 2.75){
                   if (!strncmp(trim(sensors), "T_MCU", 5)) {
 			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {
@@ -1299,7 +1310,7 @@ while (sensors != NULL){
                  if( i2c_probed1 & I2C_MCP3424 ){
                    if(mcp3424_sensor.value(1) && missing_adc_value() == 0 && adc1 == 0){
                     
-		i += snprintf(result+i,14, " ADC_2=%.3f",mcp3424_sensor.value(1)/1000.000);
+		i += snprintf(result+i,14, " ADC_2=%.8f",mcp3424_sensor.value(1)/1000.000);
                         adc2 = 1;
 		}else{
                          adc2 =0;
@@ -1310,7 +1321,7 @@ while (sensors != NULL){
 		} else if (!strncmp(trim(sensors), "ADC_3", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(2) && missing_adc_value() == 0 && adc1 == 0 && adc2 == 0){
-		i += snprintf(result+i,14, " ADC_3=%.3f",mcp3424_sensor.value(2)/1000.000);
+		i += snprintf(result+i,14, " ADC_3=%.8f",mcp3424_sensor.value(2)/1000.000);
                       adc3 =1;
 		}else{
                      
@@ -1377,7 +1388,7 @@ read_sensor_values_report2(void){
 	//i += snprintf(result+i, 5, "R2");
        
 	while (sensors != NULL){
-                if(adc_read_v_in() < 2.71){
+                if(adc_read_v_in() < 2.75){
                   if (!strncmp(trim(sensors), "T_MCU", 5)) {
 			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {
@@ -1518,7 +1529,7 @@ read_sensor_values_report3(void){
 	sensors=strtok ((char*)tagmask3, " ");
       //i += snprintf(result+i, 5, "R3");
 	while (sensors != NULL){
-                if(adc_read_v_in() < 2.71){
+                if(adc_read_v_in() < 2.75){
                   if (!strncmp(trim(sensors), "T_MCU", 5)) {
 			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
 		} else if (!strncmp(trim(sensors), "V_MCU", 5)) {

@@ -71,7 +71,7 @@ uint8_t data_low;
  uint16_t data_high;
  uint16_t command;
  unsigned int ret;
- double data;
+ int data;
 
  if(type==0)
       command = SHT25_TEMP_HOLD;
@@ -95,7 +95,7 @@ else{
 	if(type==0){
 		float temp = (data_high<<8) +(data_low);
 		// increase to cater for single decimal point	
-		data =  (double) ((((temp/65536)* 175.72)-46.85) * 10);
+		data =  (int) ((((temp/65536)* 175.72)-46.85) * 10);
                 missing_t_value_flag = 0;
 		return data;
          }

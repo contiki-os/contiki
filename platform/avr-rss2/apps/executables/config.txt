@@ -1,0 +1,7 @@
+APN:orange.ug
+USERNAME:
+PASS:
+UPLOADCOUNT:500
+SERVER:wimea.mak.ac.ug
+PORT:10005
+DUMMY: data
