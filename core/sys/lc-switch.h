@@ -62,7 +62,7 @@
 /** \hideinitializer */
 typedef unsigned short lc_t;
 
-#define LC_INIT(s) s = 0;
+#define LC_INIT(s) s = 0
 
 #define LC_RESUME(s) switch(s) { case 0:
 
