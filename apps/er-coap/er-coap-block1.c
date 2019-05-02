@@ -56,11 +56,11 @@
 /*----------------------------------------------------------------------------*/
 
 /**
- * \brief Block 1 support within a coap-ressource
+ * \brief Block 1 support within a coap-resource
  *
  *        This function will help you to use block 1. If target is null
  *        error handling and response configuration is active. On return
- *        value 0, the last block was recived, while on return value 1
+ *        value 0, the last block was received, while on return value 1
  *        more blocks will follow. With target, len and maxlen this
  *        function will assemble the blocks.
  *

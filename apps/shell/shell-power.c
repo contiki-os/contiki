@@ -76,7 +76,7 @@ SHELL_COMMAND(powerconv_command,
 PROCESS(shell_powergraph_process, "powergraph");
 SHELL_COMMAND(powergraph_command,
 	      "powergraph",
-	      "powergraph: convert power profile to a 'graphical' repressentation",
+	      "powergraph: convert power profile to a 'graphical' representation",
 	      &shell_powergraph_process);
 #endif /* WITH_POWERGRAPH */
 /*---------------------------------------------------------------------------*/

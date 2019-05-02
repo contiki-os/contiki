@@ -47,7 +47,7 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
  * together.
  *
  * The main function in this file is the htmlparser_parse() function
- * which takes a htmlparser_state structur and a part of an HTML file
+ * which takes a htmlparser_state structure and a part of an HTML file
  * as an argument. The htmlparser_parse() function will call the
  * helper functions parse_char() and parse_tag(). Those functions will
  * in turn call the two callback functions htmlparser_char() and
@@ -565,7 +565,7 @@ parse_word(char *data, uint8_t dlen)
     }
     break;
   case MINORSTATE_TAG:
-    /* If we are inside a <srcipt> we mustn't mistake a JavaScript
+    /* If we are inside a <script> we mustn't mistake a JavaScript
        equation with a '<' as a tag. So we check for the very next
        character to be a '/' as we're only interested in parsing
        the </script>. */

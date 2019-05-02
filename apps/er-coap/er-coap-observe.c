@@ -283,7 +283,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
           /*
            * Following payload is for demonstration purposes only.
            * A subscription should return the same representation as a normal GET.
-           * Uncomment if you want an information about the avaiable observers.
+           * Uncomment if you want an information about the available observers.
            */
 #if 0
           static char content[16];

@@ -275,7 +275,7 @@ void shell_register_command(struct shell_command *c);
  * \param c    A pointer to a shell command structure
  *
  *             This function unregisters a shell command that has
- *             previously been registered with eht
+ *             previously been registered with the
  *             shell_register_command() function.
  *
  */

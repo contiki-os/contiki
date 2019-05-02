@@ -52,7 +52,7 @@
  
  /* Titles of web pages served with the !header cgi can be configured to show characteristics of the node.
   * For example "CD1A:3456" to show the node id and clock time of last access.
-  * Change this line and rebuild to make indentifiable instances.
+  * Change this line and rebuild to make identifiable instances.
   * Undefine to reduce program size, giving "Contiki-Nano" title on all pages.
   * WAD indexes into the uip destaddr field, which contains the address that we responded to.
   */
@@ -117,7 +117,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 /* Log page accesses */
 #define WEBSERVER_CONF_LOG       0
 /* Include referrer in log */
-#define WEBSERVER_CONF_REFERER   0
+#define WEBSERVER_CONF_REFERRER   0
 /*-----------------------------------------------------------------------------*/
 #elif WEBSERVER_CONF_NANO==2
 /* webserver-mini having more content */
@@ -165,7 +165,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 /* Log page accesses */
 #define WEBSERVER_CONF_LOG       0
 /* Include referrer in log */
-#define WEBSERVER_CONF_REFERER   1
+#define WEBSERVER_CONF_REFERRER   1
 
 /*-----------------------------------------------------------------------------*/
 #elif WEBSERVER_CONF_NANO==3
@@ -215,7 +215,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 /* Log page accesses */
 #define WEBSERVER_CONF_LOG       1
 /* Include referrer in log */
-#define WEBSERVER_CONF_REFERER   1
+#define WEBSERVER_CONF_REFERRER   1
 
 #else
 #error Specified WEBSERVER_CONF_NANO configuration not supported.

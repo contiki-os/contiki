@@ -13,7 +13,7 @@ extern const char http_crnl[3];
 extern const char http_index_htm[11];
 extern const char http_index_html[12];
 extern const char http_404_html[10];
-extern const char http_referer[9];
+extern const char http_referrer[9];
 extern const char http_header_200[85];
 extern const char http_header_404[92];
 extern const char http_content_type_plain[29];

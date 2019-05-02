@@ -149,7 +149,7 @@ PROCESS_THREAD(shell_unicast_process, ev, data)
   receiver.u8[0] = shell_strtolong(data, &nextptr);
   if(nextptr == data || *nextptr != '.') {
     shell_output_str(&unicast_command,
-		     "unicast <receiver>: recevier must be specified", "");
+		     "unicast <receiver>: receiver must be specified", "");
     PROCESS_EXIT();
   }
   ++nextptr;

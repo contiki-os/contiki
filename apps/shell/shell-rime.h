@@ -81,7 +81,7 @@ void shell_rime_init(void);
 #define SHELL_RIME_CHANNEL_NETPERF   SHELL_RIME_CHANNEL_DOWNLOAD + 2
 
 
-/* Announcement idenfied used by the 'neighbors' command, uses one idenfier */
+/* Announcement identified used by the 'neighbors' command, uses one identifier */
 #define SHELL_RIME_ANNOUNCEMENT_IDENTIFIER_NEIGHBORS SHELL_RIME_CHANNEL_DOWNLOAD + 2
 
 extern struct collect_conn shell_collect_conn;

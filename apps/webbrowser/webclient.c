@@ -277,7 +277,7 @@ parse_statusline(uint16_t len)
 	} else if(strncmp(cptr, http_301, sizeof(http_301) - 1) == 0 ||
 		  strncmp(cptr, http_302, sizeof(http_302) - 1) == 0) {
 	  /* 301 Moved permanently or 302 Found. Location: header line
-	     will contain thw new location. */
+	     will contain the new location. */
 	  s.httpflag = HTTPFLAG_MOVED;
 	} else {
 	  s.httpheaderline[s.httpheaderlineptr - 1] = 0;

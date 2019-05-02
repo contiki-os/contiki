@@ -136,7 +136,7 @@ Examples inteded for running on the Tmote Sky board. To compile those, you need
 to have msp430-gcc (the gcc C compiler for the MSP430 microcontroller)
 installed.
 
-The follwing programs are included:
+The following programs are included:
 
 - blink.c          A simple program that blinks the on-board LEDs
 - sky-collect.c    Collects sensor data and energy profile values to a sink.

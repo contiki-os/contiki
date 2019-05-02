@@ -391,7 +391,7 @@ char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #endif
 
 const char httpd_get[] HTTPD_STRING_ATTR = "GET ";
-const char httpd_ref[] HTTPD_STRING_ATTR = "Referer:";
+const char httpd_ref[] HTTPD_STRING_ATTR = "Referrer:";
 static
 PT_THREAD(handle_input(struct httpd_state *s))
 {
@@ -438,7 +438,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   s->state = STATE_OUTPUT;
   while(1) {
     PSOCK_READTO(&s->sin, ISO_nl);
-#if WEBSERVER_CONF_LOG && WEBSERVER_CONF_REFERER
+#if WEBSERVER_CONF_LOG && WEBSERVER_CONF_REFERRER
     if(httpd_strncmp(s->inputbuf, httpd_ref, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
       petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);

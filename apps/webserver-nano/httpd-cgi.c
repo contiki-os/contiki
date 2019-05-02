@@ -489,7 +489,7 @@ uint16_t numprinted=0;
 struct httpd_state *s=p;
 static uip_ds6_nbr_t *nbr;
   /* Span generator calls over tcp segments */
-  /* Note retransmissions will execute thise code multiple times for a segment */
+  /* Note retransmissions will execute these code multiple times for a segment */
   i=s->starti;j=s->startj;
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
@@ -543,7 +543,7 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
   PSOCK_BEGIN(&s->sout);
 
   /* Send as many TCP segments as needed for the neighbor table */
-  /* Move to next seqment after each successful transmission */
+  /* Move to next segment after each successful transmission */
   s->starti=s->startj=0;
   do {
 	PSOCK_GENERATOR_SEND(&s->sout, make_neighbors, (void *)s);
@@ -572,7 +572,7 @@ uint16_t numprinted=0;
 struct httpd_state *s=p;
 uip_ds6_route_t *r;
   /* Span generator calls over tcp segments */
-  /* Note retransmissions will execute thise code multiple times for a segment */
+  /* Note retransmissions will execute these code multiple times for a segment */
   i=s->starti;j=s->startj;
   for(r = uip_ds6_route_head();
       r != NULL;
@@ -656,7 +656,7 @@ PT_THREAD(routes(struct httpd_state *s, char *ptr))
   PSOCK_BEGIN(&s->sout);
 
   /* Send as many TCP segments as needed for the route table */
-  /* Move to next seqment after each successful transmission */
+  /* Move to next segment after each successful transmission */
   s->starti=s->startj=0;
   do {
     PSOCK_GENERATOR_SEND(&s->sout, make_routes, s);
@@ -1189,7 +1189,7 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
   ADCSRA|=1<<ADSC;          //Start another conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   tmp=ADC;                  //Read adc
-  tmp=11*tmp-2728+(tmp>>2); //Convert to celcius*10 (should be 11.3*h, approximate with 11.25*h)
+  tmp=11*tmp-2728+(tmp>>2); //Convert to celsius*10 (should be 11.3*h, approximate with 11.25*h)
   ADCSRA=0;                 //disable ADC
   ADMUX=0;                  //turn off internal vref      
 #endif
@@ -1466,7 +1466,7 @@ uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result)
                 //replace a bunch with : yet?
                 if ((addr.u16[i] == 0) && (zerocnt == 0))
                         {
-                        //How mant zeros?
+                        //How many zeros?
                         zerocnt = 0;
                         while(addr.u16[zerocnt + i] == 0)
                                 zerocnt++;
