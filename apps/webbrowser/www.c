@@ -906,7 +906,7 @@ htmlparser_word(char *word, unsigned char wordlen)
 void
 htmlparser_link(char *text, unsigned char textlen, char *url)
 {
-  /* No link for https or fragment-only as we would't be able to handle it anyway. */
+  /* No link for https or fragment-only as we wouldn't be able to handle it anyway. */
   if(url[0] == ISO_hash || strncmp(url, http_https, sizeof(http_https) - 1) == 0) {
     htmlparser_word(text, textlen);
   } else {

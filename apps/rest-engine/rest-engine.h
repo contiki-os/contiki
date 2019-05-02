@@ -45,7 +45,7 @@
 #include "contiki-lib.h"
 #include "rest-constants.h"
 
-/* list of valid REST Enigne implementations */
+/* list of valid REST Engine implementations */
 #define REGISTERED_ENGINE_ERBIUM coap_rest_implementation
 #define REGISTERED_ENGINE_HELIUM http_rest_implementation
 

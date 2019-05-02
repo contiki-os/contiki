@@ -456,7 +456,7 @@ relation_remove(char *name, int remove_tuples)
   rel = relation_load(name);
   if(rel == NULL) {
     /*
-     * Attempt to remove an inexistent relation. To allow for this 
+     * Attempt to remove a nonexistent relation. To allow for this 
      * operation to be used for setting up repeatable tests and 
      * experiments, we do not signal an error.
      */

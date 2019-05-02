@@ -205,7 +205,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   while(1) {
     PSOCK_READTO(&s->sin, ISO_nl);
 
-    if(strncmp(s->inputbuf, http_referer, 8) == 0) {
+    if(strncmp(s->inputbuf, http_referrer, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
       petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
       webserver_log(s->inputbuf);

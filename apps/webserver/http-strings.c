@@ -43,8 +43,8 @@ const char http_index_html[12] =
 const char http_404_html[10] = 
 /* "/404.html" */
 {0x2f, 0x34, 0x30, 0x34, 0x2e, 0x68, 0x74, 0x6d, 0x6c, };
-const char http_referer[9] = 
-/* "Referer:" */
+const char http_referrer[9] = 
+/* "Referrer:" */
 {0x52, 0x65, 0x66, 0x65, 0x72, 0x65, 0x72, 0x3a, };
 const char http_header_200[85] = 
 /* "HTTP/1.0 200 OK\r\nServer: Contiki/3.x http://www.contiki-os.org/\r\nConnection: close\r\n" */

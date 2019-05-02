@@ -147,7 +147,7 @@ rest_invoke_restful_service(void *request, void *response, uint8_t *buffer,
   for(resource = (resource_t *)list_head(restful_services);
       resource; resource = resource->next) {
 
-    /* if the web service handles that kind of requests and urls matches */
+    /* if the web service handles that kind of request and url matches */
     res_url_len = strlen(resource->url);
     if((url_len == res_url_len
         || (url_len > res_url_len

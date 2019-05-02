@@ -32,14 +32,14 @@
 /* Single line comments look like this. */
 
 /*
- * Multi-line comments look like this. Comments should prefferably be
+ * Multi-line comments look like this. Comments should preferably be
  * full sentences, filled to look like real paragraphs.
  */
 
 #include "contiki.h"
 
 /*
- * Make sure that non-global variables are all maked with the static
+ * Make sure that non-global variables are all marked with the static
  * keyword. This keeps the size of the symbol table down.
  */
 static int flag;
@@ -98,9 +98,9 @@ code_style_example_function(char c)
      * are less error prone.
      */
     if(i == c) {
-      return 1;           /* No parentesis around return values. */
-    } else {              /* The else keyword is placed inbetween
-                             curly brackers, always on its own line. */
+      return 1;           /* No parentheses around return values. */
+    } else {              /* The else keyword is placed between
+                             curly brackets, always on its own line. */
       c++;
     }
   }

@@ -76,7 +76,7 @@ PROCESS_THREAD(shell_rime_ping_process, ev, data)
   receiver.u8[0] = shell_strtolong(data, &nextptr);
   if(nextptr == data || *nextptr != '.') {
     shell_output_str(&rime_ping_command,
-		     "ping <receiver>: recevier must be specified", "");
+		     "ping <receiver>: receiver must be specified", "");
     PROCESS_EXIT();
   }
   ++nextptr;
@@ -151,7 +151,7 @@ recv_mesh(struct mesh_conn *c, const linkaddr_t *from, uint8_t hops)
 	    hops);
 
     shell_output_str(&rime_ping_command,
-		     "Pong recived; rtt ", buf);
+		     "Pong received; rtt ", buf);
     waiting_for_pong = 0;
     process_post(&shell_rime_ping_process, PROCESS_EVENT_CONTINUE, NULL);
   }

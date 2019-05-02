@@ -219,7 +219,7 @@ interface usb0
     };
 };
 \endverbatim
-\note This values have been carefuly chosen to work on platform using
+\note This values have been carefully chosen to work on platform using
 a 16bit clock.
 
 Restart the radvd daemon. Example command:
@@ -374,7 +374,7 @@ packets to Ethernet (The Ethernet interface is emulated on the
 USB port).
 
 As Ethernet frames and addresses are very different
-from 802.15.4 ones, a few adjustements are needed on addresses
+from 802.15.4 ones, a few adjustments are needed on addresses
 and some neighbor discovery packets. As a consequence, 802.15.4
 MAC addresses configured on both the RAVEN boards and the RZ USB
 stick must have the format:<br>

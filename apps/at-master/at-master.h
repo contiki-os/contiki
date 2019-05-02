@@ -66,7 +66,7 @@ uint8_t at_send(char *s, uint8_t len);
 /**
  * \brief          AT event callback
  * \param cmd      A pointer to the AT command placeholder
- * \param len      Lenght of the received data (including the AT command header)
+ * \param len      Length of the received data (including the AT command header)
  * \param data     A user-defined pointer
  *
  * The AT event callback function gets called whenever there is an
@@ -89,7 +89,7 @@ struct at_cmd {
  * \brief                 Registers the callback to return an AT command
  * \param cmd             A pointer to the CMD placeholder
  * \param cmd_hdr         String to compare when an AT command is received
- * \param cmd_len         Lenght of cmd_hdr
+ * \param cmd_len         Length of cmd_hdr
  * \param event_callback  Callback function to handle the AT command
  * \return                AT_STATUS_OK or AT_STATUS_INVALID_ARGS_ERROR
  *
@@ -108,7 +108,7 @@ struct at_cmd *at_list(void);
  * \brief                 Registers the callback to return an AT command
  * \param cmd             A pointer to the CMD placeholder
  * \param cmd_hdr         String to compare when an AT command is received
- * \param cmd_len         Lenght of cmd_hdr
+ * \param cmd_len         Length of cmd_hdr
  * \param event_callback  Callback function to handle the AT command
  * \return                AT_STATUS_OK or AT_STATUS_INVALID_ARGS_ERROR
  *
