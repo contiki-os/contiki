@@ -9,11 +9,8 @@ $(info CFLAGS: $(CFLAGS))
 #source common to all targets
 
 wolfssl_src += 	$(WOLFSSL_ROOT)/wolfcrypt/src/aes.c \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/arc4.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/asm.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/asn.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/blake2b.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/camellia.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/chacha.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/chacha20_poly1305.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/cmac.c  \
@@ -38,15 +35,12 @@ wolfssl_src += 	$(WOLFSSL_ROOT)/wolfcrypt/src/aes.c \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/idea.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/integer.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/logging.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/md2.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/md4.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/md5.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/memory.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/pkcs12.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/pkcs7.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/poly1305.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/pwdbased.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/rabbit.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/random.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/ripemd.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/rsa.c  \

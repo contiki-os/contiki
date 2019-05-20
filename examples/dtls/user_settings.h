@@ -54,6 +54,8 @@
 #define NO_MD4
 #define NO_RABBIT
 #define NO_HC128
+#define NO_RC4
+#define NO_DES3
 
 #include <stdlib.h>
 #include "contiki-net.h"
