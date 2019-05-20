@@ -57,3 +57,4 @@
 #include "contiki-net.h"
 #include "sys/cc.h"
 #include "wolfssl.h"
+#include <wolfssl/wolfcrypt/types.h>

@@ -20,7 +20,6 @@ wolfssl_src += 	$(WOLFSSL_ROOT)/wolfcrypt/src/aes.c \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/coding.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/compress.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/cpuid.c  \
-					$(WOLFSSL_ROOT)/wolfcrypt/src/cryptodev.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/curve25519.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/des3.c  \
 					$(WOLFSSL_ROOT)/wolfcrypt/src/dh.c  \

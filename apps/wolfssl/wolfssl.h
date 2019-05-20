@@ -23,13 +23,17 @@
  */
 #ifndef WOLFSSL_SK_H
 #define WOLFSSL_SK_H
-#include "wolfssl/ssl.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "wolfssl.h"
+#include <wolfssl/ssl.h>
+#include "uip.h"
 #include "wolfssl/wolfio.h"
-#include "user_settings.h"
 #include "contiki-net.h"
 #include "lib/random.h"
 #include "sys/cc.h"
-#include <stdlib.h>
+#include <wolfssl/wolfcrypt/types.h>
 
 struct uip_wolfssl_ctx *tls_socket_register(WOLFSSL_METHOD* method);
 int tls_socket_accept(uip_wolfssl_ctx *sk);

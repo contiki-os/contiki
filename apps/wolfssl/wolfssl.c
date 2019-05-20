@@ -25,9 +25,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wolfssl/wolfcrypt/settings.h>
+#include <wolfssl/wolfcrypt/types.h>
 #include "wolfssl.h"
 #include <wolfssl/ssl.h>
 #include "uip.h"
+
 static int wolfssl_is_initialized = 0;
 
 //#define SSL_DATABUF_LEN (UIP_CONF_BUFFER_SIZE)
