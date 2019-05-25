@@ -1,0 +1,84 @@
+wolfssl_src = wolfssl.c
+
+WOLFSSL_ROOT?=wolfssl
+SOURCEDIRS+=$(WOLFSSL_ROOT)
+CFLAGS+=-I../../apps/wolfssl/$(WOLFSSL_ROOT) -DUSE_WOLFSSL
+$(info WOLFSSL: $(WOLFSSL_ROOT))
+$(info SOURCEDIRS: $(SOURCEDIRS))
+$(info CFLAGS: $(CFLAGS))
+#source common to all targets
+
+wolfssl_src += 	$(WOLFSSL_ROOT)/wolfcrypt/src/aes.c \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/asm.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/asn.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/chacha.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/chacha20_poly1305.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/cmac.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/coding.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/compress.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/cpuid.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/curve25519.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/des3.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/dh.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/dsa.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ecc.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ecc_fp.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ed25519.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/error.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/fe_low_mem.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/fe_operations.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ge_low_mem.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ge_operations.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/hash.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/hc128.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/hmac.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/idea.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/integer.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/logging.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/md5.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/memory.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/pkcs12.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/pkcs7.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/poly1305.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/pwdbased.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/random.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/ripemd.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/rsa.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sha.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sha256.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sha512.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sha3.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/signature.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_arm32.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_arm64.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_c32.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_c64.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_int.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/sp_x86_64.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/srp.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/tfm.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/wc_encrypt.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/wc_port.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/wolfevent.c  \
+					$(WOLFSSL_ROOT)/wolfcrypt/src/wolfmath.c 
+
+#WOLFCRYPT_ASM_SOURCE_FILES  = $(WOLFSSL_ROOT)/wolfcrypt/src/aes_asm.S
+
+
+wolfssl_src += \
+    $(WOLFSSL_ROOT)/src/internal.c \
+    $(WOLFSSL_ROOT)/src/tls.c \
+	$(WOLFSSL_ROOT)/src/wolfio.c \
+    $(WOLFSSL_ROOT)/src/keys.c \
+    $(WOLFSSL_ROOT)/src/crl.c \
+    $(WOLFSSL_ROOT)/src/ssl.c \
+    $(WOLFSSL_ROOT)/src/sniffer.c \
+    $(WOLFSSL_ROOT)/src/ocsp.c \
+    $(WOLFSSL_ROOT)/src/tls13.c
+
+vpath %c ../../apps/$(WOLFSSL_ROOT)/src
+vpath %c ../../apps/$(WOLFSSL_ROOT)/wolfcrypt/src
+
+%.d:
+	@mkdir -p $(OBJECTDIR)/wolfssl/src
+	@mkdir -p $(OBJECTDIR)/wolfssl/wolfcrypt/src

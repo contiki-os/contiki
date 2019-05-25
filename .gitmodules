@@ -17,3 +17,6 @@
 [submodule "tools/sensniff"]
 	path = tools/sensniff
 	url = https://github.com/g-oikonomou/sensniff.git
+[submodule "apps/wolfssl/wolfssl"]
+	path = apps/wolfssl/wolfssl
+	url = https://github.com/wolfssl/wolfssl
