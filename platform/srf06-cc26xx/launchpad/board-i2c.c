@@ -318,7 +318,6 @@ board_i2c_select(uint8_t address)
     /* Enable and initialize the I2C master module */
     ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
                                    true);
-  }
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
