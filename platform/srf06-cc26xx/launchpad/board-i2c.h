@@ -50,23 +50,14 @@
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Put the I2C controller in a known state
- *
- * In this state, pins SDA and SCL will be under i2c control and pins SDA HP
- * and SCL HP will be configured as gpio inputs. This is equal to selecting
- * BOARD_I2C_INTERFACE_0, but without selecting a slave device address
  */
-#define board_i2c_deselect() board_i2c_select(BOARD_I2C_INTERFACE_0, 0)
+#define board_i2c_deselect() board_i2c_select(0)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Select an I2C slave
- * \param interface The I2C interface to be used (BOARD_I2C_INTERFACE_0 or _1)
  * \param slave_addr The slave's address
- *
- * The various sensors on the sensortag are connected either on interface 0 or
- * 1. All sensors are connected to interface 0, with the exception of the MPU
- * that is connected to 1.
  */
-void board_i2c_select(uint8_t interface, uint8_t slave_addr);
+void board_i2c_select(uint8_t slave_addr);
 
 /**
  * \brief Burst read from an I2C device
