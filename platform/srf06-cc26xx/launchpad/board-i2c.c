@@ -128,13 +128,7 @@ board_i2c_shutdown()
    * pull to match external pull
    *
    * SDA and SCL: external PU resistor
-   * SDA HP and SCL HP: MPU PWR low
    */
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA_HP, IOC_IOPULL_DOWN);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL_HP, IOC_IOPULL_DOWN);
-
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL);
@@ -307,7 +301,7 @@ board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata, uint8_t rlen)
 }
 /*---------------------------------------------------------------------------*/
 void
-board_i2c_select(uint8_t new_interface, uint8_t address)
+board_i2c_select(uint8_t address)
 {
   slave_addr = address;
 
@@ -315,24 +309,11 @@ board_i2c_select(uint8_t new_interface, uint8_t address)
     board_i2c_wakeup();
   }
 
-  if(new_interface != interface) {
-    interface = new_interface;
-
     ti_lib_i2c_master_disable(I2C0_BASE);
 
-    if(interface == BOARD_I2C_INTERFACE_0) {
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_NO_IOPULL);
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_NO_IOPULL);
-      ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA, BOARD_IOID_SCL);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA_HP);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL_HP);
-    } else if(interface == BOARD_I2C_INTERFACE_1) {
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA_HP, IOC_NO_IOPULL);
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL_HP, IOC_NO_IOPULL);
-      ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA_HP, BOARD_IOID_SCL_HP);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA);
-      ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL);
-    }
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_NO_IOPULL);
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_NO_IOPULL);
+    ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA, BOARD_IOID_SCL);
 
     /* Enable and initialize the I2C master module */
     ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
