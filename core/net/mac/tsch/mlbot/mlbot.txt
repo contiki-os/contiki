@@ -1,0 +1,189 @@
+/*  Antes de nada, el nodo TSCH debe simcronizarse a la red */
+
+/* Algoritmo desde el inicio del nodo:
+    TSCH define las funciones que reciben el paquete de radio.
+    Cuando el nodo depierta verifica si es coordinador,
+    si no, llama al protohilo de escaneo PT_THREAD(tsch_scan(struct pt *pt))
+    (tsch.c) que es quien contiene los algoritmo de scaneo del medio
+    (hay que modificar este protohilo) 
+    el protohilo escanea hasta 
+    if(is_packet_pending)
+        input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN); // 651 - tsch.c
+        Se devuelve el largo del paquete y un puntero al payload;
+        en este caso se pasan a la estructura de input_eb, porque es lo unico que se espera
+        al modificar puede que sean dos cosas, o el EB o el LB, por lo que se deben cambiar 
+        o el nombre de la variable o una compilación condicional al MLBOT....
+
+        NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));  //654 - tsch.c
+        Se obtiene el timestamp, si es una sonda, ???? ya veremos que hacer con el 
+
+        tsch_associate(&input_eb, t0);  //659 - tsch.c
+        Se llama directamente a la función para asociarse; se asume que cualquier paquete es potencialmente una sonda
+        Se le pasa la dirección del puntero al paquete recibido y el timestapm. 
+        El timestamp es la base del sincronismo, porque si el paquete resulta ser un EB se recibio según la estructura de tiempo 
+        contenida en el EB, cuya ventana de tx para el timeslot comienza en la marca recogida por el timestamp.
+        El timestamp es entonces crucial para mantener el sincronismo de la red TSCH
+        Recordamos que la estructura input_eb solo tiene lleno los campos len y payload
+
+            tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp) //  432 - tsch.c
+            
+            frame802154_t frame;  //434 - tsch.c
+            struct ieee802154_ies ies;  //435 -tsch.c
+            uint8_t hdrlen;
+            Esta función declara una estructura para el frame y otra para los IEs y un byte para el tamaño del header...       
+
+            if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len, &frame, &ies, &hdrlen, 0) == 0)  //439 - tsch
+            return 0;  //442 - tsch.c
+            Si el paquete está vacío o si parse falla se retorna 0. 
+            De cualquier forma se intenta hacer el parseo a un probable EB; la propia función verifica luego de parcear que es o no un EB 
+            Esto puede ser un desperdicio en tiempo de ejecución pero lo cierto es que ahora código en una memoria restringida
+            La función está implementada en el archivo tsch-packet.c
+
+                tsch_packet_parse_eb(const uint8_t *buf, int buf_size, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)    
+
+                if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) == 0) //  360 - tsch-packet.c
+                Se parsea todo el frame sin los IE; primero debe ser verificado si efectivamente es un EB;
+                esta función está en el archivo frame802154.c
+
+                    frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
+
+                    frame802154_parse_fcf(p, &fcf); // 518 - frame802154.c
+                    decodifica el Frame Control Field FCF. 
+                    Esta función está implementada en el mismo archivo justo arriba, verla para ver como está parceados los bits en uint8_t
+
+                    decodifica en campos separados las distintas partes de paquete según el estandar..........
+
+                if(frame->fcf.frame_version < FRAME802154_IEEE802154E_2012 || frame->fcf.frame_type != FRAME802154_BEACONFRAME)
+                aqui es donde definitivamente se verifica si es un EB; 
+                si la versión del frame no es la 2012, no es tsch o type no es un EB, bueno, no es un EB
+
+            Si todo indica que es un EB, y es un EB válido, se parcea el ASN y el JP (join priority)
+            estos son los dos campos de Synchronization IE (epígrafe 7.4.4.2) con 6 octetos, 5 ASN + 1 JP
+
+            tsch_current_asn = ies.ie_asn;  // 445 - tsch.c
+            tsch_join_priority = ies.ie_join_priority + 1; // 446 - tsch.c
+            
+            se sincroniza el timeslot según la estructura definida en el estandar;
+            basicamente es pasar en ticks los tamaños de cada parte del timeslot en la estructura tsch_timing que es del tipo rtimer_clock_t
+            y está definida como 
+
+            rtimer_clock_t tsch_timing[tsch_ts_elements_count]; //  111 - tsch.c
+
+            que va a recibir o la por defecto en caso que el EB no especifique nada o la contenida en el TSCH timeslot IE según 7.4.4.4
+
+            ies.ie_tsch_timeslot[i]
+
+            este tipo define una estructura con todos los campos del timeslot, que es del largo de tsch_ts_elements_count
+            for(i = 0; i < tsch_ts_elements_count; i++) {    // desde 486 - tsch.c
+                if (ies.ie_tsch_timeslot_id == 0)
+                    tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
+                } else {
+                    tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
+                }
+            }
+
+            Una vez establecido el timing, se establece la hopping sequence;
+            Channel hopping IE (epígrafe 7.4.4.31)
+
+            if(ies.ie_channel_hopping_sequence_id == 0) // 495 - tsch.c
+                Se utiliza el TSCH_DEFAULT_HOPPING_SEQUENCE
+            else
+                Se parcea el que viene en el ie utilizado dos elementos
+                ies.ie_hopping_sequence_len
+                ies.ie_hopping_sequence_list
+
+                memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
+                Hasta aquí el resto de los elementos de Channel hopping IE son ignorados
+
+                Se inicializa el divisor ASN
+                TSCH_ASN_DIVISOR_INIT(tsch_hopping_sequence_length, (sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE) or ies.ie_hopping_sequence_len))
+                El divisor es la variable tsch_hopping_sequence_length, tipo asn_divisor_t, estructura compuesta por el valor (val) y el remainder de la operacion (0x100000000 / val)
+                El problema es que el ASN tiene 5 bytes, y solo podemos trabajar hasta con 32 bit (4 bytes),
+                esta macro inicializa l aestructuctura que nos permite operaciones correctas de MOD en el 5to byte cuando fuera el caso
+
+            Crear el planificador, el cual por defecto lo toma del EB
+            Para identificar y configurar el planificador se utiliza el IE TSCH Slotframe and link (epígrafe 7.4.4.3)
+            
+            #if TSCH_INIT_SCHEDULE_FROM_EB // 520 - tsch.c
+            Esto es una compilación condicional, optimo para ahorrar memoria de programa
+
+            primero verifica que los ies tengan información de planificación en el ie
+            ies.ie_tsch_slotframe_and_link.num_slotframes
+
+            Si es 0 y está habilidado (compilado) minimal  para este nodo
+            tsch_schedule_create_minimal();  // 525 - tsch.c
+
+                tsch_schedule_create_minimal() implementado en el archivo tsch-schedule.c linea 403. 
+                Crea el planificador minimo para 6TiSCH rfc 8180
+
+                Limpia el posible planificador que exista 
+                tsch_schedule_remove_all_slotframes();  // 407 - tsch-schedule.c
+
+                Crea un único slotframe utilizando el largo por defecto
+
+                sf_min = tsch_schedule_add_slotframe(0, TSCH_SCHEDULE_DEFAULT_LENGTH);  // 410 - tsch-schedule.c
+                donde el primer parámetro es el handle y TSCH_SCHEDULE_DEFAULT_LENGTH == 7, pero en conf del proyecto de ejemplo estápuesto a 3.
+
+                Incorpora un único link Tx|Rx|Shared además como time keeping y para advertissing
+                que no es descrito en minimal 6TiSCH pero se necesita para enviar EB
+
+                tsch_schedule_add_link(sf_min,
+                    LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED | LINK_OPTION_TIME_KEEPING,   // 415 - tsch-schedule.c
+                    LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+                    0, 0);
+                El 1 parámetro es el slotframe (tipo estructurura tsch_slotframe, el puntero a la estructura es devuelta por tsch_schedule_add_slotframe()), 
+                el 2 es las opciones (es una máscara declarada en tsch-schedule.h, línea 77++),
+                el 3 es el tipo (LINK_TYPE_ADVERTISING, declarada en tsch-schedule.h, línea 87),
+                el 5 es la dirección del nodo remoto (tipo linkaddr_t),
+                el 6 uint16_t timeslot, 
+                el 7 uint16_t channel_offset
+
+            Si no, se limpia el planificador actual (por si había alguno activo)
+            tsch_schedule_remove_all_slotframes();  // 531 - tsch.c     
+            y se parsea la estructura de links con el contrnido de ies.ie_tsch_slotframe_and_link
+            se utilizan
+            int num_links = ies.ie_tsch_slotframe_and_link.num_links;   // 533 - tsch.c 
+                
+            se crea el/los slotframes
+            struct tsch_slotframe *sf = tsch_schedule_add_slotframe(  // 536 - tsch.c
+                ies.ie_tsch_slotframe_and_link.slotframe_handle,
+                ies.ie_tsch_slotframe_and_link.slotframe_size);
+
+            se rellenan los link del slotframe
+            for(i = 0; i < num_links; i++) {      // 539 - tsch.c
+            tsch_schedule_add_link(sf,
+                ies.ie_tsch_slotframe_and_link.links[i].link_options,
+                LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+                ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
+            }
+            
+            Luego de haber configurado el TSCH a partir de la información de los IEs, 
+            se pasa actualizar las variables globales y de sincronismo si el vecino es adecuado.
+            para aceptar como vecino al nodo del que se ha recibido el EB, se verifica que 
+            (tsch_join_priority < TSCH_MAX_JOIN_PRIORITY)
+            Si se cumple crea un puntero tipo struct tsch_neighbor
+            struct tsch_neighbor *n;
+            
+            Y se adiciona a la lista de vecinos
+            n = tsch_queue_add_nbr((linkaddr_t *)&frame.src_addr);  // 556 - tsch.c
+
+            Se establece el ID de la PAN
+            frame802154_set_pan_id(frame.src_pid);  // 562 - tsch.c
+
+            Se sincroniza en base al timestamp del EB
+            tsch_slot_operation_sync(timestamp - tsch_timing[tsch_ts_tx_offset], &tsch_current_asn); // 565 - tsch.c
+
+
+
+    */
+
+
+
+/* Todos los cambios que se introduzcan en el código para mlbot deberán ser compilaciones condicionales, o sea,
+
+    #if TAL_COSA
+        ....
+        ....
+    #endif
+
+ */
