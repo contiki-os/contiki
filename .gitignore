@@ -53,7 +53,7 @@ tools/collect-view/build/
 tools/collect-view/dist/
 COOJA.testlog
 tools/cooja/apps/mrm/lib/
-tools/cooja/apps/mspsim/lib/
+#tools/cooja/apps/mspsim/lib/
 tools/cooja/apps/powertracker/lib/
 tools/cooja/apps/serial_socket/lib/
 tools/coffee-manager/coffee.jar
