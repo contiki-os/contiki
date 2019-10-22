@@ -576,8 +576,8 @@ void update_battery(){
 
   //TURNING HARVESTING OFF TO CORRECT MEASUREMENT
 
-  if(!harvest)
-    solar_charging = 0;
+//if(!harvest)
+  solar_charging = 0;
 
   powertrace_print("");// In this fuction time in state is updated
 

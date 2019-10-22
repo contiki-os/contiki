@@ -59,8 +59,8 @@ LIST(observers_list);
 //RENATO ATTEMPT TO MAKE CONTIKI READ THE INSTRUCTIONS SENT BY CALIFORNIUM
 
 
-int frequency = 10;
-int conInterval = COAP_OBSERVING_REFRESH_INTERVAL;
+int frequency = 5;
+int conInterval = 50;
 int remove_node = 0;
 
 
@@ -73,6 +73,7 @@ return a - (double)( result ) * b;
 
 
 int getInstructions(char *payload){
+  /*
   printf("PAYLOAD -> %s\n", payload);
   printf("Extracting Instructions\n");
   if(payload != NULL){
@@ -104,6 +105,8 @@ int getInstructions(char *payload){
     printf("NULL pointer\n");
    return 0;
   }
+  */
+ return 0;  
 }
 
 

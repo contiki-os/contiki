@@ -1,0 +1,3 @@
+wget "http://[aaaa::200:0:0:1]" -O nodes.txt
+echo $(python routes.py 2>&1)
+
