@@ -217,9 +217,9 @@ packet_input(void)
     uip_input();
     if(uip_len > 0) {
 
-	#if PLATFORM_HAS_AGGREGATION	
+	//#if PLATFORM_HAS_AGGREGATION	
 	  doAggregation();
-        #endif
+   //     #endif
 	
 #if UIP_CONF_TCP_SPLIT
       uip_split_output();
