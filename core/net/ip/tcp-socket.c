@@ -29,9 +29,6 @@
  *
  */
 
-#define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
-
 #include "contiki.h"
 #include "sys/cc.h"
 #include "contiki-net.h"
@@ -40,7 +37,9 @@
 
 #include "tcp-socket.h"
 
+#include <stdio.h>
 #include <string.h>
+
 
 static void relisten(struct tcp_socket *s);
 
@@ -81,7 +80,7 @@ acked(struct tcp_socket *s)
              s->output_data_maxlen - s->output_data_send_nxt);
     }
     if(s->output_data_len < s->output_data_send_nxt) {
-      PRINTF("tcp: acked assertion failed s->output_data_len (%d) < s->output_data_send_nxt (%d)\n",
+      printf("tcp: acked assertion failed s->output_data_len (%d) < s->output_data_send_nxt (%d)\n",
              s->output_data_len,
              s->output_data_send_nxt);
       tcp_markconn(uip_conn, NULL);
@@ -122,7 +121,7 @@ newdata(struct tcp_socket *s)
       bytesleft = 0;
     }
     if(bytesleft > 0) {
-      PRINTF("tcp: newdata, bytesleft > 0 (%d) not implemented\n", bytesleft);
+      printf("tcp: newdata, bytesleft > 0 (%d) not implemented\n", bytesleft);
     }
     dataptr += copylen;
     len -= copylen;
@@ -357,8 +356,6 @@ tcp_socket_send(struct tcp_socket *s,
     s->output_senddata_len = s->output_data_len;
   }
 
-  tcpip_poll_tcp(s->c);
-
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -399,11 +396,5 @@ int
 tcp_socket_max_sendlen(struct tcp_socket *s)
 {
   return s->output_data_maxlen - s->output_data_len;
-}
-/*---------------------------------------------------------------------------*/
-int
-tcp_socket_queuelen(struct tcp_socket *s)
-{
-  return s->output_data_len;
 }
 /*---------------------------------------------------------------------------*/

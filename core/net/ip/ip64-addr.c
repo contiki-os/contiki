@@ -35,10 +35,6 @@
 #include <string.h>
 
 #define printf(...)
-
-static uip_ip6addr_t ip64_prefix = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0, 0, 0}};
-static uint8_t ip64_prefix_len = 96;
-
 /*---------------------------------------------------------------------------*/
 void
 ip64_addr_copy4(uip_ip4addr_t *dest, const uip_ip4addr_t *src)
@@ -60,7 +56,20 @@ ip64_addr_4to6(const uip_ip4addr_t *ipv4addr,
      addresses. It returns 0 if it failed to convert the address and
      non-zero if it could successfully convert the address. */
 
-  uip_ipaddr_copy(ipv6addr, &ip64_prefix);
+  /* The IPv4 address is encoded as an IPv6-encoded IPv4 address in
+     the ::ffff:0000/24 prefix.*/
+  ipv6addr->u8[0] = 0;
+  ipv6addr->u8[1] = 0;
+  ipv6addr->u8[2] = 0;
+  ipv6addr->u8[3] = 0;
+  ipv6addr->u8[4] = 0;
+  ipv6addr->u8[5] = 0;
+  ipv6addr->u8[6] = 0;
+  ipv6addr->u8[7] = 0;
+  ipv6addr->u8[8] = 0;
+  ipv6addr->u8[9] = 0;
+  ipv6addr->u8[10] = 0xff;
+  ipv6addr->u8[11] = 0xff;
   ipv6addr->u8[12] = ipv4addr->u8[0];
   ipv6addr->u8[13] = ipv4addr->u8[1];
   ipv6addr->u8[14] = ipv4addr->u8[2];
@@ -81,7 +90,21 @@ ip64_addr_6to4(const uip_ip6addr_t *ipv6addr,
      returns 0 if it failed to convert the address and non-zero if it
      could successfully convert the address. */
 
-  if(ip64_addr_is_ip64(ipv6addr)) {
+  /* If the IPv6 address is an IPv6-encoded
+     IPv4 address (i.e. in the ::ffff:0/8 prefix), we simply use the
+     IPv4 addresses directly. */
+  if(ipv6addr->u8[0] == 0 &&
+     ipv6addr->u8[1] == 0 &&
+     ipv6addr->u8[2] == 0 &&
+     ipv6addr->u8[3] == 0 &&
+     ipv6addr->u8[4] == 0 &&
+     ipv6addr->u8[5] == 0 &&
+     ipv6addr->u8[6] == 0 &&
+     ipv6addr->u8[7] == 0 &&
+     ipv6addr->u8[8] == 0 &&
+     ipv6addr->u8[9] == 0 &&
+     ipv6addr->u8[10] == 0xff &&
+     ipv6addr->u8[11] == 0xff) {
     ipv4addr->u8[0] = ipv6addr->u8[12];
     ipv4addr->u8[1] = ipv6addr->u8[13];
     ipv4addr->u8[2] = ipv6addr->u8[14];
@@ -96,18 +119,5 @@ ip64_addr_6to4(const uip_ip6addr_t *ipv6addr,
   }
   /* We could not convert the IPv6 address, so we return 0. */
   return 0;
-}
-/*---------------------------------------------------------------------------*/
-int
-ip64_addr_is_ip64(const uip_ip6addr_t *ipv6addr)
-{
-  return uip_ipaddr_prefixcmp(ipv6addr, &ip64_prefix, ip64_prefix_len);
-}
-/*---------------------------------------------------------------------------*/
-void
-ip64_addr_set_prefix(const uip_ip6addr_t *prefix, uint8_t prefix_len)
-{
-  uip_ipaddr_copy(&ip64_prefix, prefix);
-  ip64_prefix_len = prefix_len;
 }
 /*---------------------------------------------------------------------------*/
