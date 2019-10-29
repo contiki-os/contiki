@@ -42,21 +42,36 @@
 #include "net/ip/uip-split.h"
 #include "net/ip/uip-packetqueue.h"
 
+//#include "sys/node-id.h"
+
+
+//#include "lib/random.h"
+//#include <stdlib.h>
+
+//Global variables for Gilber Elliott state managing
+//short int gilbert_p = 0.02;
+//short int gilbert_r = 0.2;
+//short int good = 1;
+
+// ANDRE RIKER CODE
+#if PLATFORM_HAS_AGGREGATION 
+#include "apps/rest-engine/rest-engine.h"
+#include "apps/er-coap/er-coap.h" 
+#include "net/ip/agg_payloads.h"
+#endif
+
+
+
+
+
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
 #endif
 
-// ANDRE RIKER CODE
-#if PLATFORM_HAS_AGGREGATION  
-#include "net/ip/agg_payloads.h"
-#endif
-
 #if UIP_CONF_IPV6_RPL
 #include "net/rpl/rpl.h"
 #include "net/rpl/rpl-private.h"
-#include "apps/er-coap/er-coap.h"
-#include "apps/rest-engine/rest-engine.h"
 #endif
 
 #include <string.h>
@@ -96,10 +111,6 @@ static struct etimer periodic;
 /* Timer for reassembly. */
 extern struct etimer uip_reass_timer;
 #endif
-
-
-  int count_parsed_pkts;
-
 
 #if UIP_TCP
 /**
@@ -198,7 +209,6 @@ check_for_tcp_syn(void)
 #endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
 }
 /*---------------------------------------------------------------------------*/
-/* FROM A LOWER LAYER TO HERE */
 static void
 packet_input(void)
 {
@@ -216,11 +226,14 @@ packet_input(void)
     check_for_tcp_syn();
     uip_input();
     if(uip_len > 0) {
+	printf("PRE_AG\n");
 
-	//#if PLATFORM_HAS_AGGREGATION	
+	#if PLATFORM_HAS_AGGREGATION
+	  printf("PLATFORM_HAS_AGGREGATION\n");	
 	  doAggregation();
-   //     #endif
-	
+        #endif
+
+	printf("POS_AG\n");
 #if UIP_CONF_TCP_SPLIT
       uip_split_output();
 #else /* UIP_CONF_TCP_SPLIT */
@@ -552,14 +565,12 @@ tcpip_ipv6_output(void)
   if(uip_len == 0) {
     return;
   }
-  //doAggregation();
 
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
     uip_clear_buf();
     return;
   }
-
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
     uip_clear_buf();
@@ -585,7 +596,6 @@ tcpip_ipv6_output(void)
       nexthop = &ipaddr;
     }
 #endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
-
     nbr = NULL;
 
     /* We first check if the destination address is on our immediate
@@ -667,9 +677,9 @@ tcpip_ipv6_output(void)
         static uint8_t annotate_has_last = 0;
 
         if(annotate_has_last) {
-          PRINTF("#L %u 0; red\n", annotate_last);
+          printf("#L %u 0; red\n", annotate_last);
         }
-        PRINTF("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+        printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
         annotate_last = nexthop->u8[sizeof(uip_ipaddr_t) - 1];
         annotate_has_last = 1;
       }
@@ -680,7 +690,7 @@ tcpip_ipv6_output(void)
 
     nbr = uip_ds6_nbr_lookup(nexthop);
     if(nbr == NULL) {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) == NULL) {
         uip_clear_buf();
         PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
@@ -709,13 +719,13 @@ tcpip_ipv6_output(void)
         nbr->nscount = 1;
         /* Send the first NS try from here (multicast destination IP address). */
       }
-#else /* UIP_ND6_SEND_NA */
+#else /* UIP_ND6_SEND_NS */
       PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
       uip_len = 0;
       return;  
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
     } else {
-#if UIP_ND6_SEND_NA
+#if UIP_ND6_SEND_NS
       if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -737,7 +747,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
-#endif /* UIP_ND6_SEND_NA */
+#endif /* UIP_ND6_SEND_NS */
 
       tcpip_output(uip_ds6_nbr_get_ll(nbr));
 
@@ -864,10 +874,11 @@ PROCESS_THREAD(tcpip_process, ev, data)
 
   PROCESS_END();
 }
+
 void doAggregation(void){
 
   #if PLATFORM_HAS_AGGREGATION   /* This is a definition put in Contiki/platform/wismote/platform-conf.c. Sky motes do not have enough memory to implement Aggregation. */
-    PRINTF("HELLO  AGGREGATION \n");
+    printf("HELLO  AGGREGATION \n");
 	static coap_packet_t coap_pt[1];
     char p1[2];
     unsigned int begin_payload_index=UIP_LLH_LEN + UIP_IPUDPH_LEN+8;// this value was found by me (brute force!).

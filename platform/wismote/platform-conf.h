@@ -74,6 +74,8 @@ typedef unsigned long off_t;
 #define CFS_CONF_OFFSET_TYPE    long
 
 
+#define PLATFORM_HAS_AGGREGATION 1
+
 /* Use the first 64k of external flash for node configuration */
 #define NODE_ID_XMEM_OFFSET     (0 * XMEM_ERASE_UNIT_SIZE)
 
