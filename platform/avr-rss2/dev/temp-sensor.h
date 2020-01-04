@@ -42,7 +42,7 @@
 #include "contiki.h"
 #include "rss2.h"
 
-#define DS18B20_1_PIN OW_BUS_0
+#define DS18B20_1_PIN OW_BUS_1
 #define DS18B20_1_IN  PIND
 #define DS18B20_1_OUT PORTD
 #define DS18B20_1_DDR DDRD

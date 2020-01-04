@@ -1,7 +1,7 @@
 CONTIKI = ../../..
 CFLAGS+= -DPROJECT_CONF_H=\"project-conf.h\"
 
-all: gen3sink 
+all: gen3sink-15s 
 
 # We use floating vars. Add library.
 PRINTF_LIB_FLT  = -Wl,-u,vfprintf -lprintf_flt -lm

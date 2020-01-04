@@ -46,10 +46,17 @@ PROCESS_THREAD(serial_send, ev, data)
 PROCESS_THREAD(serial_recv, ev, data)
 {
 	PROCESS_BEGIN();
+	char delimiter[]=" ";
+	char *command = NULL;
 	while(1) 
 	{
-		PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
-		char* response = strip_copy((char*)data);
+		
+		//PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
+		PROCESS_YIELD_UNTIL(ev == serial_line_event_message);
+		command = (char*)strtok((char*)data, (const char*)delimiter);
+		printf("Invalid command %s. \n", command);
+		char* response = (char*)data;
+		printf("response %s\n",response);
 		char *pos = strstr(response,"ERROR");	
 		if(pos-response > -1) //"ERROR" was found in response string
 		{

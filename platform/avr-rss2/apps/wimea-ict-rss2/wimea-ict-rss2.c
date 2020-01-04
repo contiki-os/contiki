@@ -80,17 +80,18 @@
 #define error_code_length 100
 
 #define NO_SENSORS 16
-#define MAX_BCAST_SIZE 99
+#define MAX_BCAST_SIZE 120
 #define DEF_TTL 0xF
 
 uint16_t i2c_probed1; /* i2c devices we have probed */
 //Configuration Parameters
-uint16_t EEMEM eemem_transmission_interval;
+
 uint16_t EEMEM eemem_error_logs;
 uint16_t EEMEM eemem_report_0_transmission_interval;
 uint16_t EEMEM eemem_report_1_transmission_interval;
 uint16_t EEMEM eemem_report_2_transmission_interval;
 uint16_t EEMEM eemem_report_3_transmission_interval;
+uint16_t EEMEM eemem_powertrace_interval;
 
 uint8_t EEMEM eemem_node_name[NAME_LENGTH];
 uint8_t EEMEM eemem_adc1[NAME_LENGTH];
@@ -103,8 +104,9 @@ uint8_t EEMEM eemem_report_3[report_3_length];
 uint8_t EEMEM eemem_error_codes[error_code_length];
 
 
+
 /*flags to check if eeprom has valid values*/
-uint16_t EEMEM eemem_interval_flag;
+
 uint16_t EEMEM eemem_report_0_interval_flag;
 uint16_t EEMEM eemem_report_1_interval_flag;
 uint16_t EEMEM eemem_report_2_interval_flag;
@@ -118,6 +120,7 @@ uint16_t EEMEM eemem_report_3_flag;
 uint16_t EEMEM eemem_I2C_SHT25_flag;
 uint16_t EEMEM eemem_I2C_MCP3424_flag;
 uint16_t EEMEM eemem_I2C_MS5611_flag;
+uint16_t EEMEM eemem_powertrace_flag;
 
 
 PROCESS(serial_input_process, "Serial line input commands");
@@ -130,6 +133,7 @@ PROCESS(sensor_data_process_report3, "Read sensor data for repport 3");
 PROCESS(buffer_process, "Buffer sensor data");
 PROCESS(mcu_sleep_process, "Sleeps the mcu");
 PROCESS(powertrace_process, "Periodic power output");
+PROCESS(windspeed_process, "Calcute wind speed");
 
 uint16_t time_interval;
 struct etimer et;
@@ -137,15 +141,18 @@ struct etimer et0;
 struct etimer et1;
 struct etimer et2;
 struct etimer et3;
+struct etimer et4;
 struct etimer periodic;
 unsigned char eui64_addr[8];
 static int power_save = 0;      /* Power-save false */
 static int error_status = 0;  
-static int I2C_SHT25_flag;
+static int I2C_SHT25_flag, pulses =0;
 static int I2C_MCP3424_flag;
 static int I2C_MS5611_flag;
-static char default_sensors[50]=" V_IN T_MCU V_MCU V_A1 V_A2 ";
+static char default_sensors[50]=" T_MCU V_MCU V_IN V_A1 V_A2 ";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
+static float wind_speed = 0.0;
+static float max_windspeed =0.0;
 struct broadcast_message {
 	uint8_t head;
 	uint8_t seqno;
@@ -178,24 +185,30 @@ DWORD get_fattime (void)
        }
 }
 
-AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &broadcast_data_process,&mcu_sleep_process, &serial_input_process, &sensor_data_process_report0,&sensor_data_process_report1,&sensor_data_process_report2,&sensor_data_process_report3, &powertrace_process);
+AUTOSTART_PROCESSES(&default_config_process, &buffer_process, &broadcast_data_process,&mcu_sleep_process, &serial_input_process, &sensor_data_process_report0,&sensor_data_process_report1, &windspeed_process ,&sensor_data_process_report2,&sensor_data_process_report3, &powertrace_process);
 
 PROCESS_THREAD(powertrace_process, ev, data)
 {
    
-   static struct etimer periodic_timers;
-   static struct etimer periodic_timer;
-   PROCESS_BEGIN();
-   power_save = 1;
-   char result[TAGMASK_LENGTH];
-    static int t, j;
-    
-    int interval =  3600;
-    float *array1;
-  static int counter=0;
+	static struct etimer periodic_timers;
+	static struct etimer periodic_timer;
+	PROCESS_BEGIN();
+	power_save = 1;
+	char result[TAGMASK_LENGTH];
+	static int t, j;
+	static float power[4];
+	int interval =  60;
+	float *array1;
+	static float cpu_power =0.0;
+	static float transmit_power =0.0;
+	static float listen_power=0.0;
+	static int counter=0;
+	static int time_counter ;
+        
    while(1) {
 	uint8_t i = 0;
-      etimer_set(&periodic_timers, CLOCK_SECOND * 180);
+       time_counter = eeprom_read_word(&eemem_powertrace_interval);
+      etimer_set(&periodic_timers, CLOCK_SECOND * 60);
        
          for(t=0; t < 2; t++) {   /* Loop over min and max rpc settings  */
         // printf("its working \n");
@@ -215,33 +228,48 @@ PROCESS_THREAD(powertrace_process, ev, data)
 	    for(j=15; j >= 0; j--) {
 	      NETSTACK_RADIO.on();
 	      rf230_set_txpower(j);
+             NETSTACK_RADIO.off();
 	      
         }
-             NETSTACK_RADIO.off();
+            // NETSTACK_RADIO.off();
         if(t==1){
 	power_save = 0;
           int d ;
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timers));
          power_save = 1;
            counter++;
-          
-        
-            if(counter==20){
-	float voltage = adc_read_v_in();
+          power_save = 1;
+         float voltage = adc_read_v_in();
 	array1 =  powertrace_print1("",interval,voltage);
-
+        power_save = 0;
+	cpu_power += *(array1+0) ; //cpu
+	transmit_power += *(array1+2);//transmit
+	listen_power += *(array1+3);//listen
+             
+            if(counter == time_counter){
+	
+          
 	i += snprintf(result+i, 25, " Energy cosumption(mA) ");
-	i += snprintf(result+i, 13, " CPU = %-4.3f", *(array1+0));
-	i += snprintf(result+i, 18, " Transmit = %.3f", *(array1+2));
-	i += snprintf(result+i, 18, " Listen = %.3f", *(array1+3));
+	i += snprintf(result+i, 13, " CPU = %.3f", cpu_power);
+	i += snprintf(result+i, 18, " Transmit = %.3f", transmit_power);
+	i += snprintf(result+i, 18, " Listen = %.3f", listen_power);
+        cpu_power =0.0;
+	transmit_power =0.0;
+	listen_power=0.0;
+        //i += snprintf(result+i, 13, " Radio time = %.4f", *(array1+4));
+	//i += snprintf(result+i, 18, " Cpu time = %.4f", *(array1+5));
+       
+	
 	result[i++]='\0';//null terminate result before sending
 	power_save = 0;
         NETSTACK_RADIO.on();
 	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
-	NETSTACK_RADIO.off();
+	//NETSTACK_RADIO.off();
          counter = 0;
         power_save = 1;
          etimer_reset(&periodic_timers);
+      
+	
 	}
         etimer_reset(&periodic_timers);
 		}}
@@ -252,10 +280,11 @@ PROCESS_THREAD(powertrace_process, ev, data)
 PROCESS_THREAD(default_config_process, ev, data)
 {
         power_save = 1;
-	uint16_t interval_flag, tagmask_flag,report_0_flag,report_1_flag,report_2_flag,report_3_flag;
+	uint16_t interval_flag, tagmask_flag,report_0_flag,report_1_flag,report_2_flag,report_3_flag,powertrace_flag;
         uint16_t report_0_interval_flag,report_1_interval_flag,report_2_interval_flag,report_3_interval_flag;
 	char adc1[NAME_LENGTH]="V_A1";
 	char adc2[NAME_LENGTH]="V_A2";
+        int time_interval;
 	 I2C_SHT25_flag = 0;
 	 I2C_MCP3424_flag = 0 ;
          I2C_MS5611_flag=0;
@@ -266,7 +295,7 @@ PROCESS_THREAD(default_config_process, ev, data)
          
 	cli();
          power_save = 1;
-	interval_flag = eeprom_read_word(&eemem_interval_flag);
+	
         eeprom_update_word(&eemem_I2C_SHT25_flag, I2C_SHT25_flag);
         eeprom_update_word(&eemem_I2C_MCP3424_flag, I2C_MCP3424_flag);
         eeprom_update_word(&eemem_I2C_MS5611_flag, I2C_MS5611_flag);
@@ -279,12 +308,14 @@ PROCESS_THREAD(default_config_process, ev, data)
         report_1_flag = eeprom_read_word(&eemem_report_1_flag);
         report_2_flag = eeprom_read_word(&eemem_report_2_flag);
         report_3_flag = eeprom_read_word(&eemem_report_3_flag);
+        powertrace_flag = eeprom_read_word(&eemem_powertrace_flag);
        
-	if (interval_flag != 1) {
-		time_interval = 60;
-		eeprom_update_word(&eemem_transmission_interval, time_interval);
-		interval_flag=1;
-		eeprom_update_word(&eemem_interval_flag, interval_flag);
+	
+        if (powertrace_flag != 1) {
+		time_interval = 30;
+		eeprom_update_word(&eemem_powertrace_interval, time_interval);
+		powertrace_flag=1;
+		eeprom_update_word(&eemem_powertrace_flag, powertrace_flag);
 	}
         if (report_0_interval_flag != 1) {
 		time_interval = 60;
@@ -386,8 +417,8 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
-       static uint16_t counter = 0;
-       static uint16_t time_interval_0 = 0;
+       static int counter = 0;
+       static int time_interval_0 = 0;
        static int i, j;
 	while(1) {
                 // strcpy(default_sensors," INTR V_AD1 V_AD2 V_IN V_MCU"); 
@@ -412,17 +443,18 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	    for(j=15; j >= 0; j--) {
 	      NETSTACK_RADIO.on();
 	      rf230_set_txpower(j);
+              NETSTACK_RADIO.off();
 	      
         }
-             NETSTACK_RADIO.off();
+             
         if(i==1){
                // 
 		time_interval_0 = eeprom_read_word(&eemem_report_0_transmission_interval);
 		power_save = 0;
                // printf("TX with PWR=%.2f\n",adc_read_v_in());
-                if(time_interval_0 != 0 && adc_read_v_in() < 2.95){
+                if(time_interval_0 != 0 && (adc_read_v_in() <3.71)){
                 power_save = 1;
-                time_interval_0 = 300;
+                time_interval_0 = 120;
                 }else{
 		time_interval_0 = eeprom_read_word(&eemem_report_0_transmission_interval);
                  }
@@ -432,22 +464,27 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et0));
                 power_save = 1;
 		if(time_interval_0 != 0){
-                if(time_interval_0 == 300){
+
+                if(time_interval_0 == 120){
                   counter++;
-                if(counter == 6){
+                
+                if(counter == 10){
                 check_sensor_connection("0");
                 power_save = 0;
 		NETSTACK_RADIO.on();
 		read_sensor_values_report0();
 		NETSTACK_RADIO.off();
                 counter = 0;
-                   }}else{
+                   }
+		}else{
                 check_sensor_connection("0");
                 power_save = 0;
 		NETSTACK_RADIO.on();
 		read_sensor_values_report0();
 		NETSTACK_RADIO.off();
+                 counter =0;
                  }
+
 		}
                 
         }
@@ -495,11 +532,11 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
                   
                  check_sensor_connection("1");
                  power_save = 0;
-                NETSTACK_RADIO.on();
+                //NETSTACK_RADIO.on();
 		NETSTACK_RADIO.on();
 		read_sensor_values_report1();
                 NETSTACK_RADIO.off();
-		NETSTACK_RADIO.off();
+		//NETSTACK_RADIO.off();
 		}
 		
                 
@@ -547,11 +584,11 @@ PROCESS_THREAD(sensor_data_process_report2, ev, data)
 
                  check_sensor_connection("2");
                 power_save = 0;
-                NETSTACK_RADIO.on();
+               // NETSTACK_RADIO.on();
 		NETSTACK_RADIO.on();
 		read_sensor_values_report2();
                 NETSTACK_RADIO.off();
-		NETSTACK_RADIO.off();
+		//NETSTACK_RADIO.off();
 		   }
 		
               
@@ -582,7 +619,7 @@ PROCESS_THREAD(sensor_data_process_report3, ev, data)
        static uint16_t time_interval_3 = 0;
 	while(1) {
                 time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
-                 if(time_interval_3 != 0 && adc_read_v_in() < 2.95){
+                 if(time_interval_3 != 0 && adc_read_v_in() < 3.10){
                 time_interval_3 = 1000;
                 }else{
 		time_interval_3 = eeprom_read_word(&eemem_report_3_transmission_interval);
@@ -598,11 +635,11 @@ PROCESS_THREAD(sensor_data_process_report3, ev, data)
                  if(time_interval_3 != 0){
                 check_sensor_connection("3");
                  power_save =0;
-                NETSTACK_RADIO.on();
+               // NETSTACK_RADIO.on();
 		NETSTACK_RADIO.on();
 		read_sensor_values_report3();
                 NETSTACK_RADIO.off();
-		NETSTACK_RADIO.off();
+		//NETSTACK_RADIO.off();
 		}
 		
                 
@@ -679,6 +716,24 @@ PROCESS_THREAD(serial_input_process, ev, data)
 			
 		} else if (!strncmp(command,"ss",2)) {
 			display_system_information();
+		}else if (!strncmp(command,"pti",3)) {
+                        if(strlen(command)==3){
+                       
+                       display_powertrace_interval();
+			}else{
+                       
+			
+                        if(strlen(command+4)>0) {
+				value=(char*) malloc(6);
+				strlcpy(value, command+4, 6);//(strlen(command)-3)
+				change_powertrace_interval(value);
+				free(value);
+          			
+			}else{
+                          //power_save = 1; 
+			printf("Invalid command %s. Try pti <period in minutes> command\n", command);
+                        //power_save = 0; 
+          		}}
 		} else if(!strncmp(command, "name", 4)) {
 			if(strlen(command)>4){
 				value=(char*) malloc(12);
@@ -852,16 +907,18 @@ PROCESS_THREAD(broadcast_data_process, ev, data)
 		msg.head = 1<<4;
 		msg.head |= ttl;
 		msg.seqno = seqno;
-                  NETSTACK_RADIO.off();
-                 NETSTACK_RADIO.off();
+                 // NETSTACK_RADIO.off();
+                 //NETSTACK_RADIO.off();
 
 		packetbuf_copyfrom(&msg, i+2);
 		broadcast_send(&broadcast);
-                   NETSTACK_RADIO.off();
-                   NETSTACK_RADIO.off();
+                  // NETSTACK_RADIO.off();
+                  // NETSTACK_RADIO.off();
 		seqno++;
 		i += snprintf(msg.buf+i, 2, "\n\r"); //append new line before data is buffered
+                //NETSTACK_RADIO.on();
 		process_post_synch(&buffer_process, PROCESS_EVENT_CONTINUE, msg.buf);
+                //NETSTACK_RADIO.off();
 	}
 	PROCESS_END();
 }
@@ -873,17 +930,21 @@ print_help_command_menu()
 	//power_save = 1; 
 	printf("\n-----------------------Menu----------------------------------\n") ;
 	printf("\n Version Number: WIMEA RSS2 Node Application Version 2.0\n") ;
-	printf("\n Prints a list of supported commands Usage: h") ;
-	printf("\n Display System Summary Usage: ss");
-	printf("\n Display System Uptime Usage: u");
-	printf("\n Set/Display Node Name Usage: name <node name>");
-        printf("\n Display all reporting intervals : ri ");
-        printf("\n Display specific reporting interval : ri #<report number> ");
-	printf("\n Set reporting interval : ri #<report number> <period in seconds>");
-        printf("\n Display all report masks : re ");
-	printf("\n Set the report tag mask Usage: re <report number> <var1,var2> or <auto>");
-        printf("\n add a parameter to a report tag mask : re <report number><+/-> <var1>");
-	printf("\n Set alias name Usage: alias <sensor=alias_name>.\n \t\t For example alias V_AD1=soil");
+	printf("\n h				         : help") ;
+	printf("\n ss					 : System Summary ");
+	printf("\n u 					 : System Uptime");
+	printf("\n name <node name> 			 : Set Node Name ");
+	printf("\n name 				 : Node Name ");
+	printf("\n ri #<report number> <period(seconds)> : Set report interval ");
+	printf("\n ri #<report number>  		 : report interval ");
+	printf("\n ri 					 : All report intervals ");
+	printf("\n re <report number> <auto> 		 : Set report mask to default ");
+	printf("\n re <report number><+> <var1>		 : Add parameter ");
+	printf("\n re <report number><-> <var1>		 : Remove parameter ");	
+	printf("\n re 					 : All report masks  ");
+	printf("\n pti <period(minutes)>  		 : Set Powertrace report interval ");
+	printf("\n pti 					 : Powertrace report interval ");
+	//printf("\n Set alias name Usage: alias <sensor=alias_name>.\n \t\t For example alias V_A1=soil");
         //power_save = 0; 
 	if( i2c_probed & I2C_DS1307 ) {
                 power_save = 1; 
@@ -902,9 +963,9 @@ print_help_command_menu()
 void
 display_reporting_interval()
 {
-	uint16_t saved_interval,report_0_interval,report_1_interval,report_2_interval,report_3_interval;
+	uint16_t report_0_interval,report_1_interval,report_2_interval,report_3_interval;
 	cli();
-	saved_interval = eeprom_read_word(&eemem_transmission_interval);
+	
 	report_0_interval = eeprom_read_word(&eemem_report_0_transmission_interval);
 	report_1_interval = eeprom_read_word(&eemem_report_1_transmission_interval);
 	report_2_interval = eeprom_read_word(&eemem_report_2_transmission_interval);
@@ -918,13 +979,47 @@ display_reporting_interval()
 	printf("Report 3 \t\t%d\n",report_3_interval);
        // power_save = 0; 
 }
+//Displaying powertrace report interval 
+void
+display_powertrace_interval()
+{
+	uint16_t powertrace_interval;
+	cli();
+	
+	powertrace_interval = eeprom_read_word(&eemem_powertrace_interval);
+	
+	sei();
+        //power_save = 1; 
+	printf("\nPowertrace Report Interval is \t%d minutes \n",powertrace_interval);
+	
+       // power_save = 0; 
+}
+//changing powertrace report interval
+void 
+change_powertrace_interval(char* value)
+{
+        
+	// check if value is an integer
+    int interval = atoi(value);
+     
+    if (interval == 0 && !strncmp(value, "0", 1)) {
+        //power_save = 1; 
+    	printf("Invalid value %s!, Please enter an interger for period.\nUsage: pti <period in minutes>.\n ", value);
+        //power_save = 0; 
+    	return;
+    }
+	cli();
+	eeprom_update_word(&eemem_powertrace_interval, interval);  
+	sei();
+        printf("powertrace Report Interval changed to %d minutes\n",interval);
+}
 //Displaying reporting interval 
 void
 show_report_interval(char* report_no)
 {
-	uint16_t saved_interval,report_0_interval,report_1_interval,report_2_interval,report_3_interval;
+	uint16_t report_0_interval,report_1_interval,report_2_interval,report_3_interval;
 	cli();
-	saved_interval = eeprom_read_word(&eemem_transmission_interval);
+	
 	report_0_interval = eeprom_read_word(&eemem_report_0_transmission_interval);
 	report_1_interval = eeprom_read_word(&eemem_report_1_transmission_interval);
 	report_2_interval = eeprom_read_word(&eemem_report_2_transmission_interval);
@@ -1100,7 +1195,9 @@ read_sensor_values_report0(void){
         static int adc01 = 0,adc02 = 0,adc03 = 0,adc04 = 0;
 	sensors=strtok ((char*)tagmask0, " ");
 	//i += snprintf(result+i, 5, "R0");
+        static int P0_LST =0;
 	while (sensors != NULL){
+                 
                 if(adc_read_v_in() < 2.75){
                   if (!strncmp(trim(sensors), "T_MCU", 5)) {
 			i += snprintf(result+i, 12, " T_MCU=%-4.1f", ((double) temp_mcu_sensor.value(0)/10.));
@@ -1119,19 +1216,35 @@ read_sensor_values_report0(void){
 			i += snprintf(result+i, 11, " V_MCU=%-3.1f", ((double) battery_sensor.value(0))/1000.);
 		} else if (!strncmp(trim(sensors), "V_IN", 4)) {
 			i += snprintf(result+i, 11, " V_IN=%-4.2f",adc_read_v_in());
+			
 		} 
  		   else if (!strncmp(trim(sensors), "V_A1", 5)) {
+                        if(adc_read_a1() < 0.15 || adc_read_a1() > 5.00){
+			error_log("#E_wv(V_A1)");
+                        }else{
 			i += snprintf(result+i, 15, " V_A1=%.2f",adc_read_a1());
+                         }
 		}  else if (!strncmp(trim(sensors), "V_A2", 5)) {
-			i += snprintf(result+i, 13, " V_A2=%.2f",adc_read_a2());
-                  
+                         if(adc_read_a1()<0.15|| adc_read_a1()>5.00){
+			error_log("#E_wv(V_A2)");
+                         }else{
+                          i += snprintf(result+i, 13, " V_A2=%.2f",adc_read_a2());
+                         }
 		} else if (!strncmp(trim(sensors), "T1", 2)) {
-			i += snprintf(result+i, 10, " T1=%f", (float) temp_sensor.value(0)/100.0);
+                        if((temp_sensor.value(0)*1.0/100) < -55.0 ||(temp_sensor.value(0)*1.0/100) > 125.0){
+			error_log("#E_wv(T1)");
+                        }else{
+			i += snprintf(result+i, 10, " T1=%-5.2f", (double)(temp_sensor.value(0)*1.0/100));
+                        }
 		}
                else if (!strncmp(trim(sensors), "P", 1)) {   //pressure   
 			if(i2c_probed1 & I2C_MS5611_ADDR){
-                        if(ms5611_sensor.value(0) && missing_p_value() == 0){              
-			i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0)); 
+                        if(ms5611_sensor.value(0) && missing_p_value() == 0){ 
+                        if(ms5611_sensor.value(0) < 10.0 || ms5611_sensor.value(0) > 1200.0){             
+			 error_log("#E_wv(P)");
+                          }else{
+            		i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0));
+                          }
                           }else{
 			error_log("#E_mv(ms5611)");
                          }}
@@ -1140,25 +1253,49 @@ read_sensor_values_report0(void){
                          if( i2c_probed1 & I2C_SHT25){
                          
                         if(sht25_sensor.value(0) && missing_t_value() == 0){
+          		if((sht25_sensor.value(0)/10.0) < -40 || (sht25_sensor.value(0)/10.0)> 125){ 
+			error_log("#E_wv(T)");
+                        }else{
 			i += snprintf(result+i,9, " T=%.2f", (float) sht25_sensor.value(0)/10.0);
+			}
                        }else{
                         error_log("#E_mv(sht25)");
                          }}
 		} else if (!strncmp(trim(sensors), "RH", 2)) {//humidity
                         if( i2c_probed1 & I2C_SHT25) {
 			if(sht25_sensor.value(1) && missing_t_value() == 0){
+                        if((sht25_sensor.value(1)/10.0) < 0.0 || (sht25_sensor.value(1)/10.0) > 100){
+ 			error_log("#E_wv(RH)");
+ 			}else{
 			i += snprintf(result+i,10, " RH=%.2f", (float) sht25_sensor.value(1)/10.0);
+			}
+			
                        }else{
                         error_log("#E_mv(sht25)");
                          }}
 
-		} else if (!strncmp(trim(sensors), "INTR", 4) ) {//int pin eg. rain gauge and anenometer 
-     			i += snprintf(result+i,15," P0_LST60=%d ", pulse_sensor.value(0));
+		} else if (!strncmp(trim(sensors), "INTR", 4) ) {//int pin eg. rain gauge 
+                           int pulse = pulse_sensor.value(0);
+     			i += snprintf(result+i,15," P0_LST60=%d ", pulse);
+                         P0_LST = P0_LST + pulse;
+			i += snprintf(result+i,15," P0_LST=%d",P0_LST);
+			if(P0_LST >= 1440){
+			P0_LST =0;
+			}
 
-		} else if (!strncmp(trim(sensors), "ADC_1", 5)) {
+		} else if (!strncmp(trim(sensors), "WDSPD", 5) ) {//int pin eg. anenometer 
+			
+     			i += snprintf(result+i,15," windSpeed=%.2f ",wind_speed);
+			
+		}else if (!strncmp(trim(sensors), "MAXWSD", 6) ) {//int pin eg. anenometer 
+			i += snprintf(result+i,15," mxwdspd=%.2f ",max_windspeed);
+			 max_windspeed =0.0;
+		}else if (!strncmp(trim(sensors), "ADC_1", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
-                if(mcp3424_sensor.value(0) && missing_adc_value() == 0){
-		i += snprintf(result+i,14, " ADC_1=%.4f ",(float) mcp3424_sensor.value(0)/1000.00000);
+                if(mcp3424_sensor.value(0) && (missing_adc_value() == 0)){
+                
+		i += snprintf(result+i,19, " ADC_1=%.6f ",(float) mcp3424_sensor.value(0)/1000000.0);
+                 // printf( " ADC_1=%.4f \n",(float) mcp3424_sensor.value(0)/1000.0);
                       adc1 =1;
 		}else{
                         adc1 = 0;
@@ -1169,7 +1306,7 @@ read_sensor_values_report0(void){
                  if( i2c_probed1 & I2C_MCP3424 ){
                    if(mcp3424_sensor.value(1) && missing_adc_value() == 0 && adc1 == 0){
                     
-		i += snprintf(result+i,14, " ADC_2=%.4f",(float) mcp3424_sensor.value(1)/1000.000);
+		i += snprintf(result+i,14, " ADC_2=%.4f",(float) mcp3424_sensor.value(1)/1000000.000);
                         adc2 = 1;
 		}else{
                          adc2 =0;
@@ -1180,7 +1317,7 @@ read_sensor_values_report0(void){
 		} else if (!strncmp(trim(sensors), "ADC_3", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(2) && missing_adc_value() == 0 && adc1 == 0 && adc2 == 0){
-		i += snprintf(result+i,14, " ADC_3=%.4f",(float) mcp3424_sensor.value(2)/1000.000);
+		i += snprintf(result+i,14, " ADC_3=%.4f",(float) mcp3424_sensor.value(2)/1000000.000);
                       adc3 =1;
 		}else{
                      
@@ -1191,7 +1328,7 @@ read_sensor_values_report0(void){
 		} else if (!strncmp(trim(sensors), "ADC_4", 5)) {
                  if( i2c_probed1 & I2C_MCP3424 ){
                 if(mcp3424_sensor.value(3) && missing_adc_value() == 0 && adc1 == 0 && adc2 == 0 && adc3 == 0){
-		i += snprintf(result+i,14, " ADC_4=%.4f",(float) mcp3424_sensor.value(3)/1000.000);
+		i += snprintf(result+i,14, " ADC_4=%.4f",(float) mcp3424_sensor.value(3)/1000000.000);
 		 adc4 =1;
 		
 		}else{
@@ -1202,27 +1339,32 @@ read_sensor_values_report0(void){
                         }
                 }}}
                 }
+              
                 if(error_status==1){
-               
+                
                 cli();
 		eeprom_read_block((void*)&error, (const void*)&eemem_error_codes, error_code_length);
                 sei();
                
 		i += snprintf(result+i,16," %s",error);
 		 error_status=0;
+              
           }
 
-		if(i>80){//if the report is greater than 45bytes, send the current result, reset i and result
+		if(i>100){//if the report is greater than 45bytes, send the current result, reset i and result
 			result[i++]='\0';//null terminate result before sending
-			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
+                        //NETSTACK_RADIO.on();
+			process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready           
+                       // NETSTACK_RADIO.off();
 			i=0;
 			result[0]='\0';
 		}
 		sensors = strtok(NULL, " ");
 	}
 	result[i++]='\0';//null terminate result before sending
+        //NETSTACK_RADIO.on();
 	process_post_synch(&broadcast_data_process, PROCESS_EVENT_CONTINUE, result);//send an event to broadcast process once data is ready
-
+        //NETSTACK_RADIO.off();
 //sleep_enable();
  // go to deep sleep
 //SMCR = 0x01;
@@ -1766,7 +1908,7 @@ void
 change_tagmask(char *value){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[15]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60"}; //array of available sens3
+	char *sensors[17]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60","WDSPD","MAXWSD"}; //array of available sens3
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -1774,7 +1916,7 @@ change_tagmask(char *value){
 	{
 		split_tagmask=trim(split_tagmask);
 		/*Compare sensors requested by the user with the array of available sensors and return a string that can be written to eeprom*/
-		for (i=0; i < 15; i++){
+		for (i=0; i < 17; i++){
 			size=strlen(sensors[i]);
 			if (!strncmp(split_tagmask, sensors[i], size)){
 				if (m==0){
@@ -1808,7 +1950,7 @@ void
 change_reportmask(char *value, char *reportNo){
 	int i, size, m=0;
 	char *tagmask=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-	char *sensors[15]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60"}; //array of available sens3
+	char *sensors[17]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60","WDSPD","MAXWSD"}; //array of available sens3
 	char *split_tagmask, save_tagmask[TAGMASK_LENGTH]; //store the mask with sanitized values that we are going to write to eeprom
 	strlcpy(tagmask, value, TAGMASK_LENGTH);
 	split_tagmask = strtok (tagmask, ",");//split the string with commas
@@ -1816,7 +1958,7 @@ change_reportmask(char *value, char *reportNo){
 	{
 		split_tagmask=trim(split_tagmask);
 		/*Compare sensors requested by the user with the array of available sensors and return a string that can be written to eeprom*/
-		for (i=0; i < 15; i++){
+		for (i=0; i < 17; i++){
 			size=strlen(sensors[i]);
 			if (!strncmp(split_tagmask, sensors[i], size)){
 				if (m==0){
@@ -1916,7 +2058,7 @@ display_tagmask(void){
 	printf("Report 1 = %s\n", (char*)report_1);
 	printf("Report 2 = %s\n", (char*)report_2);
 	printf("Report 3 = %s\n", (char*)report_3);
-	printf("Possible report mask parameters = ADC_1 ADC_2 ADC_3 ADC_4 RH P T T1 V_A1 V_A2 V_IN T_MCU V_MCU INTR P0_LST60\n");
+	printf("Possible report mask parameters = ADC_1,ADC_2,ADC_3,ADC_4,RH,P,T,T1,V_A1,V_A2,V_IN,T_MCU,V_MCU,INTR,P0_LST60,WDSPD,MAXWSD\n");
 	//power_save = 0; 
        
 
@@ -2027,8 +2169,8 @@ void auto_set_report_mask(char *value2[],int size1, int sensor_status,char *repo
 
      int i, size,m=0,d=1,k=0,j=0; 
 	char *tagmask2=(char*) malloc(TAGMASK_LENGTH); //store mask from the user
-         char *sensors[15]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60"}; //array of available sens3
-        char *sensors3[15];
+         char *sensors[17]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60","WDSPD","MAXWSD"}; //array of available sens3
+        char *sensors3[17];
 	 uint8_t report_a2[report_2_length];
          cli();
          if(!strncmp(reportNo, "0", 1)){
@@ -2093,7 +2235,7 @@ void auto_set_report_mask(char *value2[],int size1, int sensor_status,char *repo
 			      }	
                               }
                               }
-                         for (int h=0; h < 16; h++){
+                         for (int h=0; h < 18; h++){
                               size=strlen(sensors[j]);
                            if (!strncmp(sensors3[i], sensors[h], size)){
                             j=1;
@@ -2139,8 +2281,8 @@ void removefromreportmask(char* parameter,char* reportNo){
 	//printf("%d\n",size);
 	char *tagmaskremove = (char*) malloc(TAGMASK_LENGTH); 
 	char *parametervalue = (char*) malloc(TAGMASK_LENGTH);//store mask from the user
-        char *sensors[15]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60"}; //array of available sens3
-        char *sensorsremove[15];
+        char *sensors[17]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60","WDSPD","MAXWSD"}; //array of available sens3
+        char *sensorsremove[17];
 	 uint8_t report_remove[report_2_length];
                     cli();
                if(!strncmp(reportNo, "0", 1)){
@@ -2181,7 +2323,7 @@ void removefromreportmask(char* parameter,char* reportNo){
                                  d=0;
 	  }
 	  }
-	  for(int x =0; x<16; x++){
+	  for(int x =0; x<18; x++){
 	  if (!strncmp(sensors[x], split_tagmaskremove, size1)){
 	  correct = 1;
 	  }
@@ -2226,8 +2368,8 @@ int  size1,size,m=0,d=1,correct =0;
 	//printf("%d\n",size);
 	char *tagmaskadd = (char*) malloc(TAGMASK_LENGTH); 
 	char *parametervalue = (char*) malloc(TAGMASK_LENGTH);//store mask from the user
-         char *sensors[15]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60"}; //array of available sens3
-        char *sensorsadd[15];
+         char *sensors[17]={"ADC_1","ADC_2","ADC_3","ADC_4","RH","P","T","T1","V_A1","V_A2","V_IN","T_MCU","V_MCU","INTR","P0_LST60","WDSPD","MAXWSD"}; //array of available sens3
+        char *sensorsadd[17];
 	 uint8_t report_add[report_2_length];
                     cli();
                if(!strncmp(reportNo, "0", 1)){
@@ -2268,7 +2410,7 @@ int  size1,size,m=0,d=1,correct =0;
                                  d=0;
 	  }
 	  }
-	  for(int x =0; x<16; x++){
+	  for(int x =0; x<18; x++){
 	  if (!strncmp(sensors[x], split_parameteradd, size1)){
 	  correct = 1;
 	  }
@@ -2384,6 +2526,28 @@ void error_log(char *message){
 	sei();
         error_status =1;
 
+}
+//wind speed calculation 
+/*--------------------------------------------------------------------------- */
+PROCESS_THREAD(windspeed_process, ev, data)
+{
+	PROCESS_BEGIN();
+	while(1) {
+                 power_save = 1;
+		
+                etimer_set(&et4, CLOCK_SECOND * 1);
+                power_save = 0;
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
+                power_save = 1;
+                pulses = pulse_sensor.value(0);
+                wind_speed = 2.5 * pulses;
+                if(wind_speed>max_windspeed){
+		max_windspeed = wind_speed;
+		}
+                printf("wind speed %.2f in %d pulse and max wind speed %.2f \n\n",wind_speed,pulses,max_windspeed);
+	}
+
+	PROCESS_END();
 }
 /*static unsigned long
 to_second(uint64_t time)

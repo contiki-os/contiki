@@ -64,7 +64,7 @@ float *powertrace_print1(char *str,int interval,float v_in)
 {
   static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
   static unsigned long last_idle_transmit, last_idle_listen;
-  static float array[4];
+  static float array[6];
   unsigned long cpu, lpm, transmit, listen;
   unsigned long all_cpu, all_lpm, all_transmit, all_listen;
   unsigned long idle_transmit, idle_listen;
@@ -125,7 +125,9 @@ float *powertrace_print1(char *str,int interval,float v_in)
    array[1]= energy_lpm;
    array[2]= energy_transmit;
    array[3]= energy_listen;
- // printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA \n",array[0],array[1],array[2],array[3]);
+	 
+   //printf("cpu time:%d mA radio time:%.4f mA timer %d\n ", all_radio,(float) all_radio/RTIMER_SECOND,RTIMER_SECOND);	
+  //printf("cpu:%.3f mA lpm:%.3f mA transmit:%.3f mA listen:%.3f mA \n",array[0],array[1],array[2],array[3]);
 return array;
 }
 

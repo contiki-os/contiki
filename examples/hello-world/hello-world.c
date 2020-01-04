@@ -38,7 +38,7 @@
  */
 
 #include "contiki.h"
-
+#include "dev/serial-line.h"
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
@@ -47,8 +47,14 @@ AUTOSTART_PROCESSES(&hello_world_process);
 PROCESS_THREAD(hello_world_process, ev, data)
 {
   PROCESS_BEGIN();
+while(1){
 
   printf("Hello, world\n");
+  PROCESS_YIELD();
+  if(ev == serial_line_event_message){
+ printf("Hello, world %s\n",(char*)data);
+   }
+}
   
   PROCESS_END();
 }

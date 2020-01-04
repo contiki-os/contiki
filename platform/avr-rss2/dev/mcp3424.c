@@ -52,9 +52,8 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
- 
 static uint8_t enabled;
-
+static uint8_t user_reg;
 uint8_t missing_adc_value_flag = 1;
 /*---------------------------------------------------------------------------*/
 static int
@@ -74,9 +73,9 @@ return enabled;
 
 
 
-static uint16_t value(int type)
+static int value(int type)
 {
- uint16_t data;
+ int data;
 uint16_t returned;
 uint8_t data_low;
 uint8_t data_high;
@@ -117,9 +116,9 @@ i2c_write(command);
 i2c_start_wait((MCP3424_ADDR<<1)|1);
 data_high = i2c_readAck();
 data_low = i2c_readNak();
-data = (data_high<<8) +(data_low);
+data = ((data_high<<8) + (data_low))*1000;
 		missing_adc_value_flag = 0;
-
+       //printf("adc %d \n",data);
 		return data;
 
 }
@@ -138,7 +137,6 @@ return 0;
 uint8_t missing_adc_value(){
  return missing_adc_value_flag;
 }
-
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(mcp3424_sensor,"MCP3424_SENSOR", value, configure, status);
 /*--------------------------------------------------------------------------*/

@@ -6,6 +6,7 @@
 * \author
 *         Maximus Byamukama <maximus.byamukama@cedat.mak.ac.ug>
 */
+#include "contiki-lib.h"
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/sleep.h>
@@ -19,12 +20,13 @@
 #include "net/rime/rime.h"
 #include "net/packetbuf.h"
 #include "dev/leds.h"
-#include "dev/pwrpin.h"
+//#include "dev/pwrpin.h"
 #include "dev/adc.h" 
 #include "dev/i2c.h"
 #include "dev/ds3231.h"
 #include "dev/temp-sensor.h"
 #include <dev/watchdog.h>
+#include "dev/serial-line.h"
 
 #define SYS_VLOW 3.30
 
@@ -38,17 +40,23 @@ static double up_time=0;
 
 datetime_t datetime;
 
+
 struct broadcast_message {
 	uint8_t head; 
 	uint8_t seqno;
 	char buf[120]; 
 };
 
+
+int uplink_error;
+
 /*---------------------------------------------------------------------------*/
+PROCESS(serial_input_process, "Serial line process");
 PROCESS(init_process, "Init Process");
 PROCESS(radio_process, "Radio Process");
-PROCESS(sleep_process, "Sleep Process");
-AUTOSTART_PROCESSES(&init_process, &radio_process,&sleep_process);
+//PROCESS(sleep_process, "Sleep Process");
+//AUTOSTART_PROCESSES(&init_process, &radio_process,&sleep_process);
+AUTOSTART_PROCESSES(&serial_input_process);
 
 static void
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
@@ -68,10 +76,10 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 	from->u8[0], from->u8[1],msg->seqno, msg->head & 0xF, rssi,lqi);
 
 	report[len++] = '\0'; 
-	pwr_pin_on();
+	//pwr_pin_on();
 	timer_set(&t, CLOCK_SECOND/100); //5ms pulse to wake up electron from sleep
 	while(!timer_expired(&t));
-	pwr_pin_off();
+	//pwr_pin_off();
 	
 	leds_on(LEDS_RED);
 	printf("%s", report);
@@ -99,10 +107,10 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 		len += sprintf(&sinkrep[len]," V_MCU=%-4.2f REPS=%ld UP_TIME=%.2f\n",v_mcu,rep_count,up_time); 
 		
 		sinkrep[len++] = '\0';  
-		pwr_pin_on();
+		//pwr_pin_on();
 	    timer_set(&t, CLOCK_SECOND/100); //5ms pulse to wake up electron from sleep
 	    while(!timer_expired(&t));
-	    pwr_pin_off();
+	   // pwr_pin_off();
 	
 		leds_on(LEDS_YELLOW);
 		printf("%s", sinkrep);
@@ -129,7 +137,7 @@ PROCESS_THREAD(init_process, ev, data)
 	NETSTACK_RADIO.off(); 
 	rf230_set_rpc(0xFF); 
 	NETSTACK_RADIO.on();
-	pwr_pin_init();
+	//pwr_pin_init();
     ds3231_init();
 	etimer_set(&et, CLOCK_SECOND * 60);
 	while(1) {  
@@ -148,17 +156,39 @@ PROCESS_THREAD(radio_process, ev, data)
 	while(1) {  
 		NETSTACK_RADIO.on();
 		ps=0;
-		etimer_set(&et, CLOCK_SECOND * 17);
+		etimer_set(&et, CLOCK_SECOND * 59);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		NETSTACK_RADIO.off();
 		ps=1;
-		etimer_set(&et, CLOCK_SECOND * 43);
+		etimer_set(&et, CLOCK_SECOND * 1);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));	
 	}
 	PROCESS_END();
 }
+
+
+PROCESS_THREAD(serial_input_process, ev, data)
+{
+	PROCESS_BEGIN();
+uart0_init(BAUD2UBR(38400));
+	char delimiter[]=" ";
+	char *command = NULL;
+	while(1){ 
+                //power_save = 0; 
+		//printf("enter a value\n");
+		PROCESS_YIELD();
+		printf("enter a value1\n");
+		if(ev == serial_line_event_message){ 
+		command = (char*)strtok((char*)data, (const char*)delimiter);
+               printf("test %s \n",command);
+		}
+               printf("enter a value\n");
+		
+	}
+	PROCESS_END();
+}
 /* This handles MCU sleep */
-PROCESS_THREAD(sleep_process, ev, data)
+/*PROCESS_THREAD(sleep_process, ev, data)
 {
   PROCESS_BEGIN();
   while(1) {
@@ -176,4 +206,4 @@ PROCESS_THREAD(sleep_process, ev, data)
     PROCESS_PAUSE();
   }
   PROCESS_END();
-}
+}*/
