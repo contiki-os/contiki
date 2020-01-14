@@ -1,4 +1,5 @@
-obj_avr-rss2/bme280-sensor.o: ../../../../dev/bme280/bme280-sensor.c \
+obj_avr-rss2/bme280-sensor.o: \
+ ../../../../platform/avr-rss2/dev/bme280-sensor.c \
  ../../../../core/contiki.h ../../../../core/contiki-version.h \
  ../../../../platform/avr-rss2/contiki-conf.h project-conf.h \
  ../../../../core/contiki-default-conf.h ../../../../core/sys/process.h \
@@ -15,7 +16,7 @@ obj_avr-rss2/bme280-sensor.o: ../../../../dev/bme280/bme280-sensor.c \
  ../../../../core/sys/rtimer.h ../../../../core/lib/sensors.h \
  ../../../../dev/bme280/bme280.h ../../../../dev/bme280/bme280-sensor.h \
  ../../../../dev/bme280/bme280.h
-../../../../dev/bme280/bme280-sensor.c :
+ ../../../../platform/avr-rss2/dev/bme280-sensor.c :
  ../../../../core/contiki.h ../../../../core/contiki-version.h :
  ../../../../platform/avr-rss2/contiki-conf.h project-conf.h :
  ../../../../core/contiki-default-conf.h ../../../../core/sys/process.h :
