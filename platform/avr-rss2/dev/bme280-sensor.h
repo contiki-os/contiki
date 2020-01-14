@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,21 @@
  *
  * This file is part of the Contiki operating system.
  *
+ *
+ * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
+ * Created : 2016-09-14
  */
 
-/**
- * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#ifndef BME280_SENSOR_H_
+#define BME280_SENSOR_H_
 
-#include "contiki.h"
-#include "dev/serial-line.h"
-#include <stdio.h> /* For printf() */
-/*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-public int serial_input_byte(unsigned char c)
-{
-printf("got input byte : %d ('%c')\n",c,c);
-}
+#include "lib/sensors.h"
+#include "bme280.h"
 
+extern const struct sensors_sensor bme280_sensor;
 
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-//uart0_set_input(serial_input_byte);
-printf("Hello, world\n");
-while(1){
+#define BME280_SENSOR_TEMP         0
+#define BME280_SENSOR_HUMIDITY     1
+#define BME280_SENSOR_PRESSURE     2
 
-  //
-  PROCESS_YIELD();
-  if(ev == serial_line_event_message){
-  printf("Hello, world '%s'\n",(const char*)data);
-   }
-}
-  
-  PROCESS_END();
-}
-
-/*---------------------------------------------------------------------------*/
+#endif /* BME280_SENSOR_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,21 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
-
-/**
- * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
-
-#include "contiki.h"
-#include "dev/serial-line.h"
-#include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
+#ifndef BME280_ARCH_H
+#define BME280_ARCH_H
+
+/* Initialize the I2C module */
+void bme280_arch_i2c_init();
+
+/* I2C read registers */
+void bme280_arch_i2c_read_mem(uint8_t addr, uint8_t reg, uint8_t *buf,
+                              uint8_t bytes);
+
+/* I2C write to a single register */
+void bme280_arch_i2c_write_mem(uint8_t addr, uint8_t reg, uint8_t value);
+
+#endif
 /*---------------------------------------------------------------------------*/
-public int serial_input_byte(unsigned char c)
-{
-printf("got input byte : %d ('%c')\n",c,c);
-}
-
-
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-//uart0_set_input(serial_input_byte);
-printf("Hello, world\n");
-while(1){
-
-  //
-  PROCESS_YIELD();
-  if(ev == serial_line_event_message){
-  printf("Hello, world '%s'\n",(const char*)data);
-   }
-}
-  
-  PROCESS_END();
-}
-
-/*---------------------------------------------------------------------------*/
+/** @} */

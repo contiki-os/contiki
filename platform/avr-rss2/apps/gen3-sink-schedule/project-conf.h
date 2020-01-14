@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, RAdio Sensors AB, Uppsala Sweden
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,25 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         A very simple Contiki application showing how Contiki programs look
+ *         Project specific configuration defines for example
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Robert Olsson <robert@radio-sensors.com>
  */
 
-#include "contiki.h"
-#include "dev/serial-line.h"
-#include <stdio.h> /* For printf() */
-/*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-public int serial_input_byte(unsigned char c)
-{
-printf("got input byte : %d ('%c')\n",c,c);
-}
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
+#define NETSTACK_CONF_RDC nullrdc_driver
+#define NETSTACK_CONF_MAC nullmac_driver
 
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-//uart0_set_input(serial_input_byte);
-printf("Hello, world\n");
-while(1){
+//#define NETSTACK_CONF_MAC         csma_driver
+//#define NETSTACK_CONF_RDC         contikimac_driver
+//#define NETSTACK_CONF_FRAMER      framer_802154
+//#define NETSTACK_CONF_RADIO       rf230_driver
 
-  //
-  PROCESS_YIELD();
-  if(ev == serial_line_event_message){
-  printf("Hello, world '%s'\n",(const char*)data);
-   }
-}
-  
-  PROCESS_END();
-}
-
-/*---------------------------------------------------------------------------*/
+#endif /* PROJECT_CONF_H_ */

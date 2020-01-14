@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Copyright Robert Olsson / Radio Sensors AB  
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,29 @@
  *
  * This file is part of the Contiki operating system.
  *
+ *
+ * Author  : Robert Olsson robert@radio-sensors.com
+ * Created : 2015-11-22
  */
 
 /**
  * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Project specific configuration defines for example
+ *
  */
 
-#include "contiki.h"
-#include "dev/serial-line.h"
-#include <stdio.h> /* For printf() */
-/*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-public int serial_input_byte(unsigned char c)
-{
-printf("got input byte : %d ('%c')\n",c,c);
-}
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
+#define NETSTACK_CONF_RDC nullrdc_driver
+#define NETSTACK_CONF_MAC nullmac_driver
 
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-//uart0_set_input(serial_input_byte);
-printf("Hello, world\n");
-while(1){
+#define RS232_BAUDRATE USART_BAUD_38400
 
-  //
-  PROCESS_YIELD();
-  if(ev == serial_line_event_message){
-  printf("Hello, world '%s'\n",(const char*)data);
-   }
-}
-  
-  PROCESS_END();
-}
+/* Use CR and DEL etc */
+#define SERIAL_LINE_CONF_HUMAN 1
 
-/*---------------------------------------------------------------------------*/
+//#define NETSTACK_CONF_MAC         csma_driver
+//#define NETSTACK_CONF_RDC         contikimac_driver
+
+#endif /* PROJECT_CONF_H_ */

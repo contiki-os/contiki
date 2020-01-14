@@ -105,7 +105,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 
 		len=0;
 		len += sprintf(&sinkrep[len],"RTC_T=20%d-%02d-%02d,%02d:%02d:%02d Station=%s",
-		datetime.year,datetime.month, datetime.day, datetime.hours,datetime.mins,secs,node_name);
+		datetime.year,datetime.month, datetime.day, datetime.hours, datetime.mins, secs, node_name);
 
 		v_in = adc_read_v_in();
 		len += sprintf(&sinkrep[len]," V_IN=%-4.2f", v_in);

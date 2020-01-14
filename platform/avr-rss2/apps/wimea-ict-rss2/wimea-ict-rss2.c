@@ -70,6 +70,9 @@
 #include "netstack.h"
 #include "sys/energest.h"
 #include "sys/compower.h"
+#include "dev/bme280.h"
+#include "dev/bme280-sensor.h"
+
 
 #define NAME_LENGTH 12
 #define TAGMASK_LENGTH 100
@@ -149,7 +152,7 @@ static int error_status = 0;
 static int I2C_SHT25_flag, pulses =0;
 static int I2C_MCP3424_flag;
 static int I2C_MS5611_flag;
-static char default_sensors[50]=" T_MCU V_MCU V_IN V_A1 V_A2 ";
+static char default_sensors[50]="V_IN V_A1 V_A2 ";
 uint16_t rssi, lqi; //Received Signal Strength Indicator(RSSI), Link Quality Indicator(LQI)
 static float wind_speed = 0.0;
 static float max_windspeed =0.0;
@@ -417,6 +420,7 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
+	SENSORS_ACTIVATE(bme280_sensor);
        static int counter = 0;
        static int time_interval_0 = 0;
        static int i, j;
@@ -467,7 +471,8 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 
                 if(time_interval_0 == 120){
                   counter++;
-                
+                //printf("pressure = %5.2f\n", (double)bme280_mea.p_overscale256 / 256.);
+		//printf("pressure = %5.2f\n", (double)bme280_sensor.value(2));
                 if(counter == 10){
                 check_sensor_connection("0");
                 power_save = 0;
@@ -477,6 +482,10 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
                 counter = 0;
                    }
 		}else{
+ 		
+                //printf("pressure = %5.2f\n", (double)bme280_mea.p_overscale256);
+                //printf("pressure1 = %5.2f\n", (double)bme280_sensor.value(2)/10);
+
                 check_sensor_connection("0");
                 power_save = 0;
 		NETSTACK_RADIO.on();
@@ -499,6 +508,7 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
         SENSORS_DEACTIVATE(mcp3424_sensor);
         SENSORS_DEACTIVATE(sht25_sensor);
         SENSORS_DEACTIVATE(pulse_sensor);
+	SENSORS_DEACTIVATE(bme280_sensor);
 	PROCESS_END();
 }
 /*--------------------------------------------------------------------------- */
@@ -509,6 +519,7 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
+        SENSORS_ACTIVATE(bme280_sensor);
            
          
        
@@ -551,6 +562,7 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
         SENSORS_DEACTIVATE(mcp3424_sensor);
         SENSORS_DEACTIVATE(sht25_sensor);
         SENSORS_DEACTIVATE(pulse_sensor);
+	SENSORS_DEACTIVATE(bme280_sensor);
 	PROCESS_END();
 }
 /*--------------------------------------------------------------------------- */
@@ -1237,17 +1249,19 @@ read_sensor_values_report0(void){
 			i += snprintf(result+i, 10, " T1=%-5.2f", (double)(temp_sensor.value(0)*1.0/100));
                         }
 		}
-               else if (!strncmp(trim(sensors), "P", 1)) {   //pressure   
-			if(i2c_probed1 & I2C_MS5611_ADDR){
+               else if (!strncmp(trim(sensors), "P", 1)) {   //pressure  
+			i += snprintf(result+i, 12, " P=%5.2f\n", (double)bme280_sensor.value(2)/10); 
+			/*if(i2c_probed1 & I2C_MS5611_ADDR){
                         if(ms5611_sensor.value(0) && missing_p_value() == 0){ 
                         if(ms5611_sensor.value(0) < 10.0 || ms5611_sensor.value(0) > 1200.0){             
 			 error_log("#E_wv(P)");
                           }else{
-            		i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0));
+            		//i += snprintf(result+i, 12, " P=%d", ms5611_sensor.value(0));
+			
                           }
                           }else{
 			error_log("#E_mv(ms5611)");
-                         }}
+                         }}*/
                    
 		} else if (!strncmp(trim(sensors), "T", 1) ) {//temperature
                          if( i2c_probed1 & I2C_SHT25){
@@ -1285,7 +1299,7 @@ read_sensor_values_report0(void){
 
 		} else if (!strncmp(trim(sensors), "WDSPD", 5) ) {//int pin eg. anenometer 
 			
-     			i += snprintf(result+i,15," windSpeed=%.2f ",wind_speed);
+     			i += snprintf(result+i,17," windSpeed=%.2f ",wind_speed);
 			
 		}else if (!strncmp(trim(sensors), "MAXWSD", 6) ) {//int pin eg. anenometer 
 			i += snprintf(result+i,15," mxwdspd=%.2f ",max_windspeed);
@@ -2472,7 +2486,7 @@ void check_sensor_connection(char *reportNo){
 		auto_set_report_mask(mask,4,0,reportNo);
                 I2C_MCP3424_flag = 0;
               }
-	 if(i2c_probed1 & I2C_MS5611_ADDR){
+	 /*if(i2c_probed1 & I2C_MS5611_ADDR){
 		SENSORS_ACTIVATE(ms5611_sensor);
 		 char *mask[]= {"P"};
 		auto_set_report_mask(mask,1,1,reportNo);
@@ -2481,7 +2495,7 @@ void check_sensor_connection(char *reportNo){
          char *mask[]= {"P"};
 		auto_set_report_mask(mask,1,0,reportNo);
                 I2C_MS5611_flag = 0;
-              }
+              }*/
 	if( i2c_probed1 & I2C_DS1307 ) {
 			DS1307_init();
 			SENSORS_ACTIVATE(ds1307_sensor);
@@ -2496,7 +2510,7 @@ void check_sensor_connection(char *reportNo){
          eeprom_update_word(&eemem_I2C_SHT25_flag, I2C_SHT25_flag);
         
         }
-       if((eeprom_read_word(&eemem_I2C_MS5611_flag) != I2C_MS5611_flag )&& (I2C_MS5611_flag == 0)){
+       /*if((eeprom_read_word(&eemem_I2C_MS5611_flag) != I2C_MS5611_flag )&& (I2C_MS5611_flag == 0)){
         printf( "\nAlert \t******** I2C_MS5611 SENSOR Disconnected ***********\n\n" );
         eeprom_update_word(&eemem_I2C_MS5611_flag, I2C_MS5611_flag);
         error_log("#E_Dc(MS5611)");
@@ -2505,7 +2519,7 @@ void check_sensor_connection(char *reportNo){
         printf( "\nAlert \t******** I2C_MS5611 SENSOR Connected ***********\n\n" );
         eeprom_update_word(&eemem_I2C_MS5611_flag, I2C_MS5611_flag);
          
-	}
+	}*/
        if((eeprom_read_word(&eemem_I2C_MCP3424_flag) != I2C_MCP3424_flag) && (I2C_MCP3424_flag ==0)){
         printf( "\nAlert \t******** I2C_MCP3424 SENSOR Disconnected ***********\n\n" );
          eeprom_update_word(&eemem_I2C_MCP3424_flag, I2C_MCP3424_flag);
@@ -2532,9 +2546,28 @@ void error_log(char *message){
 PROCESS_THREAD(windspeed_process, ev, data)
 {
 	PROCESS_BEGIN();
+	uint8_t node_name[NAME_LENGTH];
+        char * type ;
+	int index = -1; 
 	while(1) {
-                 power_save = 1;
+        	eeprom_read_block((void*)&node_name, (const void*)&eemem_node_name, NAME_LENGTH);
+		type = (char *)node_name;
+		const char *ptr = strchr(type, '10');
+		if(ptr) {
+		  index = ptr - type;
+		}
 		
+          	if(index <= -1){
+		//to allow rainguage capture data
+ 		power_save = 1;
+                etimer_set(&et4, CLOCK_SECOND * 100);
+                power_save = 0;
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
+                power_save = 1;
+			}else{
+
+		
+                 power_save = 1;
                 etimer_set(&et4, CLOCK_SECOND * 1);
                 power_save = 0;
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
@@ -2544,7 +2577,7 @@ PROCESS_THREAD(windspeed_process, ev, data)
                 if(wind_speed>max_windspeed){
 		max_windspeed = wind_speed;
 		}
-                printf("wind speed %.2f in %d pulse and max wind speed %.2f \n\n",wind_speed,pulses,max_windspeed);
+		}
 	}
 
 	PROCESS_END();

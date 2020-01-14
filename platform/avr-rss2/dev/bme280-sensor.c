@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Copyright Robert Olsson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,52 @@
  *
  * This file is part of the Contiki operating system.
  *
- */
-
-/**
- * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
+ *
+ * Author  : Robert Olsson rolss@kth.se/robert@radio-sensors.com
+ * Created : 2016-09-14
  */
 
 #include "contiki.h"
-#include "dev/serial-line.h"
-#include <stdio.h> /* For printf() */
+#include "lib/sensors.h"
+#include "dev/bme280/bme280.h"
+#include "dev/bme280/bme280-sensor.h"
 /*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-public int serial_input_byte(unsigned char c)
+static int
+value(int type)
 {
-printf("got input byte : %d ('%c')\n",c,c);
+  /* Read all measurements with one burst read */
+  bme280_read(BME280_MODE_WEATHER);
+
+  /* Return a la Contiki API */
+  switch(type) {
+
+  case BME280_SENSOR_TEMP:
+    return bme280_mea.t_overscale100 / 100;
+
+  case BME280_SENSOR_HUMIDITY:
+    return bme280_mea.h_overscale1024 >> 10;
+
+  case BME280_SENSOR_PRESSURE:
+    /* Scale down w. 10 not to overslow the signed int */
+#ifdef BME280_64BIT
+    return bme280_mea.p_overscale256 / (256 * 10);
+#else
+    return bme280_mea.p / 10;
+#endif
+  }
+  return 0;
 }
-
-
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-//uart0_set_input(serial_input_byte);
-printf("Hello, world\n");
-while(1){
-
-  //
-  PROCESS_YIELD();
-  if(ev == serial_line_event_message){
-  printf("Hello, world '%s'\n",(const char*)data);
-   }
-}
-  
-  PROCESS_END();
-}
-
 /*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  return bme280_init(BME280_MODE_WEATHER);
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(bme280_sensor, "bme280", value, configure, status);

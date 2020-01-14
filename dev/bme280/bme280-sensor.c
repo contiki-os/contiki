@@ -35,8 +35,8 @@
 
 #include "contiki.h"
 #include "lib/sensors.h"
-#include "dev/bme280/bme280.h"
-#include "dev/bme280/bme280-sensor.h"
+#include "dev/bme280.h"
+#include "dev/bme280-sensor.h"
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
