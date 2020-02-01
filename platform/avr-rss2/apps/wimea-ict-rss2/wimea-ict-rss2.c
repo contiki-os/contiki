@@ -420,7 +420,7 @@ PROCESS_THREAD(sensor_data_process_report0, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
-	SENSORS_ACTIVATE(bme280_sensor);
+	
        static int counter = 0;
        static int time_interval_0 = 0;
        static int i, j;
@@ -519,7 +519,7 @@ PROCESS_THREAD(sensor_data_process_report1, ev, data)
 	SENSORS_ACTIVATE(temp_mcu_sensor);
 	SENSORS_ACTIVATE(battery_sensor);
         SENSORS_ACTIVATE(pulse_sensor);
-        SENSORS_ACTIVATE(bme280_sensor);
+        
            
          
        
