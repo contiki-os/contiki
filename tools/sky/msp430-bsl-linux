@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Serial Bootstrap Loader software for the MSP430 embedded proccessor.
 #
 # (C) 2001-2003 Chris Liechti <cliechti@gmx.net>
@@ -269,10 +269,10 @@ class LowLevel:
         #used for some hardware
         self.invertRST = 0
         self.invertTEST = 0
-	self.swapRSTTEST = 0
-	self.telosLatch = 0
-	self.telosI2C = 0
-        
+        self.swapRSTTEST = 0
+        self.telosLatch = 0
+        self.telosI2C = 0
+
         self.protocolMode = self.MODE_BSL
         self.BSLMemAccessWarning = 0                #Default: no warning.
         self.slowmode = 0
@@ -475,22 +475,22 @@ class LowLevel:
         self.serialport.setDTR(not level)
 
     def telosI2CStart(self):
-	self.telosSetSDA(1)
-	self.telosSetSCL(1)
-	self.telosSetSDA(0)
+        self.telosSetSDA(1)
+        self.telosSetSCL(1)
+        self.telosSetSDA(0)
 
     def telosI2CStop(self):
-	self.telosSetSDA(0)
-	self.telosSetSCL(1)
-	self.telosSetSDA(1)
+        self.telosSetSDA(0)
+        self.telosSetSCL(1)
+        self.telosSetSDA(1)
 
     def telosI2CWriteBit(self, bit):
-	self.telosSetSCL(0)
-	self.telosSetSDA(bit)
+        self.telosSetSCL(0)
+        self.telosSetSDA(bit)
         time.sleep(2e-6)
-	self.telosSetSCL(1)
+        self.telosSetSCL(1)
         time.sleep(1e-6)
-	self.telosSetSCL(0)
+        self.telosSetSCL(0)
 
     def telosI2CWriteByte(self, byte):
         self.telosI2CWriteBit( byte & 0x80 );
@@ -504,36 +504,36 @@ class LowLevel:
         self.telosI2CWriteBit( 0 );  # "acknowledge"
 
     def telosI2CWriteCmd(self, addr, cmdbyte):
-	self.telosI2CStart()
+        self.telosI2CStart()
         self.telosI2CWriteByte( 0x90 | (addr << 1) )
-	self.telosI2CWriteByte( cmdbyte )
-	self.telosI2CStop()
+        self.telosI2CWriteByte( cmdbyte )
+        self.telosI2CStop()
 
     def telosBReset(self,invokeBSL=0):
 
-	# "BSL entry sequence at dedicated JTAG pins"
+        # "BSL entry sequence at dedicated JTAG pins"
         # rst !s0: 0 0 0 0 1 1
-	# tck !s1: 1 0 1 0 0 1
+        # tck !s1: 1 0 1 0 0 1
         #   s0|s1: 1 3 1 3 2 0
 
-	# "BSL entry sequence at shared JTAG pins"
+        # "BSL entry sequence at shared JTAG pins"
         # rst !s0: 0 0 0 0 1 1
-	# tck !s1: 0 1 0 1 1 0
+        # tck !s1: 0 1 0 1 1 0
         #   s0|s1: 3 1 3 1 0 2
 
-	if invokeBSL:
-	  self.telosI2CWriteCmd(0,1)
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,1)
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,2)
-	  self.telosI2CWriteCmd(0,0)
-	else:
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,2)
-	self.telosI2CWriteCmd(0,0)
+        if invokeBSL:
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+            self.telosI2CWriteCmd(0,0)
+        else:
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+        self.telosI2CWriteCmd(0,0)
         time.sleep(0.250)       #give MSP430's oscillator time to stabilize
-	self.serialport.flushInput()  #clear buffers
+        self.serialport.flushInput()  #clear buffers
 
     def bslReset(self, invokeBSL=0):
         """Applies BSL entry sequence on RST/NMI and TEST/VPP pins
@@ -544,19 +544,19 @@ class LowLevel:
         RST is inverted twice on boot loader hardware
         TEST is inverted (only once)
         Need positive voltage on DTR, RTS for power-supply of hardware"""
-	if self.telosI2C:
-	  self.telosBReset(invokeBSL)
-	  return
+        if self.telosI2C:
+            self.telosBReset(invokeBSL)
+            return
 
         if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
         self.SetRSTpin(1)       #power suply
         self.SetTESTpin(1)      #power suply
         time.sleep(0.250)       #charge capacitor on boot loader hardware
 
-	if self.telosLatch:
-	  self.SetTESTpin(0)
-	  self.SetRSTpin(0)
-	  self.SetTESTpin(1)
+        if self.telosLatch:
+            self.SetTESTpin(0)
+            self.SetRSTpin(0)
+            self.SetTESTpin(1)
 
         self.SetRSTpin(0)       #RST  pin: GND
         if invokeBSL:
@@ -590,22 +590,22 @@ class LowLevel:
                 if DEBUG > 1: sys.stderr.write("  bslSync() OK\n")
                 return                              #Sync. successful
             elif not c:                             #timeout
-                    if loopcnt > 4:
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout, retry ...\n")
-                    elif loopcnt == 4:
-                        #nmi may have caused the first reset to be ignored, try again
-                        self.bslReset(0) 
-                        self.bslReset(1)
-                    elif loopcnt > 0:
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout, retry ...\n")
-                    else :
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout\n")
+                if loopcnt > 4:
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout, retry ...\n")
+                elif loopcnt == 4:
+                    #nmi may have caused the first reset to be ignored, try again
+                    self.bslReset(0)
+                    self.bslReset(1)
+                elif loopcnt > 0:
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout, retry ...\n")
+                else :
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout\n")
             else:                                   #garbage
                 if DEBUG > 1: sys.stderr.write("  bslSync() failed (0x%02x), retry ...\n" % ord(c))
-                
+
                 raise BSLException(self.ERR_BSL_SYNC)       #Sync. failed
 
     def bslTxRx(self, cmd, addr, length = 0, blkout = None, wait=0):
@@ -756,7 +756,7 @@ class Memory:
                 sys.stderr.write("ELF section %s at 0x%04x %d bytes\n" % (section.name, section.lma, len(section.data)))
             if len(section.data):
                 self.segments.append( Segment(section.lma, section.data) )
-        
+
     def loadFile(self, filename):
         """fill memory with the contents of a file. file type is determined from extension"""
         #TODO: do a contents based detection
@@ -791,9 +791,9 @@ class Memory:
                     if len(res) >= toadr-fromadr:
                         break#return res
             else:
-                    res = res + chr(255)
-                    fromadr = fromadr + 1 #adjust start
-                    #print "fill FF"
+                res = res + chr(255)
+                fromadr = fromadr + 1 #adjust start
+                #print "fill FF"
         #print "res: %r" % res
         return res
 
@@ -858,7 +858,7 @@ class BootStrapLoader(LowLevel):
 
             for i in range(len(blkout)):
                 if action & self.ACTION_VERIFY:
-                    #Compare data in blkout and blkin
+                #Compare data in blkout and blkin
                     if blkin[i] != blkout[i]:
                         sys.stderr.write("Verification failed at 0x%04x (0x%02x, 0x%02x)\n" % (addr+i, ord(blkin[i]), ord(blkout[i])))
                         sys.stderr.flush()
@@ -999,7 +999,7 @@ class BootStrapLoader(LowLevel):
         if self.bslVer <= 0x0130 and adjsp:
             #only do this on BSL where it's needed to prevent
             #malfunction with F4xx devices/ newer ROM-BSLs
-            
+
             #Execute function within bootstrap loader
             #to prepare stack pointer for the following patch.
             #This function will lock the protected functions again.
@@ -1024,7 +1024,7 @@ class BootStrapLoader(LowLevel):
                     sys.stderr.write("Using built in BSL replacement for F1x devices\n")
                     sys.stderr.flush()
                 replacementBSL.loadTIText(cStringIO.StringIO(F1X_BSL))  #parse embedded BSL
-    
+
         #now download the new BSL, if allowed and needed (version lower than the
         #the replacement) or forced
         if replacementBSL is not None:
@@ -1086,7 +1086,7 @@ class BootStrapLoader(LowLevel):
         self.txPasswd(self.passwd)
 
         #update version info
-        #verison only valid for the internal ones, but it also makes sure 
+        #verison only valid for the internal ones, but it also makes sure
         #that the patches are not applied if the user d/ls one
         self.bslVer = 0x0150
 
@@ -1157,7 +1157,7 @@ class BootStrapLoader(LowLevel):
             a,l = baudconfigs[baudrate]
         except KeyError:
             raise ValueError, "baudrate not valid. valid values are %r" % baudconfigs.keys()
-        
+
         sys.stderr.write("Changing baudrate to %d ...\n" % baudrate)
         sys.stderr.flush()
         self.bslTxRx(self.BSL_CHANGEBAUD,   #Command: change baudrate
@@ -1232,7 +1232,7 @@ General options:
   --swap-reset-test     Swap the RST and TEST pins (used for some BSL hardware)
   --telos-latch         Special twiddle in BSL reset for Telos hardware
   --telos-i2c           DTR/RTS map via an I2C switch to TCK/RST in Telos Rev.B
-  --telos               Implies options --invert-reset, --invert-test, 
+  --telos               Implies options --invert-reset, --invert-test,
                         --swap-reset-test, and --telos-latch
   --telosb              Implies options --swap-reset-test, --telos-i2c,
                         --no-BSL-download, and --speed=38400
@@ -1342,7 +1342,7 @@ def main():
              "upload=", "download=", "size=", "hex", "bin",
              "intelhex", "titext", "notimeout", "bsl=", "speed=",
              "bslversion", "f1x", "f4x", "invert-reset", "invert-test",
-	     "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
+             "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow"]
         )
     except getopt.GetoptError:
@@ -1478,12 +1478,12 @@ def main():
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1
             mayuseBSL = 0
-	    speed = 38400
+            speed = 38400
         elif o in ("--tmote", ):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1
             mayuseBSL = 0
-	    speed = 38400
+            speed = 38400
         elif o in ("--no-BSL-download", ):
             mayuseBSL = 0
         elif o in ("--force-BSL-download", ):
@@ -1526,7 +1526,7 @@ def main():
         reset = 0
 
     sys.stderr.flush()
-    
+
     #prepare data to download
     bsl.data = Memory()                             #prepare downloaded data
     if filetype is not None:                        #if the filetype is given...
