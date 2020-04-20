@@ -30,11 +30,16 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+/*
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    140
+*/
+
+/* Step 6 in lab 3 instructions */
+#define RF_CORE_CONF_CHANNEL 12
 
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
