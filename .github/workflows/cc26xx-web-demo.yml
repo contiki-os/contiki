@@ -17,4 +17,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: binary
-        path: cc26xx-web-demo.bin
+        path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
