@@ -5,6 +5,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Building cc26xx-web-demo
     steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        ref: ${GITHUB_REF}
+        submodules: 'recursive'
     - name: Build Contiki example project
       id: contiki
       uses: xanderhendriks-uts/action-build-contiki@master
