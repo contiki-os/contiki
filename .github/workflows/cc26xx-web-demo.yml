@@ -7,6 +7,6 @@ jobs:
     steps:
     - name: Build Contiki example project
       id: contiki
-      uses: xanderhendriks-uts/action-build-contiki
+      uses: xanderhendriks-uts/action-build-contiki@master
       with:
         which-project: 'cc26xx-web-demo'
