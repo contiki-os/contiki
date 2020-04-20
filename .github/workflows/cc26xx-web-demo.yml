@@ -10,7 +10,11 @@ jobs:
       with:
         submodules: 'recursive'
     - name: Build Contiki example project
-      id: contiki
       uses: xanderhendriks-uts/action-build-contiki@master
       with:
         which-project: 'cc26xx-web-demo'
+    - name: Archive the artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: binary
+        path: cc26xx-web-demo.bin
