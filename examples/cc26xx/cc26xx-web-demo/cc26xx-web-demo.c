@@ -46,6 +46,7 @@
 #include "sys/process.h"
 #include "net/ipv6/sicslowpan.h"
 #include "button-sensor.h"
+#include "level-sensor.h"
 #include "batmon-sensor.h"
 #include "httpd-simple.h"
 #include "cc26xx-web-demo.h"
@@ -71,7 +72,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
 struct ctimer batmon_timer;
 
 #if BOARD_SENSORTAG
-struct ctimer bmp_timer, hdc_timer, tmp_timer, opt_timer, mpu_timer;
+struct ctimer bmp_timer, level_timer, hdc_timer, tmp_timer, opt_timer, mpu_timer;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Provide visible feedback via LEDS while searching for a network */
@@ -134,6 +135,9 @@ DEMO_SENSOR(bmp_pres, CC26XX_WEB_DEMO_SENSOR_BMP_PRES,
 DEMO_SENSOR(bmp_temp, CC26XX_WEB_DEMO_SENSOR_BMP_TEMP,
             "Air Temp", "air-temp", "bmp_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
+DEMO_SENSOR(gpio_level, CC26XX_WEB_DEMO_SENSOR_GPIO_LEVEL,
+            "Level sensor", "level-sensor", "gpio_level",
+            CC26XX_WEB_DEMO_UNIT_GPIO);
 DEMO_SENSOR(hdc_temp, CC26XX_WEB_DEMO_SENSOR_HDC_TEMP,
             "HDC Temp", "hdc-temp", "hdc_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
@@ -567,6 +571,26 @@ get_bmp_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
+get_gpio_input_reading()
+{
+  int value;
+  char *buf;
+
+  if(gpio_level_reading.publish) {
+    value = level_sensor.value(0);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      gpio_level_reading.raw = value;
+
+      compare_and_update(&gpio_level_reading);
+
+      buf = gpio_level_reading.converted;
+      memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+      snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "\"%s\"", value ? "LOW" : "HIGH");
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 get_tmp_reading()
 {
   int value;
@@ -867,6 +891,8 @@ init_sensors(void)
   list_add(sensor_list, &bmp_pres_reading);
   list_add(sensor_list, &bmp_temp_reading);
 
+  list_add(sensor_list, &gpio_level_reading);
+
   list_add(sensor_list, &tmp_obj_reading);
   list_add(sensor_list, &tmp_amb_reading);
 
@@ -883,6 +909,7 @@ init_sensors(void)
   list_add(sensor_list, &mpu_gyro_z_reading);
 
   SENSORS_ACTIVATE(reed_relay_sensor);
+  SENSORS_ACTIVATE(level_sensor);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -991,6 +1018,8 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 #if BOARD_SENSORTAG
     } else if(ev == sensors_event && data == &bmp_280_sensor) {
       get_bmp_reading();
+    } else if(ev == sensors_event && data == &level_sensor) {
+      get_gpio_input_reading();
     } else if(ev == sensors_event && data == &opt_3001_sensor) {
       get_light_reading();
     } else if(ev == sensors_event && data == &hdc_1000_sensor) {

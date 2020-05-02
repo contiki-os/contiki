@@ -49,6 +49,7 @@
 #define BOARD_PERIPHERALS_H_
 /*---------------------------------------------------------------------------*/
 #include "bmp-280-sensor.h"
+#include "level-sensor.h"
 #include "tmp-007-sensor.h"
 #include "opt-3001-sensor.h"
 #include "hdc-1000-sensor.h"

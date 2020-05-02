@@ -32,25 +32,28 @@
  * \addtogroup sensortag-cc26xx-peripherals
  * @{
  *
+ * \defgroup sensortag-cc26xx-reed-relay SensorTag 2.0 Reed Relay
+ *
+ * The reed relay acts like a button without a button. To trigger the reed,
+ * approach a magnet to the sensortag and a sensors_changed event will be
+ * generated, in a fashion similar to as if a button had been pressed
+ *
+ * @{
+ *
  * \file
- * Generic module controlling sensors on Sensortags
+ * Header file for the Sensortag Reed Relay
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "sensortag/button-sensor.h"
-#include "sensortag/bmp-280-sensor.h"
-#include "sensortag/level-sensor.h"
-#include "sensortag/tmp-007-sensor.h"
-#include "sensortag/opt-3001-sensor.h"
-#include "sensortag/hdc-1000-sensor.h"
-#include "sensortag/mpu-9250-sensor.h"
-#include "sensortag/reed-relay.h"
-
-#include <string.h>
+#ifndef LEVEL_SENSOR_H
+#define LEVEL_SENSOR_H
 /*---------------------------------------------------------------------------*/
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_left_sensor, &button_right_sensor,
-        &bmp_280_sensor, &level_sensor, &tmp_007_sensor, &opt_3001_sensor, &hdc_1000_sensor,
-        &mpu_9250_sensor, &reed_relay_sensor);
+#include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-/** @} */
+extern const struct sensors_sensor level_sensor;
+/*---------------------------------------------------------------------------*/
+#endif /* LEVEL_SENSOR_H */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

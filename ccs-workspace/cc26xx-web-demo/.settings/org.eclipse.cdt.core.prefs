@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/delimiter=;
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/operation=append
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/value=sensortag/cc2650
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/CFLAGS/delimiter=;
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/CFLAGS/operation=replace
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/CFLAGS/value=-g
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/PATH/delimiter=;
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/PATH/operation=replace
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/PATH/value=C\:\\ti\\ccs1000\\ccs\\tools\\compiler\\gcc-arm-none-eabi-5_2-2015q4-20151219-win32\\bin;C\:\\ti\\ccs1000\\ccs\\ccs_base\\common\\bin;C\:\\ti\\ccs1000\\ccs\\ccs_base\\common\\uscif;C\:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C\:\\Program Files (x86)\\Intel\\iCLS Client\\;C\:\\Program Files\\Intel\\iCLS Client\\;C\:\\Windows\\system32;C\:\\Windows;C\:\\Windows\\System32\\Wbem;C\:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C\:\\Windows\\System32\\OpenSSH\\;C\:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C\:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C\:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\IPT;C\:\\Program Files\\Intel\\Intel(R) Management Engine Components\\IPT;C\:\\Program Files\\Git\\cmd;C\:\\Program Files\\TortoiseGit\\bin;C\:\\Users\\xander\\AppData\\Local\\Programs\\Python\\Python37\\Scripts;C\:\\Users\\xander\\AppData\\Local\\Programs\\Python\\Python37;C\:\\Users\\xander\\AppData\\Local\\Microsoft\\WindowsApps;;C\:\\Program Files\\Docker Toolbox;c\:\\ti\\ccs1000\\xdctools_3_61_00_16_core\\;c\:\\ti\\ccs1000\\xdctools_3_61_00_16_core\\bin
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/TARGET/delimiter=;
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/TARGET/operation=append
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/TARGET/value=srf06-cc26xx
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/append=true
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/appendContributed=true
