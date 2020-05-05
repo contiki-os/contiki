@@ -1113,7 +1113,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
                 TSCH_LOG_ADD(tsch_log_message,
                              snprintf(log->message, sizeof(log->message)
                                  , "TSCH:supress rf off, slot %ldus\n"
-                                 , (time_to_next_active_slot-RTIMER_NOW())
+                                 , (long)(time_to_next_active_slot-RTIMER_NOW())
                                  );
                 );
         }
