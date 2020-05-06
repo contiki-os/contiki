@@ -432,21 +432,25 @@ void tsch_poll(void){
 }
 
 void tsch_activate(bool onoff){
-    if (onoff)
+    if (onoff){
+        if (tsch_status < tschACTIVE)
+            tsch_poll();
         tsch_status = tschACTIVE;
-    else
-        tsch_status = tschDISABLED;
-    if (tsch_is_associated)
+    }
+    else {
         tsch_disassociate();
-    else
-        tsch_poll();
+        if (tsch_status >tschDISABLED) {
+            tsch_status = tschDISABLED;
+            tsch_poll();
+        }
+}
 }
 
 /* Leave the TSCH network */
 void
 tsch_disassociate(void)
 {
-  if(tsch_is_associated == 1) {
+  if(tsch_status >= tschACTIVE) {
     tsch_is_associated = 0;
     tsch_poll();
     PRINTF("TSCH: leaving the network\n");
