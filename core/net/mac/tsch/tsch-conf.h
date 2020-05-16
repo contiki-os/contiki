@@ -91,6 +91,12 @@
 #define TSCH_CONF_RX_WAIT 2200
 #endif /* TSCH_CONF_RX_WAIT */
 
+/* Configurable guard time [us] for turn on radio, before slot activity */
+#ifndef TSCH_CONF_RFON_GUARD_TIME
+#define TSCH_CONF_RFON_GUARD_TIME 0
+#endif /* TSCH_CONF_RX_WAIT */
+
+
 /* The default timeslot timing in the standard is a guard time of
  * 2200 us, a Tx offset of 2120 us and a Rx offset of 1120 us.
  * As a result, the listening device has a guard time not centered

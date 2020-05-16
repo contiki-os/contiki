@@ -244,7 +244,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size,
   {
     int i;
     ies.ie_tsch_timeslot_id = 1;
-    for(i = 0; i < tsch_ts_elements_count; i++) {
+    for(i = 0; i < tsch_ts_netwide_count; i++) {
       ies.ie_tsch_timeslot[i] = RTIMERTICKS_TO_US(tsch_timing[i]);
     }
   }

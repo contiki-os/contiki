@@ -40,6 +40,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "contiki.h"
 #include "dev/radio.h"
 #include "net/netstack.h"
@@ -289,7 +290,9 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   int r;
   /* Subtract RTIMER_GUARD before checking for deadline miss
    * because we can not schedule rtimer less than RTIMER_GUARD in the future */
-  int missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
+  int missed = 0;
+  if (RTIMER_CLOCK_LT(ref_time + RTIMER_GUARD, now))
+      missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
 
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
@@ -300,7 +303,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
 
     return 0;
   }
-  ref_time += offset;
+  ref_time += offset - RTIMER_GUARD;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
   if(r != RTIMER_OK) {
     return 0;
@@ -313,7 +316,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
  * ahead of time and then busy wait to exactly hit the target. */
 #define TSCH_SCHEDULE_AND_YIELD(pt, tm, ref_time, offset, str) \
   do { \
-    if(tsch_schedule_slot_operation(tm, ref_time, offset - RTIMER_GUARD, str)) { \
+    if(tsch_schedule_slot_operation(tm, ref_time, offset, str)) { \
       PT_YIELD(pt); \
     } \
     BUSYWAIT_UNTIL_ABS(0, ref_time, offset); \
@@ -398,6 +401,14 @@ update_neighbor_state(struct tsch_neighbor *n, struct tsch_packet *p,
   return in_queue;
 }
 /*---------------------------------------------------------------------------*/
+//* TSCH use state of RF to plan next timeslot operation
+enum tsch_rf_states{
+    tsch_rfOFF, tsch_rfON
+};
+typedef enum tsch_rf_states tsch_rf_states;
+static
+tsch_rf_states tsch_rf_state = tsch_rfOFF;
+
 /**
  * This function turns on the radio. Its semantics is dependent on
  * the value of TSCH_RADIO_ON_DURING_TIMESLOT constant:
@@ -426,9 +437,16 @@ tsch_radio_on(enum tsch_radio_state_on_cmd command)
   }
   if(do_it) {
     NETSTACK_RADIO.on();
+    tsch_rf_state = tsch_rfON;
   }
 }
 /*---------------------------------------------------------------------------*/
+//* prognose next active timeslot. for heavy turn on/off RF, this prognose
+//* helps to avoid useless radio-off, and save timeslot time for work
+static
+bool tsch_next_timeslot_far(rtimer_clock_t slot_start);
+
+
 /**
  * This function turns off the radio. In the same way as for tsch_radio_on(),
  * it depends on the value of TSCH_RADIO_ON_DURING_TIMESLOT constant:
@@ -445,8 +463,15 @@ tsch_radio_off(enum tsch_radio_state_off_cmd command)
     if(TSCH_RADIO_ON_DURING_TIMESLOT) {
       do_it = 1;
     }
+    // provide power off between slot, when gaurding time defined
+    if (tsch_rf_state > tsch_rfOFF)
+    if (tsch_timing[tsch_ts_rfon_prepslot_guard] > 0)
+        do_it = 1;
     break;
+
   case TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT:
+    // provide power off in slot, only when gaurding time not defined
+    if (tsch_timing[tsch_ts_rfon_prepslot_guard] <= 0)
     if(!TSCH_RADIO_ON_DURING_TIMESLOT) {
       do_it = 1;
     }
@@ -457,7 +482,31 @@ tsch_radio_off(enum tsch_radio_state_off_cmd command)
   }
   if(do_it) {
     NETSTACK_RADIO.off();
+    tsch_rf_state = tsch_rfOFF;
   }
+}
+
+static
+bool tsch_next_timeslot_far(rtimer_clock_t slot_start){
+    if (tsch_timing[tsch_ts_rfon_prepslot_guard] <= 0)
+        return true;
+
+    rtimer_clock_t next_slot_start = slot_start - RTIMER_GUARD;
+    rtimer_clock_t now = RTIMER_NOW();
+    long timeout = RTIMER_CLOCK_DIFF(next_slot_start, now);
+    // use tsch_ts_rfon_prepslot_guard to predict rf off+on time
+    const rtimer_clock_t time_gap = tsch_timing[tsch_ts_rfon_prepslot_guard]*2;
+    return (timeout > time_gap);
+}
+
+unsigned tsch_next_slot_prefetched_time(unsigned timeout){
+    if (tsch_rf_state == tsch_rfOFF){
+        if (timeout > tsch_timing[tsch_ts_rfon_prepslot_guard])
+            timeout -= tsch_timing[tsch_ts_rfon_prepslot_guard];
+        else
+            return 0;
+    }
+    return timeout;
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -582,6 +631,14 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               uint8_t ack_hdrlen;
               frame802154_t frame;
 
+#if TSCH_RADIO_ON_DURING_TIMESLOT
+              // clenup receiving buffer from packets that have ocasionaly received not
+              //  in this time-slot
+              while (NETSTACK_RADIO.pending_packet()){
+                  NETSTACK_RADIO.read(NULL, 0);
+              }
+#endif
+
 #if TSCH_HW_FRAME_FILTERING
               radio_value_t radio_rx_mode;
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
@@ -678,8 +735,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       }
     }
 
-    tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
-
     current_packet->transmissions++;
     current_packet->ret = mac_tx_status;
 
@@ -758,8 +813,18 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
     current_input = &input_array[input_index];
 
+    // clenup receiving buffer from packets that have ocasionaly received not
+    //  in this time-slot
+#if TSCH_RADIO_ON_DURING_TIMESLOT
+    while (NETSTACK_RADIO.pending_packet()){
+        NETSTACK_RADIO.read(NULL, 0);
+    }
+#endif
+
     /* Wait before starting to listen */
-    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start
+                            , tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX
+                            , "RxBeforeListen");
     TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
@@ -869,6 +934,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                 }
 #endif /* LLSEC802154_ENABLED */
 
+                tsch_radio_off(TSCH_RADIO_CMD_ON_WITHIN_TIMESLOT);
                 /* Copy to radio buffer */
                 NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
@@ -915,7 +981,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         }
       }
 
-      tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
     }
 
     if(input_queue_drop != 0) {
@@ -1035,18 +1100,35 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         TSCH_ASN_INC(tsch_current_asn, timeslot_diff);
         /* Time to next wake up */
         time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length] + drift_correction;
+        time_to_next_active_slot += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
         drift_correction = 0;
         is_drift_correction_used = 0;
         /* Update current slot start */
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
-        current_slot_start += tsch_timesync_adaptive_compensate(time_to_next_active_slot);
+        if (tsch_next_timeslot_far(current_slot_start)){
+            tsch_radio_off(TSCH_RADIO_CMD_OFF_END_OF_TIMESLOT);
+        }
+        else {
+                TSCH_LOG_ADD(tsch_log_message,
+                             snprintf(log->message, sizeof(log->message)
+                                 , "TSCH:supress rf off, slot %ldus\n"
+                                 , (long)(time_to_next_active_slot-RTIMER_NOW())
+                                 );
+                );
+        }
+        if (tsch_rf_state < tsch_rfON)
+            time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
       } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
     tsch_in_slot_operation = 0;
+
+    if (!tsch_is_associated)
+        break;
     PT_YIELD(&slot_operation_pt);
-  }
+  }//while(tsch_is_associated)
+  tsch_radio_off(TSCH_RADIO_CMD_OFF_FORCE);
 
   PT_END(&slot_operation_pt);
 }
@@ -1076,6 +1158,8 @@ tsch_slot_operation_start(void)
     /* Update current slot start */
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
+    // forced use RF power prefetch, to ensure if RF powered off.
+    time_to_next_active_slot = tsch_next_slot_prefetched_time(time_to_next_active_slot);
   } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
 }
 /*---------------------------------------------------------------------------*/

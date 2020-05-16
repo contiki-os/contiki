@@ -106,6 +106,7 @@ static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {
   TSCH_DEFAULT_TS_MAX_ACK,
   TSCH_DEFAULT_TS_MAX_TX,
   TSCH_DEFAULT_TS_TIMESLOT_LENGTH,
+  TSCH_CONF_RFON_GUARD_TIME,
 };
 /* TSCH timeslot timing (in rtimer ticks) */
 rtimer_clock_t tsch_timing[tsch_ts_elements_count];
@@ -483,7 +484,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   /* TSCH timeslot timing */
-  for(i = 0; i < tsch_ts_elements_count; i++) {
+  for(i = 0; i < tsch_ts_netwide_count; i++) {
     if(ies.ie_tsch_timeslot_id == 0) {
       tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
     } else {

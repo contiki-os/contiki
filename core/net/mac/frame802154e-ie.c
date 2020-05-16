@@ -265,6 +265,7 @@ frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
 }
 
 /* MLME sub-IE. TSCH timeslot. Used in EBs: timeslot template (timing) */
+#define TSCH_IE_TIMESLOT_LEN (1+tsch_ts_netwide_count*2)
 int
 frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
@@ -274,12 +275,12 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     return -1;
   }
   /* Only ID if ID == 0, else full timing description */
-  ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : 25;
+  ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : TSCH_IE_TIMESLOT_LEN;
   if(len >= 2 + ie_len) {
     buf[2] = ies->ie_tsch_timeslot_id;
     if(ies->ie_tsch_timeslot_id != 0) {
       int i;
-      for(i = 0; i < tsch_ts_elements_count; i++) {
+      for(i = 0; i < tsch_ts_netwide_count; i++) {
         WRITE16(buf + 3 + 2 * i, ies->ie_tsch_timeslot[i]);
       }
     }
@@ -398,17 +399,22 @@ frame802154e_parse_mlme_short_ie(const uint8_t *buf, int len,
       }
       break;
     case MLME_SHORT_IE_TSCH_TIMESLOT:
-      if(len == 1 || len == 25) {
+      if(len == 1 || len == TSCH_IE_TIMESLOT_LEN) {
         if(ies != NULL) {
+          if(len == TSCH_IE_TIMESLOT_LEN) {
           ies->ie_tsch_timeslot_id = buf[0];
-          if(len == 25) {
             int i;
-            for(i = 0; i < tsch_ts_elements_count; i++) {
+            for(i = 0; i < tsch_ts_netwide_count; i++) {
               READ16(buf+1+2*i, ies->ie_tsch_timeslot[i]);
             }
           }
+          else
+            ies->ie_tsch_timeslot_id = 0;
         }
         return len;
+      }
+      else if(ies != NULL) {
+          ies->ie_tsch_timeslot_id = 0;
       }
       break;
   }
