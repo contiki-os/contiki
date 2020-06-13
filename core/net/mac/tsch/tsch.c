@@ -40,6 +40,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "contiki.h"
 #include "dev/radio.h"
 #include "net/netstack.h"
@@ -120,16 +121,26 @@ const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff } };
 const linkaddr_t tsch_eb_address = { { 0, 0 } };
 #endif /* LINKADDR_SIZE == 8 */
 
-/* Is TSCH started? */
-int tsch_is_started = 0;
+enum TSCH_StateID{
+      tschNONE
 /* Has TSCH initialization failed? */
-int tsch_is_initialized = 0;
+    , tschINITIALISED
+    , tschSTARTED
+    , tschDISABLED = tschSTARTED
+    , tschACTIVE
+};
+typedef enum TSCH_StateID TSCH_StateID;
+TSCH_StateID tsch_status = tschNONE;
+inline
+bool tsch_is_active(){return tsch_status >= tschACTIVE;}
+void tsch_activate(bool onoff);
+
 /* Are we coordinator of the TSCH network? */
-int tsch_is_coordinator = 0;
+bool tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
-int tsch_is_associated = 0;
+bool tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
-int tsch_is_pan_secured = LLSEC802154_ENABLED;
+bool tsch_is_pan_secured = LLSEC802154_ENABLED;
 /* The current Absolute Slot Number (ASN) */
 struct tsch_asn_t tsch_current_asn;
 /* Device rank or join priority:
@@ -158,14 +169,14 @@ static void packet_input(void);
 
 /*---------------------------------------------------------------------------*/
 void
-tsch_set_coordinator(int enable)
+tsch_set_coordinator(bool enable)
 {
   tsch_is_coordinator = enable;
   tsch_set_eb_period(TSCH_EB_PERIOD);
 }
 /*---------------------------------------------------------------------------*/
 void
-tsch_set_pan_secured(int enable)
+tsch_set_pan_secured(bool enable)
 {
   tsch_is_pan_secured = LLSEC802154_ENABLED && enable;
 }
@@ -194,7 +205,9 @@ tsch_reset(void)
   int i;
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
+  if(tsch_status > tschINITIALISED){
   process_post_synch(&tsch_pending_events_process, PROCESS_EVENT_POLL, NULL);
+  }
   /* Reset neighbor queues */
   tsch_queue_reset();
   /* Remove unused neighbors */
@@ -416,13 +429,32 @@ tsch_start_coordinator(void)
   tsch_slot_operation_sync(RTIMER_NOW(), &tsch_current_asn);
 }
 /*---------------------------------------------------------------------------*/
+void tsch_poll(void){
+    process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
+}
+
+void tsch_activate(bool onoff){
+    if (onoff){
+        if (tsch_status < tschACTIVE)
+            tsch_poll();
+        tsch_status = tschACTIVE;
+    }
+    else {
+        tsch_disassociate();
+        if (tsch_status >tschDISABLED) {
+            tsch_status = tschDISABLED;
+            tsch_poll();
+        }
+}
+}
+
 /* Leave the TSCH network */
 void
 tsch_disassociate(void)
 {
-  if(tsch_is_associated == 1) {
+  if(tsch_status >= tschACTIVE) {
     tsch_is_associated = 0;
-    process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
+    tsch_poll();
     PRINTF("TSCH: leaving the network\n");
   }
 }
@@ -602,6 +634,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
  */
 PT_THREAD(tsch_scan(struct pt *pt))
 {
+    if (tsch_status < tschACTIVE){
+        ANNOTATE("TSCH:scan abort\n");
+        PT_EXIT(pt);
+    }
+
   PT_BEGIN(pt);
 
   static struct input_packet input_eb;
@@ -682,6 +719,7 @@ PROCESS_THREAD(tsch_process, ev, data)
 
   while(1) {
 
+    PROCESS_YIELD_UNTIL(tsch_is_active());
     while(!tsch_is_associated) {
       if(tsch_is_coordinator) {
         /* We are coordinator, start operating now */
@@ -852,7 +890,7 @@ tsch_init(void)
   ringbufindex_init(&input_ringbuf, TSCH_MAX_INCOMING_PACKETS);
   ringbufindex_init(&dequeued_ringbuf, TSCH_DEQUEUED_ARRAY_SIZE);
 
-  tsch_is_initialized = 1;
+  tsch_status = tschINITIALISED;
 
 #if TSCH_AUTOSTART
   /* Start TSCH operation.
@@ -871,7 +909,7 @@ send_packet(mac_callback_t sent, void *ptr)
   const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
   if(!tsch_is_associated) {
-    if(!tsch_is_initialized) {
+    if(tsch_status < tschINITIALISED) {
       PRINTF("TSCH:! not initialized (see earlier logs), drop outgoing packet\n");
     } else {
       PRINTF("TSCH:! not associated, drop outgoing packet\n");
@@ -986,8 +1024,8 @@ packet_input(void)
 static int
 turn_on(void)
 {
-  if(tsch_is_initialized == 1 && tsch_is_started == 0) {
-    tsch_is_started = 1;
+  if(tsch_status == tschINITIALISED) {
+    tsch_status = tschSTARTED;
     /* Process tx/rx callback and log messages whenever polled */
     process_start(&tsch_pending_events_process, NULL);
     /* periodically send TSCH EBs */
@@ -995,10 +1033,10 @@ turn_on(void)
     /* try to associate to a network or start one if setup as coordinator */
     process_start(&tsch_process, NULL);
     PRINTF("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
+  }
+  tsch_activate(true);
     return 1;
   }
-  return 0;
-}
 /*---------------------------------------------------------------------------*/
 static int
 turn_off(int keep_radio_on)
@@ -1008,6 +1046,7 @@ turn_off(int keep_radio_on)
   } else {
     NETSTACK_RADIO.off();
   }
+  tsch_activate(false);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
