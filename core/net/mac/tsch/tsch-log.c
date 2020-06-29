@@ -125,13 +125,13 @@ tsch_log_process_pending(void)
         break;
       case tsch_log_fmt:
           LOG_PRINTF(log->fmt.text
-                     , log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3], log->fmt.arg[4]);
+                     , log->fmt.arg[0], log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3]);
         break;
 
       case tsch_log_fmt8:
           LOG_PRINTF(log->fmt.text
-                     , log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3], log->fmt.arg[4]
-                     , log->fmt.arg[5], log->fmt.arg[6], log->fmt.arg[7], log->fmt.arg[8]
+                     , log->fmt.arg[0], log->fmt.arg[1], log->fmt.arg[2], log->fmt.arg[3]
+                     , log->fmt.arg[4], log->fmt.arg[5], log->fmt.arg[6], log->fmt.arg[7]
                      );
         break;
 
@@ -214,19 +214,19 @@ void tsch_log_puts(const char* txt){
 void tsch_log_printf3(const char* fmt, int arg1, int arg2, int arg3){
     TSCH_LOG_ADD(tsch_log_fmt,
                  log->fmt.text = fmt;
-                 log->fmt.arg[1] = arg1;
-                 log->fmt.arg[2] = arg2;
-                 log->fmt.arg[3] = arg3;
+                 log->fmt.arg[0] = arg1;
+                 log->fmt.arg[1] = arg2;
+                 log->fmt.arg[2] = arg3;
                  );
 }
 
 void tsch_log_printf4(const char* fmt, int arg1, int arg2, int arg3, int arg4){
     TSCH_LOG_ADD(tsch_log_fmt,
                  log->fmt.text = fmt;
-                 log->fmt.arg[1] = arg1;
-                 log->fmt.arg[2] = arg2;
-                 log->fmt.arg[3] = arg3;
-                 log->fmt.arg[4] = arg4;
+                 log->fmt.arg[0] = arg1;
+                 log->fmt.arg[1] = arg2;
+                 log->fmt.arg[2] = arg3;
+                 log->fmt.arg[3] = arg4;
                  );
 }
 
@@ -235,14 +235,14 @@ void tsch_log_printf8(const char* fmt
                       , int arg5, int arg6, int arg7, int arg8){
     TSCH_LOG_ADD(tsch_log_fmt8,
                  log->fmt.text = fmt;
-                 log->fmt.arg[1] = arg1;
-                 log->fmt.arg[2] = arg2;
-                 log->fmt.arg[3] = arg3;
-                 log->fmt.arg[4] = arg4;
-                 log->fmt.arg[5] = arg5;
-                 log->fmt.arg[6] = arg6;
-                 log->fmt.arg[7] = arg7;
-                 log->fmt.arg[8] = arg8;
+                 log->fmt.arg[0] = arg1;
+                 log->fmt.arg[1] = arg2;
+                 log->fmt.arg[2] = arg3;
+                 log->fmt.arg[3] = arg4;
+                 log->fmt.arg[4] = arg5;
+                 log->fmt.arg[5] = arg6;
+                 log->fmt.arg[6] = arg7;
+                 log->fmt.arg[7] = arg8;
                  );
 }
 
