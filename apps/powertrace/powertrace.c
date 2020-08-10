@@ -32,9 +32,9 @@
 
 /**
  * \file
- *         Powertrace: periodically print out power consumption
+ *         Powertrace and KIBAM battery
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Code changed by André Riker <ariker@dei.uc.pt>
  */
 
 #include "contiki.h"
@@ -42,6 +42,7 @@
 #include "sys/compower.h"
 #include "powertrace.h"
 #include "net/rime/rime.h"
+#include <math.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -67,11 +68,78 @@ struct powertrace_sniff_stats {
 MEMB(stats_memb, struct powertrace_sniff_stats, MAX_NUM_STATS);
 LIST(stats_list);
 
+
+
+
 PROCESS(powertrace_process, "Periodic power output");
+
+
+
+//####################################################################
+//############# Piece of Code Added By André Riker ###################
+//############# KIBAM BATTERY FOR CONTIKI ############################
+//####################################################################
+
+
+unsigned timer_couter=0;
+unsigned btt_interval_sec;
+unsigned btt_interval_min;
+double total_consumption=0;
+double periodic_consumption=0;
+
+
+
+struct battery{
+  // Maximum amount of charge in battery (microAh) - static
+   double qmax;
+  // Available charge at beginning of time step (microAh)
+   long double q1_0;
+  // Bound charge at beginning of time step (microAh)
+   long double q2_0;
+  // Battery rate constant (rate at which chemically bound charge becomes available)
+   double k;
+  // Battery capacity ratio (fraction of total charge that is available) 
+   double c;
+  // Charge (-) or discharge (+) current of battery (A)
+   double i;
+  // Length of time step (micro hours)
+   double dt;
+  // parameter of the Kinetic model that is the result of exp(-k * dt)
+   double r;
+}; struct battery batt; // Parameters of the Battery 
+
+struct stats{
+unsigned long cpu;
+unsigned long lpm;
+unsigned long transmit;
+unsigned long listen;
+unsigned long idle_transmit;
+unsigned long idle_listen;
+}; struct stats stats_com;
+
+struct energy_states{
+	double active; //8Mhz
+	double low_power;
+	double tx;
+	double rx;
+}; 
+
+// Intiate the struct with the eletrical current values in microA 
+// for the following states: active, low power CPU, Tx and Rx.
+// Current values for Wismote (microA)
+struct energy_states i_energyStt = {0.001200*1000000, 0.000090*1000000, 0.0336*1000000, 0.0185*1000000};
+
+//###############################################################################################
+//###############################################################################################
+//###############################################################################################
+
+
 /*---------------------------------------------------------------------------*/
 void
 powertrace_print(char *str)
 {
+
+	
   static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
   static unsigned long last_idle_transmit, last_idle_listen;
 
@@ -86,7 +154,7 @@ powertrace_print(char *str)
   
   struct powertrace_sniff_stats *s;
 
-  energest_flush();
+  energest_flush();	
 
   all_cpu = energest_type_time(ENERGEST_TYPE_CPU);
   all_lpm = energest_type_time(ENERGEST_TYPE_LPM);
@@ -109,13 +177,20 @@ powertrace_print(char *str)
   last_idle_listen = compower_idle_activity.listen;
   last_idle_transmit = compower_idle_activity.transmit;
 
+// ARIKER> KIBAM VARIALBES
+  stats_com.cpu=cpu;
+  stats_com.lpm=lpm;
+  stats_com.transmit=transmit;
+  stats_com.listen=listen;
+  stats_com.idle_transmit=idle_transmit;
+  stats_com.idle_listen=idle_listen;
+
   radio = transmit + listen;
   time = cpu + lpm;
   all_time = all_cpu + all_lpm;
-  all_radio = energest_type_time(ENERGEST_TYPE_LISTEN) +
-    energest_type_time(ENERGEST_TYPE_TRANSMIT);
+  all_radio = energest_type_time(ENERGEST_TYPE_LISTEN) + energest_type_time(ENERGEST_TYPE_TRANSMIT);
 
-  printf("%s %lu P %d.%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% / %d.%02d%% tx %d.%02d%% / %d.%02d%% listen %d.%02d%% / %d.%02d%%)\n",
+/*printf("Printing POWERTRACE stats: \n %s clock_time: %lu P %d.%d seqno %lu all_cpu %lu all_lpm %lu all_transmit %lu all_listen %lu all_idle_transmit %lu all_idle_listen %lu cpu %lu lpm %lu transmit %lu listen %lu idle_transmit %lu idle_listen %lu \n (radio %d.%02d%% / %d.%02d%% tx %d.%02d%% / %d.%02d%% listen %d.%02d%% / %d.%02d%%)\n\n",
          str,
          clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
          all_cpu, all_lpm, all_transmit, all_listen, all_idle_transmit, all_idle_listen,
@@ -132,6 +207,9 @@ powertrace_print(char *str)
          (int)((10000L * all_listen) / all_time - (100L * all_listen / all_time) * 100),
          (int)((100L * listen) / time),
          (int)((10000L * listen) / time - (100L * listen / time) * 100));
+
+printf("-------------------------------------------\n");
+*/
 
   for(s = list_head(stats_list); s != NULL; s = list_item_next(s)) {
 
@@ -207,17 +285,54 @@ PROCESS_THREAD(powertrace_process, ev, data)
   while(1) {
     PROCESS_WAIT_UNTIL(etimer_expired(&periodic));
     etimer_reset(&periodic);
-    powertrace_print("");
+    // Ariker> Kibam Code
+    update_battery();
   }
 
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------- RIKER ----------------------------------*/
+//############################################################################
+//####################### This Function has been Changed #####################
+//####################### to enable Kibam Battery module #####################
+//############################################################################
+/*---------------------------------------------------------------------------*/
 void
-powertrace_start(clock_time_t period)
+powertrace_start(clock_time_t period, unsigned seconds, double fixed_perc_energy, unsigned variation)
 {
+	double random_variable;
+	random_variable = fixed_perc_energy + ((rand() % variation)*0.01);
+
+	printf("-------------------------------------------\n");
+	printf("KIBAM Battery has been started \n");
+	
+	printf("KIBAM Battery: rand() is %u and Random variable is %u \n",(unsigned) rand()%variation, (unsigned) (random_variable*100));
+	
+	batt.qmax = 1*1000000;
+	batt.q1_0 = 1*1000000 * random_variable;
+	batt.q2_0 = batt.qmax * (1 - random_variable) ; // q1 and q2 should start balanced
+	batt.k = 0.1;
+	batt.c = batt.q1_0/batt.qmax;
+	batt.i = 0; 
+	batt.dt = 0;
+	batt.r = 0;
+
+
+	printf("KIBAM Battery: qmax = %lu | q1 = %lu | q2 = %lu \n",(long unsigned) batt.qmax, (long unsigned) batt.q1_0, (long unsigned) batt.q2_0);
+	printf("-------------------------------------------\n");
+	
+	btt_interval_sec=seconds;//gives it in seconds
+	btt_interval_min=seconds/60;
+
+
   process_start(&powertrace_process, (void *)&period);
 }
+//###############################################################################
+//###############################################################################
+//###############################################################################
+//###############################################################################
 /*---------------------------------------------------------------------------*/
 void
 powertrace_stop(void)
@@ -358,3 +473,119 @@ powertrace_sniff(powertrace_onoff_t onoff)
     break;
   }
 }
+
+
+//####################################################################
+//############# Piece of Code Added By André Riker ###################
+//############# KIBAM BATTERY FOR CONTIKI ############################
+//####################################################################
+
+
+void kinetic_model(){
+double q0, q1, q2, id_max, ic_max;
+	q0 = batt.q1_0 + batt.q2_0;
+    
+    // Calculate maximum discharge and charging currents
+    // id : current discharging
+    // ic : current charging
+    id_max = (batt.k * batt.q1_0 * batt.r + q0 * batt.k * batt.c * (1 - batt.r)) / (1 - batt.r + batt.c * (batt.k * batt.dt - 1 + batt.r));
+    ic_max = (-batt.k * batt.c * batt.qmax + batt.k * batt.q1_0 * batt.r + q0 * batt.k * batt.c * (1 - batt.r)) / (1 - batt.r + batt.c * (batt.k * batt.dt - 1 + batt.r));
+    
+    // Check if battery current is within maximum bounds
+    // If not, set battery current to limits
+    if (batt.i > id_max) batt.i = id_max;
+    if (batt.i < ic_max) batt.i = ic_max;
+    
+    // Update the available and bound charge
+    q1 =  batt.q1_0 * batt.r + ((q0 * batt.k * batt.c - batt.i) * (1 - batt.r) - batt.i * batt.c * (batt.k * batt.dt - 1 + batt.r)) / batt.k ;
+    q2 =  batt.q2_0 * batt.r + q0 * (1 - batt.c) * (1 - batt.r) - batt.i * (1 - batt.c) * (batt.k * batt.dt - 1 + batt.r) / batt.k ;
+    
+    batt.q1_0 = q1;
+    batt.q2_0 = q2;
+
+	}
+
+
+void update_battery(){
+
+  // HARVESTING: Increment a state here
+  int num_states=4;
+  double current_draw[num_states];
+  unsigned long time_each_stt[num_states];
+  int stt_couter;
+  
+  // Variables related to Time conversion
+  double convert_tick2sec=0.000030517578125;//A single time tick
+  double convert_sec2hour=0.0002777777777778;// 1/3600
+  unsigned long convert_tick2nano=30517;// a nanoseconds for a single time tick
+
+  //-------- Set the current spend/collect in every state -----------------
+  current_draw[0] = i_energyStt.active;
+  current_draw[1] = i_energyStt.low_power;
+  current_draw[2] = i_energyStt.tx;
+  current_draw[3] = i_energyStt.rx;
+  
+  // HARVESTING: SET THE HARVESTING CURRENT
+  // current_draw[4] = solar_charging;
+  
+  //-------- Set the time spent in every state -----------------
+  powertrace_print("");// In this fuction time in state is updated
+  time_each_stt[0] = stats_com.cpu;
+  time_each_stt[1] = stats_com.lpm;
+  time_each_stt[2] = stats_com.transmit + stats_com.idle_transmit;
+  time_each_stt[3] = stats_com.listen + stats_com.idle_listen;
+
+  // HARVESTING: SET THE HARVESTING TIME
+  // time_each_stt[4] = harvesting time; 
+  
+//-------- call the Kinetic model -----------------
+  for(stt_couter=0;stt_couter<num_states;stt_couter++){
+	// Set the charging current (microA)
+	batt.i=current_draw[stt_couter];
+	
+
+	total_consumption=total_consumption + (current_draw[stt_couter]*time_each_stt[stt_couter]*convert_tick2sec*convert_sec2hour);
+	periodic_consumption = (current_draw[stt_couter]*time_each_stt[stt_couter]*convert_tick2sec*convert_sec2hour);
+
+	// Define the time step (hour)
+	batt.dt=time_each_stt[stt_couter]*convert_tick2sec*convert_sec2hour; // convert from seconds to hours
+	
+  
+	// Computing r
+	batt.r=expf(-batt.k * batt.dt);
+  
+	// Call kinetic model
+	kinetic_model();
+ 
+	// prints
+	printf("KIBAM Battery: Energy computation for state %d \n",stt_couter);
+	printf("KIBAM Battery: Available charge at next time interval is %lu (microAh) \n",(unsigned long) (batt.q1_0));
+	//printf("Battery: Bound charge at next time interval is %lu (microAh) \n",(unsigned long) (batt.q2_0));
+	printf("KIBAM Battery: Time in state %d in nanoseconds is %lu \n",stt_couter,(unsigned long)time_each_stt[stt_couter]*convert_tick2nano);
+	//printf("Battery: Number ticks in state %d is %lu \n",stt_couter,time_each_stt[stt_couter]);
+	printf("-------------------------------------------\n");
+  }
+  
+    // Print
+	printf("General Stats of the battery\n");
+	printf("KIBAM Battery: Residual (microAh); %lu; \n",(unsigned long) (batt.q1_0));
+	printf("KIBAM Battery: Bound charge at next time interval is %lu (microAh) \n",(unsigned long) (batt.q2_0));
+	printf("KIBAM Battery: Energy Total consumption (microA); %lu;  \n",(unsigned long) (total_consumption));
+	printf("KIBAM Battery: Energy Periodic consumption (microA); %d;  \n",(int) (periodic_consumption));
+	//printf("Energy: CPU ticks %lu, LPM %lu, Tx %lu, Rx %lu \n", stats_com.cpu, stats_com.lpm, stats_com.transmit, stats_com.listen);
+	printf("-------------------------------------------\n");
+
+  
+}
+
+long double get_battery_charge(){
+    return batt.q1_0;	
+}
+
+double get_max_charge(){
+    return batt.qmax;	
+}
+
+//###############################################################################################
+//###############################################################################################
+//###############################################################################################

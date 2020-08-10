@@ -42,7 +42,7 @@
 
 #include "sys/clock.h"
 
-void powertrace_start(clock_time_t perioc);
+void powertrace_start(clock_time_t period, unsigned seconds, double fixed_perc_energy, unsigned variation);
 void powertrace_stop(void);
 
 typedef enum {
