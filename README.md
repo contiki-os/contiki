@@ -17,3 +17,6 @@ and so on.
 For more information, see the Contiki website:
 
 [http://contiki-os.org](http://contiki-os.org)
+
+FOR RUNNING THIS WINDOWS:
+follow this [COOJA_WINDOWS!]https://github.com/gptshubham595/COOJA_WINDOWS
