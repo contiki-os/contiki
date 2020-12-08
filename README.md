@@ -16,4 +16,4 @@ and so on.
 
 For more information, see the Contiki website:
 
-[http://contiki-os.org](http://contiki-os.org)
+[http://www.contiki-os.org](http://www.contiki-os.org)
