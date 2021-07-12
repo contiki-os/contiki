@@ -52,6 +52,7 @@
  * When MRHOF (RFC6719) is used with ETX, no metric container must
  * be used; instead the rank carries ETX directly.
  */
+#define RPL_CONF_DAG_MC RPL_DAG_MC_FUZZY //anirudha
 #ifdef RPL_CONF_DAG_MC
 #define RPL_DAG_MC RPL_CONF_DAG_MC
 #else
@@ -63,6 +64,7 @@
  * RPL_CONF_OF parameter. This should be defined to be the name of an 
  * rpl_of object linked into the system image, e.g., rpl_of0.
  */
+#define RPL_CONF_OF rpl_fuzzy
 #ifdef RPL_CONF_OF
 #define RPL_OF RPL_CONF_OF
 #else

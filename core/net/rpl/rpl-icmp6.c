@@ -320,19 +320,11 @@ dio_input(void)
 
       if(dio.mc.type == RPL_DAG_MC_NONE) {
         /* No metric container: do nothing */
-      } else if(dio.mc.type == RPL_DAG_MC_ETX) {
+      } else if(dio.mc.type == RPL_DAG_MC_FUZZY) {
         dio.mc.obj.etx = get16(buffer, i + 6);
-
-        PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
-	       (unsigned)dio.mc.type,  
-	       (unsigned)dio.mc.flags, 
-	       (unsigned)dio.mc.aggr, 
-	       (unsigned)dio.mc.prec, 
-	       (unsigned)dio.mc.length, 
-	       (unsigned)dio.mc.obj.etx);
-      } else if(dio.mc.type == RPL_DAG_MC_ENERGY) {
-        dio.mc.obj.energy.flags = buffer[i + 6];
-        dio.mc.obj.energy.energy_est = buffer[i + 7];
+        dio.mc.obj.energy.flags = buffer[i + 8];
+        dio.mc.obj.energy.energy_est = buffer[i + 9];
+        dio.mc.obj.hopcount = get16(buffer, i + 10);
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
@@ -472,19 +464,19 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     instance->of->update_metric_container(instance);
 
     buffer[pos++] = RPL_OPTION_DAG_METRIC_CONTAINER;
-    buffer[pos++] = 6;
+    buffer[pos++] = 10;
     buffer[pos++] = instance->mc.type;
     buffer[pos++] = instance->mc.flags >> 1;
     buffer[pos] = (instance->mc.flags & 1) << 7;
     buffer[pos++] |= (instance->mc.aggr << 4) | instance->mc.prec;
-    if(instance->mc.type == RPL_DAG_MC_ETX) {
-      buffer[pos++] = 2;
+    if(instance->mc.type == RPL_DAG_MC_FUZZY) {
+      buffer[pos++] = 6;
       set16(buffer, pos, instance->mc.obj.etx);
       pos += 2;
-    } else if(instance->mc.type == RPL_DAG_MC_ENERGY) {
-      buffer[pos++] = 2;
       buffer[pos++] = instance->mc.obj.energy.flags;
       buffer[pos++] = instance->mc.obj.energy.energy_est;
+      set16(buffer, pos, instance->mc.obj.hopcount);
+      pos += 2;
     } else {
       PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
 	(unsigned)instance->mc.type);
