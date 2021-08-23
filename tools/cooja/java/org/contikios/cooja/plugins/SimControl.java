@@ -60,8 +60,8 @@ import org.contikios.cooja.VisPlugin;
 
 /**
  * Control panel for starting and pausing the current simulation.
- *
- * @author Fredrik Osterlind
+ * Mobility related features were added by Manish Kausik H
+ * @author Fredrik Osterlind, Manish Kausik H
  */
 @ClassDescription("Simulation control")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)

@@ -67,7 +67,8 @@ import org.contikios.cooja.Simulation;
 /**
  * A dialog for creating and configuring a simulation.
  *
- * @author Fredrik Osterlind
+ * Mobility related features were added by Manish Kausik H
+ * @author Fredrik Osterlind, Manish Kausik H
  */
 public class CreateSimDialog extends JDialog {
   private static final long serialVersionUID = 1L;

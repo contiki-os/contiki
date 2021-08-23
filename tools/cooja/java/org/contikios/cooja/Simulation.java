@@ -29,7 +29,7 @@
 package org.contikios.cooja;
 
 import java.util.*;
-import java.nio.*; //manish
+import java.nio.*; // added by manish
 
 import javax.swing.JOptionPane;
 
@@ -38,10 +38,10 @@ import org.jdom.Element;
 
 import org.contikios.cooja.dialogs.CreateSimDialog;
 //import org.contikios.cooja.mspmote.interfaces.SkyPositionUpdate;
-//import org.contikios.cooja.mspmote.MspMoteMemory; //manish
-import org.contikios.cooja.mote.memory.MemoryInterface; //manish
-import org.contikios.cooja.mote.memory.MemoryInterface.Symbol; //manish
-import org.contikios.cooja.interfaces.Position; //manish
+//import org.contikios.cooja.mspmote.MspMoteMemory; //added by manish
+import org.contikios.cooja.mote.memory.MemoryInterface; //added by manish
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol; //added by manish
+import org.contikios.cooja.interfaces.Position; //added by manish
 
 /**
  * A simulation consists of a number of motes and mote types.
@@ -50,7 +50,9 @@ import org.contikios.cooja.interfaces.Position; //manish
  * changed simulation state, added or deleted motes etc are observed.
  * To track mote changes, observe the mote (interfaces) itself.
  *
- * @author Fredrik Osterlind
+ * Mobility related features were added by Manish Kausik H
+ * @author Fredrik Osterlind, Manish Kausik H
+ 
  */
 public class Simulation extends Observable implements Runnable {
   public static final long MICROSECOND = 1L;
@@ -351,13 +353,6 @@ public class Simulation extends Observable implements Runnable {
         /*logger.info("Executing event #" + EVENT_COUNTER++ + " @ " + currentSimulationTime + ": " + nextEvent);*/
         nextEvent.execute(currentSimulationTime);
 
-        /*
-          Edit by Manish Kausik H
-         */
-//        updatePositions();
-        /*
-          End of Edit ny Manish Kausik H
-         */
 
         if (stopSimulation) {
           isRunning = false;
