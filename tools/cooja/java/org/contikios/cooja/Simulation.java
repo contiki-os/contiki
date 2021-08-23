@@ -28,13 +28,8 @@
 
 package org.contikios.cooja;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
+import java.nio.*; //manish
 
 import javax.swing.JOptionPane;
 
@@ -42,6 +37,11 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import org.contikios.cooja.dialogs.CreateSimDialog;
+//import org.contikios.cooja.mspmote.interfaces.SkyPositionUpdate;
+//import org.contikios.cooja.mspmote.MspMoteMemory; //manish
+import org.contikios.cooja.mote.memory.MemoryInterface; //manish
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol; //manish
+import org.contikios.cooja.interfaces.Position; //manish
 
 /**
  * A simulation consists of a number of motes and mote types.
@@ -111,6 +111,77 @@ public class Simulation extends Observable implements Runnable {
   /* Poll requests */
   private boolean hasPollRequests = false;
   private ArrayDeque<Runnable> pollRequests = new ArrayDeque<Runnable>();
+
+  /*
+      Edit by Manish Kausik H
+  */
+  private boolean trackPositions;
+  //Set trackPostions
+  public void setTrackPositions(boolean v){
+    this.trackPositions=v;
+  }
+  //Get TrackPositions
+  public boolean getTrackPosiions(){
+    return this.trackPositions;
+  }
+
+  private Vector<MemoryInterface> memInterfaces=new Vector<MemoryInterface>();
+  private Vector<Position> posInterfaces=new Vector<Position>();
+
+  private Timer position_tracking_scheduler=null;
+  private int position_update_interval=100;
+
+  private void setupMemoryAndPositionInterfaces(){
+    for(int i=0;i<motes.size();i++){
+      memInterfaces.add(
+              motes.get(i).getMemory()
+      );
+      posInterfaces.add(
+              motes.get(i).getInterfaces().getPosition()
+      );
+    }
+  }
+  public void updatePositions(){
+    for(int i=0;i<motes.size();i++){
+//      Map<String, Symbol> SymbolMap = memInterfaces.get(i).getSymbolMap();
+//      Symbol symx=null;
+//      Symbol symy=null;
+//      for(String s:SymbolMap.keySet()){
+//        if(s.startsWith("pos_x")){symx=SymbolMap.get(s);break;}
+//      }
+//      for(String s:SymbolMap.keySet()){
+//        if(s.startsWith("pos_y")){symy=SymbolMap.get(s);break;}
+//      }
+      Symbol symx = memInterfaces.get(i).getSymbolMap().get("pos_x");
+      Symbol symy = memInterfaces.get(i).getSymbolMap().get("pos_y");
+
+      byte[] ans_x = memInterfaces.get(i).getMemorySegment(symx.addr,symx.size);
+      byte[] ans_y = memInterfaces.get(i).getMemorySegment(symy.addr,symy.size);
+
+      float pos_x = ByteBuffer.wrap(ans_x).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+      float pos_y = ByteBuffer.wrap(ans_y).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+
+      System.out.println("X = "+pos_x+" , Y = "+pos_y);
+
+     posInterfaces.get(i).setCoordinates(pos_x, pos_y, posInterfaces.get(i).getZCoordinate());
+    }
+  }
+
+  public void startTrackingScheduler(){
+    position_tracking_scheduler = new Timer();
+    position_tracking_scheduler.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        updatePositions();
+      }
+    },500,position_update_interval);
+  }
+  public void stopTrackingScheduler(){
+    position_tracking_scheduler.cancel();
+  }
+  /*
+      End of Edit by Manish Kausik H
+   */
 
 
   /**
@@ -279,6 +350,14 @@ public class Simulation extends Observable implements Runnable {
         currentSimulationTime = nextEvent.time;
         /*logger.info("Executing event #" + EVENT_COUNTER++ + " @ " + currentSimulationTime + ": " + nextEvent);*/
         nextEvent.execute(currentSimulationTime);
+
+        /*
+          Edit by Manish Kausik H
+         */
+//        updatePositions();
+        /*
+          End of Edit ny Manish Kausik H
+         */
 
         if (stopSimulation) {
           isRunning = false;
@@ -481,7 +560,21 @@ public class Simulation extends Observable implements Runnable {
       element.setText("" + getSpeedLimit());
       config.add(element);
     }
+    /*
+      Edit made by Manish Kausik H
+     */
+    /* Position Tracking Related Information */
+    element = new Element("trackPositions");
+    element.setText(""+getTrackPosiions());
+    config.add(element);
 
+    element = new Element("Position_tracking_interval");
+    element.setText(""+position_update_interval);
+    config.add(element);
+
+    /*
+      End of Edit made by Manish Kausik H
+     */
     // Random seed
     element = new Element("randomseed");
     if (randomSeedGenerated) {
@@ -585,7 +678,21 @@ public class Simulation extends Observable implements Runnable {
           setSpeedLimit(Double.parseDouble(text));
         }
       }
-
+      /*
+        Edit made by Manish Kausik H
+       */
+      /* Max simulation speed */
+      if (element.getName().equals("trackPositions")) {
+        String text = element.getText();
+        setTrackPositions(Boolean.parseBoolean(text));
+      }
+      if (element.getName().equals("Position_tracking_interval")) {
+        String text = element.getText();
+        position_update_interval=Integer.parseInt(text);
+      }
+      /*
+        End of edit made by Manish Kausik H
+       */
       // Random seed
       if (element.getName().equals("randomseed")) {
         long newSeed;
@@ -846,6 +953,17 @@ public class Simulation extends Observable implements Runnable {
         }
 
         motes.add(mote);
+        /*
+          Edit by Manish Kausik H
+         */
+        if(getTrackPosiions()){
+          posInterfaces.add(mote.getInterfaces().getPosition());
+          memInterfaces.add(mote.getMemory());
+        }
+
+        /*
+          End of Edit by Manish Kausik H
+         */
         motesUninit.remove(mote);
         currentRadioMedium.registerMote(mote, Simulation.this);
 

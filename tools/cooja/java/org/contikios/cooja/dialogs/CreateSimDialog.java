@@ -80,6 +80,7 @@ public class CreateSimDialog extends JDialog {
 
   private JFormattedTextField randomSeed, delayedStartup;
   private JCheckBox randomSeedGenerated;
+  private JCheckBox trackPos; //edit by Manish  Kausik H
 
   private JTextField title;
   private JComboBox radioMediumBox;
@@ -313,7 +314,6 @@ public class CreateSimDialog extends JDialog {
           randomSeed.setValue(new Integer(123456));
         }
       }
-
     });
 
     horizBox.add(label);
@@ -323,6 +323,34 @@ public class CreateSimDialog extends JDialog {
     advancedBox.add(horizBox);
     advancedBox.add(Box.createVerticalStrut(5));
 
+    /*
+      Edit by Manish Kausik H
+     */
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Track Positions of Node");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    trackPos = new JCheckBox();
+    trackPos.setToolTipText("Tracks the positions of each node and updates them periodically");
+//    trackPos.addActionListener(new ActionListener() {
+//      public void actionPerformed(ActionEvent e) {
+//        /*
+//          Some changes related to how often to update etc can come here
+//         */
+//      }
+//    });
+
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(173));
+    horizBox.add(trackPos);
+
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalStrut(5));
+
+    /*
+      End of Edit by Manish Kausik H
+     */
     vertBox.add(advancedBox);
     vertBox.add(Box.createVerticalGlue());
 
@@ -363,6 +391,17 @@ public class CreateSimDialog extends JDialog {
         mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
       }
 
+      /*
+        Edit Made by Manish Kausik H
+       */
+      if(trackPos.isSelected()){
+        mySimulation.setTrackPositions(true);
+      }else{
+        mySimulation.setTrackPositions((false));
+      }
+      /*
+        End of Edit made by Manish Kausik H
+       */
       mySimulation.setDelayedMoteStartupTime((int) ((Number) delayedStartup.getValue()).intValue()*Simulation.MILLISECOND);
 
       dispose();

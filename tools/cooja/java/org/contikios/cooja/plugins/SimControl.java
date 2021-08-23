@@ -307,12 +307,31 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
   private Action startAction = new AbstractAction("Start") {
     public void actionPerformed(ActionEvent e) {
       simulation.startSimulation();
+      /*
+        Edit By Manish Kausik H
+       */
+      if(simulation.getTrackPosiions()){
+        simulation.startTrackingScheduler();
+      }
+      /*
+        End of edit by Manish Kausik H
+       */
       stopButton.requestFocus();
     }
   };
   private Action stopAction = new AbstractAction("Pause") {
     public void actionPerformed(ActionEvent e) {
       simulation.stopSimulation();
+      /*
+        Edit by Manish Kausik H
+       */
+      if(simulation.getTrackPosiions()){
+        simulation.stopTrackingScheduler();
+      }
+
+      /*
+        End of Edit by Manish Kausik H
+       */
       startButton.requestFocus();
     }
   };
@@ -324,6 +343,15 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
   private Action reloadAction = new AbstractAction("Reload") {
     public void actionPerformed(ActionEvent e) {
       simulation.getCooja().reloadCurrentSimulation(simulation.isRunning());
+      /*
+        Edit By Manish Kausik H
+       */
+      if(simulation.getTrackPosiions()){
+        simulation.startTrackingScheduler();
+      }
+      /*
+        End of edit by Manish Kausik H
+       */
     }
   };
 
