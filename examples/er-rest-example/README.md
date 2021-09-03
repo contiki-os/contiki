@@ -34,7 +34,7 @@ PRELIMINARIES
 COOJA HOWTO
 -----------
 
-###Server only:
+### Server only:
 
     make TARGET=cooja server-only.csc
 
@@ -47,7 +47,7 @@ Open new terminal
   requesting /test/separate
 - Do the same when observing /test/event
 
-###With client:
+### With client:
 
     make TARGET=cooja server-client.csc
 
@@ -62,7 +62,7 @@ Open new terminal
 TMOTES HOWTO
 ------------
 
-###Server:
+### Server:
 
 1. Connect two Tmote Skys (check with $ make TARGET=sky sky-motelist)
 
