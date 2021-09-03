@@ -4,31 +4,36 @@ A Quick Introduction to the Erbium (Er) REST Engine
 EXAMPLE FILES
 -------------
 
-- er-example-server.c: A RESTful server example showing how to use the REST
+- `er-example-server.c`: A RESTful server example showing how to use the REST
   layer to develop server-side applications (at the moment only CoAP is
   implemented for the REST Engine).
-- er-example-client.c: A CoAP client that polls the /actuators/toggle resource
+- `er-example-client.c`: A CoAP client that polls the /actuators/toggle resource
   every 10 seconds and cycles through 4 resources on button press (target
   address is hard-coded).
-- er-plugtest-server.c: The server used for draft compliance testing at ETSI
+- `er-plugtest-server.c`: The server used for draft compliance testing at ETSI
   IoT CoAP Plugtests. Erbium (Er) participated in Paris, France, March 2012 and
   Sophia-Antipolis, France, November 2012 (configured for minimal-net).
 
 PRELIMINARIES
 -------------
 
-- Make sure rpl-border-router has the same stack and fits into mote memory:
-  You can disable RDC in border-router project-conf.h (not really required as BR keeps radio turned on).
-    #undef NETSTACK_CONF_RDC
-    #define NETSTACK_CONF_RDC     nullrdc_driver
+- Make sure `rpl-border-router` has the same stack and fits into mote memory:
+  You can disable RDC in border-router `project-conf.h` (not really required as BR keeps radio turned on).
+  
+      #undef NETSTACK_CONF_RDC
+      #define NETSTACK_CONF_RDC     nullrdc_driver
+
 - Alternatively, you can use the native-border-router together with the slip-radio.
 - For convenience, define the Cooja addresses in /etc/hosts
+
       fd00::0212:7401:0001:0101 cooja1
       fd00::0212:7402:0002:0202 cooja2
       ...
+
 - Get the Copper (Cu) CoAP user-agent from
   [https://addons.mozilla.org/en-US/firefox/addon/copper-270430](https://addons.mozilla.org/en-US/firefox/addon/copper-270430)
 - Optional: Save your target as default target
+
       make TARGET=sky savetarget
 
 COOJA HOWTO
@@ -64,7 +69,7 @@ TMOTES HOWTO
 
 ###Server:
 
-1. Connect two Tmote Skys (check with $ make TARGET=sky sky-motelist)
+1. Connect two Tmote Skys (check with `$ make TARGET=sky sky-motelist`)
 
         make TARGET=sky er-example-server.upload MOTE=2
         make TARGET=sky login MOTE=2
@@ -86,7 +91,7 @@ TMOTES HOWTO
 
 ### Add a client:
 
-1. Change the hard-coded server address in er-example-client.c to fd00::____:____:____:____
+1. Change the hard-coded server address in `er-example-client.c` to fd00::____:____:____:____
 2. Connect a third Tmote Sky
 
         make TARGET=sky er-example-client.upload MOTE=3
@@ -94,9 +99,9 @@ TMOTES HOWTO
 MINIMAL-NET HOWTO
 -----------------
 
-With the target minimal-net you can test your CoAP applications without
+With the target `minimal-net` you can test your CoAP applications without
 constraints, i.e., with large buffers, debug output, memory protection, etc.
-The er-plugtest-server is thought for the minimal-net platform, as it requires
+The `er-plugtest-server` is thought for the `minimal-net` platform, as it requires
 an 1280-byte IP buffer and 1024-byte blocks.
 
         make TARGET=minimal-net er-plugtest-server
@@ -110,7 +115,7 @@ Open new terminal
 - You can enable the ETSI Plugtest menu in Copper's preferences
 
 Under Windows/Cygwin, WPCAP might need a patch in
-<cygwin>\usr\include\w32api\in6addr.h:
+`<cygwin>\usr\include\w32api\in6addr.h`:
 
     21,23c21
     < #ifdef __INSIDE_CYGWIN__
@@ -127,17 +132,17 @@ DETAILS
 -------
 
 Erbium implements the Proposed Standard of CoAP. Central features are commented
-in er-example-server.c.  In general, apps/er-coap supports:
+in `er-example-server.c`.  In general, apps/er-coap supports:
 
 - All draft-18 header options
-- CON Retransmissions (note COAP_MAX_OPEN_TRANSACTIONS)
-- Blockwise Transfers (note REST_MAX_CHUNK_SIZE, see er-plugtest-server.c for
+- CON Retransmissions (note `COAP_MAX_OPEN_TRANSACTIONS`)
+- Blockwise Transfers (note `REST_MAX_CHUNK_SIZE`, see `er-plugtest-server.c` for
   Block1 uploads)
-- Separate Responses (no rest_set_pre_handler() required anymore, note
-  coap_separate_accept(), _reject(), and _resume())
+- Separate Responses (no `rest_set_pre_handler()` required anymore, note
+  `coap_separate_accept()`, `coap_separate_reject()`, and `coap_separate_resume()`)
 - Resource Discovery
-- Observing Resources (see EVENT_ and PRERIODIC_RESOURCE, note
-  COAP_MAX_OBSERVERS)
+- Observing Resources (see `EVENT_RESOURCE` and `PERIODIC_RESOURCE`, note
+  `COAP_MAX_OBSERVERS`)
 
 TODOs
 -----
