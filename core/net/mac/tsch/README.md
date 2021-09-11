@@ -208,6 +208,6 @@ too slow for the default 10ms timeslots.
 2. [IETF 6TiSCH Working Group][ietf-6tisch-wg]
 3. [A test procedure for Contiki timers in TSCH][tsch-sync-test]
 
-[ieee802.15.4e-2012]: http://standards.ieee.org/getieee802/download/802.15.4e-2012.pdf
+[ieee802.15.4e-2012]: https://ieeexplore.ieee.org/document/6185525
 [ietf-6tisch-wg]: https://datatracker.ietf.org/wg/6tisch
 [tsch-sync-test]: https://github.com/abbypjoby/Contiki-Synchronisation-Test
