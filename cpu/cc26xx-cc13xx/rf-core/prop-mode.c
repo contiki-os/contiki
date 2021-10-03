@@ -708,8 +708,7 @@ transmit(unsigned short transmit_len)
 
   if(ret) {
     /* If we enter here, TX actually started */
-    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-    ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+    ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
 
     watchdog_periodic();
 
@@ -740,8 +739,7 @@ transmit(unsigned short transmit_len)
    * Update ENERGEST state here, before a potential call to off(), which
    * will correctly update it if required.
    */
-  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  ENERGEST_SWITCH(ENERGEST_TYPE_TRANSMIT, ENERGEST_TYPE_LISTEN);
 
   /*
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
