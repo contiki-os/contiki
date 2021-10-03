@@ -536,8 +536,7 @@ stm32w_radio_transmit(unsigned short payload_len)
   last_tx_status = -1;
   LED_TX_ON();
   if(ST_RadioTransmit(stm32w_txbuf) == ST_SUCCESS) {
-    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-    ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+    ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
     PRINTF("stm32w: sending %d bytes\r\n", payload_len);
 
 #if DEBUG > 1
@@ -704,8 +703,7 @@ void
 ST_RadioTransmitCompleteIsrCallback(StStatus status,
                                     uint32_t txSyncTime, boolean framePending)
 {
-  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  ENERGEST_SWITCH(ENERGEST_TYPE_TRANSMIT, ENERGEST_TYPE_LISTEN);
   LED_TX_OFF();
 
   last_tx_status = status;
@@ -718,8 +716,7 @@ ST_RadioTransmitCompleteIsrCallback(StStatus status,
       /* Retransmission */
       LED_TX_ON();
       if(ST_RadioTransmit(stm32w_txbuf) == ST_SUCCESS) {
-        ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-        ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+        ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
         PRINTF("stm32w: retransmission.\r\n");
         DEC_RETRY_CNT();
       } else {
