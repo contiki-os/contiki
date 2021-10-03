@@ -739,9 +739,7 @@ mrf24j40_prepare(const void *data, unsigned short len)
 
   mrf24j40_on();
 
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-
-  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
 
   mrf24j40_set_txfifo(data, len);
 
@@ -765,10 +763,8 @@ mrf24j40_transmit(unsigned short len)
 
   mrf24j40_on();
 
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
 
-  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-  
   status_tx = MRF24J40_TX_WAIT;
 
   set_short_add_mem(MRF24J40_TXNCON, 0b00000001);
@@ -829,10 +825,8 @@ mrf24j40_cca(void)
 
   mrf24j40_on();
 
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LISTEN, ENERGEST_TYPE_TRANSMIT);
 
-  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-  
   ret = mrf24j40_get_rssi() <= 95; /* -69dbm */
   
   if(!receive_was_on) {
