@@ -34,7 +34,7 @@ import org.contikios.cooja.mote.memory.MemoryLayout.DataType;
 /**
  * Basic routines for memory access with multi-arch support.
  *
- * Handles endianess, integer size and address size.
+ * Handles endianness, integer size and address size.
  *
  * Supports padding/aligning.
  *
@@ -85,7 +85,7 @@ public class MemoryBuffer {
    */
   public static MemoryBuffer wrap(MemoryLayout layout, byte[] array, DataType[] structure) {
     ByteBuffer b = ByteBuffer.wrap(array);
-    b.order(layout.order); // preset endianess
+    b.order(layout.order); // preset endianness
     return new MemoryBuffer(layout, b, structure);
   }
 

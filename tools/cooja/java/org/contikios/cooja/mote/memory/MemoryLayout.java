@@ -32,7 +32,7 @@ package org.contikios.cooja.mote.memory;
 import java.nio.ByteOrder;
 
 /**
- * Holds memory layout informations such as endianess, wordsize, C int size.
+ * Holds memory layout informations such as endianness, wordsize, C int size.
  * 
  * @author Enrico Jorns
  */
@@ -174,13 +174,13 @@ public class MemoryLayout {
   /**
    * Returns information string for this MemoryLayout.
    * 
-   * @return String that shows Endianess and word size.
+   * @return String that shows Endianness and word size.
    */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     return sb.append("MemoryLayout: ")
-            .append("Endianess: ").append(order)
+            .append("Endianness: ").append(order)
             .append(", WORD_SIZE: ").append(WORD_SIZE)
             .toString();
   }

@@ -9989,11 +9989,11 @@
 #define SCS_AIRCR_VECTKEY_MASK                       (0xFFFF0000u)
 #define SCS_AIRCR_VECTKEY_BIT                        (16)
 #define SCS_AIRCR_VECTKEY_BITS                       (16)
-/* ENDIANESS field */
-#define SCS_AIRCR_ENDIANESS                          (0x00008000u)
-#define SCS_AIRCR_ENDIANESS_MASK                     (0x00008000u)
-#define SCS_AIRCR_ENDIANESS_BIT                      (15)
-#define SCS_AIRCR_ENDIANESS_BITS                     (1)
+/* ENDIANNESS field */
+#define SCS_AIRCR_ENDIANNESS                          (0x00008000u)
+#define SCS_AIRCR_ENDIANNESS_MASK                     (0x00008000u)
+#define SCS_AIRCR_ENDIANNESS_BIT                      (15)
+#define SCS_AIRCR_ENDIANNESS_BITS                     (1)
 /* PRIGROUP field */
 #define SCS_AIRCR_PRIGROUP                           (0x00000700u)
 #define SCS_AIRCR_PRIGROUP_MASK                      (0x00000700u)

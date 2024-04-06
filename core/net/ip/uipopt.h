@@ -598,7 +598,7 @@ void uip_log(char *msg);
  * \defgroup uipoptcpu CPU architecture configuration
  * @{
  *
- * The CPU architecture configuration is where the endianess of the
+ * The CPU architecture configuration is where the endianness of the
  * CPU on which uIP is to be run is specified. Most CPUs today are
  * little endian, and the most notable exception are the Motorolas
  * which are big endian. The BYTE_ORDER macro should be changed to

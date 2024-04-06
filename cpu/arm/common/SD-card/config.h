@@ -53,7 +53,7 @@
       #define CLUSTER_PREALLOC_DIRECTORY 0
 
 
-/* Endianess configuration
+/* Endianness configuration
    -----------------------
    
  * Here you can configure wheter your architecture is little or big endian. This

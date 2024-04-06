@@ -7375,11 +7375,11 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 /* AIRCR[VECTKEYSTAT] - Reads as 0xFA05 */
 #define AIRCR_VECTKEYSTAT_MSK          (0xFFFF << 16 )
 
-/* AIRCR[ENDIANESS] - This bit is static or configured by a hardware input on reset */
-#define AIRCR_ENDIANESS_MSK            (0x1   << 15 )
-#define AIRCR_ENDIANESS                (0x1   << 15 )
-#define AIRCR_ENDIANESS_DIS            (0x0   << 15 ) /* DIS                      */
-#define AIRCR_ENDIANESS_EN             (0x1   << 15 ) /* EN                       */
+/* AIRCR[ENDIANNESS] - This bit is static or configured by a hardware input on reset */
+#define AIRCR_ENDIANNESS_MSK            (0x1   << 15 )
+#define AIRCR_ENDIANNESS                (0x1   << 15 )
+#define AIRCR_ENDIANNESS_DIS            (0x0   << 15 ) /* DIS                      */
+#define AIRCR_ENDIANNESS_EN             (0x1   << 15 ) /* EN                       */
 
 /* AIRCR[PRIGROUP] - Priority grouping position */
 #define AIRCR_PRIGROUP_MSK             (0x7   << 8  )

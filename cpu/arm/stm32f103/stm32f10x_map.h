@@ -2573,7 +2573,7 @@ typedef struct
 #define  SCB_AIRCR_PRIGROUP6                 ((u32)0x00000600)        /* Priority group=6 (1 bit of pre-emption priority, 7 bits of subpriority) */
 #define  SCB_AIRCR_PRIGROUP7                 ((u32)0x00000700)        /* Priority group=7 (no pre-emption priority, 8 bits of subpriority) */
 
-#define  SCB_AIRCR_ENDIANESS                 ((u32)0x00008000)        /* Data endianness bit */
+#define  SCB_AIRCR_ENDIANNESS                 ((u32)0x00008000)        /* Data endianness bit */
 #define  SCB_AIRCR_VECTKEY                   ((u32)0xFFFF0000)        /* Register key (VECTKEY) - Reads as 0xFA05 (VECTKEYSTAT) */
 
 
