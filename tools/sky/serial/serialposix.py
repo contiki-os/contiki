@@ -11,6 +11,7 @@
 
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
+import time
 
 VERSION = string.split("$Revision: 1.1 $")[1]     #extract CVS version
 
@@ -390,3 +391,4 @@ if __name__ == '__main__':
     print repr(s.read(5))
     print s.inWaiting()
     del s
+    time.sleep(1)

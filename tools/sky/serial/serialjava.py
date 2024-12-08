@@ -5,9 +5,12 @@
 #(C) 2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-import sys, os, string, javax.comm
+import sys, 
 import serialutil
-
+import javax.comm
+import time
+import os
+import string
 VERSION = string.split("$Revision: 1.1 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
@@ -192,6 +195,7 @@ if __name__ == '__main__':
     print repr(s.read(5))
     print s.inWaiting()
     del s
+    time.sleep(1)
 
 
 

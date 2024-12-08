@@ -10,7 +10,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 import sys, string
 import serialutil
-
+import time
 VERSION = string.split("$Revision: 1.1 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
@@ -277,4 +277,5 @@ class Serial(serialutil.FileLike):
 if __name__ == '__main__':
     print __name__
     s = Serial(0)
+	time.sleep(1)
 

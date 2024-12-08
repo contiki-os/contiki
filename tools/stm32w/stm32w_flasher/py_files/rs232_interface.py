@@ -1052,4 +1052,5 @@ def portType(port):
 
 def u32ToArray(v):
 	return [(v & 255), ((v >> 8) & 255), ((v >> 16) & 255), ((v >> 24) & 255)]
+        time.sleep(1)
 

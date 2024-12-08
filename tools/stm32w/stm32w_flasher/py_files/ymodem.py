@@ -235,7 +235,9 @@ class Ymodem():
 		return returnValue
 
 	def startApplication(self):
+		time.sleep(1)
 		return None
+	     
 
 
 

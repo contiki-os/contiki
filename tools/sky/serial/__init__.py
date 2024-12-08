@@ -5,7 +5,11 @@
 # (C)2001-2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-import sys, os, string
+import sys, 
+import os
+import string
+import time 
+
 VERSION = string.split("$Revision: 1.1 $")[1]     #extract CVS version
 
 #chose an implementation, depending on os
@@ -17,5 +21,5 @@ elif os.name == 'java':
     from serialjava import *
 else:
     raise "Sorry no implementation for your platform available."
-
+    time.sleep(1)
 #no "mac" implementation. someone want's to write it? i have no access to a mac.

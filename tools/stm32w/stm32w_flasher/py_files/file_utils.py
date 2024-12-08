@@ -3,6 +3,7 @@
 # Extraction and little adaptation performed by E.Duble (CNRS, LIG).
 
 import struct
+import time
 
 
 class Error(Exception):
@@ -39,11 +40,13 @@ class fileFormatReader(object):
 			bytesRaw = f.read()
 			bytes = []
 			bytes.extend(struct.unpack(('B' * len(bytesRaw)), bytesRaw))
+			time.sleep (1)
 			f.close()
 		else:
 			if self.filename[-4:] == '.s37':
 				fillChar = 255
 				fileContent = f.readlines()
+				time.sleep (1)
 				f.close()
 				startAddress = None
 				currentAddress = None
@@ -71,13 +74,16 @@ class fileFormatReader(object):
 							continue
 						else:
 							if line[:2] == 'S7':
+								time (1)
 								break
 							else:
 								raise FileFormatError(self.filename, 'S37: unknown field type')
+								time (1)
 				self.startAddress = startAddress
 			else:
 				raise FileFormatError(self.filename, 'Unknown extension')
+				time (1)
 		return (self.startAddress, bytes)
-
+                time.sleep (1)
 
 

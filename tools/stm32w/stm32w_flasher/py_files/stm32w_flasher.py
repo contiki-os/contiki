@@ -276,5 +276,6 @@ if __name__ == '__main__':
             if interfaceHandle:
                 terminateInterface(interfaceHandle)
             sys.exit(-1)
+            time.sleep(1)
 
 
